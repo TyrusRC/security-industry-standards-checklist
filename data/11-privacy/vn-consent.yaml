@@ -1,0 +1,166 @@
+- id: PRIV-VNCONSENT-001
+  sheet: PRIV
+  category: VNCONSENT
+  title: Check that the consent screen shows the four required facts
+  objective: Finds consent that is not informed because required facts are missing.
+  steps:
+  - Open each form or screen that asks for consent.
+  - Look for the types of personal data to be processed.
+  - Look for the purpose, the name of the controller or other organisation, and the rights and duties of the user.
+  - Compare the facts with the real processing.
+  example: Screenshot each consent screen and list the four facts in a table.
+  expected: Each consent request shows data types, purpose, the organisation that processes the data, and the rights and duties of the data subject.
+  severity: Medium
+  test_type: &id001
+  - Manual
+  refs:
+    privacy_top10:
+    - P5
+    - P4
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 11
+    - Vietnam PDP Law 91/2025/QH15 Art. 9
+  sources_read: &id002
+  - sources/vn_law/13nd.ocr.txt
+  - sources/vn_law/91qh.ocr.txt
+  see:
+  - PRIV-NOTICE-001
+  - PRIV-CONSENT-001
+  notes: 'Decree Art. 11(2): data types, purpose, the organisations or persons who process the data, rights and duties. Law Art. 9(2): data types and purpose, the controller, rights and duties. The Law does not list other processors.'
+- id: PRIV-VNCONSENT-002
+  sheet: PRIV
+  category: VNCONSENT
+  title: Check that consent is clear, per purpose and never implied
+  objective: Finds pre-ticked boxes, silent consent and bundled purposes.
+  steps:
+  - Open each consent form and look at the default state of each box.
+  - Send the form with no choice and see what the service stores.
+  - Accept one purpose and refuse the others, then examine the stored choices.
+  - Try to give consent for part of the data or with a condition.
+  - Look for consent that is a condition of service for an unrelated purpose.
+  example: 'Intercept the consent request and look for a consent flag per purpose. Burp Repeater: remove the consent field.'
+  expected: Consent is a clear action for each purpose. Silence is not consent. The service accepts partial consent and does not bundle unrelated purposes.
+  severity: High
+  test_type: *id001
+  refs:
+    privacy_top10:
+    - P4
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 11
+    - Vietnam PDP Law 91/2025/QH15 Art. 9
+  sources_read: *id002
+  see:
+  - PRIV-CONSENT-001
+  - PRIV-CONSENT-002
+  - PRIV-CONSENT-005
+  notes: 'Decree Art. 11(3), 11(4), 11(6), 11(7): clear and specific form (ticked box, SMS syntax, technical setting); one or more listed purposes; silence is not consent; partial or conditional consent allowed. Law Art. 9(3) and 9(4): per purpose, no bundled mandatory consent, silence is not consent.'
+- id: PRIV-VNCONSENT-003
+  sheet: PRIV
+  category: VNCONSENT
+  title: Check the consent record and the proof of consent
+  objective: Finds consent that the controller cannot prove in a dispute.
+  steps:
+  - Give consent as a test user and note the time, version and text shown.
+  - Find the consent record in the data store.
+  - Make sure the record can be printed or copied in a readable format.
+  - Change the consent text and check that old records keep the old version.
+  - Ask for the proof of consent for the test user.
+  example: 'Export the consent log for the test user. Check fields: timestamp, purpose, text version, channel, user ID.'
+  expected: The service keeps a verifiable record for each consent. The controller can show it and can print or copy it.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    privacy_top10:
+    - P4
+    - P5
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 11
+    - Vietnam PDP Law 91/2025/QH15 Art. 9
+  sources_read: *id002
+  see:
+  - PRIV-CONSENT-004
+  notes: Decree Art. 11(5) needs a format that can be printed or copied, and Art. 11(10) puts the burden of proof on the controller. Law Art. 9(3) needs a format that can be printed or copied or verified; the 2025 Law has no sentence on burden of proof in Art. 9.
+- id: PRIV-VNCONSENT-004
+  sheet: PRIV
+  category: VNCONSENT
+  title: Test the withdrawal of consent and its spread to processors
+  objective: Finds withdrawals that do not stop processing at the controller or at processors.
+  preconditions:
+  - A test user whose data is in scope as data of a Vietnamese citizen.
+  - Written permission to send data subject requests.
+  steps:
+  - Withdraw consent for one purpose as a test user.
+  - Check that the service tells the user about the possible results of the withdrawal.
+  - Check that the service stops the processing for that purpose.
+  - Check that processors and third parties receive the withdrawal.
+  - Check that data from before the withdrawal stays valid as history.
+  example: Look at processor API calls, queue messages and batch jobs after the withdrawal. Compare the data flow before and after.
+  expected: The service accepts a withdrawal in a recordable format and tells the user the results. The controller, processors and third parties stop the processing.
+  severity: High
+  test_type: *id001
+  refs:
+    privacy_top10:
+    - P4
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 12
+    - Vietnam Decree 13/2023/ND-CP Art. 9
+    - Vietnam PDP Law 91/2025/QH15 Art. 10
+    - Vietnam PDP Law 91/2025/QH15 Art. 4
+  sources_read: *id002
+  see:
+  - PRIV-CONSENT-003
+  notes: 'Decree Art. 12(2) to 12(4): recordable format, notice of the consequences, and stop by controller, processor and third party. Law Art. 10(2) to 10(4): written request including electronic form, the controller passes it on, earlier processing stays lawful. The Law has no duty to explain consequences.'
+- id: PRIV-VNCONSENT-005
+  sheet: PRIV
+  category: VNCONSENT
+  title: Check the processing notice before the first processing
+  objective: Finds processing that starts with no notice or with an incomplete notice.
+  steps:
+  - Open the first data collection step as a new user.
+  - Look for a notice before the service collects data.
+  - Look for purpose, data types, method, other parties, possible harm, and start and end time.
+  - Check that the notice is in a form that can be saved or printed.
+  - Check the exception when the user already knows and agrees with all items.
+  example: Capture the notice text and compare it with the six items in the list. Check the timing against the first network request that carries data.
+  expected: The user gets one complete notice before processing starts. The notice can be saved or printed.
+  severity: Medium
+  test_type: *id001
+  refs:
+    privacy_top10:
+    - P5
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 13
+    - Vietnam PDP Law 91/2025/QH15 Art. 4
+  sources_read: *id002
+  see:
+  - PRIV-NOTICE-001
+  - PRIV-NOTICE-002
+  notes: 'Decree Art. 13(1) to 13(3): one notice before processing with six items (purpose, data types, method, other parties, possible harm, start and end time). Decree Art. 13(4) gives exceptions. The 2025 Law has no matching article; it only lists the right to be informed (Art. 4(1)(a)).'
+- id: PRIV-VNCONSENT-006
+  sheet: PRIV
+  category: VNCONSENT
+  title: Check the legal basis for processing without consent
+  objective: Finds processing without consent that has no documented legal exception.
+  steps:
+  - List the processing activities that run without consent.
+  - Find the legal ground for each activity in the register.
+  - Check that the controller can show the emergency or the legal duty.
+  - 'Look for the oversight process: rules, risk checks, periodic audit and a complaint channel.'
+  example: 'Document review: register of processing with a column for legal ground and a column for owner.'
+  expected: Each processing without consent has a named legal ground and an owner. The controller can prove an urgent case, and an oversight process exists.
+  severity: Medium
+  test_type:
+  - Config Review
+  refs:
+    privacy_top10:
+    - P4
+    - P10
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 17
+    - Vietnam PDP Law 91/2025/QH15 Art. 19
+  sources_read: *id002
+  see:
+  - PRIV-GOV-001
+  notes: 'Decree Art. 17: emergency, public disclosure by law, authority duty, contract duty, sector law. Law Art. 19(1) and 19(2) add rights protection and the agreement of the data subject, and require an oversight mechanism (rules, risk checks, periodic audit, a way to receive complaints).'

@@ -1,0 +1,474 @@
+- id: MOB-WEBVIEW-001
+  sheet: MOB
+  category: WEBVIEW
+  title: Check Android WebViews for JavaScript with local file access
+  objective: Finds WebViews where injected script can read local files and send them out.
+  preconditions:
+  - Android device with Frida server for the runtime part.
+  steps:
+  - 'Android: Search the decompiled code for WebView, WebSettings and setJavaScriptEnabled.'
+  - 'Android: Read the values of setAllowFileAccess, setAllowFileAccessFromFileURLs and setAllowUniversalAccessFromFileURLs.'
+  - 'Android: Read minSdkVersion. Below API 30 setAllowFileAccess defaults to true. Below API 16 the two file URL settings default to true.'
+  - 'Android: Hook the setters at runtime to see the real values and backtraces.'
+  - 'Android: Find the WebViews that load file:// content or handle sensitive data.'
+  - 'Android: Look for a way to inject HTML or script into those WebViews.'
+  example: jadx -d out app.apk ; grep -rn "setJavaScriptEnabled\|setAllowFileAccess\|setAllowUniversalAccessFromFileURLs\|setAllowFileAccessFromFileURLs" out/ ; frida -U -f <pkg> -l hook_websettings.js
+  expected: No WebView enables JavaScript together with file access and file URL access. WebViews that load local content do not render untrusted content.
+  severity: High
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M4:2024
+    masvs:
+    - MASVS-PLATFORM-2
+    - MASVS-CODE-4
+    mastg:
+    - MASTG-TEST-0252
+    - MASTG-TEST-0253
+    maswe:
+    - MASWE-0034
+    cwe:
+    - CWE-22
+    - CWE-79
+    - CWE-200
+    - CWE-669
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PLATFORM-2.md
+  - sources/masvs/controls-master/MASVS-CODE-4.md
+  - sources/mastg/files/tests-beta_android_MASVS-PLATFORM_MASTG-TEST-0252.md
+  - sources/mastg/files/tests-beta_android_MASVS-PLATFORM_MASTG-TEST-0253.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0034.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m4-insufficient-input-output-validation.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0043.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0150.md
+- id: MOB-WEBVIEW-002
+  sheet: MOB
+  category: WEBVIEW
+  title: Check Android WebViews for content provider access
+  objective: Finds WebViews that let script read content providers of the app.
+  preconditions:
+  - Decompiled app code.
+  steps:
+  - 'Android: Search the decompiled code for setAllowContentAccess and setJavaScriptEnabled.'
+  - 'Android: Note that setAllowContentAccess defaults to true when the code does not set it.'
+  - 'Android: List all content providers in the AndroidManifest.xml, also those that are not exported.'
+  - 'Android: Hook the WebSettings setters at runtime. Record the values and backtraces.'
+  - 'Android: Find out if the providers hold sensitive data.'
+  - 'Android: Check if setAllowUniversalAccessFromFileURLs is true.'
+  example: 'grep -rn "setAllowContentAccess\|setAllowUniversalAccessFromFileURLs" out/ ; aapt2 d xmltree app.apk --file AndroidManifest.xml | grep -A8 "E: provider" ; frida -U -f <pkg> -l hook_websettings.js'
+  expected: WebViews that run JavaScript disable content access, or no content provider holds sensitive data. Universal access from file URLs stays off.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M4:2024
+    masvs:
+    - MASVS-PLATFORM-2
+    mastg:
+    - MASTG-TEST-0250
+    - MASTG-TEST-0251
+    maswe:
+    - MASWE-0034
+    cwe:
+    - CWE-22
+    - CWE-79
+    - CWE-200
+    - CWE-669
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PLATFORM-2.md
+  - sources/mastg/files/tests-beta_android_MASVS-PLATFORM_MASTG-TEST-0250.md
+  - sources/mastg/files/tests-beta_android_MASVS-PLATFORM_MASTG-TEST-0251.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0034.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m4-insufficient-input-output-validation.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0043.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0117.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0150.md
+- id: MOB-WEBVIEW-003
+  sheet: MOB
+  category: WEBVIEW
+  title: Check JavaScript bridges between WebViews and native code
+  objective: Finds bridges that give web content access to sensitive native functions or data.
+  preconditions:
+  - Decompiled APK and extracted IPA.
+  steps:
+  - 'Android: Search the code for addJavascriptInterface and setJavaScriptEnabled(true).'
+  - 'Android: Read each object that the code registers. List its public methods that have @JavascriptInterface.'
+  - 'iOS: Search the binary for WKUserContentController add(_:name:) and WKScriptMessageHandler classes.'
+  - 'iOS: Read each userContentController(_:didReceive:) method. List the actions that a message can start.'
+  - Check if a bridge method returns credentials, changes app state or runs a privileged action.
+  - Check if the bridge checks the message input and the origin of the page.
+  example: jadx -d out app.apk ; grep -rn "addJavascriptInterface\|@JavascriptInterface" out/ ; r2 -A <app_binary> ; afl~WKUserContentController ; izz~addScriptMessageHandler
+  expected: The app exposes no sensitive native function or data through a WebView bridge. Each remaining bridge checks its input and serves only trusted pages.
+  severity: High
+  test_type:
+  - Code Review
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M4:2024
+    masvs:
+    - MASVS-PLATFORM-2
+    mastg:
+    - MASTG-TEST-0334
+    - MASTG-TEST-0376
+    maswe:
+    - MASWE-0033
+    - MASWE-0034
+    cwe:
+    - CWE-749
+    - CWE-94
+    - CWE-22
+    - CWE-79
+    - CWE-200
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PLATFORM-2.md
+  - sources/mastg/files/tests-beta_android_MASVS-PLATFORM_MASTG-TEST-0334.md
+  - sources/mastg/files/tests-beta_ios_MASVS-PLATFORM_MASTG-TEST-0376.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0033.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0034.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m4-insufficient-input-output-validation.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0076.md
+- id: MOB-WEBVIEW-004
+  sheet: MOB
+  category: WEBVIEW
+  title: Check iOS evaluateJavaScript calls for data leaks to web content
+  objective: Finds uses of evaluateJavaScript that expose sensitive data to script in the page.
+  preconditions:
+  - Extracted IPA binary.
+  steps:
+  - 'iOS: Search the binary for evaluateJavaScript:completionHandler: and list the enclosing functions.'
+  - 'iOS: Find calls inside userContentController(_:didReceive:) that send bridge replies as a JavaScript callback.'
+  - 'iOS: Find calls that assign sensitive data to innerHTML, textContent, innerText or value.'
+  - 'iOS: Find calls that read DOM values, and check if they use the content world variant.'
+  - 'iOS: Make sure the page cannot override the callback function or read the injected DOM data.'
+  example: r2 -A <app_binary> ; afl~evaluateJavaScript ; axt sym.imp.evaluateJavaScript ; izz~innerHTML
+  expected: The app does not pass sensitive data to the page through evaluateJavaScript. DOM reads use an isolated content world.
+  severity: Medium
+  test_type:
+  - Code Review
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M4:2024
+    masvs:
+    - MASVS-PLATFORM-2
+    mastg:
+    - MASTG-TEST-0377
+    - MASTG-TEST-0379
+    - MASTG-TEST-0380
+    maswe:
+    - MASWE-0034
+    cwe:
+    - CWE-22
+    - CWE-79
+    - CWE-200
+    - CWE-669
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PLATFORM-2.md
+  - sources/mastg/files/tests-beta_ios_MASVS-PLATFORM_MASTG-TEST-0377.md
+  - sources/mastg/files/tests-beta_ios_MASVS-PLATFORM_MASTG-TEST-0379.md
+  - sources/mastg/files/tests-beta_ios_MASVS-PLATFORM_MASTG-TEST-0380.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0034.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m4-insufficient-input-output-validation.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0076.md
+- id: MOB-WEBVIEW-005
+  sheet: MOB
+  category: WEBVIEW
+  title: Check iOS WebViews for password fields in loaded HTML
+  objective: Finds password inputs in web pages where script can read the typed value.
+  preconditions:
+  - Extracted IPA.
+  steps:
+  - 'iOS: Search the binary strings for type="password" and type=''password''.'
+  - 'iOS: Check if the HTML loads into a WKWebView.'
+  - 'iOS: Look for a WKUserScript that sends focus to a native secure text field.'
+  - 'iOS: Check if third-party scripts or user content can run on the same page.'
+  example: unzip app.ipa ; strings -a Payload/App.app/App | grep -i "type=.password" ; grep -rn "type=\"password\"" Payload/App.app/*.html
+  expected: The app does not collect passwords in WebView HTML. If it does, a native input overlay reads the value and the page cannot read it.
+  severity: Medium
+  test_type:
+  - Code Review
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M4:2024
+    masvs:
+    - MASVS-PLATFORM-2
+    mastg:
+    - MASTG-TEST-0378
+    maswe:
+    - MASWE-0034
+    cwe:
+    - CWE-22
+    - CWE-79
+    - CWE-200
+    - CWE-669
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PLATFORM-2.md
+  - sources/mastg/files/tests-beta_ios_MASVS-PLATFORM_MASTG-TEST-0378.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0034.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m4-insufficient-input-output-validation.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/generic/MASTG-TECH-0071.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0076.md
+- id: MOB-WEBVIEW-006
+  sheet: MOB
+  category: WEBVIEW
+  title: Check iOS WKWebView local file access and file origin settings
+  objective: Finds WKWebViews where script from file URLs can read other local files.
+  preconditions:
+  - Extracted IPA; jailbroken device for the runtime part.
+  steps:
+  - 'iOS: Search the binary for loadFileURL(_:allowingReadAccessTo:). Read the readAccessURL argument of each call.'
+  - 'iOS: Flag read access to the whole Documents directory or the app container root.'
+  - 'iOS: Search for allowFileAccessFromFileURLs and allowUniversalAccessFromFileURLs set with setValue:forKey:.'
+  - 'iOS: Hook the setting calls at runtime. Record values and backtraces.'
+  - 'iOS: Check if attacker-controlled input selects the loaded file or injects script.'
+  example: r2 -A <app_binary> ; afl~loadFileURL ; izz~allowFileAccessFromFileURLs ; frida -U -f <bundle_id> -l hook_wkwebview_setvalue.js
+  expected: The app limits readAccessURL to the one folder that it needs. Neither file origin setting is true for WebViews that load local files.
+  severity: High
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M4:2024
+    masvs:
+    - MASVS-PLATFORM-2
+    mastg:
+    - MASTG-TEST-0333
+    - MASTG-TEST-0335
+    - MASTG-TEST-0336
+    maswe:
+    - MASWE-0034
+    cwe:
+    - CWE-22
+    - CWE-79
+    - CWE-200
+    - CWE-669
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PLATFORM-2.md
+  - sources/mastg/files/tests-beta_ios_MASVS-PLATFORM_MASTG-TEST-0333.md
+  - sources/mastg/files/tests-beta_ios_MASVS-PLATFORM_MASTG-TEST-0335.md
+  - sources/mastg/files/tests-beta_ios_MASVS-PLATFORM_MASTG-TEST-0336.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0034.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m4-insufficient-input-output-validation.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0095.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0076.md
+- id: MOB-WEBVIEW-007
+  sheet: MOB
+  category: WEBVIEW
+  title: Check that WebViews load only trusted URLs
+  objective: Finds WebViews that open attacker-controlled or arbitrary URLs.
+  preconditions:
+  - Android device with Frida server.
+  steps:
+  - 'Android: Find setWebViewClient calls and classes that extend WebViewClient.'
+  - 'Android: Read shouldOverrideUrlLoading and shouldInterceptRequest. Check that they match the host against an allowlist.'
+  - 'Android: Hook both methods at runtime. Record the URLs and the return values.'
+  - 'iOS: Search for WKWebView load, loadFileURL, loadHTMLString and loadRequest calls. Trace the URL source.'
+  - 'iOS: Check if a deep link, a pasteboard value or a network response can set the URL.'
+  - Send the app a URL on an untrusted host and see if the WebView opens it.
+  example: jadx -d out app.apk ; grep -rn "shouldOverrideUrlLoading\|shouldInterceptRequest\|setWebViewClient" out/ ; frida -U -f <pkg> -l hook_webviewclient.js ; r2 -A <app_binary> ; afl~WKWebView
+  expected: WebViews open only URLs on allowed hosts. The code checks the full host, not a substring, and external links open in the system browser.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M4:2024
+    masvs:
+    - MASVS-PLATFORM-2
+    - MASVS-CODE-4
+    mastg:
+    - MASTG-TEST-0398
+    - MASTG-TEST-0400
+    - MASTG-TEST-0332
+    maswe:
+    - MASWE-0035
+    cwe:
+    - CWE-79
+    - CWE-601
+    - CWE-829
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PLATFORM-2.md
+  - sources/masvs/controls-master/MASVS-CODE-4.md
+  - sources/mastg/files/tests-beta_android_MASVS-CODE_MASTG-TEST-0398.md
+  - sources/mastg/files/tests-beta_android_MASVS-CODE_MASTG-TEST-0400.md
+  - sources/mastg/files/tests-beta_ios_MASVS-PLATFORM_MASTG-TEST-0332.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0035.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m4-insufficient-input-output-validation.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0043.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+- id: MOB-WEBVIEW-008
+  sheet: MOB
+  category: WEBVIEW
+  title: Check that Android SafeBrowsing stays on for WebViews
+  objective: Finds WebViews that skip the Safe Browsing check for known bad sites.
+  preconditions:
+  - Decoded APK.
+  steps:
+  - 'Android: Read the AndroidManifest.xml for the android.webkit.WebView.EnableSafeBrowsing meta-data.'
+  - 'Android: Flag the value false.'
+  - 'Android: Search the code for WebSettings.setSafeBrowsingEnabled(false).'
+  - 'Android: Remember that the code setting wins over the manifest value.'
+  example: aapt2 d xmltree app.apk --file AndroidManifest.xml | grep -B2 -A2 EnableSafeBrowsing ; grep -rn "setSafeBrowsingEnabled" out/
+  expected: The manifest does not turn off SafeBrowsing and no code calls setSafeBrowsingEnabled with false.
+  severity: Low
+  test_type:
+  - Config Review
+  - Code Review
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M8:2024
+    masvs:
+    - MASVS-PLATFORM-2
+    mastg:
+    - MASTG-TEST-0399
+    maswe:
+    - MASWE-0035
+    cwe:
+    - CWE-79
+    - CWE-601
+    - CWE-829
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PLATFORM-2.md
+  - sources/mastg/files/tests-beta_android_MASVS-CODE_MASTG-TEST-0399.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0035.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m8-security-misconfiguration.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0117.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0150.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+- id: MOB-WEBVIEW-009
+  sheet: MOB
+  category: WEBVIEW
+  title: Check iOS apps for the deprecated UIWebView
+  objective: Finds apps that use UIWebView, which has weaker isolation than WKWebView.
+  preconditions:
+  - Extracted IPA.
+  steps:
+  - 'iOS: Extract the binaries from the IPA, including frameworks.'
+  - 'iOS: Search all binaries for references to UIWebView.'
+  - 'iOS: List the third-party libraries that bring in UIWebView.'
+  example: unzip app.ipa ; grep -rl UIWebView Payload/App.app ; r2 -A <app_binary> ; ic~UIWebView
+  expected: No binary in the app uses UIWebView. All web content uses WKWebView.
+  severity: Low
+  test_type:
+  - Code Review
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M8:2024
+    masvs:
+    - MASVS-PLATFORM-2
+    mastg:
+    - MASTG-TEST-0331
+    maswe:
+    - MASWE-0035
+    cwe:
+    - CWE-79
+    - CWE-601
+    - CWE-829
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PLATFORM-2.md
+  - sources/mastg/files/tests-beta_ios_MASVS-PLATFORM_MASTG-TEST-0331.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0035.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m8-security-misconfiguration.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+- id: MOB-WEBVIEW-010
+  sheet: MOB
+  category: WEBVIEW
+  title: Check that the app cleans WebView storage with sensitive data
+  objective: Finds WebView caches, cookies and storage that keep sensitive data after use.
+  preconditions:
+  - Android device. A debug build or root access to read the app data folder.
+  steps:
+  - 'Android: List the WebView storage settings that the app enables, such as cache, DOM storage and database.'
+  - 'Android: Hook the cleanup calls, such as clearCache with includeDiskFiles, and record them.'
+  - 'Android: Use the app with sensitive test data in the WebView. Close the app.'
+  - 'Android: Pull the app_webview directory from the app data folder.'
+  - 'Android: Search the files for the sensitive test data.'
+  - 'Android: Check for the cleanup of cookies and WebStorage when the user logs out.'
+  example: adb shell run-as <pkg> ls app_webview ; adb exec-out run-as <pkg> tar c app_webview | tar x ; grep -rl "<test data>" app_webview ; frida -U -f <pkg> -l hook_webview_cleanup.js
+  expected: The app_webview folder holds no sensitive data after the app closes. The app calls the cleanup APIs for each storage area that it enables.
+  severity: Medium
+  test_type:
+  - Manual
+  level: MASVS L1
+  refs:
+    masvs:
+    - MASVS-PLATFORM-2
+    mastg:
+    - MASTG-TEST-0320
+    maswe:
+    - MASWE-0001
+    cwe:
+    - CWE-200
+    - CWE-284
+    - CWE-312
+    - CWE-313
+    - CWE-732
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PLATFORM-2.md
+  - sources/mastg/files/tests-beta_android_MASVS-PLATFORM_MASTG-TEST-0320.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-STORAGE_MASWE-0001.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0043.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0002.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0005.md
+- id: MOB-WEBVIEW-011
+  sheet: MOB
+  category: WEBVIEW
+  title: Check third-party scripts that run in WebViews
+  objective: Finds WebView pages that load scripts from outside parties without limits.
+  preconditions:
+  - Intercepting proxy set up on the test device.
+  steps:
+  - List the pages that the app loads in WebViews and the remote scripts on each page.
+  - Check if the script tags use Subresource Integrity with an integrity value.
+  - Check if the vendor host sends CORS headers, as Subresource Integrity needs them.
+  - Check if the page keeps third-party scripts away from sensitive fields and URL parameters.
+  - Check if the page isolates untrusted tags in a sandboxed iframe.
+  - Look at the vendor scripts for changes at regular times.
+  example: 'Burp Suite: proxy the WebView traffic and list the script hosts ; curl -s https://<page> | grep -i "<script" ; openssl dgst -sha384 -binary script.js | openssl base64 -A'
+  expected: Third-party scripts in WebViews carry integrity values or run in a sandbox. They cannot read sensitive page data.
+  severity: Medium
+  test_type:
+  - Manual
+  - Code Review
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M2:2024
+    masvs:
+    - MASVS-PLATFORM-2
+    maswe:
+    - MASWE-0035
+    cheatsheet:
+    - Third_Party_Javascript_Management_Cheat_Sheet
+    cwe:
+    - CWE-79
+    - CWE-601
+    - CWE-829
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PLATFORM-2.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0035.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m2-inadequate-supply-chain-security.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Third_Party_Javascript_Management_Cheat_Sheet.md

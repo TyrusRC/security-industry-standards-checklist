@@ -1,0 +1,247 @@
+- id: NET-ADCS-001
+  sheet: NET
+  category: ADCS
+  title: Find certificate templates that let the requester supply the SAN
+  objective: Finds templates that allow any enrolled user to request a certificate for another account (ESC1).
+  preconditions: &id001
+  - Read access to the AD CS enterprise CA and to the certificate template objects in Active Directory.
+  - Read-only review. Do not change templates or CA settings on production.
+  steps:
+  - List all certificate templates that a CA publishes.
+  - Look at the Subject Name tab. Note each template with Supply in the request turned on.
+  - Look at the EKUs. Note each template with Client Authentication, Smartcard Logon, PKINIT Client Authentication or Any Purpose.
+  - Look at the enrollment ACL. Note each template that Authenticated Users, Domain Users or Everyone can enroll.
+  - Look for Manager approval or required authorized signatures on each template you noted.
+  example: certutil -v -template > templates.txt ; Get-ADObject -SearchBase "CN=Certificate Templates,CN=Public Key Services,CN=Services,CN=Configuration,DC=corp,DC=example" -Filter * -Properties msPKI-Certificate-Name-Flag,pKIExtendedKeyUsage,nTSecurityDescriptor ; msPKI-Certificate-Name-Flag bit ENROLLEE_SUPPLIES_SUBJECT (1)
+  expected: No authentication template has Supply in the request on while an unprivileged group can enroll without Manager approval or authorized signatures.
+  severity: Critical
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack: &id002
+    - T1649
+    other:
+    - https://learn.microsoft.com/defender-for-identity/security-posture-assessments/certificates
+    - 'Microsoft ESC id: ESC1'
+    cwe:
+    - CWE-269
+  sources_read:
+  - sources/extra/gap3-B/certificates.md
+- id: NET-ADCS-002
+  sheet: NET
+  category: ADCS
+  title: Find templates with Any Purpose EKU, no EKU or arbitrary Application Policies
+  objective: Finds templates that let an unprivileged user get a broadly trusted certificate (ESC2, ESC15).
+  preconditions: *id001
+  steps:
+  - List the published templates and their EKUs.
+  - Note each template with the Any Purpose EKU or with no EKU.
+  - Note each template that an unprivileged group can enroll.
+  - Note each schema version 1 template with Supply in the request turned on.
+  - Look for the patch for CVE-2024-49019 on each CA server.
+  - Look for Manager approval and signing requirements on the templates you noted.
+  example: certutil -v -template ; Get-ADObject -LDAPFilter "(objectClass=pKICertificateTemplate)" -SearchBase "CN=Certificate Templates,CN=Public Key Services,CN=Services,CN=Configuration,DC=corp,DC=example" -Properties pKIExtendedKeyUsage,msPKI-Template-Schema-Version ; Get-HotFix on each CA
+  expected: No published template has Any Purpose or no EKU with open enrollment. Supply in the request is off on version 1 templates. Each CA has the CVE-2024-49019 patch.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack: *id002
+    other:
+    - https://learn.microsoft.com/defender-for-identity/security-posture-assessments/certificates
+    - 'Microsoft ESC id: ESC2, ESC15 (CVE-2024-49019)'
+    cwe:
+    - CWE-732
+  sources_read:
+  - sources/extra/gap3-B/certificates.md
+- id: NET-ADCS-003
+  sheet: NET
+  category: ADCS
+  title: Review enrollment agent certificate templates and agent restrictions
+  objective: Finds enrollment agent templates that let a user request certificates for any other user (ESC3).
+  preconditions: *id001
+  steps:
+  - Find each template that has the Certificate Request Agent EKU.
+  - Look at the enrollment ACL. Note each template that an unprivileged group can enroll.
+  - Look for Manager approval on the template and on the CA.
+  - Open the CA properties. Look at the Enrollment Agents tab for restrictions on agents, templates and subjects.
+  - Make sure the enrollment agents are not also certificate managers.
+  example: certutil -v -template | findstr /i "1.3.6.1.4.1.311.20.2.1" ; certsrv.msc > CA Properties > Enrollment Agents ; certutil -CAInfo role
+  expected: Only a named agent group can enroll the agent template. The CA limits each agent to listed templates and subjects. Agents cannot approve their own requests.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack: *id002
+    other:
+    - https://learn.microsoft.com/defender-for-identity/security-posture-assessments/certificates
+    - 'Microsoft ESC id: ESC3'
+    cwe:
+    - CWE-269
+  sources_read:
+  - sources/extra/gap3-B/certificates.md
+  - sources/extra/gap3-B/secure-delegate-audit-certification-authority.md
+- id: NET-ADCS-004
+  sheet: NET
+  category: ADCS
+  title: Review the owner and ACL of certificate template objects
+  objective: Finds templates that unprivileged groups can change or own (ESC4).
+  preconditions: *id001
+  steps:
+  - List the ACL of each template object in the Certificate Templates container.
+  - Note any Full Control, Write DACL, Write Owner or Write property right for Authenticated Users, Domain Users or Everyone.
+  - Look at the owner of each template. Make sure a privileged and monitored account owns it.
+  - List the templates that no CA publishes. Make a note to remove them.
+  example: (Get-Acl "AD:CN=<template>,CN=Certificate Templates,CN=Public Key Services,CN=Services,CN=Configuration,DC=corp,DC=example").Access ; (Get-Acl ...).Owner
+  expected: Only PKI administrators can write to template objects and own them. No unprivileged built-in group holds a write right. Templates that nobody needs are not published.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack: *id002
+    other:
+    - https://learn.microsoft.com/defender-for-identity/security-posture-assessments/certificates
+    - 'Microsoft ESC id: ESC4'
+    cwe:
+    - CWE-732
+  sources_read:
+  - sources/extra/gap3-B/certificates.md
+- id: NET-ADCS-005
+  sheet: NET
+  category: ADCS
+  title: Make sure the CA does not let requesters set the SAN
+  objective: Finds a CA where EDITF_ATTRIBUTESUBJECTALTNAME2 lets every requester name the SAN on any template (ESC6).
+  preconditions: *id001
+  steps:
+  - Read the CA policy EditFlags value on each CA.
+  - Look for the EDITF_ATTRIBUTESUBJECTALTNAME2 flag in the value.
+  - Ask why the flag is on, if you find it.
+  example: certutil -getreg policy\EditFlags ; reg query HKLM\SYSTEM\CurrentControlSet\Services\CertSvc\Configuration\<CA name>\PolicyModules\CertificateAuthority_MicrosoftDefault.Policy /v EditFlags
+  expected: The EDITF_ATTRIBUTESUBJECTALTNAME2 flag is off on every CA.
+  severity: Critical
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack: *id002
+    other:
+    - https://learn.microsoft.com/defender-for-identity/security-posture-assessments/certificates
+    - 'Microsoft ESC id: ESC6'
+    cwe:
+    - CWE-1188
+  sources_read:
+  - sources/extra/gap3-B/certificates.md
+- id: NET-ADCS-006
+  sheet: NET
+  category: ADCS
+  title: Review CA permissions and the split between CA roles
+  objective: Finds unprivileged users that hold Manage CA or Manage Certificates rights on a CA (ESC7).
+  preconditions: *id001
+  steps:
+  - Open the CA properties. Look at the Security tab.
+  - Note each unprivileged group with Manage CA or Manage Certificates.
+  - Compare the members of CA administrator, certificate manager, enrollment agent and auditor groups. Look for overlap.
+  - Read the CA role information and look at whether role separation is on.
+  - Look for CA events 4882 and 4890 in the Security log for permission changes.
+  example: certsrv.msc > CA Properties > Security ; certutil -CAInfo role ; Get-WinEvent -FilterHashtable @{LogName="Security";Id=4882,4890}
+  expected: Only named PKI groups hold Manage CA or Manage Certificates. The role groups do not overlap. Each change to CA permissions leaves an event.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack: *id002
+    other:
+    - https://learn.microsoft.com/defender-for-identity/security-posture-assessments/certificates
+    - 'Microsoft ESC id: ESC7'
+    cwe:
+    - CWE-732
+  sources_read:
+  - sources/extra/gap3-B/certificates.md
+  - sources/extra/gap3-B/secure-delegate-audit-certification-authority.md
+- id: NET-ADCS-007
+  sheet: NET
+  category: ADCS
+  title: Check AD CS web enrollment endpoints for NTLM relay protection
+  objective: Finds HTTP enrollment endpoints that accept NTLM without HTTPS or Extended Protection for Authentication (ESC8).
+  preconditions: *id001
+  steps:
+  - List the servers that run the Certificate Authority Web Enrollment or Certificate Enrollment Web Service role.
+  - Look at the IIS bindings for the certsrv and CES sites. Make sure HTTPS is the only binding.
+  - Look at the Windows Authentication settings. Make sure Extended Protection is set to Required.
+  - Look at whether NTLM is off for these sites, if Kerberos works.
+  example: Import-Module WebAdministration; Get-WebBinding -Name "Default Web Site" ; Get-WebConfigurationProperty -Filter system.webServer/security/authentication/windowsAuthentication/extendedProtection -Name tokenChecking -PSPath IIS:\ -Location "Default Web Site/CertSrv"
+  expected: The enrollment endpoints use HTTPS only. Extended Protection for Authentication is Required, or NTLM is off.
+  severity: Critical
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1649
+    - T1557.001
+    other:
+    - https://learn.microsoft.com/defender-for-identity/security-posture-assessments/certificates
+    - 'Microsoft ESC id: ESC8'
+    cwe:
+    - CWE-300
+  sources_read:
+  - sources/extra/gap3-B/certificates.md
+  see:
+  - NET-WIN-003
+- id: NET-ADCS-008
+  sheet: NET
+  category: ADCS
+  title: Check that the CA RPC enrollment interface needs encryption
+  objective: Finds a CA that accepts unencrypted RPC certificate requests that an attacker can relay (ESC11).
+  preconditions: *id001
+  steps:
+  - Read the CA InterfaceFlags value on each CA.
+  - Look for the IF_ENFORCEENCRYPTICERTREQUEST flag.
+  - Find clients that need the flag to be off. Plan an upgrade for them.
+  example: certutil -getreg CA\InterfaceFlags
+  expected: The IF_ENFORCEENCRYPTICERTREQUEST flag is on, so the RPC interface needs packet privacy.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1649
+    - T1557.001
+    other:
+    - https://learn.microsoft.com/defender-for-identity/security-posture-assessments/certificates
+    - 'Microsoft ESC id: ESC11'
+    cwe:
+    - CWE-319
+  sources_read:
+  - sources/extra/gap3-B/certificates.md
+- id: NET-ADCS-009
+  sheet: NET
+  category: ADCS
+  title: Check CA audit filter and the Audit Certification Services policy
+  objective: Finds a CA that does not log requests, issuance and permission changes.
+  preconditions: *id001
+  steps:
+  - Read the CA AuditFilter value. Compare it to the full filter value 127.
+  - Read the effective audit policy for the Audit Certification Services subcategory. Look for Success and Failure.
+  - Find events 4886, 4887, 4888, 4882, 4885 and 4890 in the Security log.
+  - Make sure the CA forwards these events to a collector and that the log is large enough.
+  example: certutil -getreg CA\AuditFilter ; auditpol /get /subcategory:"Certification Services" ; Get-WinEvent -FilterHashtable @{LogName="Security";Id=4886,4887,4888}
+  expected: The AuditFilter is 127 or an approved baseline. Success and Failure are on. The CA events arrive at a central collector.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1649
+    other:
+    - https://learn.microsoft.com/windows-server/identity/ad-cs/secure-delegate-audit-certification-authority
+    - 'Microsoft ESC id: AD CS auditing'
+  sources_read:
+  - sources/extra/gap3-B/secure-delegate-audit-certification-authority.md

@@ -1,0 +1,147 @@
+- id: WEB-PDP-001
+  sheet: WEB
+  category: PDP
+  title: Test that policy decision errors and timeouts deny access
+  objective: Find enforcement points that allow a request when the policy decision service fails, times out or returns unusable output.
+  preconditions:
+  - A test environment where the decision service can be stopped.
+  steps:
+  - Find the enforcement points and the policy decision service that each one calls.
+  - Stop the decision service or block the network path to it, in a test environment.
+  - Send requests to protected operations and look at the result.
+  - Return a slow, empty or malformed answer from a decision service test double.
+  - Send a batch decision request with one missing item result and look at that item.
+  - Look for a gateway setting that allows traffic when authorization fails.
+  example: Block the PDP port with iptables; curl -i https://target/api/admin/users; check Envoy ext_authz failure_mode_allow
+  expected: Every protected operation is denied when a valid decision is not available. A missing or invalid item in a batch is denied.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A01:2025
+    - A10:2025
+    cheatsheet:
+    - Authorization_Patterns_Cheat_Sheet
+    - Authorization_Decisions_And_Output_Handling_Cheat_Sheet
+    asvs:
+    - V8.1.1
+    cwe:
+    - CWE-636
+    - CWE-862
+    other:
+    - 'OWASP DevGuide web app checklist: 07-access-controls.md'
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Authorization_Patterns_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authorization_Decisions_And_Output_Handling_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/DevGuide/docs/en/04-design/02-web-app-checklist/07-access-controls.md
+- id: WEB-PDP-002
+  sheet: WEB
+  category: PDP
+  title: Test list, search, export and count paths for authorization filters
+  objective: Find collection endpoints that return or count objects that the user may not access, even when single-object reads are safe.
+  preconditions:
+  - Two users with different data access.
+  steps:
+  - 'List the endpoints that return collections: list, search, export, count and aggregate.'
+  - Call each endpoint as a low-privilege user and as a user of another tenant.
+  - Compare the returned items, the total count and the facets with the allowed items.
+  - Add filter and sort parameters with unusual operators and field names.
+  - Use a returned identifier in an update or delete request.
+  - 'Stop the policy service and look at the collection result: a missing filter must not mean all items.'
+  example: 'curl -H "Authorization: Bearer <userB>" "https://target/api/orders?limit=1000&sort=-created"; GET /api/orders/count; GET /api/orders/export.csv'
+  expected: Collection paths return and count only the objects that the user may access. Unsupported filters and missing policy output are denied. A listed item does not authorize later changes.
+  severity: High
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A01:2025
+    cheatsheet:
+    - Authorization_Decisions_And_Output_Handling_Cheat_Sheet
+    wstg:
+    - WSTG-ATHZ-04
+    asvs:
+    - V8.2.2
+    cwe:
+    - CWE-639
+    - CWE-285
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Authorization_Decisions_And_Output_Handling_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/04-Insecure_Direct_Object_References.md
+- id: WEB-PDP-003
+  sheet: WEB
+  category: PDP
+  title: Review how authorization policy and data reach the decision points
+  objective: Find policy distribution that lets old rules stay active, accepts unsigned policy or leaves decision APIs open.
+  steps:
+  - Find who may change each policy and attribute, and the maximum delay for a change to take effect.
+  - Change a role or revoke a permission and measure the time until each decision point denies access.
+  - Look for signature checks on policy bundles before activation.
+  - Try to load an unsigned or old policy bundle in a test environment.
+  - Make sure the decision and policy administration APIs need authentication and tenant scope.
+  - Make sure a decision point with missing or old data denies the affected operations.
+  example: opa run --server --verification-key key.pem ...; curl http://pdp:8181/v1/policies without credentials
+  expected: Policy changes reach all decision points within the set delay. Only signed and approved bundles load. Old data or a missing bundle leads to deny. Policy APIs need authentication.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  level: ASVS L3
+  refs:
+    owasp_top10:
+    - A01:2025
+    - A08:2025
+    cheatsheet:
+    - Authorization_Policy_And_Data_Distribution_Cheat_Sheet
+    asvs:
+    - V8.3.2
+    cwe:
+    - CWE-285
+    - CWE-345
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Authorization_Policy_And_Data_Distribution_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+- id: WEB-PDP-004
+  sheet: WEB
+  category: PDP
+  title: Check that an automated authorization matrix runs on every release
+  objective: Find access rules that break over time because no automated test checks them against the documented matrix.
+  steps:
+  - 'Find the authorization matrix: roles, resources and actions in a machine-readable file.'
+  - Make sure every service and route in the application appears in the matrix.
+  - Run the matrix tests and look for each allowed and each denied combination.
+  - Add a new route without a matrix entry and make sure the pipeline fails or alerts.
+  - Make sure the tests cover horizontal, vertical and cross-tenant access and use two accounts per role.
+  - Make sure the pipeline stops the release when a test fails.
+  example: CI job output; pytest or Newman suite generated from authz-matrix.yaml with expected 200/403 for each role
+  expected: A machine-readable matrix drives automated tests in the release pipeline. New routes without an entry fail the build. A failed test stops the release.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Automated
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A01:2025
+    - A06:2025
+    cheatsheet:
+    - Authorization_Regression_Testing_Cheat_Sheet
+    - Authorization_Testing_Automation_Cheat_Sheet
+    asvs:
+    - V8.1.1
+    cwe:
+    - CWE-863
+    - CWE-285
+    other:
+    - 'OWASP DevGuide web app checklist: 07-access-controls.md'
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Authorization_Regression_Testing_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authorization_Testing_Automation_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/DevGuide/docs/en/04-design/02-web-app-checklist/07-access-controls.md

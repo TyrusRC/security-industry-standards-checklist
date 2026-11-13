@@ -1,0 +1,602 @@
+- id: WEB-CLIENT-001
+  sheet: WEB
+  category: CLIENT
+  title: Test redirect parameters for open redirect
+  objective: Finds client-side redirect logic that sends a user to an attacker domain from an unvalidated parameter.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Find client-side code that reads a redirect target from the URL hash, query string or a parameter.
+  - Submit an external domain as the redirect target and confirm the browser navigates there.
+  - 'If plain domains are blocked, try the javascript: scheme in the same parameter.'
+  example: https://target/?#www.malicious-example.invalid ; https://target/?#javascript:alert(document.cookie) ; redir=https://malicious-example.invalid
+  expected: Redirect destinations are checked against an allowlist of trusted hostnames before navigation, and dangerous schemes are rejected.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-CLNT-04
+    asvs:
+    - V3.7.2
+    - V3.7.3
+    cheatsheet:
+    - Unvalidated_Redirects_and_Forwards_Cheat_Sheet
+    cwe:
+    - CWE-601
+    capec:
+    - CAPEC-154
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/11-Client-side/04-Client-side_URL_Redirect.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Unvalidated_Redirects_and_Forwards_Cheat_Sheet.md
+- id: WEB-CLIENT-002
+  sheet: WEB
+  category: CLIENT
+  title: Test CORS configuration for overly permissive origin handling
+  objective: Finds CORS responses that reflect an arbitrary origin or allow the null origin with credentials.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Send a request with an attacker-controlled Origin header to each API endpoint.
+  - Check whether Access-Control-Allow-Origin reflects the submitted origin or returns a wildcard.
+  - If credentials are used, check whether Access-Control-Allow-Credentials is true alongside a reflected or null origin.
+  - Test a crafted subdomain, for example target.com.attacker.com, against a regex-based allowlist.
+  example: 'Origin: https://attacker.example ; Origin: null (from a sandboxed iframe) ; Origin: https://example.com.attacker.com against regex /\.example.com$/'
+  expected: The server allows only an explicit allowlist of trusted origins, never reflects an arbitrary or null origin together with credentials.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    wstg:
+    - WSTG-CLNT-07
+    asvs:
+    - V3.4.2
+    cheatsheet:
+    - HTML5_Security_Cheat_Sheet
+    cwe:
+    - CWE-942
+    - CWE-346
+    capec: []
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/11-Client-side/07-Cross_Origin_Resource_Sharing.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/HTML5_Security_Cheat_Sheet.md
+- id: WEB-CLIENT-003
+  sheet: WEB
+  category: CLIENT
+  title: Test clickjacking protections with an embedding iframe
+  objective: Finds pages that can be framed by another origin and tricked into unintended clicks.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Create a test page that loads the target in an iframe.
+  - Load the test page in a browser and confirm whether the target renders inside the frame.
+  - Check the Content-Security-Policy frame-ancestors directive and the X-Frame-Options header on the response.
+  - Repeat the test with JavaScript disabled to rule out a frame-busting script as the only defense.
+  example: '<iframe src="https://target" width="400" height="400"></iframe> ; check header Content-Security-Policy: frame-ancestors ''self'''
+  expected: The response sets frame-ancestors or X-Frame-Options so the page cannot be framed by an untrusted origin, even with JavaScript disabled.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A05:2025
+    wstg:
+    - WSTG-CLNT-09
+    asvs:
+    - V3.4.6
+    cheatsheet:
+    - Clickjacking_Defense_Cheat_Sheet
+    cwe:
+    - CWE-1021
+    capec:
+    - CAPEC-103
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/11-Client-side/09-Clickjacking.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Clickjacking_Defense_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A05_2025-Injection.md
+- id: WEB-CLIENT-004
+  sheet: WEB
+  category: CLIENT
+  title: Test WebSocket origin checks and transport security
+  objective: Finds WebSocket endpoints that accept connections from any origin or run over unencrypted ws.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify WebSocket usage from the client source or the browser network panel.
+  - Try to open a WebSocket connection from a different origin and check if the server accepts it.
+  - Check whether the endpoint uses the wss scheme instead of plain ws.
+  - Fuzz WebSocket messages for the same injection classes used on normal HTTP input.
+  example: new WebSocket("wss://target/socket") opened with a forged Origin header from a separate test page
+  expected: The server validates the Origin header on the handshake, enforces wss, and treats WebSocket input with the same injection controls as HTTP.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    wstg:
+    - WSTG-CLNT-10
+    asvs:
+    - V1.2.1
+    cwe:
+    - CWE-1385
+    - CWE-346
+    capec:
+    - CAPEC-94
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/11-Client-side/10-WebSockets.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  see:
+  - WEB-HTTP-009
+- id: WEB-CLIENT-005
+  sheet: WEB
+  category: CLIENT
+  title: Test postMessage handlers for origin and input validation
+  objective: Finds window message listeners that trust the sender origin or the message content without checks.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Review client-side code for a message event listener and note how it checks event.origin.
+  - From an attacker page, send a postMessage with an origin check bypass, for example a domain containing the expected substring.
+  - Send a message with an unexpected structure or an invalid, non-JSON payload and check if the handler discards it.
+  - Send a message containing an embedded script and check if it is evaluated as HTML.
+  example: iframe1.contentWindow.postMessage(payload,"*") from https://www.owasp.org.attacker.example to pass an indexOf(".owasp.org") check
+  expected: The receiving handler checks the full origin string with strict equality, discards invalid-syntax messages, and treats data as untrusted text.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-CLNT-11
+    asvs:
+    - V3.5.5
+    cheatsheet:
+    - HTML5_Security_Cheat_Sheet
+    cwe:
+    - CWE-20
+    - CWE-346
+    capec: []
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/11-Client-side/11-Web_Messaging.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/HTML5_Security_Cheat_Sheet.md
+- id: WEB-CLIENT-006
+  sheet: WEB
+  category: CLIENT
+  title: Test browser storage for sensitive data and injection risk
+  objective: Finds localStorage, sessionStorage or IndexedDB entries holding sensitive data or session tokens.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Open developer tools and list all keys and values in localStorage, sessionStorage and IndexedDB.
+  - Check whether any value is a session token, password or other sensitive data.
+  - Trigger a stored or reflected XSS proof-of-concept and confirm it can read these values.
+  example: for(let i=0;i<localStorage.length;i++){console.log(localStorage.key(i),localStorage.getItem(localStorage.key(i)))}
+  expected: No session token or sensitive data is stored in localStorage, sessionStorage or IndexedDB; session tokens use HttpOnly cookies instead.
+  severity: Medium
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-CLNT-12
+    cheatsheet:
+    - HTML5_Security_Cheat_Sheet
+    cwe:
+    - CWE-922
+    capec: []
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/11-Client-side/12-Browser_Storage.md
+  - sources/repos/CheatSheetSeries/cheatsheets/HTML5_Security_Cheat_Sheet.md
+- id: WEB-CLIENT-007
+  sheet: WEB
+  category: CLIENT
+  title: Test same-origin JavaScript resources for cross-site script inclusion
+  objective: Finds a script resource that leaks sensitive data when included cross-origin as a classic script tag.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify script resources that return sensitive data as a global variable, JSONP or an array literal.
+  - From an attacker-controlled page, include the script with a script tag while the victim session cookie is sent.
+  - Read the resulting global variable or array prototype from the attacker page and confirm the leaked data.
+  example: <script src="https://target/internal/api.js"></script> then read window.secret from the attacker page
+  expected: Sensitive endpoints require a non-GET method or a custom header, are not valid JavaScript, and set a restrictive SameSite cookie.
+  severity: High
+  test_type: Manual
+  level: ASVS L3
+  refs:
+    wstg:
+    - WSTG-CLNT-13
+    asvs:
+    - V3.5.6
+    - V3.5.7
+    cwe:
+    - CWE-346
+    capec:
+    - CAPEC-111
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/11-Client-side/13-Cross_Site_Script_Inclusion.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-CLIENT-008
+  sheet: WEB
+  category: CLIENT
+  title: Test window.open links for reverse tabnabbing
+  objective: Finds links opened in a new tab that can redirect the original tab through window.opener.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Find links or window.open calls that open user-controlled or third-party URLs in a new tab.
+  - Check the HTML source for the rel attribute on target="_blank" links.
+  - Open the link and confirm whether the opened page can set window.opener.location.
+  example: <script>window.opener.location="https://malicious-example.invalid";</script> in the page opened by a user-supplied link
+  expected: Every link that opens a new tab sets rel="noopener noreferrer" or the browser default behavior is relied on and confirmed.
+  severity: Medium
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-CLNT-14
+    cwe:
+    - CWE-1022
+    capec: []
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/11-Client-side/14-Reverse_Tabnabbing.md
+- id: WEB-CLIENT-009
+  sheet: WEB
+  category: CLIENT
+  title: Test cookie attributes for Secure, HttpOnly and SameSite
+  objective: Finds session or sensitive cookies missing the Secure, HttpOnly or correct SameSite attribute.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Log in and inspect the Set-Cookie header for every session or sensitive cookie.
+  - Confirm the Secure attribute is present and the cookie uses the __Host- or __Secure- prefix.
+  - Confirm the HttpOnly attribute is present on cookies not needed by client-side script.
+  - Confirm the SameSite attribute matches the purpose of the cookie.
+  example: 'curl -I https://target/login then inspect Set-Cookie: session=...; Secure; HttpOnly; SameSite=Strict'
+  expected: Every session cookie sets Secure, HttpOnly and an appropriate SameSite value, and uses a __Host- or __Secure- prefix.
+  severity: Medium
+  test_type: Config Review
+  level: ASVS L1
+  refs:
+    asvs:
+    - V3.3.1
+    - V3.3.2
+    - V3.3.3
+    - V3.3.4
+    cwe:
+    - CWE-614
+    - CWE-1004
+    - CWE-1275
+    capec:
+    - CAPEC-31
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-CLIENT-010
+  sheet: WEB
+  category: CLIENT
+  title: Test cookie size limit handling
+  objective: Finds application behavior when a cookie name and value exceed the browser storage limit.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Set a cookie whose name and value combined exceed 4096 bytes.
+  - Reload the page and check whether the browser stored and sent the oversized cookie.
+  - Confirm the application still functions correctly when the cookie is dropped.
+  example: document.cookie = "big="+"A".repeat(4100)
+  expected: Cookies stay under 4096 bytes combined, and the application degrades safely if a browser drops an oversized cookie.
+  severity: Low
+  test_type: Manual
+  level: ASVS L3
+  refs:
+    asvs:
+    - V3.3.5
+    cwe:
+    - CWE-1004
+    capec: []
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-CLIENT-011
+  sheet: WEB
+  category: CLIENT
+  title: Test HSTS header presence and configuration
+  objective: Finds missing or weak Strict-Transport-Security headers that allow protocol downgrade.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Request the site over HTTPS and inspect the Strict-Transport-Security response header.
+  - Confirm max-age is at least one year and includeSubDomains is present if subdomains use HTTPS.
+  - Check whether the domain is present on the HSTS preload list.
+  example: 'curl -I https://target then check for Strict-Transport-Security: max-age=63072000; includeSubDomains'
+  expected: Every HTTPS response sets Strict-Transport-Security with a max-age of at least one year and includeSubDomains where applicable.
+  severity: Low
+  test_type: Config Review
+  level: ASVS L1
+  refs:
+    asvs:
+    - V3.4.1
+    - V3.7.4
+    cheatsheet:
+    - HTTP_Strict_Transport_Security_Cheat_Sheet
+    cwe: []
+    capec: []
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/HTTP_Strict_Transport_Security_Cheat_Sheet.md
+- id: WEB-CLIENT-012
+  sheet: WEB
+  category: CLIENT
+  title: Test Content-Security-Policy header strength
+  objective: Finds a missing CSP or a CSP that lacks object-src, base-uri or a strict script source list.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Request a page and inspect the Content-Security-Policy header or meta tag.
+  - Confirm object-src and base-uri are set to none.
+  - Confirm script-src uses nonces, hashes or an allowlist rather than unsafe-inline or unsafe-eval.
+  - Try the earlier reflected XSS payloads again with the CSP active to confirm it blocks execution.
+  example: 'curl -I https://target then check Content-Security-Policy: object-src ''none''; base-uri ''none''; script-src ''nonce-RANDOM'''
+  expected: The CSP sets object-src none, base-uri none, and restricts scripts with nonces, hashes or a narrow allowlist, blocking injected inline scripts.
+  severity: Medium
+  test_type: Config Review
+  level: ASVS L2
+  refs:
+    asvs:
+    - V3.4.3
+    - V3.4.7
+    cheatsheet:
+    - Content_Security_Policy_Cheat_Sheet
+    cwe:
+    - CWE-1021
+    capec:
+    - CAPEC-63
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Content_Security_Policy_Cheat_Sheet.md
+- id: WEB-CLIENT-013
+  sheet: WEB
+  category: CLIENT
+  title: Test response headers for MIME sniffing and referrer leakage
+  objective: Finds missing X-Content-Type-Options and Referrer-Policy headers that leak data or allow MIME confusion.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Request several response types and inspect the X-Content-Type-Options header.
+  - Navigate from a page containing sensitive query parameters to an external link and inspect the Referer sent.
+  - Confirm a Referrer-Policy header or meta tag restricts what is sent cross-origin.
+  example: 'curl -I https://target then check X-Content-Type-Options: nosniff and Referrer-Policy: strict-origin-when-cross-origin'
+  expected: 'Every response sets X-Content-Type-Options: nosniff and a Referrer-Policy that avoids leaking sensitive URL data to third parties.'
+  severity: Low
+  test_type: Config Review
+  level: ASVS L2
+  refs:
+    asvs:
+    - V3.4.4
+    - V3.4.5
+    cheatsheet:
+    - HTML5_Security_Cheat_Sheet
+    cwe:
+    - CWE-116
+    capec: []
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/HTML5_Security_Cheat_Sheet.md
+- id: WEB-CLIENT-014
+  sheet: WEB
+  category: CLIENT
+  title: Test Cross-Origin-Opener-Policy on document responses
+  objective: Finds document responses missing Cross-Origin-Opener-Policy, allowing tabnabbing and frame counting.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Request the main HTML document and inspect the Cross-Origin-Opener-Policy header.
+  - Confirm the value is same-origin or same-origin-allow-popups as the application requires.
+  - Open the page from an attacker tab using window.open and check whether window references leak.
+  example: 'curl -I https://target then check Cross-Origin-Opener-Policy: same-origin'
+  expected: HTML document responses set Cross-Origin-Opener-Policy to same-origin or same-origin-allow-popups.
+  severity: Low
+  test_type: Config Review
+  level: ASVS L3
+  refs:
+    asvs:
+    - V3.4.8
+    cwe:
+    - CWE-1021
+    capec: []
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-CLIENT-015
+  sheet: WEB
+  category: CLIENT
+  title: Test CORS preflight enforcement for sensitive actions
+  objective: Finds sensitive endpoints reachable by a simple cross-origin request that skips the CORS preflight.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify a sensitive endpoint relied on to be protected by the CORS preflight mechanism.
+  - Send the request cross-origin using only CORS-safelisted headers and a simple content type to avoid a preflight.
+  - Check whether the server processes the request despite not seeing an OPTIONS preflight.
+  example: fetch("https://target/api/transfer",{method:"POST",credentials:"include",headers:{"Content-Type":"text/plain"},body:"amount=100"}) from an attacker page
+  expected: Sensitive endpoints require a custom header or a method that cannot be sent without a CORS preflight, or validate Origin and Content-Type strictly.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    asvs:
+    - V3.5.1
+    - V3.5.2
+    cwe:
+    - CWE-352
+    capec:
+    - CAPEC-62
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-CLIENT-016
+  sheet: WEB
+  category: CLIENT
+  title: Test state-changing endpoints for unsafe HTTP methods
+  objective: Finds sensitive functionality reachable with a safe HTTP method such as GET.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify state-changing functionality, such as a delete or transfer action.
+  - Resend the action using the GET method instead of POST, PUT, PATCH or DELETE.
+  - Check the Sec-Fetch-* request headers the server receives and whether it validates them.
+  example: GET /api/account/delete?id=123 HTTP/1.1 sent instead of the original DELETE request
+  expected: Sensitive functionality rejects safe HTTP methods and validates Sec-Fetch-* headers to block cross-origin navigation or resource loads.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    asvs:
+    - V3.5.3
+    cwe:
+    - CWE-352
+    capec:
+    - CAPEC-62
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-CLIENT-017
+  sheet: WEB
+  category: CLIENT
+  title: Test that unrelated applications share a hostname insecurely
+  objective: Finds separate applications hosted on the same origin that weaken same-origin policy isolation.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify whether unrelated applications or trust levels are hosted under the same scheme, host and port.
+  - Check whether a lower-trust application can set cookies or access storage visible to the higher-trust application.
+  - Review hostname-based cookie scoping for each application.
+  example: Compare cookie Domain and Path scoping between https://target/app1 and https://target/app2 sharing one origin
+  expected: Applications with different trust levels are hosted on separate hostnames so cookies and storage do not cross between them.
+  severity: Low
+  test_type: Config Review
+  level: ASVS L2
+  refs:
+    asvs:
+    - V3.5.4
+    cwe:
+    - CWE-346
+    capec: []
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-CLIENT-018
+  sheet: WEB
+  category: CLIENT
+  title: Test externally hosted client-side assets for Subresource Integrity
+  objective: Finds externally hosted scripts, styles or fonts loaded without an integrity attribute.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - List every script, link and font tag that loads from an external host or CDN.
+  - Check each external tag for an integrity attribute with a matching hash.
+  - Confirm the asset is versioned and static rather than a mutable or latest-tag URL.
+  example: <script src="https://cdn.example/lib.js" integrity="sha384-HASH" crossorigin="anonymous"></script>
+  expected: Every externally hosted static asset is versioned and loaded with a matching Subresource Integrity hash, or hosted internally.
+  severity: Low
+  test_type: Config Review
+  level: ASVS L3
+  refs:
+    asvs:
+    - V3.6.1
+    cheatsheet:
+    - Third_Party_Javascript_Management_Cheat_Sheet
+    cwe:
+    - CWE-829
+    - CWE-494
+    capec: []
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Third_Party_Javascript_Management_Cheat_Sheet.md
+- id: WEB-CLIENT-019
+  sheet: WEB
+  category: CLIENT
+  title: Test for use of unsupported or insecure client-side technology
+  objective: Finds pages that still rely on retired plugin technologies such as Flash, Silverlight or Java applets.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Review page source and network requests for plugin object or embed tags.
+  - Check for Flash, Silverlight, ActiveX, NACL or Java applet content types.
+  - Confirm the application functions fully without any retired plugin technology.
+  example: grep -riE "application/x-shockwave-flash|silverlight|activex|applet" against page source and asset list
+  expected: No page relies on Flash, Silverlight, ActiveX, NACL or Java applets to function.
+  severity: Low
+  test_type: Config Review
+  level: ASVS L2
+  refs:
+    asvs:
+    - V3.7.1
+    cwe: []
+    capec: []
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-CLIENT-020
+  sheet: WEB
+  category: CLIENT
+  title: Test browser security feature fallback behavior
+  objective: Finds applications that behave unsafely when an expected browser security feature is unsupported.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Review documentation or the application for expected browser security features such as CSP or HSTS support.
+  - Use a browser or a developer tools override that disables one expected feature, such as CSP enforcement.
+  - Confirm the application warns the user or blocks access rather than continuing silently without protection.
+  example: Disable CSP enforcement in browser devtools or use a legacy user agent, then load the application
+  expected: The application warns the user or blocks access when a browser does not support an expected security feature, as documented.
+  severity: Info
+  test_type: Manual
+  level: ASVS L3
+  refs:
+    asvs:
+    - V3.1.1
+    - V3.7.5
+    cwe: []
+    capec: []
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-CLIENT-021
+  sheet: WEB
+  category: CLIENT
+  title: Test authenticated resource embedding across origins
+  objective: Finds authenticated images, scripts or documents that an attacker page can embed or load.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify an authenticated resource such as an image, video or script that is loaded while a session cookie is set.
+  - From an attacker page, embed the resource URL and check whether it loads using the victim session.
+  - Inspect the response for a Cross-Origin-Resource-Policy header and Sec-Fetch-Dest validation.
+  example: <img src="https://target/private/avatar.jpg"> embedded on an attacker page while the victim is logged in
+  expected: The server validates Sec-Fetch-* headers or sets a restrictive Cross-Origin-Resource-Policy so other origins cannot load authenticated resources.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L3
+  refs:
+    asvs:
+    - V3.5.8
+    cwe:
+    - CWE-346
+    capec: []
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-CLIENT-022
+  sheet: WEB
+  category: CLIENT
+  title: Test query parameters for HTTP Parameter Pollution
+  objective: Finds inconsistent handling of duplicate parameter names that can bypass validation or filters.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Submit a request with a parameter name duplicated with two different values.
+  - Compare the response to the single-parameter baseline to see which value the server and front-end filter used.
+  - Repeat with a duplicated parameter inside a JSON body if the endpoint accepts JSON.
+  example: 'https://target/?mode=guest&search_string=kittens&search_string=puppies ; JSON: {"search_string":"kittens","search_string":"puppies"}'
+  expected: The application and any filter in front of it handle duplicate parameters consistently and no security check can be bypassed by duplication.
+  severity: Medium
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-INJT-04
+    cwe: []
+    capec:
+    - CAPEC-460
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/04-HTTP_Parameter_Pollution.md

@@ -1,0 +1,391 @@
+- id: K8S-WRK-001
+  sheet: K8S
+  category: WRK
+  title: Check that containers run as a non-root user
+  objective: Finds workloads that run as UID 0 and make a container breakout easier.
+  steps:
+  - List all pods with their runAsUser, runAsNonRoot and hostUsers settings.
+  - Find containers that run as UID 0 or set no user.
+  - Open a shell in a sample pod and run id.
+  - Check if the image Dockerfile sets a USER instruction.
+  example: kubectl get pods -A -o json | jq ".items[] | {n:.metadata.name, sc:.spec.securityContext, c:[.spec.containers[].securityContext]}"; kubeaudit nonroot; trivy config .
+  expected: All containers run as a non-root UID. The pod sets runAsNonRoot or runAsUser above 0, or uses user namespaces with hostUsers set to false.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K01
+    cloud_native_top10:
+    - CNAS-1
+    cheatsheet:
+    - Docker_Security_Cheat_Sheet
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-250
+    attack:
+    - T1611
+    nist_800_53:
+    - AC-6
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K01-Insecure-Workload-Configurations.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-WRK-002
+  sheet: K8S
+  category: WRK
+  title: Check that containers drop all Linux capabilities
+  objective: Finds containers that keep default or extra capabilities that help an attacker escape.
+  steps:
+  - List the capabilities added and dropped for each container.
+  - Find containers that do not drop ALL.
+  - Find containers that add capabilities such as SYS_ADMIN or NET_ADMIN.
+  - Ask the owner to justify each added capability.
+  example: kubectl get pods -A -o jsonpath="{range .items[*]}{.metadata.name}{"\t"}{.spec.containers[*].securityContext.capabilities}{"\n"}{end}"; kubeaudit capabilities; docker run --cap-drop all --cap-add CHOWN alpine (local test)
+  expected: Each container drops ALL capabilities. Added capabilities are few, documented, and limited to values the application needs.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K01
+    cloud_native_top10:
+    - CNAS-1
+    cheatsheet:
+    - Docker_Security_Cheat_Sheet
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-250
+    - CWE-272
+    attack:
+    - T1611
+    nist_800_53:
+    - AC-6
+    - CM-7
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K01-Insecure-Workload-Configurations.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-WRK-003
+  sheet: K8S
+  category: WRK
+  title: Check that privilege escalation is blocked in containers
+  objective: Finds containers where setuid binaries can raise the process privileges.
+  steps:
+  - List allowPrivilegeEscalation for each container.
+  - Find containers where the value is true or not set.
+  - In a test pod, look for setuid binaries in the image.
+  - Try to run a setuid binary to change the user.
+  example: kubeaudit privesc; kubectl get pods -A -o json | jq ".items[].spec.containers[].securityContext.allowPrivilegeEscalation"; docker run --security-opt=no-new-privileges (local test)
+  expected: Every container sets allowPrivilegeEscalation to false. The no_new_privs flag is active and setuid binaries do not raise privileges.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K01
+    cloud_native_top10:
+    - CNAS-1
+    cheatsheet:
+    - Docker_Security_Cheat_Sheet
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-250
+    - CWE-269
+    attack:
+    - T1548
+    - T1611
+    nist_800_53:
+    - AC-6
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K01-Insecure-Workload-Configurations.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-WRK-004
+  sheet: K8S
+  category: WRK
+  title: Find privileged containers and host namespace use
+  objective: Finds containers that break the isolation between the workload and the node.
+  steps:
+  - List containers with privileged set to true.
+  - List pods that set hostPID, hostIPC or hostNetwork.
+  - List hostPath volumes and mounts of the container runtime socket.
+  - Ask the owner to justify each case.
+  example: kubectl get pods -A -o json | jq ".items[] | select(.spec.hostPID==true or .spec.hostIPC==true or .spec.hostNetwork==true)"; kubeaudit privileged
+  expected: No application workload runs privileged, uses host namespaces, or mounts the runtime socket. Exceptions are system workloads with a written reason.
+  severity: Critical
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K01
+    cloud_native_top10:
+    - CNAS-1
+    cheatsheet:
+    - Docker_Security_Cheat_Sheet
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-250
+    - CWE-668
+    attack:
+    - T1611
+    - T1610
+    nist_800_53:
+    - AC-6
+    - SC-39
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K01-Insecure-Workload-Configurations.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-WRK-005
+  sheet: K8S
+  category: WRK
+  title: Check that seccomp and a Linux security module are active
+  objective: Finds workloads that run without the runtime syscall filter or mandatory access control.
+  steps:
+  - List the seccompProfile type for each pod and container.
+  - Find workloads that use Unconfined or set no profile.
+  - Check for AppArmor or SELinux settings on the workloads.
+  - Check that the node enables the profile.
+  example: kubeaudit seccomp; kubectl get pods -A -o json | jq ".items[].spec.securityContext.seccompProfile"; docker info --format "{{.SecurityOptions}}"
+  expected: Every workload sets seccompProfile to RuntimeDefault or Localhost. AppArmor or SELinux profiles are active where the node supports them.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K01
+    cloud_native_top10:
+    - CNAS-1
+    cheatsheet:
+    - Docker_Security_Cheat_Sheet
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-693
+    attack:
+    - T1611
+    nist_800_53:
+    - AC-6
+    - SC-39
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K01-Insecure-Workload-Configurations.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-WRK-006
+  sheet: K8S
+  category: WRK
+  title: Check that the container root filesystem is read-only
+  objective: Finds containers that let an attacker write tools or persistence files into the image layer.
+  steps:
+  - List readOnlyRootFilesystem for each container.
+  - Find containers where the value is not true.
+  - In a test pod, try to write a file to /bin and /tmp.
+  - Check that writable paths use emptyDir volumes.
+  example: kubeaudit rootfs; kubectl exec <pod> -- touch /bin/test; docker run --read-only --tmpfs /tmp alpine (local test)
+  expected: Containers set readOnlyRootFilesystem to true. Writes go only to named emptyDir or tmpfs volumes. A write to /bin fails.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K01
+    cloud_native_top10:
+    - CNAS-1
+    cheatsheet:
+    - Docker_Security_Cheat_Sheet
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-732
+    attack:
+    - T1105
+    nist_800_53:
+    - CM-7
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K01-Insecure-Workload-Configurations.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-WRK-007
+  sheet: K8S
+  category: WRK
+  title: Check that pods mount service account tokens only when needed
+  objective: Finds pods that hold an API token without need and so give an attacker API access.
+  steps:
+  - List pods that mount a service account token.
+  - Find pods that use the default service account.
+  - Check that pods without API use set automountServiceAccountToken to false.
+  - From a test pod, send a request to the API with the token.
+  example: kubectl get pods -A -o json | jq ".items[] | {n:.metadata.name, a:.spec.automountServiceAccountToken, sa:.spec.serviceAccountName}"; kubeaudit sa; kubectl auth can-i --list --as=system:serviceaccount:<ns>:<sa>
+  expected: Pods that do not call the Kubernetes API set automountServiceAccountToken to false. Each workload that needs the API has its own service account.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K01
+    - K09
+    cloud_native_top10:
+    - CNAS-1
+    - CNAS-3
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-250
+    - CWE-1188
+    attack:
+    - T1552.007
+    - T1078
+    nist_800_53:
+    - AC-6
+    - IA-5
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K01-Insecure-Workload-Configurations.md
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K09-Broken-Authentication-Mechanisms.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x03_improper_auth.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-WRK-008
+  sheet: K8S
+  category: WRK
+  title: Check that containers have CPU and memory limits
+  objective: Finds workloads that can use all node resources and cause denial of service.
+  preconditions:
+  - Do not run the stress pod on production.
+  steps:
+  - List requests and limits for CPU and memory for each container.
+  - Find containers with no limits.
+  - Check for a LimitRange that sets defaults in each namespace.
+  - In a test namespace, run a memory stress pod and watch the node.
+  example: kubectl get pods -A -o json | jq ".items[].spec.containers[] | {n:.name, r:.resources}"; kubeaudit limits; kubectl get limitrange -A
+  expected: Every container has CPU and memory limits. Each namespace has a LimitRange. A stress pod is stopped at its limit and does not harm other pods.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K01
+    cloud_native_top10:
+    - CNAS-9
+    cheatsheet:
+    - Docker_Security_Cheat_Sheet
+    - Kubernetes_Security_Cheat_Sheet
+    - Denial_of_Service_Cheat_Sheet
+    cwe:
+    - CWE-770
+    - CWE-400
+    attack:
+    - T1499
+    - T1496
+    nist_800_53:
+    - SC-5
+    - SC-6
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K01-Insecure-Workload-Configurations.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x09_compute_resources.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Denial_of_Service_Cheat_Sheet.md
+- id: K8S-WRK-009
+  sheet: K8S
+  category: WRK
+  title: Check namespace quotas on compute and object counts
+  objective: Finds namespaces without aggregate limits that let one tenant exhaust the cluster.
+  preconditions:
+  - Do not run the over-quota request on production.
+  steps:
+  - List ResourceQuota objects for each namespace.
+  - Find namespaces with no quota for CPU, memory and pod count.
+  - Check that quotas also limit the number of services and PVCs.
+  - Try to create pods above the quota in a test namespace.
+  example: kubectl get resourcequota -A; kubectl describe quota -n <ns>; kubectl create -f compute-resources.yaml --namespace=<test-ns>
+  expected: Each tenant namespace has a ResourceQuota. A request above the quota is rejected by the API server.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K01
+    cloud_native_top10:
+    - CNAS-9
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    - Denial_of_Service_Cheat_Sheet
+    cwe:
+    - CWE-770
+    attack:
+    - T1499
+    nist_800_53:
+    - SC-5
+    - SC-6
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K01-Insecure-Workload-Configurations.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x09_compute_resources.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Denial_of_Service_Cheat_Sheet.md
+- id: K8S-WRK-010
+  sheet: K8S
+  category: WRK
+  title: Check sandboxed runtimes for untrusted or multi-tenant workloads
+  objective: Finds untrusted workloads that share the host kernel with no extra isolation.
+  steps:
+  - Identify workloads from different trust levels or tenants on the same nodes.
+  - List the RuntimeClass objects in the cluster.
+  - Check that untrusted workloads use a sandbox runtime such as gVisor or Kata Containers.
+  - Check that the node pool of those workloads is separate.
+  example: kubectl get runtimeclass; kubectl get pods -A -o jsonpath="{range .items[*]}{.metadata.name}{"\t"}{.spec.runtimeClassName}{"\n"}{end}"
+  expected: Untrusted and multi-tenant workloads run in a sandbox runtime on separate nodes from high-value workloads.
+  severity: Low
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K01
+    cloud_native_top10:
+    - CNAS-1
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-668
+    attack:
+    - T1611
+    nist_800_53:
+    - SC-39
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K01-Insecure-Workload-Configurations.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-WRK-011
+  sheet: K8S
+  category: WRK
+  title: Check that nodes block unused kernel modules
+  objective: Finds nodes where a container process can auto-load network protocol kernel modules.
+  steps:
+  - Read the modprobe configuration on a sample node.
+  - Check that unused modules such as dccp and sctp are blocked.
+  - Check if the node loads any of the blocked modules.
+  - Repeat on each node pool.
+  example: cat /etc/modprobe.d/*.conf; lsmod | grep -E "dccp|sctp"
+  expected: Unused protocol modules are blocked in the modprobe configuration and are not loaded on any node.
+  severity: Low
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K01
+    - K07
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-1188
+    attack:
+    - T1068
+    nist_800_53:
+    - CM-7
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K01-Insecure-Workload-Configurations.md
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K07-Misconfigured-And-Vulnerable-Cluster-Components.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md

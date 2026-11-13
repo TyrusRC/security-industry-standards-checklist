@@ -1,0 +1,541 @@
+- id: WEB-MFA-001
+  sheet: WEB
+  category: MFA
+  title: Check that MFA or several factors protect access
+  objective: Finds single-factor access to the application, or MFA that uses the same factor twice.
+  steps:
+  - List the factors that the login needs.
+  - Make sure at least two different factor types are needed, or approved single-factor combinations.
+  - Check that two secrets of the same type, such as password plus PIN, are not counted as MFA.
+  - For L3 systems, check that one factor is hardware-based and phishing resistant.
+  example: 'Burp history: record each login step; check that the session cookie is issued only after the second factor.'
+  expected: Access needs MFA or an approved combination of factors. Two factors of the same type do not count. L3 systems use a phishing-resistant hardware factor.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-ATHN-11
+    asvs:
+    - V6.3.3
+    cheatsheet:
+    - Multifactor_Authentication_Cheat_Sheet
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-308
+    - CWE-309
+    - CWE-654
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/11-Multi-Factor_Authentication.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Multifactor_Authentication_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-MFA-002
+  sheet: WEB
+  category: MFA
+  title: Try to bypass MFA with other paths and headers
+  objective: Finds login paths or flags that skip the second factor.
+  steps:
+  - 'List all login paths: main page, API, mobile API, federated login, test pages.'
+  - Log in with the password only. Request a protected page directly.
+  - Call the API login endpoints with the password only.
+  - Add X-Forwarded-For or debug headers such as X-Debug to the login.
+  - Try a local login for an account that was linked to a federated login.
+  - Try the hard-coded or break-glass account.
+  example: 'curl -i -b ''session=<pre-mfa cookie>'' https://target/account ; curl -i -H ''X-Forwarded-For: 10.0.0.5'' -H ''X-Debug: 1'' -d ''u=a&p=b'' https://target/api/login'
+  expected: Every login path needs the second factor. Headers, IP values and special accounts do not skip it.
+  severity: Critical
+  test_type: Manual
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-ATHN-11
+    cheatsheet:
+    - Multifactor_Authentication_Cheat_Sheet
+    cwe:
+    - CWE-304
+    - CWE-288
+    - CWE-290
+    - CWE-291
+    - CWE-308
+    capec:
+    - CAPEC-115
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/11-Multi-Factor_Authentication.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Multifactor_Authentication_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-MFA-003
+  sheet: WEB
+  category: MFA
+  title: Test OTP brute force and rate limit
+  objective: Finds OTP checks with no rate limit or lockout, so codes can be guessed.
+  preconditions:
+  - Test account that you can lock.
+  - Do not run on production.
+  steps:
+  - Log in with the password and stop at the OTP page.
+  - Send 100 wrong codes in a short time.
+  - Check for lockout, delay or a new code requirement.
+  - Check that a failure count follows the account and not only the IP address.
+  - Send many codes from several IP addresses.
+  example: 'Burp Intruder: POST /mfa/verify code=§000000§ (numbers 000000-000200); look at status codes for a lockout.'
+  expected: The application limits wrong OTP codes per account, locks or delays, and logs the events. Longer codes or 64-bit entropy add safety.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-ATHN-11
+    - WSTG-ATHN-03
+    asvs:
+    - V6.6.3
+    cheatsheet:
+    - Multifactor_Authentication_Cheat_Sheet
+    cwe:
+    - CWE-307
+    - CWE-770
+    capec:
+    - CAPEC-112
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/11-Multi-Factor_Authentication.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/03-Weak_Lock_Out_Mechanism.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Multifactor_Authentication_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-MFA-004
+  sheet: WEB
+  category: MFA
+  title: Check that OTPs, lookup secrets and TOTP work only once
+  objective: Finds codes that can be reused.
+  steps:
+  - Log in and capture the valid OTP request.
+  - Log out and log in again. Send the same code.
+  - Replay the captured request at once.
+  - Use a recovery code twice.
+  example: 'Burp Repeater: send POST /mfa/verify twice with the same code; the second request must fail.'
+  expected: Each lookup secret, out-of-band code and TOTP value works only once.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-ATHN-11
+    asvs:
+    - V6.5.1
+    cheatsheet:
+    - Multifactor_Authentication_Cheat_Sheet
+    cwe:
+    - CWE-294
+    - CWE-308
+    capec:
+    - CAPEC-60
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/11-Multi-Factor_Authentication.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Multifactor_Authentication_Cheat_Sheet.md
+- id: WEB-MFA-005
+  sheet: WEB
+  category: MFA
+  title: Check the lifetime of OTP codes and TOTP
+  objective: Finds codes that stay valid for too long.
+  steps:
+  - Request an out-of-band code.
+  - Send it after 5, 10 and 11 minutes.
+  - Send a TOTP value from 30, 60 and 90 seconds ago.
+  - Request a new code and test the old one.
+  example: oathtool --totp -b $SECRET -N '-90 seconds' ; submit the value to /mfa/verify.
+  expected: Out-of-band codes expire in 10 minutes or less. TOTP values are valid for 30 seconds or a small window. A new code cancels the old one.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-ATHN-11
+    asvs:
+    - V6.5.5
+    cheatsheet:
+    - Multifactor_Authentication_Cheat_Sheet
+    cwe:
+    - CWE-324
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/11-Multi-Factor_Authentication.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Multifactor_Authentication_Cheat_Sheet.md
+- id: WEB-MFA-006
+  sheet: WEB
+  category: MFA
+  title: Check the generation and strength of OTPs and lookup secrets
+  objective: Finds predictable or short codes, or weak TOTP seeds.
+  steps:
+  - Request 50 codes and examine them for patterns.
+  - 'Check the code length: at least 20 bits (6 digits).'
+  - Read the code for the random function. It must be a CSPRNG.
+  - Check that TOTP seeds come from a CSPRNG and are at least 160 bits.
+  example: grep -rn 'Math.random\|rand()\|random.randint' src/ ; Burp Sequencer on 50 OTPs.
+  expected: Codes and seeds come from a CSPRNG and have enough entropy.
+  severity: High
+  test_type: Code Review
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-ATHN-11
+    asvs:
+    - V6.5.3
+    - V6.5.4
+    cheatsheet:
+    - Multifactor_Authentication_Cheat_Sheet
+    cwe:
+    - CWE-330
+    - CWE-331
+    - CWE-338
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/11-Multi-Factor_Authentication.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Multifactor_Authentication_Cheat_Sheet.md
+- id: WEB-MFA-007
+  sheet: WEB
+  category: MFA
+  title: Check the storage of lookup secrets
+  objective: Finds recovery codes stored in clear text or with a fast hash.
+  steps:
+  - Find where recovery codes are stored.
+  - Check the code entropy.
+  - For secrets below 112 bits, check for a password hash with a 32-bit random salt.
+  - Make sure OTP values are not in logs.
+  example: SELECT code FROM recovery_codes LIMIT 5; grep -rn 'recovery' src/ | grep -i hash
+  expected: Lookup secrets under 112 bits are hashed with an approved password hash and salt. Codes are not logged.
+  severity: Medium
+  test_type: Code Review
+  level: ASVS L2
+  refs:
+    asvs:
+    - V6.5.2
+    cheatsheet:
+    - Multifactor_Authentication_Cheat_Sheet
+    - Password_Storage_Cheat_Sheet
+    cwe:
+    - CWE-256
+    - CWE-916
+    - CWE-312
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Multifactor_Authentication_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Password_Storage_Cheat_Sheet.md
+- id: WEB-MFA-008
+  sheet: WEB
+  category: MFA
+  title: Check that out-of-band codes belong to one request
+  objective: Finds codes that work for another login request or another user.
+  steps:
+  - Start two logins for the same user. Collect the code from the first.
+  - Use the code of the first login in the second.
+  - Use a code of user A in the login of user B.
+  example: 'Two Burp sessions: take code from mail 1 and POST it with the session cookie from login 2.'
+  expected: A code is bound to the original authentication request. It works only there.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-ATHN-11
+    asvs:
+    - V6.6.2
+    cheatsheet:
+    - Multifactor_Authentication_Cheat_Sheet
+    cwe:
+    - CWE-294
+    - CWE-287
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/11-Multi-Factor_Authentication.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Multifactor_Authentication_Cheat_Sheet.md
+- id: WEB-MFA-009
+  sheet: WEB
+  category: MFA
+  title: Check the use of SMS and phone calls as factors
+  objective: Finds PSTN codes sent to unverified numbers, or with no stronger option.
+  steps:
+  - Add a phone number. Check that the application validates it.
+  - Check that stronger factors such as TOTP are offered.
+  - Look for a warning about the risks of SMS.
+  - For L3 systems, check that SMS is not accepted.
+  example: POST /profile/phone number=+15550100 ; then check that no code goes out before validation.
+  expected: PSTN codes go only to validated numbers. Stronger methods exist and the user sees a risk notice. L3 systems do not use PSTN.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-ATHN-11
+    asvs:
+    - V6.6.1
+    cheatsheet:
+    - Multifactor_Authentication_Cheat_Sheet
+    cwe:
+    - CWE-308
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/11-Multi-Factor_Authentication.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Multifactor_Authentication_Cheat_Sheet.md
+- id: WEB-MFA-010
+  sheet: WEB
+  category: MFA
+  title: Check push MFA for flooding and number matching
+  objective: Finds push MFA that lets an attacker flood the user until a prompt is accepted.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Log in with the password 10 times.
+  - Count the push prompts that the user phone gets.
+  - 'Check that the prompt shows context: place, device and time.'
+  - Check for number matching.
+  example: for i in $(seq 10); do curl -s -d 'u=victim&p=<pw>' https://target/login; done and count prompts on the test phone.
+  expected: The application limits push requests, shows context, and uses number matching.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L3
+  refs:
+    wstg:
+    - WSTG-ATHN-11
+    asvs:
+    - V6.6.4
+    cheatsheet:
+    - Multifactor_Authentication_Cheat_Sheet
+    cwe:
+    - CWE-799
+    - CWE-770
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/11-Multi-Factor_Authentication.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Multifactor_Authentication_Cheat_Sheet.md
+- id: WEB-MFA-011
+  sheet: WEB
+  category: MFA
+  title: Check that an authentication factor can be revoked
+  objective: Finds lost or stolen factors that stay valid.
+  steps:
+  - Enrol a test device or token.
+  - Revoke it in the profile or as administrator.
+  - Try to log in with the revoked factor.
+  example: DELETE /api/mfa/devices/<id> then replay a code from that device.
+  expected: A revoked factor cannot be used for authentication. The user is notified.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L3
+  refs:
+    asvs:
+    - V6.5.6
+    cheatsheet:
+    - Multifactor_Authentication_Cheat_Sheet
+    cwe:
+    - CWE-324
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Multifactor_Authentication_Cheat_Sheet.md
+- id: WEB-MFA-012
+  sheet: WEB
+  category: MFA
+  title: Check that biometrics are only a second factor
+  objective: Finds biometrics used alone.
+  steps:
+  - Read the authentication design.
+  - Look for biometric login paths.
+  - Try to log in with the biometric only.
+  example: 'Review the WebAuthn or app configuration: userVerification and the required factors per login.'
+  expected: Biometrics are used only together with something the user has or knows.
+  severity: Low
+  test_type: Config Review
+  level: ASVS L3
+  refs:
+    asvs:
+    - V6.5.7
+    cheatsheet:
+    - Multifactor_Authentication_Cheat_Sheet
+    cwe:
+    - CWE-308
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Multifactor_Authentication_Cheat_Sheet.md
+- id: WEB-MFA-013
+  sheet: WEB
+  category: MFA
+  title: Check the time source for TOTP checks
+  objective: Finds TOTP checks that use the client time.
+  steps:
+  - Read the code that checks TOTP.
+  - Send a client time or time zone value in the request.
+  - Change the device clock. Test the code.
+  example: grep -rn 'totp' src/ | grep -i 'timestamp\|time(' ; add 'ts=<value>' to POST /mfa/verify.
+  expected: The server uses its own trusted time source. Client time has no effect.
+  severity: Medium
+  test_type: Code Review
+  level: ASVS L3
+  refs:
+    wstg:
+    - WSTG-ATHN-11
+    asvs:
+    - V6.5.8
+    cheatsheet:
+    - Multifactor_Authentication_Cheat_Sheet
+    cwe:
+    - CWE-345
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/11-Multi-Factor_Authentication.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Multifactor_Authentication_Cheat_Sheet.md
+- id: WEB-MFA-014
+  sheet: WEB
+  category: MFA
+  title: Check the MFA recovery process and identity proof
+  objective: Finds weak ways to regain access after a lost factor.
+  steps:
+  - Start the MFA recovery process.
+  - Examine the proof of identity that the process needs.
+  - Compare it with the proof at enrolment.
+  - 'Test recovery codes: length, single use, brute-force limit and notice.'
+  - Look for security questions as a fallback.
+  example: Burp Intruder on POST /mfa/recovery code=§§ ; read the mail for the notice.
+  expected: Recovery needs identity proof at the same level as enrolment. Recovery codes are strong, single use and rate limited. No weak fallback exists.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-ATHN-11
+    asvs:
+    - V6.4.4
+    cheatsheet:
+    - Multifactor_Authentication_Cheat_Sheet
+    - Forgot_Password_Cheat_Sheet
+    cwe:
+    - CWE-640
+    - CWE-308
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/11-Multi-Factor_Authentication.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Multifactor_Authentication_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Forgot_Password_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-MFA-015
+  sheet: WEB
+  category: MFA
+  title: Check that password reset does not bypass MFA
+  objective: Finds reset flows that give access without the second factor.
+  steps:
+  - Enable MFA on a test account.
+  - Reset the password with the email link.
+  - Check if the application logs in the user without MFA.
+  - Log in with the new password and check that MFA is still needed.
+  example: Complete /forgot -> /reset/confirm and call GET /account with the returned cookie.
+  expected: Reset does not remove or skip MFA. The user still needs the second factor after the reset.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-ATHN-09
+    - WSTG-ATHN-11
+    asvs:
+    - V6.4.3
+    cheatsheet:
+    - Forgot_Password_Cheat_Sheet
+    - Multifactor_Authentication_Cheat_Sheet
+    cwe:
+    - CWE-304
+    - CWE-640
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/09-Weak_Password_Change_or_Reset_Functionalities.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/11-Multi-Factor_Authentication.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Forgot_Password_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Multifactor_Authentication_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-MFA-016
+  sheet: WEB
+  category: MFA
+  title: Check the management of MFA settings
+  objective: Finds MFA settings that can be changed without re-authentication, by CSRF or by IDOR.
+  steps:
+  - Disable MFA or change the device with a stolen session cookie only.
+  - Send the change request from another site without a CSRF token.
+  - Change the user ID in the request to another account.
+  - Check for a notice to the user.
+  example: 'Burp Repeater: POST /account/mfa/disable with only the session cookie; then add user=victim.'
+  expected: Changes to MFA need a strong re-authentication, a CSRF token and ownership checks. The user gets a notice.
+  severity: High
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-ATHN-11
+    cheatsheet:
+    - Multifactor_Authentication_Cheat_Sheet
+    cwe:
+    - CWE-620
+    - CWE-352
+    - CWE-639
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/11-Multi-Factor_Authentication.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Multifactor_Authentication_Cheat_Sheet.md
+- id: WEB-MFA-017
+  sheet: WEB
+  category: MFA
+  title: Check trusted IP, location and certificate based factors
+  objective: Finds factors that can be forged with headers or an unrestricted certificate authority.
+  steps:
+  - Set X-Forwarded-For to a trusted IP address.
+  - 'List the trusted IP ranges: look for guest Wi-Fi and cloud ranges.'
+  - Check which CAs the server trusts for client certificates.
+  - Use a certificate from another CA, and one issued to another user.
+  example: 'openssl s_client -connect target:443 | grep -A5 ''Acceptable client certificate CA'' ; curl -H ''X-Forwarded-For: 10.0.0.1'' https://target/login'
+  expected: Header values do not set trust. Only reviewed ranges are trusted. Client certificates are accepted from approved CAs and only for the owner.
+  severity: High
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-ATHN-11
+    cheatsheet:
+    - Multifactor_Authentication_Cheat_Sheet
+    cwe:
+    - CWE-291
+    - CWE-290
+    - CWE-295
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/11-Multi-Factor_Authentication.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Multifactor_Authentication_Cheat_Sheet.md
+- id: WEB-MFA-018
+  sheet: WEB
+  category: MFA
+  title: Check OTP delivery abuse and SMS or email flooding
+  objective: Finds missing limits on code sending, which allows harassment and cost abuse.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Request 20 codes for one account in one minute.
+  - Check the number of messages sent.
+  - Check that a new code cancels the old one.
+  - Try the limit with different IP addresses.
+  example: for i in $(seq 20); do curl -s -o /dev/null -w '%{http_code}\n' -d 'user=victim' https://target/mfa/send; done
+  expected: The number of codes per account and per time is limited. A new code replaces the old one.
+  severity: Medium
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-ATHN-11
+    cheatsheet:
+    - Multifactor_Authentication_Cheat_Sheet
+    cwe:
+    - CWE-770
+    - CWE-799
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/11-Multi-Factor_Authentication.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Multifactor_Authentication_Cheat_Sheet.md

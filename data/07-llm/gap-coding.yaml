@@ -1,0 +1,207 @@
+- id: LLM-CODING-001
+  sheet: LLM
+  category: CODING
+  title: Check review and monitoring of AI coding tool rules files
+  objective: Finds rules files that an attacker or the agent can change to steer all later generations.
+  steps:
+  - List the rules files in the repository, such as .cursorrules, CLAUDE.md, AGENTS.md and copilot-instructions.md.
+  - Make sure CODEOWNERS or a ruleset requires review for changes to these files.
+  - Make sure a CI check flags each new or changed rules file in a pull request.
+  - Make sure the agent cannot change its own rules files without developer approval.
+  - Read the existing rules files. Look for text that weakens security controls or tells the agent to skip files.
+  example: git ls-files | grep -iE 'cursorrules|CLAUDE.md|AGENTS.md|copilot-instructions|windsurfrules|aider.conf'; cat .github/CODEOWNERS
+  expected: Rules files need code owner review. Changes raise a CI flag. No rules file weakens security controls.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    llm_top10:
+    - LLM01:2025
+    cheatsheet:
+    - Secure_Coding_with_AI_Cheat_Sheet
+    cwe:
+    - CWE-94
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Coding_with_AI_Cheat_Sheet.md
+- id: LLM-CODING-002
+  sheet: LLM
+  category: CODING
+  title: Test that CI flags out-of-scope files in AI-generated pull requests
+  objective: Finds agent changes to lockfiles, CI files or tests that reviewers miss because they focus on the task.
+  preconditions:
+  - Use a test repository.
+  steps:
+  - Make a test pull request from an agent. Add a change to a lockfile and to a CI file outside the task.
+  - Look for a CI check that flags changes outside the requested scope.
+  - Make sure CODEOWNERS requires named reviewers for CI files, Dockerfiles, deployment scripts and rules files.
+  - Make sure reviewers see the full diff and not only the pull request description.
+  example: git diff --stat origin/main...HEAD; cat .github/CODEOWNERS
+  expected: CI flags unexpected file changes in agent pull requests. Sensitive files need review by their owners.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    cheatsheet:
+    - Secure_Coding_with_AI_Cheat_Sheet
+    cwe:
+    - CWE-1357
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Coding_with_AI_Cheat_Sheet.md
+- id: LLM-CODING-003
+  sheet: LLM
+  category: CODING
+  title: Test that CI flags deleted tests and weaker assertions in AI-generated changes
+  objective: Finds agent changes that turn tests green by removing or weakening them.
+  preconditions:
+  - Use a test repository.
+  steps:
+  - Make a test pull request that deletes a test and changes assertEquals to assertNotNull.
+  - Make a second change that replaces a real dependency with a mock in a test.
+  - Make sure CI flags the deleted test, the lower assertion count and the new mock.
+  - Make sure a human reviews each flagged test change.
+  - Make sure tests for authentication, authorization, input validation and cryptography are written by a person.
+  example: git diff origin/main...HEAD -- "*test*" | grep -E "^-.*(assert|def test|it\()"
+  expected: Deleted tests and weaker assertions in agent changes raise a flag and need human approval. Security-critical tests are written by a person.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    cheatsheet:
+    - Secure_Coding_with_AI_Cheat_Sheet
+    cwe:
+    - CWE-1357
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Coding_with_AI_Cheat_Sheet.md
+- id: LLM-CODING-004
+  sheet: LLM
+  category: CODING
+  title: Check that AI coding tools exclude secrets and sensitive files from context
+  objective: Finds credentials and private code that the AI tool sends to the model provider.
+  preconditions:
+  - Use a canary value, not a real secret.
+  steps:
+  - Read the context exclusion settings of the AI coding tool, such as .cursorignore.
+  - Make sure the list holds .env files, key files and credential files.
+  - Capture the requests that the tool sends. Remove credentials and personal data from the capture before you store it.
+  - Make sure a canary secret in a sensitive file does not appear in the requests.
+  - Make sure no secret lives in a file in the project tree where the tool can read it.
+  example: 'grep -rE "env|pem|key|credentials" .cursorignore .aiignore; mitmproxy --mode regular  # capture on a test machine'
+  expected: Sensitive files are excluded from the tool context. A canary secret does not reach the provider.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    llm_top10:
+    - LLM02:2025
+    cheatsheet:
+    - Secure_Coding_with_AI_Cheat_Sheet
+    cwe:
+    - CWE-200
+    - CWE-522
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Coding_with_AI_Cheat_Sheet.md
+- id: LLM-CODING-005
+  sheet: LLM
+  category: CODING
+  title: Check the runtime limits of AI coding agents on developer machines
+  objective: Finds agents that run with full developer credentials, auto-accept and open network access.
+  steps:
+  - Find out where the agents run, such as a dev container, a virtual machine or the host.
+  - Make sure the agent cannot read SSH keys, cloud CLI configuration or credential stores.
+  - Make sure auto-accept and permission-skip flags are off on unfamiliar code.
+  - Make sure the agent has egress limits and task-scoped credentials, not long-lived developer credentials.
+  - Make sure CPU, memory, disk and process limits are set.
+  example: 'cat .devcontainer/devcontainer.json; env | grep -iE "token|key|secret"  # inside the agent runtime'
+  expected: Agents run in a sandbox with scoped credentials, no auto-accept on untrusted code and limited network and resources.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    llm_top10:
+    - LLM06:2025
+    cheatsheet:
+    - Secure_Coding_with_AI_Cheat_Sheet
+    cwe:
+    - CWE-250
+    - CWE-732
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Coding_with_AI_Cheat_Sheet.md
+- id: LLM-CODING-006
+  sheet: LLM
+  category: CODING
+  title: Check human ownership and audit trail of AI-generated changes
+  objective: Finds AI-generated changes that reach production with no accountable human reviewer.
+  steps:
+  - Take a sample of recent merged changes made with AI tools.
+  - Make sure each change has a named human owner and an explicit approval.
+  - Make sure the record shows the AI tool and the model version.
+  - Make sure an AI review comment is never the only approval.
+  example: gh pr list --state merged --limit 30 --json number,author,reviews
+  expected: Each AI-generated change has a human owner and a human approval. The audit trail shows the tool and model version.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    cheatsheet:
+    - Secure_Coding_with_AI_Cheat_Sheet
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Coding_with_AI_Cheat_Sheet.md
+- id: LLM-CODING-007
+  sheet: LLM
+  category: CODING
+  title: Check that CI scans for bidi and invisible characters
+  objective: Finds hidden Unicode characters that change what a reviewer or a later agent run reads.
+  preconditions:
+  - Use a test repository.
+  steps:
+  - Make a test pull request with a bidi override character and a zero-width character in a source file.
+  - Add the same characters to a commit message and a pull request description.
+  - Make sure CI flags the characters in code, commits and descriptions.
+  - Make sure the IDE and the review interface escape Markdown images and hidden links in agent output.
+  example: grep -rnP '[\x{202A}-\x{202E}\x{2066}-\x{2069}\x{200B}-\x{200D}\x{FEFF}]' --include='*' .
+  expected: CI flags bidi and zero-width characters in code, commits and descriptions. Agent output has no active hidden links.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    llm_top10:
+    - LLM01:2025
+    cheatsheet:
+    - Secure_Coding_with_AI_Cheat_Sheet
+    cwe:
+    - CWE-1007
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Coding_with_AI_Cheat_Sheet.md
+- id: LLM-CODING-008
+  sheet: LLM
+  category: CODING
+  title: Test that installs of AI-suggested packages pass an age and allowlist gate
+  objective: Finds hallucinated or new malicious packages that install with no check.
+  steps:
+  - Ask an agent for a task that needs a package. Note each suggested name.
+  - Check that each name exists on the public registry and is on the internal allowlist.
+  - Try to install a test package younger than the minimum age. Make sure the hook or CI check blocks it.
+  - Make sure AI-suggested versions pass the dependency audit before merge.
+  example: npm view PACKAGE time.created; npm audit --audit-level=high; pip-audit; govulncheck ./...
+  expected: Packages below the minimum age or off the allowlist are blocked. Audit failures stop the merge.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    llm_top10:
+    - LLM03:2025
+    cheatsheet:
+    - Secure_Coding_with_AI_Cheat_Sheet
+    cwe:
+    - CWE-1104
+    - CWE-829
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Coding_with_AI_Cheat_Sheet.md

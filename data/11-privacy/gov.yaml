@@ -1,0 +1,121 @@
+- id: PRIV-GOV-001
+  sheet: PRIV
+  category: GOV
+  title: Check that a record of processing activities exists and is current
+  objective: Finds processing that nobody documented.
+  steps:
+  - Ask for the record of processing activities.
+  - Check for controller, purposes, categories, recipients, transfers and time limits.
+  - Compare with the data inventory and with traffic.
+  - Check the date of the last update.
+  example: Document review; compare record rows with the systems list.
+  expected: The record has all required fields for every processing activity and was updated after the last change.
+  severity: Medium
+  test_type:
+  - Config Review
+  refs:
+    privacy_top10:
+    - P5
+    - P10
+    other:
+    - GDPR Art. 30
+  sources_read: &id001
+  - sources/repos/www-project-top-10-privacy-risks/tab_topprivacy.md
+  - sources/repos/www-project-top-10-privacy-risks/OWASP_Top_10_Privacy_Risks_Countermeasures_v2.0.pdf
+  - sources/extra/gdpr.html
+- id: PRIV-GOV-002
+  sheet: PRIV
+  category: GOV
+  title: Check that a data protection impact assessment exists for high-risk processing
+  objective: Finds high-risk processing with no impact assessment.
+  steps:
+  - List processing that uses profiling, large-scale sensitive data or monitoring.
+  - Ask for the assessment for each item.
+  - Check the assessment for description, necessity, risks and measures.
+  - Check the review date after changes.
+  example: 'Document review: DPIA register with dates and owners.'
+  expected: Each high-risk processing has an assessment made before the start. It was reviewed after the last change.
+  severity: Medium
+  test_type:
+  - Config Review
+  refs:
+    privacy_top10:
+    - P1
+    - P10
+    other:
+    - GDPR Art. 35
+  sources_read: *id001
+- id: PRIV-GOV-003
+  sheet: PRIV
+  category: GOV
+  title: Check that privacy by design is part of development
+  objective: Finds projects that add privacy late or never.
+  steps:
+  - Ask for the privacy requirements of the latest release.
+  - Check design records for data minimisation and default settings.
+  - Check for a privacy step in change control.
+  - Check the privacy tests in the release checklist.
+  example: 'Document review: design review notes, release checklist, threat model with privacy threats.'
+  expected: Privacy requirements exist from the start. Change control includes a privacy impact check.
+  severity: Low
+  test_type:
+  - Config Review
+  refs:
+    privacy_top10:
+    - P1
+    - P10
+    other:
+    - GDPR Art. 25
+    cheatsheet:
+    - Secure_Product_Design_Cheat_Sheet
+  sources_read:
+  - sources/repos/www-project-top-10-privacy-risks/tab_topprivacy.md
+  - sources/repos/www-project-top-10-privacy-risks/OWASP_Top_10_Privacy_Risks_Countermeasures_v2.0.pdf
+  - sources/extra/gdpr.html
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Product_Design_Cheat_Sheet.md
+- id: PRIV-GOV-004
+  sheet: PRIV
+  category: GOV
+  title: Check the data quality controls for stored personal data
+  objective: Finds old, wrong or duplicate personal data.
+  steps:
+  - Ask how the service keeps data up to date.
+  - Look for periodic checks or prompts to the user.
+  - Find duplicate or conflicting records in a sample.
+  - Check that updates reach all copies.
+  example: SQL duplicate check on a sample; review of the reminder process.
+  expected: The service has a process to keep data accurate. Old and wrong data is corrected or removed.
+  severity: Low
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    privacy_top10:
+    - P7
+    other:
+    - GDPR Art. 5
+    - GDPR Art. 16
+  sources_read: *id001
+- id: PRIV-GOV-005
+  sheet: PRIV
+  category: GOV
+  title: Check the privacy of automated decisions and profiling
+  objective: Finds profiling with legal or similar effect that has no human review or explanation.
+  steps:
+  - List automated decisions that affect users.
+  - Check the notice for the logic and its effect.
+  - Check for a human review path.
+  - Check that users can object.
+  example: 'Document review: decision logic description, review procedure.'
+  expected: Automated decisions with significant effect have a notice, a human review path and an objection path.
+  severity: Medium
+  test_type:
+  - Config Review
+  refs:
+    privacy_top10:
+    - P4
+    - P5
+    other:
+    - GDPR Art. 13
+    - GDPR Art. 22
+  sources_read: *id001

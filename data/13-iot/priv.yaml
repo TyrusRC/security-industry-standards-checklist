@@ -1,0 +1,120 @@
+- id: IOT-PRIV-001
+  sheet: IOT
+  category: PRIV
+  title: Map the personal data that the device and its cloud collect
+  objective: Finds data that the device collects without need or without notice.
+  steps:
+  - Capture device, app and cloud traffic during normal use.
+  - 'List all data types: audio, video, location, identifiers.'
+  - Compare with the privacy notice.
+  - Mark data without a stated purpose.
+  example: Wireshark and mitmproxy in a lab; field list against the notice.
+  expected: The device sends only data that is needed and named in the notice. Sensors do not record without a user signal.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    other:
+    - UK Code of Practice for Consumer IoT Security provision 8, as listed in iot_map.md
+    - GSMA CLP11_6
+    cwe:
+    - CWE-359
+    - CWE-201
+    iot_top10:
+    - I6
+  see:
+  - MOB-PRIV-004
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: IOT-PRIV-002
+  sheet: IOT
+  category: PRIV
+  title: Test removal of personal data at factory reset and transfer of ownership
+  objective: Finds data that stays on a device after reset or sale.
+  steps:
+  - Fill a lab device with test user data.
+  - Do a factory reset.
+  - Read the flash with a programmer or from a shell.
+  - Search the dump for the test data.
+  example: Dump flash with flashrom or a serial shell; strings and grep for test data.
+  expected: A factory reset removes all personal data and credentials. Users get clear steps to delete data.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    other:
+    - UK Code of Practice for Consumer IoT Security provision 11, as listed in iot_map.md
+    - GSMA CLP13_8.10
+    cwe:
+    - CWE-212
+    - CWE-312
+    cheatsheet:
+    - Drone_Security_Cheat_Sheet
+    iot_top10:
+    - I6
+    - I8
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Drone_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: IOT-PRIV-003
+  sheet: IOT
+  category: PRIV
+  title: Check unique device identifiers and metadata for tracking
+  objective: Finds identifiers that let others track users.
+  steps:
+  - Capture radio and cloud traffic.
+  - Look for fixed MAC, serial and device ID values.
+  - Compare the values over time and place.
+  - Check what third parties receive.
+  example: Wireshark; Bluetooth sniffer for static addresses.
+  expected: Identifiers are random or rotate where possible. Metadata is not shared without a stated need.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    other:
+    - GSMA CLP13_7.8
+    - GSMA CLP13_8.11
+    cwe:
+    - CWE-359
+    iot_top10:
+    - I6
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: IOT-PRIV-004
+  sheet: IOT
+  category: PRIV
+  title: Check consent, privacy controls and third-party sharing for the device
+  objective: Finds sharing with partners without consent and no control for the user.
+  steps:
+  - Read the setup flow for consent steps.
+  - Look for privacy settings in the app.
+  - Capture traffic to third-party hosts.
+  - Withdraw consent and capture again.
+  example: mitmproxy host list before and after consent change.
+  expected: Users can give and withdraw consent. Sharing with third parties stops after withdrawal.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    other:
+    - UK Code of Practice for Consumer IoT Security provision 8, as listed in iot_map.md
+    - GSMA CLP12_7.4
+    - GSMA CLP12_8.3
+    cwe:
+    - CWE-359
+    iot_top10:
+    - I6
+  see:
+  - PRIV-CONSENT-003
+  - PRIV-SHARE-001
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/cwe/cwec_latest.xml.zip

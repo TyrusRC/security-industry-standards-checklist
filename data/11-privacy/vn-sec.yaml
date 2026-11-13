@@ -1,0 +1,168 @@
+- id: PRIV-VNSEC-001
+  sheet: PRIV
+  category: VNSEC
+  title: Check the security measures for personal data across its life
+  objective: Finds processing with no managed and technical protection from the start.
+  steps:
+  - Read the data protection rules of the organisation.
+  - Check the list of managed and technical measures for each system.
+  - Check that measures exist from the start of the project and are reviewed.
+  - Check that standard-based controls are in use.
+  example: Review the policy, the control list and the last review date. Match with the security tests in the sheets SEC and WEB-DATA.
+  expected: Managed and technical measures exist from the start and through the whole processing. The organisation reviews and updates them.
+  severity: Medium
+  test_type: &id002
+  - Config Review
+  refs:
+    privacy_top10:
+    - P2
+    - P1
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 3
+    - Vietnam Decree 13/2023/ND-CP Art. 26
+    - Vietnam Decree 13/2023/ND-CP Art. 27
+    - Vietnam PDP Law 91/2025/QH15 Art. 37
+  sources_read: &id001
+  - sources/vn_law/13nd.ocr.txt
+  - sources/vn_law/91qh.ocr.txt
+  see:
+  - PRIV-SEC-007
+  - PRIV-GOV-003
+  notes: Decree Art. 3(6), 26, 27(2), 27(3). Law Art. 37(1)(c). The Law lists the duty of the controller but not the same list of measures as Decree Art. 26(2).
+- id: PRIV-VNSEC-002
+  sheet: PRIV
+  category: VNSEC
+  title: Check the system log of personal data processing
+  objective: Finds processing that leaves no trace for audit.
+  steps:
+  - Read the log design for systems that process personal data.
+  - Do a read, change and delete action on a test record.
+  - Find the log entries for each action.
+  - Check the retention and protection of the log.
+  example: 'Search the log store by test user ID. Check the fields: who, when, what.'
+  expected: The system logs the processing of personal data and keeps the log. The log holds no clear personal data that it does not need.
+  severity: Medium
+  test_type: &id003
+  - Manual
+  - Config Review
+  refs:
+    privacy_top10:
+    - P2
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 38
+  sources_read: *id001
+  see:
+  - WEB-LOG-002
+  - WEB-LOG-006
+  - WEB-LOG-012
+  notes: Decree Art. 38(2) names the duty to record and keep system logs. The 2025 Law has no matching article.
+- id: PRIV-VNSEC-003
+  sheet: PRIV
+  category: VNSEC
+  title: Test the system against unlawful collection of personal data
+  objective: Finds interfaces that allow bulk scraping of personal data.
+  preconditions:
+  - Written permission to run request floods against the test system.
+  steps:
+  - List public pages and API endpoints that return personal data.
+  - Send many requests for different user IDs from one client.
+  - Check for rate limits, authentication and bot controls.
+  - Check that the response shows only needed fields.
+  example: Burp Intruder or a script with 500 requests. Look at status codes and alerts.
+  expected: The service blocks bulk collection of personal data from its systems and shows only needed fields.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    privacy_top10:
+    - P2
+    - P1
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 22
+    - Vietnam PDP Law 91/2025/QH15 Art. 37
+  sources_read: *id001
+  see:
+  - WEB-BOT-001
+  - WEB-IDOR-001
+  - WEB-DATA-007
+  notes: 'Decree Art. 22(1) and Law Art. 37(1)(h), 37(2)(d): controllers and processors must prevent unlawful collection from their own systems.'
+- id: PRIV-VNSEC-004
+  sheet: PRIV
+  category: VNSEC
+  title: Check that partner data feeds are not a sale of data
+  objective: Finds partner feeds that count as a purchase or sale of personal data.
+  steps:
+  - List the partner feeds and the data they carry.
+  - Read the contracts for payment or exchange of personal data.
+  - Check the legal ground and the consent for each feed.
+  - Check that data is not offered for sale in any other channel.
+  example: Document review of partner contracts and the data catalogue. grep the code for export jobs.
+  expected: No feed sells or buys personal data. Each transfer to a third party has a legal ground.
+  severity: High
+  test_type: *id002
+  refs:
+    privacy_top10:
+    - P2
+    - P10
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 3
+    - Vietnam Decree 13/2023/ND-CP Art. 22
+    - Vietnam PDP Law 91/2025/QH15 Art. 7
+    - Vietnam PDP Law 91/2025/QH15 Art. 17
+  sources_read: *id001
+  see:
+  - PRIV-SHARE-004
+  - PRIV-SHARE-001
+  notes: 'Decree Art. 3(4): personal data must not be bought or sold, except where the law allows. Law Art. 7(6) is similar. Law Art. 17(2): a transfer in the cases of Art. 17(1), with or without a fee, is not a sale. The Decree has no such clause.'
+- id: PRIV-VNSEC-005
+  sheet: PRIV
+  category: VNSEC
+  title: Check that de-identified data cannot be traced back
+  objective: Finds de-identified data sets that a party can link back to a person.
+  steps:
+  - Read the method to de-identify data.
+  - Try to link the de-identified set with other sets that the organisation holds.
+  - Check who holds the key or the mapping table.
+  - Check the controls over the de-identification process.
+  example: 'Try a join on quasi-identifiers: date of birth, postcode, device ID. Review the key store.'
+  expected: A party cannot link de-identified data to a person. The process has access control and monitoring, and nobody re-identifies the data.
+  severity: Medium
+  test_type: *id003
+  refs:
+    privacy_top10:
+    - P2
+    - P10
+    other:
+    - Vietnam PDP Law 91/2025/QH15 Art. 2
+    - Vietnam PDP Law 91/2025/QH15 Art. 14
+  sources_read: *id001
+  see:
+  - PRIV-MINIM-004
+  - PRIV-SHARE-004
+  notes: 'Law Art. 2(1), 2(11), 14(6): de-identified data is no longer personal data; re-identification is banned. Decree 13/2023 has no matching article. Law Art. 12 lets the controller decide on encryption; encrypted data is still personal data.'
+- id: PRIV-VNSEC-006
+  sheet: PRIV
+  category: VNSEC
+  title: Check access control and identity for AI, big data and cloud systems
+  objective: Finds systems with weak authentication or roles around personal data.
+  steps:
+  - List the AI, big data, cloud and blockchain systems that use personal data.
+  - Check the authentication method and the roles.
+  - Check that the system uses personal data only for its stated purpose.
+  - Check that the system has security measures built in.
+  example: Review the role matrix and the identity settings. Link to the sheets CLD, LLM and PRIV-SEC.
+  expected: The system uses suitable authentication and role-based access for personal data, and it keeps within the stated purpose.
+  severity: High
+  test_type: *id002
+  refs:
+    privacy_top10:
+    - P2
+    - P10
+    other:
+    - Vietnam PDP Law 91/2025/QH15 Art. 12
+    - Vietnam PDP Law 91/2025/QH15 Art. 30
+  sources_read: *id001
+  see:
+  - PRIV-SEC-003
+  - PRIV-SEC-002
+  notes: Law Art. 30(3) is new. Decree 13/2023 has no matching article. Also see Law Art. 12 on encryption.

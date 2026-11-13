@@ -1,0 +1,384 @@
+- id: WEB-ARCH-001
+  sheet: WEB
+  category: ARCH
+  title: Review the documented communication needs and external connections
+  objective: Find undocumented external services and places where users can set an external location the server connects to.
+  steps:
+  - Ask for the document of all communication needs, including external services.
+  - List the outbound hosts seen in traffic captures or egress logs.
+  - Find features where a user supplies a URL, host or webhook.
+  - Compare the list with the document.
+  example: tcpdump -i any -nn 'dst net not 10.0.0.0/8' -w egress.pcap; review egress firewall logs
+  expected: All external services and user-supplied destinations are documented.
+  severity: Low
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V13.1.1
+    wstg:
+    - WSTG-INFO-10
+    owasp_top10:
+    - A02:2025
+    cheatsheet:
+    - Attack_Surface_Analysis_Cheat_Sheet
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/01-Information_Gathering/10-Map_Application_Architecture.md
+  - sources/repos/Top10/2025/docs/en/A02_2025-Security_Misconfiguration.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Attack_Surface_Analysis_Cheat_Sheet.md
+- id: WEB-ARCH-002
+  sheet: WEB
+  category: ARCH
+  title: Review connection limits and resource management for each backend service
+  objective: Find missing limits, time-outs and retry rules that cause denial of service when a backend is slow.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Ask for the documented connection pool limits, time-outs and retry rules per service.
+  - Read the configuration of each service client and compare it with the document.
+  - Slow down one backend in a test system and watch the application behavior.
+  - Fill the connection pool in a test system and check for graceful handling and recovery.
+  example: toxiproxy-cli toxic add -t latency -a latency=10000 db; compare pool settings in app config
+  expected: Documented limits exist and match the configuration. The application degrades safely and recovers.
+  severity: Low
+  test_type:
+  - Manual
+  - Config Review
+  level: ASVS L3
+  refs:
+    asvs:
+    - V13.1.2
+    - V13.1.3
+    - V13.2.6
+    owasp_top10:
+    - A10:2025
+    cwe:
+    - CWE-400
+    - CWE-770
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A10_2025-Mishandling_of_Exceptional_Conditions.md
+- id: WEB-ARCH-003
+  sheet: WEB
+  category: ARCH
+  title: Make sure backend components authenticate with individual, least-privilege accounts
+  objective: Find shared, uncontrolled or default service credentials, and over-privileged service accounts.
+  steps:
+  - 'List service-to-service links: APIs, middleware, databases, queues.'
+  - 'Check how each link authenticates: service account, short-term token, or certificate.'
+  - Check that no link uses a shared static password or default credential such as root/root.
+  - Review the privileges of each account and compare them with what the link needs.
+  example: psql -c '\du'; kubectl auth can-i --list --as=system:serviceaccount:ns:sa; try admin/admin on the management port
+  expected: Each link uses its own account or token with least privilege. No default credentials work.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V13.2.1
+    - V13.2.2
+    - V13.2.3
+    owasp_top10:
+    - A02:2025
+    cwe:
+    - CWE-1188
+    - CWE-798
+    - CWE-250
+    capec:
+    - CAPEC-112
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A02_2025-Security_Misconfiguration.md
+- id: WEB-ARCH-004
+  sheet: WEB
+  category: ARCH
+  title: Make sure the server can contact only an allowlist of external systems
+  objective: Find servers that can send requests to any destination and so allow SSRF and data theft.
+  steps:
+  - Find the egress allowlist at the application, web server or firewall level.
+  - Use a feature that fetches a URL and give it an internal address and a non-listed host.
+  - Try a redirect from an allowed host to a blocked host.
+  - From the server shell, in a test system, try to reach a non-listed external host.
+  example: curl -s 'https://example.com/fetch?url=http://169.254.169.254/latest/meta-data/'; curl -s 'https://example.com/fetch?url=https://allowed.example/redirect?to=http://127.0.0.1'
+  expected: The server reaches only allowlisted systems. Requests to others fail.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  level: ASVS L2
+  refs:
+    asvs:
+    - V13.2.4
+    - V13.2.5
+    - V15.3.2
+    owasp_top10:
+    - A02:2025
+    cwe:
+    - CWE-918
+    - CWE-601
+    capec:
+    - CAPEC-212
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A02_2025-Security_Misconfiguration.md
+- id: WEB-ARCH-005
+  sheet: WEB
+  category: ARCH
+  title: Make sure responses return only the fields that the client needs
+  objective: Find objects that expose internal or sensitive fields that the client does not need.
+  steps:
+  - Compare the fields shown in the UI with the fields in the API or page response.
+  - Look for password hashes, tokens, internal IDs, role flags and personal data.
+  - Compare responses for different roles and for unauthenticated requests.
+  - Check nested objects and GraphQL fields.
+  - Look in the code for DTOs or field selection on the server.
+  example: jq 'keys' response.json; Burp Logger++ filter on JSON; compare with UI
+  expected: Responses contain only the fields required by the function. The server selects fields, not the client.
+  severity: Medium
+  test_type:
+  - Manual
+  - Code Review
+  level: ASVS L1
+  refs:
+    asvs:
+    - V15.3.1
+    wstg:
+    - WSTG-APIT-03
+    cwe:
+    - CWE-213
+    - CWE-200
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/03-Excessive_Data_Exposure.md
+- id: WEB-ARCH-006
+  sheet: WEB
+  category: ARCH
+  title: Test for mass assignment on create and update actions
+  objective: Find actions that bind extra request fields to protected object properties such as role or owner.
+  steps:
+  - Find create and update requests that send a JSON, XML or form body.
+  - Add extra fields such as role, isAdmin, balance, ownerId and id.
+  - Send the request and read the object back.
+  - Check the code for an allowlist of fields or a DTO per action.
+  example: 'curl -s -X PATCH https://example.com/api/me -H ''Content-Type: application/json'' -d ''{"name":"x","role":"admin","isAdmin":true}'''
+  expected: Fields that are not part of the action are ignored or rejected. Protected properties do not change.
+  severity: High
+  test_type:
+  - Manual
+  - Code Review
+  level: ASVS L2
+  refs:
+    asvs:
+    - V15.3.3
+    wstg:
+    - WSTG-APIT-03
+    owasp_top10:
+    - A08:2025
+    cheatsheet:
+    - Mass_Assignment_Cheat_Sheet
+    cwe:
+    - CWE-915
+    - CWE-235
+    capec:
+    - CAPEC-153
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/03-Excessive_Data_Exposure.md
+  - sources/repos/Top10/2025/docs/en/A08_2025-Software_or_Data_Integrity_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mass_Assignment_Cheat_Sheet.md
+- id: WEB-ARCH-007
+  sheet: WEB
+  category: ARCH
+  title: Check strict typing and strict comparison to stop type confusion
+  objective: Find loose type handling that leads to type juggling and logic bypass.
+  steps:
+  - Send arrays, objects, null, booleans and numeric strings where a string is expected.
+  - Send 0, "0", "0e123" and true in comparison fields such as tokens and passwords.
+  - Look in the code for loose comparison operators on security values.
+  - Check that input types are enforced before use.
+  example: 'curl -s https://example.com/login -H ''Content-Type: application/json'' -d ''{"user":"admin","password":true}''; semgrep --config p/php'
+  expected: The application rejects wrong types and uses strict comparison for security decisions.
+  severity: Medium
+  test_type:
+  - Manual
+  - Code Review
+  level: ASVS L2
+  refs:
+    asvs:
+    - V15.3.5
+    owasp_top10:
+    - A10:2025
+    cwe:
+    - CWE-754
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A10_2025-Mishandling_of_Exceptional_Conditions.md
+- id: WEB-ARCH-008
+  sheet: WEB
+  category: ARCH
+  title: Test JavaScript code for prototype pollution
+  objective: Find merge and assignment code that lets a user set properties of Object.prototype.
+  steps:
+  - Send JSON with __proto__, constructor and prototype keys to endpoints that merge input.
+  - Send the same in query strings and form fields.
+  - Check whether a later request shows a changed property.
+  - Search the code for recursive merge functions and object literals used as maps.
+  example: 'curl -s -X POST https://example.com/api/settings -H ''Content-Type: application/json'' -d ''{"__proto__":{"polluted":"yes"}}''; ppfuzz or DOM Invader'
+  expected: User input cannot change the prototype. The code uses Map or Set, or safe merge functions.
+  severity: High
+  test_type:
+  - Manual
+  - Code Review
+  level: ASVS L2
+  refs:
+    asvs:
+    - V15.3.6
+    cwe:
+    - CWE-1321
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+- id: WEB-ARCH-009
+  sheet: WEB
+  category: ARCH
+  title: Test for HTTP parameter pollution
+  objective: Find parameters that the application, proxy and WAF read in different ways.
+  steps:
+  - Send the same parameter twice in the query string, and in the body and the query together.
+  - Send the same name in a cookie and a header.
+  - Look at which value each component uses and compare the results.
+  - Check that the framework takes one defined source.
+  example: curl -s 'https://example.com/transfer?to=alice&to=mallory'; curl -s -d 'amount=1&amount=1000' https://example.com/pay
+  expected: The application handles duplicate parameters in a defined way, and a WAF or proxy sees the same value.
+  severity: Medium
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V15.3.7
+    cwe:
+    - CWE-235
+    capec:
+    - CAPEC-153
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+- id: WEB-ARCH-010
+  sheet: WEB
+  category: ARCH
+  title: Review documented resource-demanding functions and the defenses against overload
+  objective: Find expensive functions with no limits that an attacker can use to take the service down.
+  preconditions:
+  - Do not run load tests on production. Get written approval.
+  steps:
+  - Ask for the list of functions that need much time or memory, for example search, export, upload and report.
+  - 'Check the documented defenses: rate limits, quotas, queues, timeouts and caching.'
+  - Send a few requests at a normal rate and increase the load slowly on a test system.
+  - Test large uploads, large request bodies and slow connections.
+  - Check that the response time stays below the time-out of the client.
+  example: slowhttptest -c 1000 -H -u https://example.com/; k6 run load.js; curl --limit-rate 10 -T bigfile https://example.com/upload
+  expected: Resource-demanding functions are documented and protected by limits. The service stays available under load.
+  severity: Medium
+  test_type:
+  - Manual
+  - Automated
+  level: ASVS L2
+  refs:
+    asvs:
+    - V15.1.3
+    - V15.2.2
+    owasp_top10:
+    - A10:2025
+    cheatsheet:
+    - Denial_of_Service_Cheat_Sheet
+    cwe:
+    - CWE-400
+    - CWE-770
+    - CWE-799
+    capec:
+    - CAPEC-125
+    - CAPEC-130
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A10_2025-Mishandling_of_Exceptional_Conditions.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Denial_of_Service_Cheat_Sheet.md
+- id: WEB-ARCH-011
+  sheet: WEB
+  category: ARCH
+  title: Review shared objects in multi-threaded code for thread safety
+  objective: Find race conditions on caches, files and in-memory objects that more than one thread uses.
+  steps:
+  - 'Find shared mutable objects: caches, singletons, static fields and files.'
+  - Check that thread-safe types or locks protect them.
+  - Send many parallel requests that change the same object.
+  - Run a race detector or thread sanitizer on the tests.
+  example: go test -race ./...; java -XX:+UnlockDiagnosticVMOptions with thread-safety analyzers; Burp Turbo Intruder parallel requests
+  expected: Shared objects are accessed safely. Parallel requests do not corrupt data.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Manual
+  level: ASVS L3
+  refs:
+    asvs:
+    - V15.4.1
+    cwe:
+    - CWE-362
+    capec:
+    - CAPEC-26
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+- id: WEB-ARCH-012
+  sheet: WEB
+  category: ARCH
+  title: Test for time-of-check to time-of-use gaps
+  objective: Find checks of state or permission that are not atomic with the action that follows.
+  steps:
+  - Find checks of existence, permission or balance followed by an action.
+  - Send the same request many times in parallel, for example a coupon or a transfer.
+  - Look for results that break the check, such as a second use.
+  - Check that the check and action are one atomic operation, for example one database transaction or file operation.
+  example: Burp Turbo Intruder single-packet attack; curl --parallel --parallel-max 30 -d 'code=SAVE10' https://example.com/redeem?[1-30]
+  expected: The check and the action are atomic. Parallel requests cannot break the check.
+  severity: High
+  test_type:
+  - Manual
+  - Code Review
+  level: ASVS L3
+  refs:
+    asvs:
+    - V15.4.2
+    cwe:
+    - CWE-367
+    capec:
+    - CAPEC-26
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+- id: WEB-ARCH-013
+  sheet: WEB
+  category: ARCH
+  title: Review lock use and fair resource allocation against deadlock and starvation
+  objective: Find locks that cause deadlock and pools that starve low-priority work.
+  steps:
+  - Review the code for lock order, retry loops and locks that outside code can change.
+  - Check that lock logic stays in the code that owns the resource.
+  - Check thread pool settings and queue priorities.
+  - Load the system with mixed work and look for tasks that never run.
+  example: jstack <pid> | grep -A5 'deadlock'; py-spy dump --pid <pid>
+  expected: Locks are used in a consistent order and are not stuck. Low-priority work finishes in a reasonable time.
+  severity: Low
+  test_type:
+  - Code Review
+  level: ASVS L3
+  refs:
+    asvs:
+    - V15.4.3
+    - V15.4.4
+    cwe:
+    - CWE-833
+    - CWE-400
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json

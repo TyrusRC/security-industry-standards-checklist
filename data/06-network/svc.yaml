@@ -1,0 +1,242 @@
+- id: NET-SVC-001
+  sheet: NET
+  category: SVC
+  title: Make sure SMB and NetBIOS services give no access to untrusted networks
+  objective: Finds file-sharing services with anonymous access, open shares or exposure to the internet.
+  preconditions:
+  - Written approval for scans and logins on the hosts in scope.
+  - Do not run on production without a scan window.
+  steps:
+  - Scan the hosts from an untrusted network for the SMB and NetBIOS ports.
+  - Scan the hosts from the user network for the same ports.
+  - Try to list shares, users and system information with no credentials.
+  - Try to read and write the shares that the hosts show.
+  - Write down each host and share that answers.
+  example: 'nmap -Pn -p 137-139,445 --script smb-os-discovery,smb-enum-shares <host> ; enum4linux -a <host> ; smbclient -L //<host> -N ; smbmap -H <host>'
+  expected: SMB and NetBIOS do not answer from untrusted networks. Anonymous sessions give no list of shares, users or system data.
+  severity: High
+  test_type: Automated
+  refs:
+    attack:
+    - T1021.002
+    - T1135
+    - T1210
+    cwe:
+    - CWE-306
+    - CWE-668
+    nist_800_53:
+    - CM-7
+    - SC-7
+    pci_dss:
+    - '2.2.4'
+    - '1.4.2'
+    other:
+    - NIST SP 800-115 section 5.2.1 (NetBIOS enumeration in the discovery phase)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-SVC-002
+  sheet: NET
+  category: SVC
+  title: Make sure remote desktop and VNC are not open to the internet
+  objective: Finds remote desktop services that attackers can reach and attack with stolen or guessed passwords.
+  preconditions:
+  - Written approval for scans and logins on the hosts in scope.
+  steps:
+  - Scan the public address ranges for RDP, VNC and other remote desktop ports.
+  - Scan the internal ranges for the same ports from the user network.
+  - Read the rules that allow remote desktop access.
+  - Make sure remote access goes through a managed access point such as a VPN or a jump host.
+  - Make sure multi-factor authentication is required for remote access.
+  example: 'nmap -Pn -p 3389,5900-5902,5985,5986 -sV <range> ; nmap --script rdp-enum-encryption -p 3389 <host>'
+  expected: Remote desktop ports do not answer from the internet. Access goes through a managed access point with multi-factor authentication.
+  severity: Critical
+  test_type: Automated
+  refs:
+    wstg:
+    - WSTG-CONF-01
+    attack:
+    - T1021.001
+    - T1021.005
+    - T1133
+    cwe:
+    - CWE-1327
+    nist_800_53:
+    - AC-17
+    - SC-7
+    pci_dss:
+    - '8.4.3'
+    - '1.4.2'
+  see:
+  - NET-ADM-001
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/01-Network_Infrastructure_Configuration.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-SVC-003
+  sheet: NET
+  category: SVC
+  title: Check SNMP for default community strings and write access
+  objective: Finds devices that give configuration data or control to anyone who knows a default string.
+  preconditions:
+  - Written approval for SNMP queries to the devices in scope.
+  steps:
+  - Scan for SNMP on UDP port 161 in the ranges in scope.
+  - Try the default community strings of the vendors on each device that answers.
+  - Walk the data that the device returns and look for configuration, user and network data.
+  - Try a set operation on a test object, if the plan allows it.
+  - Make sure SNMP answers only to the management hosts.
+  example: 'nmap -sU -p 161 --script snmp-info,snmp-brute <range> ; onesixtyone -c community.txt -i hosts.txt ; snmpwalk -v2c -c <string> <host>'
+  expected: SNMP answers only to management hosts. No default community string works and no string gives write access. SNMP uses authentication and encryption.
+  severity: High
+  test_type: Automated
+  refs:
+    attack:
+    - T1602
+    - T1602.002
+    cwe:
+    - CWE-1188
+    - CWE-306
+    nist_800_53:
+    - CM-6
+    - IA-5
+    - SC-8
+    pci_dss:
+    - '2.3.1'
+    - '2.2.7'
+    other:
+    - PCI DSS 2.3.1 names SNMP defaults; NIST SP 800-115 appendix lists Net-SNMP for remote access testing
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-SVC-004
+  sheet: NET
+  category: SVC
+  title: Check directory services for anonymous access and clear-text binds
+  objective: Finds directory services that give user data without a login or accept clear-text passwords.
+  preconditions:
+  - Written approval for queries to the directory servers in scope.
+  steps:
+  - Scan for directory ports from untrusted networks and from the application zone.
+  - Try an anonymous bind and read the base data.
+  - Capture a normal bind and make sure the password is not in clear text.
+  - Make sure only authorized hosts can reach the directory.
+  example: 'nmap -Pn -p 389,636,3268,3269 --script ldap-rootdse <host> ; ldapsearch -x -H ldap://<host> -b "" -s base ; ldapsearch -x -H ldap://<host> -b "dc=example,dc=com"'
+  expected: Directory servers are in the backend zone. An anonymous bind returns no user data. Binds use an encrypted channel.
+  severity: High
+  test_type: Automated
+  refs:
+    cheatsheet:
+    - Network_Segmentation_Cheat_Sheet
+    cwe:
+    - CWE-306
+    - CWE-319
+    nist_800_53:
+    - SC-7
+    - SC-8
+    - AC-3
+    pci_dss:
+    - '8.3.2'
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Network_Segmentation_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-SVC-005
+  sheet: NET
+  category: SVC
+  title: Check NTP servers for outside access and clock synchronization
+  objective: Finds time servers that attackers can use for amplification, and hosts with wrong clocks.
+  preconditions:
+  - Written approval for queries to the time servers in scope.
+  steps:
+  - Find hosts that answer on UDP port 123.
+  - From an external host, send status and monitor queries to each time server.
+  - Look at the answer size compared to the query size.
+  - Compare the clocks of a sample of hosts and devices with the authoritative time source.
+  example: 'nmap -sU -p 123 --script ntp-info,ntp-monlist <range> ; ntpq -c rv <host> ; chronyc sources'
+  expected: Time servers do not answer status and monitor queries from untrusted hosts. All clocks follow the same authoritative time source.
+  severity: Medium
+  test_type: Automated
+  refs:
+    cheatsheet:
+    - Denial_of_Service_Cheat_Sheet
+    attack:
+    - T1498.002
+    capec:
+    - CAPEC-490
+    nist_800_53:
+    - SC-45
+    - SC-5
+    pci_dss:
+    - '10.6.1'
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Denial_of_Service_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-SVC-006
+  sheet: NET
+  category: SVC
+  title: Check database listeners for network binding and authentication
+  objective: Finds databases that listen on all interfaces or accept connections with no login.
+  preconditions:
+  - Written approval for scans and logins on the hosts in scope.
+  steps:
+  - Scan the hosts for common database ports from the application zone and from other zones.
+  - Read the bind address in the database configuration.
+  - Try to connect with no password and with the vendor default account.
+  - Make sure only the application servers can reach the listener.
+  example: 'nmap -Pn -p 1433,1521,3306,5432,6379,9200,11211,27017 -sV <range> ; ss -tlnp | grep -E "3306|5432|6379|27017" ; redis-cli -h <host> ping'
+  expected: Databases listen only on the addresses that they need. Each connection needs authentication and only the application servers can connect.
+  severity: Critical
+  test_type: Automated
+  refs:
+    owasp_top10:
+    - A02:2025
+    wstg:
+    - WSTG-CONF-01
+    cwe:
+    - CWE-1327
+    - CWE-306
+    - CWE-1188
+    nist_800_53:
+    - CM-7
+    - SC-7
+    - AC-3
+    pci_dss:
+    - '1.4.4'
+    - '2.2.2'
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/01-Network_Infrastructure_Configuration.md
+  - sources/repos/Top10/2025/docs/en/A02_2025-Security_Misconfiguration.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-SVC-007
+  sheet: NET
+  category: SVC
+  title: Make sure the container daemon API is not exposed on the network
+  objective: Finds hosts where a network client can control containers and get root on the host.
+  preconditions:
+  - Written approval for scans of the hosts in scope.
+  steps:
+  - Scan the hosts for the container daemon TCP ports.
+  - Read the daemon start options and look for a TCP listen address.
+  - Look for containers that mount the daemon socket.
+  - Try an unauthenticated API request to each port that answers.
+  example: 'nmap -Pn -p 2375,2376 <range> ; curl -s http://<host>:2375/version ; ps aux | grep dockerd ; docker ps --format "{{.Names}} {{.Mounts}}"'
+  expected: The daemon does not listen on an unprotected TCP port. No container mounts the daemon socket.
+  severity: Critical
+  test_type: Automated
+  refs:
+    cheatsheet:
+    - Docker_Security_Cheat_Sheet
+    cwe:
+    - CWE-306
+    - CWE-1327
+    nist_800_53:
+    - CM-7
+    - SC-7
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json

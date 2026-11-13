@@ -1,0 +1,68 @@
+- id: WEB-DB-001
+  sheet: WEB
+  category: DB
+  title: Review database server hardening and default content
+  objective: Find database servers with default accounts, sample data, risky functions or weak host settings.
+  preconditions:
+  - Read access to the database configuration.
+  steps:
+  - List the database engines and versions and compare them with the vendor security baseline.
+  - Look for default accounts and sample databases.
+  - 'Look for risky features: xp_cmdshell, CLR, the FILE privilege and database links.'
+  - Make sure the service runs as a low-privilege operating system user.
+  - Make sure the management tools need authentication, HTTPS and network limits.
+  - Make sure backups are encrypted and have restricted permissions.
+  example: 'SQL Server: SELECT name,value_in_use FROM sys.configurations WHERE name IN (''xp_cmdshell'',''clr enabled''); MySQL: SHOW GRANTS; SELECT user,host FROM mysql.user;'
+  expected: No default account or sample database remains. Risky features are off. The service has low privilege, and backups and management tools are protected.
+  severity: Medium
+  test_type:
+  - Config Review
+  refs:
+    owasp_top10:
+    - A02:2025
+    cheatsheet:
+    - Database_Security_Cheat_Sheet
+    cwe:
+    - CWE-1188
+    - CWE-250
+    other:
+    - 'OWASP DevGuide web app checklist: 03-secure-database-access.md'
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Database_Security_Cheat_Sheet.md
+  - sources/repos/DevGuide/docs/en/04-design/02-web-app-checklist/03-secure-database-access.md
+- id: WEB-DB-002
+  sheet: WEB
+  category: DB
+  title: Review application database accounts, permissions and encrypted connections
+  objective: Find application database accounts with too many rights, shared credentials or unencrypted connections.
+  steps:
+  - List the database accounts of each application and environment.
+  - Make sure each account serves one application and each environment has its own database and account.
+  - Make sure no account is root, sa or SYS, owns the schema or has administrative rights.
+  - Compare the granted rights with the needed rights, at table, column or view level.
+  - Make sure each account connects only from the allowed hosts.
+  - Make sure the server needs TLS and the client checks the server certificate.
+  - Make sure the connection string is not in source code.
+  example: 'psql: \du+ ; SELECT grantee,table_name,privilege_type FROM information_schema.role_table_grants WHERE grantee=''<app>''; SHOW ssl;'
+  expected: Each application uses its own least-privilege account. Connections use TLS with certificate checks. Credentials are outside the source code.
+  severity: High
+  test_type:
+  - Config Review
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A02:2025
+    - A04:2025
+    cheatsheet:
+    - Database_Security_Cheat_Sheet
+    asvs:
+    - V13.2.3
+    cwe:
+    - CWE-250
+    - CWE-319
+    other:
+    - 'OWASP DevGuide web app checklist: 03-secure-database-access.md'
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Database_Security_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/DevGuide/docs/en/04-design/02-web-app-checklist/03-secure-database-access.md

@@ -1,0 +1,44 @@
+- id: WEB-ABUSE-001
+  sheet: WEB
+  category: ABUSE
+  title: Check that abuse cases exist for each business feature
+  objective: Finds features that nobody reviewed for misuse, so generic security requirements stay unclear.
+  steps:
+  - Ask for the list of features and the list of abuse cases.
+  - Make sure each abuse case has a unique identifier, the affected feature and an attack description.
+  - Make sure each abuse case is marked technical or business and has a business risk rating.
+  - Make sure the workshop had business, risk, pentest, technical and QA roles.
+  example: Spreadsheet with FEATURES, ABUSE CASES and COUNTERMEASURES sheets; CAPEC and OWASP Testing Guide as attack lists
+  expected: Each feature has abuse cases with identifier, type and risk rating. The list comes from a documented review.
+  severity: Low
+  test_type:
+  - Manual
+  refs:
+    cheatsheet:
+    - Abuse_Case_Cheat_Sheet
+    capec:
+    - CAPEC-17
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Abuse_Case_Cheat_Sheet.md
+- id: WEB-ABUSE-002
+  sheet: WEB
+  category: ABUSE
+  title: Check that selected abuse cases become requirements and are validated
+  objective: Finds abuse cases that never reach the specification or whose countermeasures nobody tests.
+  steps:
+  - Take five selected abuse cases.
+  - Make sure each appears as a security requirement or an acceptance criterion in the feature.
+  - Look in the design notes and code for a reference to the abuse case identifier.
+  - Make sure an automated test, a SAST rule or a manual check validates each countermeasure.
+  - Make sure the penetration test scope lists the abuse cases.
+  example: grep -rn "ABUSE_CASE_" src/ docs/ tests/
+  expected: Each selected abuse case has a requirement, a code or design reference and a repeatable validation.
+  severity: Low
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    cheatsheet:
+    - Abuse_Case_Cheat_Sheet
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Abuse_Case_Cheat_Sheet.md

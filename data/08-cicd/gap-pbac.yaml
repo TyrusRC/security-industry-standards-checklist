@@ -1,0 +1,25 @@
+- id: CICD-PBAC-009
+  sheet: CICD
+  category: PBAC
+  title: Check runner groups and labels that separate high and low privilege runners
+  objective: Finds runners with high privileges that any repository or workflow can use.
+  steps:
+  - List the runner groups and the repositories that can use each group.
+  - Make sure runners that build images or reach restricted networks are in separate groups.
+  - Make sure the groups are limited to the repositories that need them.
+  - Make sure public repositories do not use self-hosted runners, or that the runners are ephemeral.
+  example: gh api orgs/ORG/actions/runner-groups --jq '.runner_groups[]|{name,visibility,allows_public_repositories}'
+  expected: High-privilege runner groups are available only to named repositories. Low-privilege jobs run on separate runners.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    cicd_top10:
+    - CICD-SEC-5
+    cheatsheet:
+    - GitHub_Actions_Security_Cheat_Sheet
+    cwe:
+    - CWE-250
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/GitHub_Actions_Security_Cheat_Sheet.md

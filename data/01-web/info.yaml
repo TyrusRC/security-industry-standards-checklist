@@ -1,0 +1,237 @@
+- id: WEB-INFO-001
+  sheet: WEB
+  category: INFO
+  title: Search for sensitive information about the target in search engines and archives
+  objective: Find design, configuration or credential data that search engines, caches or archives expose about the target.
+  preconditions:
+  - Written scope that allows passive reconnaissance of the target domains.
+  steps:
+  - 'Search with the site: operator on at least two search engines for the target domain.'
+  - Search for dorks such as filetype, inurl and intitle terms for config files, logins and error text.
+  - Search Shodan or Censys for the target IP ranges and certificates.
+  - Collect old URLs from the Wayback Machine with gau, waybackurls or waymore.
+  - Look at the results for staging sites, backups, credentials, private keys and internal diagrams.
+  example: site:example.com (filetype:env OR filetype:sql OR inurl:admin); gau example.com --threads 8 | tee gau.txt; waybackurls example.com | unfurl --unique paths
+  expected: No search engine, cache or archive result shows credentials, private keys, internal documents, test or staging sites, or revealing error text.
+  severity: Low
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    wstg:
+    - WSTG-INFO-01
+    cwe:
+    - CWE-200
+    capec:
+    - CAPEC-116
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/01-Information_Gathering/01-Conduct_Search_Engine_Reconnaissance_for_Information_Leakage.md
+- id: WEB-INFO-002
+  sheet: WEB
+  category: INFO
+  title: Fingerprint the web server and framework from headers, cookies and errors
+  objective: Find server, framework and component names or versions that headers, cookies, markup or default pages disclose.
+  steps:
+  - Send curl -I to the main page and to a 404 page and read the Server and X-Powered-By headers.
+  - Send a malformed request line to the server and compare the default error page.
+  - Look at cookie names, HTML meta tags, comment banners and file names for framework markers.
+  - Run WhatWeb or httpx with tech detection against the host.
+  - Compare the result with the version that the owner expects.
+  example: curl -sI https://example.com | grep -iE 'server|x-powered-by|x-aspnet'; printf 'GET / SANTA/1.1\r\n\r\n' | openssl s_client -quiet -connect example.com:443; whatweb -a 3 https://example.com
+  expected: Responses do not show detailed versions or component names in Server, X-Powered-By, error pages or meta tags. Default error pages are replaced.
+  severity: Low
+  test_type:
+  - Manual
+  - Automated
+  level: ASVS L3
+  refs:
+    wstg:
+    - WSTG-INFO-02
+    - WSTG-INFO-08
+    - WSTG-INFO-09
+    asvs:
+    - V13.4.6
+    cwe:
+    - CWE-497
+    - CWE-200
+    capec:
+    - CAPEC-224
+    - CAPEC-169
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/01-Information_Gathering/02-Fingerprint_Web_Server.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/01-Information_Gathering/08-Fingerprint_Web_Application_Framework.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/01-Information_Gathering/09-Fingerprint_Web_Application.md
+- id: WEB-INFO-003
+  sheet: WEB
+  category: INFO
+  title: Review robots.txt, sitemap.xml, security.txt and other metafiles for leakage
+  objective: Find hidden paths or internal data that webserver metafiles reveal.
+  steps:
+  - Download robots.txt, sitemap.xml, humans.txt and the .well-known directory files with curl.
+  - List each Disallow path and request it without credentials.
+  - Compare robots.txt with the robots META tags in the page source.
+  - Look in the files for admin paths, internal host names, staging URLs and e-mail addresses.
+  - Make sure no Disallow rule is the only control that protects a sensitive path.
+  example: for f in robots.txt sitemap.xml humans.txt .well-known/security.txt; do curl -si https://example.com/$f | head -40; done
+  expected: Metafiles list no sensitive paths or internal data. Every listed sensitive path has its own access control.
+  severity: Low
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    wstg:
+    - WSTG-INFO-03
+    cwe:
+    - CWE-200
+    capec:
+    - CAPEC-116
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/01-Information_Gathering/03-Review_Webserver_Metafiles_for_Information_Leakage.md
+- id: WEB-INFO-004
+  sheet: WEB
+  category: INFO
+  title: Enumerate hosts, subdomains, ports and virtual hosts of the application
+  objective: Find web applications, hosts and services outside the known scope that increase the attack surface.
+  preconditions:
+  - Do not run the port scan on production without approval.
+  steps:
+  - Collect subdomains with subfinder or amass in passive mode and from Certificate Transparency logs on crt.sh.
+  - Resolve the names with dnsx and probe live hosts with httpx.
+  - Scan all TCP ports of the in-scope IP addresses with Nmap service detection.
+  - Request each IP address with the different Host header names found.
+  - Try a DNS zone transfer against each name server.
+  - Compare the result with the owner asset list and report unknown hosts and ports.
+  example: subfinder -d example.com -silent | dnsx -silent | httpx -title -tech-detect; nmap -Pn -sT -sV -p- 192.0.2.10; dig axfr example.com @ns1.example.com
+  expected: All found hosts, ports and virtual hosts are in the asset list and need to be exposed. The name servers refuse zone transfers.
+  severity: Low
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    wstg:
+    - WSTG-INFO-04
+    owasp_top10:
+    - A02:2025
+    cheatsheet:
+    - Attack_Surface_Analysis_Cheat_Sheet
+    cwe:
+    - CWE-200
+    capec:
+    - CAPEC-169
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/01-Information_Gathering/04-Attack_Surface_Identification.md
+  - sources/repos/Top10/2025/docs/en/A02_2025-Security_Misconfiguration.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Attack_Surface_Analysis_Cheat_Sheet.md
+- id: WEB-INFO-005
+  sheet: WEB
+  category: INFO
+  title: Review page content, JavaScript, source maps and generated files for leakage
+  objective: Find comments, secrets, internal routes, source maps and file metadata that leak information to the client.
+  steps:
+  - Read HTML comments and meta tags in the page source of each main page.
+  - Download all JavaScript files and search them for keys, tokens, internal URLs and admin routes.
+  - Request each JavaScript file with the .map extension added.
+  - Look at the body of 3xx and 401 responses for content.
+  - Download generated PDF and Office files and read the Producer and Creator metadata.
+  - Check API keys found in the code for restrictions by referrer, IP or API.
+  example: curl -s https://example.com/app.js | grep -iE 'api[_-]?key|secret|token|/admin'; curl -sI https://example.com/app.js.map; exiftool report.pdf | grep -iE 'producer|creator'; trufflehog filesystem ./downloaded-js
+  expected: Pages, scripts and files hold no secrets, internal data, comments with sensitive text or version details. Source maps are not public.
+  severity: Medium
+  test_type:
+  - Manual
+  - Automated
+  level: ASVS L3
+  refs:
+    wstg:
+    - WSTG-INFO-05
+    asvs:
+    - V13.4.6
+    cwe:
+    - CWE-540
+    - CWE-200
+    - CWE-615
+    capec:
+    - CAPEC-37
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/01-Information_Gathering/05-Review_Web_Page_Content_for_Information_Leakage.md
+- id: WEB-INFO-006
+  sheet: WEB
+  category: INFO
+  title: Map application entry points and request parameters
+  objective: Find all parameters, headers, cookies and hidden fields that the application accepts, as input for later tests.
+  steps:
+  - Walk through the application with an intercepting proxy such as ZAP or Burp Suite.
+  - Record each GET and POST request with its query, body, cookie and header parameters.
+  - Mark hidden fields and custom headers such as debug flags.
+  - Record each Set-Cookie header, redirect, 403 and 500 response.
+  - Compare the list with the source-code endpoint list if source is available.
+  example: zap-baseline.py -t https://example.com -r zap.html; noir scan ./src -f curl
+  expected: The tester has a complete list of entry points. No undocumented or debug parameters exist.
+  severity: Info
+  test_type:
+  - Manual
+  refs:
+    wstg:
+    - WSTG-INFO-06
+    cheatsheet:
+    - Attack_Surface_Analysis_Cheat_Sheet
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/01-Information_Gathering/06-Identify_Application_Entry_Points.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Attack_Surface_Analysis_Cheat_Sheet.md
+- id: WEB-INFO-007
+  sheet: WEB
+  category: INFO
+  title: Map execution paths and workflows with a crawler
+  objective: Find application areas and workflows that the tester must cover, including routes that a simple crawler misses.
+  steps:
+  - Run the ZAP spider and the AJAX spider against the application with a valid session.
+  - Write down the main workflows and the decision points in each.
+  - Use a headless browser crawler for client-side routes.
+  - Compare the crawled URLs with the entry-point list.
+  example: zap-baseline.py -t https://example.com -j; katana -u https://example.com -jc -d 3
+  expected: The tester has a documented map of paths and workflows with coverage notes.
+  severity: Info
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    wstg:
+    - WSTG-INFO-07
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/01-Information_Gathering/07-Map_Execution_Paths_Through_Application.md
+- id: WEB-INFO-008
+  sheet: WEB
+  category: INFO
+  title: Map the application architecture and the intermediate components
+  objective: Find proxies, CDNs, load balancers, WAFs, third-party services and storage that make up the architecture.
+  steps:
+  - 'Look for proxy and CDN markers: duplicate Server headers, WHOIS owner of the IP, load balancer cookies.'
+  - List external hosts the browser calls in the developer tools Network tab.
+  - Look for storage host names such as s3.amazonaws.com and blob.core.windows.net.
+  - Send a known attack string and look for WAF block pages.
+  - Try to reach the origin server directly, without the CDN or WAF.
+  - Write the architecture diagram and compare it with the design documents.
+  example: curl -sI https://example.com | grep -iE 'via|cf-ray|x-cache|set-cookie'; whois $(dig +short example.com | head -1); wafw00f https://example.com
+  expected: The architecture matches the documents. The origin server cannot be reached around the CDN or WAF.
+  severity: Info
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-INFO-10
+    cheatsheet:
+    - Attack_Surface_Analysis_Cheat_Sheet
+    asvs:
+    - V13.1.1
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/01-Information_Gathering/10-Map_Application_Architecture.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Attack_Surface_Analysis_Cheat_Sheet.md

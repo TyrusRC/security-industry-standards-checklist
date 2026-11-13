@@ -1,0 +1,75 @@
+- id: PRIV-XFER-001
+  sheet: PRIV
+  category: XFER
+  title: Find all places where personal data leaves the legal region
+  objective: Finds data transfers to other countries that nobody documented.
+  steps:
+  - List the regions of all hosts, backups, support tools and processors.
+  - Check DNS and IP data of the hosts in application traffic.
+  - Compare with the record of processing.
+  - Mark each unrecorded transfer.
+  example: Cloud console region list; whois/geoip for hosts in the proxy log; record of processing activities.
+  expected: All storage and processing locations are known. Each transfer outside the region is recorded.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    privacy_top10:
+    - P2
+    other:
+    - GDPR Art. 30
+    - GDPR Art. 44
+  sources_read: &id001
+  - sources/repos/www-project-top-10-privacy-risks/tab_topprivacy.md
+  - sources/repos/www-project-top-10-privacy-risks/OWASP_Top_10_Privacy_Risks_Countermeasures_v2.0.pdf
+  - sources/extra/gdpr.html
+- id: PRIV-XFER-002
+  sheet: PRIV
+  category: XFER
+  title: Check the legal mechanism for each transfer to a third country
+  objective: Finds transfers with no adequacy decision or safeguard.
+  steps:
+  - List each third country and recipient.
+  - 'Find the mechanism: adequacy decision, standard clauses or binding corporate rules.'
+  - Check the documents exist and are current.
+  - Check the user notice names the safeguard.
+  example: 'Document review: transfer register with mechanism, date, contract reference.'
+  expected: Each transfer has a valid mechanism that is on record and named in the notice.
+  severity: High
+  test_type:
+  - Config Review
+  refs:
+    privacy_top10:
+    - P2
+    - P5
+    other:
+    - GDPR Art. 44
+    - GDPR Art. 45
+    - GDPR Art. 46
+    - GDPR Art. 47
+    - GDPR Art. 49
+    - GDPR Art. 13
+  sources_read: *id001
+- id: PRIV-XFER-003
+  sheet: PRIV
+  category: XFER
+  title: Check the region settings of cloud and SaaS services
+  objective: Finds services set to the wrong region or with global replication.
+  steps:
+  - Open the region and replication settings of each data store.
+  - Check support and log tools for data copies in other regions.
+  - Check that the settings match the record.
+  - Check the infrastructure code for the same values.
+  example: Terraform or console review; look for global replication or default region values.
+  expected: Region and replication settings match the recorded location. No uncontrolled copies exist elsewhere.
+  severity: Medium
+  test_type:
+  - Config Review
+  refs:
+    privacy_top10:
+    - P2
+    other:
+    - GDPR Art. 44
+    - GDPR Art. 30
+  sources_read: *id001

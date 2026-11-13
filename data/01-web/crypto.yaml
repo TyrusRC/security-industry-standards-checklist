@@ -1,0 +1,605 @@
+- id: WEB-CRYPTO-001
+  sheet: WEB
+  category: CRYPTO
+  title: Review the key management policy and the cryptographic inventory
+  objective: Find missing key lifecycle rules and an incomplete list of keys, algorithms and certificates.
+  steps:
+  - Ask for the key management policy and compare it with NIST SP 800-57.
+  - Look for rules on key generation, distribution, storage, rotation, compromise and destruction.
+  - Ask for the cryptographic inventory of keys, algorithms and certificates.
+  - Make sure the inventory states where each key may and may not be used.
+  - Make sure each shared secret is known to at most two parties and each private key to one.
+  example: 'Document review checklist: policy exists, lifecycle covered, inventory current (date), owner named, key-use limits stated.'
+  expected: A current policy and inventory exist, cover the full lifecycle, and limit key sharing and use.
+  severity: Medium
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    - Key_Management_Cheat_Sheet
+    asvs:
+    - V11.1.1
+    - V11.1.2
+    owasp_top10:
+    - A04:2025
+    cwe:
+    - CWE-321
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+- id: WEB-CRYPTO-002
+  sheet: WEB
+  category: CRYPTO
+  title: Find all cryptography in use and check the migration plan
+  objective: Find unknown cryptographic use and a missing plan for post-quantum change.
+  steps:
+  - Run a cryptographic discovery scan of source code and dependencies.
+  - List encryption, hashing and signing operations and compare them with the inventory.
+  - Ask for the documented migration plan to post-quantum algorithms.
+  - Check that the plan names owners and dates.
+  example: semgrep --config p/insecure-transport --config p/crypto ./src; cbomkit or CycloneDX CBOM export of the repository
+  expected: Discovery covers all cryptographic use, the inventory matches, and a migration plan exists.
+  severity: Low
+  test_type:
+  - Manual
+  - Code Review
+  level: ASVS L3
+  refs:
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    - Key_Management_Cheat_Sheet
+    asvs:
+    - V11.1.3
+    - V11.1.4
+    owasp_top10:
+    - A04:2025
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+- id: WEB-CRYPTO-003
+  sheet: WEB
+  category: CRYPTO
+  title: Make sure industry-validated cryptographic libraries are used
+  objective: Find custom algorithms and unvalidated implementations.
+  steps:
+  - Search the code for hand-written encryption, hash or random functions.
+  - List the cryptographic libraries and their versions.
+  - Check that each library is maintained and, where needed, validated, for example FIPS 140.
+  - Check that hardware acceleration uses vendor libraries.
+  example: grep -rEn 'xor|rot13|custom.*(cipher|encrypt)' ./src; npm ls | grep -i crypto; pip list | grep -i crypt
+  expected: Only maintained, industry-validated libraries do cryptographic operations. No custom algorithms exist.
+  severity: Medium
+  test_type:
+  - Code Review
+  level: ASVS L2
+  refs:
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    - Key_Management_Cheat_Sheet
+    asvs:
+    - V11.2.1
+    owasp_top10:
+    - A04:2025
+    cwe:
+    - CWE-327
+    - CWE-1240
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+- id: WEB-CRYPTO-004
+  sheet: WEB
+  category: CRYPTO
+  title: Check crypto agility of algorithms, key lengths and keys
+  objective: Find hard-coded algorithms that the owner cannot change quickly after a break.
+  steps:
+  - Find where algorithms, key lengths, rounds and modes are set.
+  - Check that configuration or one module changes them without a code rewrite.
+  - Do a test change of one algorithm in a test system.
+  - Check how the application replaces keys and certificates.
+  example: grep -rEn 'AES|SHA|RSA|PBKDF2' ./src | wc -l; review config for algorithm settings
+  expected: The team can swap algorithms, key sizes, keys and certificates by configuration or in one place.
+  severity: Low
+  test_type:
+  - Manual
+  - Code Review
+  level: ASVS L2
+  refs:
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    - Key_Management_Cheat_Sheet
+    asvs:
+    - V11.2.2
+    owasp_top10:
+    - A04:2025
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+- id: WEB-CRYPTO-005
+  sheet: WEB
+  category: CRYPTO
+  title: Make sure all cryptographic primitives give at least 128 bits of security
+  objective: Find weak keys and algorithms such as DES, RC4, 1024-bit RSA, SHA-1 and 160-bit EC.
+  steps:
+  - Search code and configuration for MD4, MD5, RC2, RC4, DES, Blowfish and SHA-1.
+  - 'Check the key sizes: RSA 3072 bits or more, EC 256 bits or more, AES 128 bits or more.'
+  - Scan the server for weak primitives in TLS and SSH.
+  - Check PBKDF2 iteration counts.
+  example: grep -rEniw 'md4|md5|rc2|rc4|des|3des|blowfish|sha-?1' ./src; nmap --script ssl-enum-ciphers -p443 example.com; semgrep --config p/crypto
+  expected: No primitive has less than 128 bits of security. Deprecated algorithms are not used.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Automated
+  level: ASVS L2
+  refs:
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    - Key_Management_Cheat_Sheet
+    asvs:
+    - V11.2.3
+    wstg:
+    - WSTG-CRYP-04
+    owasp_top10:
+    - A04:2025
+    cwe:
+    - CWE-326
+    - CWE-327
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/09-Weak_Cryptography/04-Weak_Cryptographic_Primitives.md
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+- id: WEB-CRYPTO-006
+  sheet: WEB
+  category: CRYPTO
+  title: Make sure secret comparisons and cryptographic operations are constant-time
+  objective: Find short-circuit comparisons that leak secrets through timing.
+  steps:
+  - Find comparisons of MACs, tokens, hashes and passwords in the code.
+  - Check that they use constant-time functions such as hmac.compare_digest or MessageDigest.isEqual.
+  - Measure response time for guesses with a correct and a wrong prefix, many times.
+  example: grep -rEn '==\s*.*(hmac|token|signature|digest)' ./src; python3 timing_probe.py https://example.com/api/verify
+  expected: No timing difference exists between correct and wrong prefixes. Comparisons use constant-time functions.
+  severity: Low
+  test_type:
+  - Code Review
+  - Manual
+  level: ASVS L3
+  refs:
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    - Key_Management_Cheat_Sheet
+    asvs:
+    - V11.2.4
+    cwe:
+    - CWE-208
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+- id: WEB-CRYPTO-007
+  sheet: WEB
+  category: CRYPTO
+  title: Make sure cryptographic failures give no padding oracle
+  objective: Find decryption code that shows different errors for padding failure, which lets an attacker decrypt data.
+  steps:
+  - 'Find encrypted values sent to the client: cookies, hidden fields, tokens, URL parameters.'
+  - Decode them and check for a block length that fits 8 or 16 bytes.
+  - Change one bit of the cipher text, and the last block, and send the value back.
+  - 'Compare status code, body, length and time of the three states: valid, garbled, padding error.'
+  - Check in the code that the integrity check (HMAC or AEAD) runs before decryption.
+  example: padbuster https://example.com/page.aspx 'Dg6W8OiWMIdVokIDH15T/A==' 16 -encoding 0; Burp Intruder on the last bytes of the value
+  expected: The application gives one uniform answer for any failure. An integrity check rejects changed data before decryption.
+  severity: High
+  test_type:
+  - Manual
+  - Code Review
+  level: ASVS L3
+  refs:
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    - Key_Management_Cheat_Sheet
+    asvs:
+    - V11.2.5
+    wstg:
+    - WSTG-CRYP-02
+    owasp_top10:
+    - A04:2025
+    cwe:
+    - CWE-209
+    - CWE-353
+    capec:
+    - CAPEC-463
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/09-Weak_Cryptography/02-Padding_Oracle.md
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+- id: WEB-CRYPTO-008
+  sheet: WEB
+  category: CRYPTO
+  title: Make sure insecure block modes and padding schemes are not used
+  objective: Find ECB mode, unauthenticated CBC and PKCS#1 v1.5 padding.
+  steps:
+  - Search for ECB, CBC and PKCS1Padding in the code and configuration.
+  - Check that RSA encryption uses OAEP and signatures use PSS.
+  - Check that SSH and other protocols do not use CBC.
+  example: grep -rEn 'ECB|PKCS1Padding|RSA/ECB|AES/CBC|NoPadding' ./src; semgrep --config p/crypto
+  expected: No ECB or PKCS#1 v1.5 encryption padding is used. AEAD modes are the default.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Automated
+  level: ASVS L1
+  refs:
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    - Key_Management_Cheat_Sheet
+    asvs:
+    - V11.3.1
+    wstg:
+    - WSTG-CRYP-04
+    owasp_top10:
+    - A04:2025
+    cwe:
+    - CWE-327
+    - CWE-780
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/09-Weak_Cryptography/04-Weak_Cryptographic_Primitives.md
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+- id: WEB-CRYPTO-009
+  sheet: WEB
+  category: CRYPTO
+  title: Make sure only approved ciphers and modes such as AES-GCM are used
+  objective: Find ciphers or modes that are not approved.
+  steps:
+  - List every cipher and mode used for data at rest and in transit.
+  - Compare the list with the approved algorithm list of the organization or NIST.
+  - Check that data uses authenticated encryption, for example AES-GCM or ChaCha20-Poly1305.
+  example: grep -rEn 'Cipher.getInstance|createCipheriv|AESGCM|ChaCha20' ./src
+  expected: Only approved ciphers and modes are used, with authenticated encryption by default.
+  severity: Medium
+  test_type:
+  - Code Review
+  level: ASVS L1
+  refs:
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    - Key_Management_Cheat_Sheet
+    asvs:
+    - V11.3.2
+    owasp_top10:
+    - A04:2025
+    cwe:
+    - CWE-327
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+- id: WEB-CRYPTO-010
+  sheet: WEB
+  category: CRYPTO
+  title: Make sure encrypted data is authenticated and encrypt-then-MAC is used
+  objective: Find encrypted data that an attacker can change without detection.
+  steps:
+  - Find where encrypted data is stored or sent to the client.
+  - Change bytes of the cipher text and submit it.
+  - Check that the change is detected and rejected.
+  - If encryption and MAC are separate, check that the MAC is made over the cipher text.
+  example: python3 -c 'import base64;d=bytearray(base64.b64decode("<token>"));d[20]^=1;print(base64.b64encode(d).decode())'
+  expected: Changed cipher text is rejected. Authenticated encryption or encrypt-then-MAC is used.
+  severity: High
+  test_type:
+  - Manual
+  - Code Review
+  level: ASVS L2
+  refs:
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    - Key_Management_Cheat_Sheet
+    asvs:
+    - V11.3.3
+    - V11.3.5
+    owasp_top10:
+    - A04:2025
+    - A08:2025
+    cwe:
+    - CWE-353
+    - CWE-345
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+  - sources/repos/Top10/2025/docs/en/A08_2025-Software_or_Data_Integrity_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+- id: WEB-CRYPTO-011
+  sheet: WEB
+  category: CRYPTO
+  title: Make sure nonces and initialization vectors are unique for each key
+  objective: Find IV or nonce reuse and predictable IVs.
+  steps:
+  - Find the code that creates an IV or nonce.
+  - Check that it uses a CSPRNG or a safe counter for the mode.
+  - Encrypt the same plain text twice and compare the output.
+  - Check that one IV is never used twice with one key.
+  example: grep -rEn 'IvParameterSpec|iv\s*=|nonce\s*=' ./src; compare two encryptions of the same value
+  expected: Each encryption uses a new IV or nonce that fits the mode. Equal plain texts give different cipher texts.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Manual
+  level: ASVS L3
+  refs:
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    - Key_Management_Cheat_Sheet
+    asvs:
+    - V11.3.4
+    wstg:
+    - WSTG-CRYP-04
+    owasp_top10:
+    - A04:2025
+    cwe:
+    - CWE-323
+    - CWE-329
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/09-Weak_Cryptography/04-Weak_Cryptographic_Primitives.md
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+- id: WEB-CRYPTO-012
+  sheet: WEB
+  category: CRYPTO
+  title: Make sure only approved hash functions are used
+  objective: Find MD5, SHA-1 and other banned hashes in security use, and hashes that are not collision resistant.
+  steps:
+  - Search the code for MD5, SHA-1 and CRC used in security checks.
+  - Check signature, HMAC and KDF code for approved hashes.
+  - Check that digests used for signatures or integrity are at least 256 bits where collision resistance is needed.
+  example: grep -rEn 'MessageDigest.getInstance|hashlib\.(md5|sha1)|createHash\(.(md5|sha1)' ./src; semgrep --config p/crypto
+  expected: Only approved hash functions, with enough output length, are used. MD5 is not used for any cryptographic purpose.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Automated
+  level: ASVS L1
+  refs:
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    - Key_Management_Cheat_Sheet
+    asvs:
+    - V11.4.1
+    - V11.4.3
+    wstg:
+    - WSTG-CRYP-04
+    owasp_top10:
+    - A04:2025
+    cwe:
+    - CWE-328
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/09-Weak_Cryptography/04-Weak_Cryptographic_Primitives.md
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+- id: WEB-CRYPTO-013
+  sheet: WEB
+  category: CRYPTO
+  title: Check password hashing and key derivation settings
+  objective: Find passwords that are stored with fast hashes or too few iterations, and weak password-based key derivation.
+  steps:
+  - Find where passwords are hashed and where keys are made from passwords.
+  - Check for Argon2id, scrypt, bcrypt or PBKDF2 with current parameters.
+  - Check that each hash has a random salt.
+  - In a test copy, look at the hash format in the database.
+  - Check that passwords are not used directly as encryption keys.
+  example: 'psql -c ''select password from users limit 3''  (hash prefix: $argon2id$, $2b$, $pbkdf2); hashcat --example-hashes'
+  expected: Passwords use Argon2id, scrypt, bcrypt or PBKDF2 with current work factors and unique salts.
+  severity: High
+  test_type:
+  - Code Review
+  - Config Review
+  level: ASVS L2
+  refs:
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    - Key_Management_Cheat_Sheet
+    asvs:
+    - V11.4.2
+    - V11.4.4
+    wstg:
+    - WSTG-CRYP-04
+    owasp_top10:
+    - A04:2025
+    cwe:
+    - CWE-916
+    - CWE-759
+    - CWE-261
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/09-Weak_Cryptography/04-Weak_Cryptographic_Primitives.md
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+- id: WEB-CRYPTO-014
+  sheet: WEB
+  category: CRYPTO
+  title: Make sure non-guessable values use a CSPRNG with 128 bits of entropy
+  objective: Find tokens, IDs and secrets that come from weak random number generators.
+  steps:
+  - Find code that makes tokens, reset links, keys, nonces and session values.
+  - Search for Math.random, rand, java.util.Random and UUID v1 or v4 used as secrets.
+  - Collect 1000 tokens and look at length and patterns.
+  - Check that the generator works under load and is not reseeded with weak seeds.
+  example: grep -rEn 'Math\.random|java\.util\.Random|rand\(|random\.random' ./src; Burp Sequencer on the token
+  expected: All security values come from a CSPRNG with at least 128 bits of entropy. Weak generators are not used.
+  severity: High
+  test_type:
+  - Code Review
+  - Manual
+  level: ASVS L2
+  refs:
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    - Key_Management_Cheat_Sheet
+    asvs:
+    - V11.5.1
+    - V11.5.2
+    owasp_top10:
+    - A04:2025
+    cwe:
+    - CWE-330
+    - CWE-338
+    - CWE-331
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+- id: WEB-CRYPTO-015
+  sheet: WEB
+  category: CRYPTO
+  title: Check key generation and signature algorithms
+  objective: Find insecure key generation and algorithms for signatures.
+  steps:
+  - 'Find where keys are made: RSA, EC and symmetric keys.'
+  - Check that generation uses approved algorithms and a CSPRNG.
+  - Check RSA keys for known weak patterns.
+  - Check signature algorithms and key sizes in use.
+  example: openssl rsa -in key.pem -text -noout | head -3; ssh-keygen -l -f key.pub
+  expected: Keys come from approved generation methods. Signatures use approved algorithms and sizes.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Config Review
+  level: ASVS L2
+  refs:
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    - Key_Management_Cheat_Sheet
+    asvs:
+    - V11.6.1
+    owasp_top10:
+    - A04:2025
+    cwe:
+    - CWE-326
+    - CWE-327
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+- id: WEB-CRYPTO-016
+  sheet: WEB
+  category: CRYPTO
+  title: Check key exchange algorithms and parameters
+  objective: Find weak Diffie-Hellman parameters and key exchange that enable adversary-in-the-middle attacks.
+  steps:
+  - List key exchange methods in TLS and other protocols.
+  - 'Check that groups are approved: x25519, secp256r1 or ffdhe2048 or larger.'
+  - Check for entity authentication in each key exchange.
+  example: testssl.sh -f example.com; nmap --script ssl-dh-params -p443 example.com
+  expected: Key exchange uses approved algorithms with safe parameters and authenticates the peers.
+  severity: Medium
+  test_type:
+  - Automated
+  - Config Review
+  level: ASVS L3
+  refs:
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    - Key_Management_Cheat_Sheet
+    asvs:
+    - V11.6.2
+    owasp_top10:
+    - A04:2025
+    cwe:
+    - CWE-322
+    - CWE-326
+    capec:
+    - CAPEC-94
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+- id: WEB-CRYPTO-017
+  sheet: WEB
+  category: CRYPTO
+  title: Review memory protection and data minimization for sensitive data in use
+  objective: Find sensitive data that stays in memory longer than needed and is not encrypted at once.
+  steps:
+  - Read the design for memory encryption of sensitive data.
+  - Check how long keys and plain text stay in memory.
+  - Check that the application keeps the minimum data during processing.
+  - Check that data is encrypted as soon as possible.
+  example: 'Design review; core dump and heap dump review for secrets: strings core.dump | grep -i ''BEGIN PRIVATE KEY'''
+  expected: Sensitive data in use is limited and protected, and it is encrypted again as soon as possible.
+  severity: Info
+  test_type:
+  - Manual
+  - Code Review
+  level: ASVS L3
+  refs:
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    - Key_Management_Cheat_Sheet
+    asvs:
+    - V11.7.1
+    - V11.7.2
+    owasp_top10:
+    - A04:2025
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+- id: WEB-CRYPTO-018
+  sheet: WEB
+  category: CRYPTO
+  title: Make sure no hard-coded, default or checked-in cryptographic keys exist
+  objective: Find keys in source code, repositories, images or configuration that an attacker can read.
+  steps:
+  - Scan the repository and its history with trufflehog or gitleaks.
+  - Search for PEM headers, hex keys and JWT secrets in code, configs and images.
+  - Check for the default keys of frameworks and products.
+  - Check that each environment uses different keys.
+  example: trufflehog git file://. --only-verified; gitleaks detect -v; grep -rEn 'BEGIN (RSA |EC )?PRIVATE KEY' .
+  expected: No cryptographic key is in source, history, images or default configuration. Each environment has its own keys.
+  severity: High
+  test_type:
+  - Automated
+  - Code Review
+  refs:
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    - Key_Management_Cheat_Sheet
+    owasp_top10:
+    - A04:2025
+    cwe:
+    - CWE-321
+    - CWE-798
+    - CWE-547
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md

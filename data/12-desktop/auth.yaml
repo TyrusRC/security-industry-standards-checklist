@@ -1,0 +1,128 @@
+- id: DESK-AUTH-001
+  sheet: DESK
+  category: AUTH
+  title: Test the login for bypass by changing client state
+  objective: Finds checks that only run in the client and that a user can change or skip.
+  steps:
+  - Find where the client decides that a user is logged in.
+  - Change the local flag, config value or return value with a debugger.
+  - Try to open a protected screen.
+  - Send the server calls without the login step.
+  example: dnSpy breakpoint on the login method; Burp Suite replay of API calls with no token.
+  expected: The server decides on access. A changed client flag does not give access to protected data or functions.
+  severity: Critical
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-306
+    - CWE-285
+    asvs:
+    - V2.2.2
+    desktop_top10:
+    - DA2
+    - DA5
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-AUTH-002
+  sheet: DESK
+  category: AUTH
+  title: Check that sessions end at logout, timeout and lock
+  objective: Finds sessions and tokens that stay valid after the user leaves.
+  steps:
+  - Log in and note the session token or ticket.
+  - Log out and replay the token against the server.
+  - Leave the client idle and test again after the timeout.
+  - Check the token files on disk after logout.
+  example: Burp Repeater or curl with the old token; Procmon on the profile folder.
+  expected: The server rejects the old token. The client deletes local tokens. The idle timeout locks the client.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    asvs:
+    - V7.3.1
+    desktop_top10:
+    - DA2
+  see:
+  - WEB-SESS-017
+  - WEB-SESS-019
+  sources_read: &id001
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+- id: DESK-AUTH-003
+  sheet: DESK
+  category: AUTH
+  title: Check hardware logins for a second factor
+  objective: Finds RFID, smart card or USB key logins that work without a PIN.
+  steps:
+  - List the hardware factors that the client accepts.
+  - Present a copied or lost device in a test setup.
+  - Check if the client asks for a PIN or password.
+  - Check the lock-out rules after wrong PINs.
+  example: Test device in a lab; check client logs for the PIN prompt and the count of failed tries.
+  expected: A hardware device alone does not give access. The client asks for a PIN or password and locks after repeated failures.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-306
+    desktop_top10:
+    - DA2
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-AUTH-004
+  sheet: DESK
+  category: AUTH
+  title: Check kiosk and shared-device modes for authentication gaps
+  objective: Finds public or emergency modes that skip login and give too much access.
+  steps:
+  - List the modes that run without login.
+  - Try to leave the kiosk shell with keys and dialogs.
+  - Open file dialogs and help links.
+  - List the data and functions reachable in each mode.
+  example: Keyboard shortcuts such as Alt+Tab and Ctrl+Alt+Del on a test machine; record each escape path.
+  expected: Modes with no login expose only the planned functions. The user cannot reach the OS shell, files or admin functions.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    desktop_top10:
+    - DA2
+    - DA6
+  sources_read: *id001
+- id: DESK-AUTH-005
+  sheet: DESK
+  category: AUTH
+  title: Check stored credentials and the remember-me feature
+  objective: Finds saved passwords and tokens that others can read.
+  steps:
+  - Turn on remember me and log in.
+  - Search the profile folder, registry and credential store for the secret.
+  - Check file and key access rights.
+  - Check the token life time.
+  example: Procmon filter on the client process; reg query HKCU\Software\Vendor; strings on profile files.
+  expected: The client stores only a short-lived token in the OS credential store. It stores no password in clear or reversible form.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-522
+    - CWE-256
+    - CWE-257
+    cheatsheet:
+    - Password_Storage_Cheat_Sheet
+    desktop_top10:
+    - DA2
+    - DA3
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Password_Storage_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip

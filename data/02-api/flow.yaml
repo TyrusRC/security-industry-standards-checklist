@@ -1,0 +1,213 @@
+- id: API-FLOW-001
+  sheet: API
+  category: FLOW
+  title: Test sensitive business flows of the API for scripted abuse
+  objective: Finds flows such as purchase, reservation and post creation that a script can abuse at scale.
+  preconditions:
+  - A document from the business owner that names the sensitive flows.
+  - Use test stock and test accounts.
+  steps:
+  - Write a list of business flows and mark the ones that harm the business when used too often.
+  - Call each marked flow with a script at a high rate from one source.
+  - Call it again from many sources.
+  - 'Record what blocks the script: rate limit, captcha, device checks or review.'
+  example: Burp Turbo Intruder; Postman runner; a Python requests loop on a test product with limited stock.
+  expected: Each marked flow has controls that slow a script, and the business owner agreed the limits.
+  severity: High
+  test_type: Manual
+  refs:
+    api_top10:
+    - API6:2023
+    wstg:
+    - WSTG-BUSL-05
+    cwe:
+    - CWE-799
+    - CWE-770
+    capec:
+    - CAPEC-212
+  see:
+  - WEB-BIZ-009
+  - WEB-BIZ-004
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa6-unrestricted-access-to-sensitive-business-flows.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/10-Business_Logic/05-Number_of_Times_a_Function_Can_Be_Used_Limits.md
+- id: API-FLOW-002
+  sheet: API
+  category: FLOW
+  title: Test referral and credit programs for scripted account creation
+  objective: Finds referral and bonus flows that a script can use to collect credit.
+  preconditions:
+  - Test environment only.
+  steps:
+  - Read the rules of the referral program.
+  - Create several test accounts with a script. Use each to credit one main account.
+  - Check if email, phone or device checks block the script.
+  - Check if the credit can turn into cash or products.
+  example: Python script that calls POST /register and POST /referral/claim; Burp macro for the sign-up step.
+  expected: The sign-up and the credit steps have checks for scripted use. Credit is not given before the new account is confirmed.
+  severity: Medium
+  test_type: Manual
+  refs:
+    api_top10:
+    - API6:2023
+    wstg:
+    - WSTG-BUSL-05
+    cwe:
+    - CWE-799
+    - CWE-841
+  see:
+  - WEB-BIZ-009
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa6-unrestricted-access-to-sensitive-business-flows.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/10-Business_Logic/05-Number_of_Times_a_Function_Can_Be_Used_Limits.md
+- id: API-FLOW-003
+  sheet: API
+  category: FLOW
+  title: Test reservation holds for abuse that blocks other users
+  objective: Finds flows where one client can hold all slots or seats and cancel them in bulk.
+  steps:
+  - Reserve many slots or seats with one account without payment.
+  - Check the time limit of an unpaid hold.
+  - Cancel all reservations at once.
+  - Check if fees, limits or delays apply.
+  example: Postman runner with a loop on POST /reservations; check the hold expiry time in the response.
+  expected: One account can hold only a small number of slots. Unpaid holds expire quickly. Bulk cancel has a limit.
+  severity: Medium
+  test_type: Manual
+  refs:
+    api_top10:
+    - API6:2023
+    wstg:
+    - WSTG-BUSL-05
+    cwe:
+    - CWE-799
+    - CWE-841
+  see:
+  - WEB-BIZ-007
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa6-unrestricted-access-to-sensitive-business-flows.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/10-Business_Logic/05-Number_of_Times_a_Function_Can_Be_Used_Limits.md
+- id: API-FLOW-004
+  sheet: API
+  category: FLOW
+  title: Call later workflow steps without the earlier steps
+  objective: Finds APIs that rely on the client to send steps in the right order.
+  steps:
+  - Write down the steps of a flow, for example create, pay, approve and ship.
+  - Capture the request of each step.
+  - Send a later step without the earlier steps. Replay and reorder steps.
+  - Change status or step values and reuse tokens from other steps.
+  example: 'Burp Repeater and Sequence of requests; Postman collection with a changed order; example: POST /orders/<id>/ship before payment.'
+  expected: The server checks the state of the flow on every request. Out-of-order calls, replays and changed states are rejected.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    api_top10:
+    - API6:2023
+    wstg:
+    - WSTG-BUSL-06
+    asvs:
+    - V2.3.1
+    cheatsheet:
+    - REST_Security_Cheat_Sheet
+    cwe:
+    - CWE-841
+    capec:
+    - CAPEC-212
+  see:
+  - WEB-BIZ-005
+  - WEB-BIZ-001
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa6-unrestricted-access-to-sensitive-business-flows.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/10-Business_Logic/06-Circumvention_of_Work_Flows.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Security_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: API-FLOW-005
+  sheet: API
+  category: FLOW
+  title: Race parallel requests against single-use functions
+  objective: Finds single-use limits, such as coupons or votes, that fail when requests run at once.
+  preconditions:
+  - Test environment only.
+  steps:
+  - Find functions that must run once or a few times, such as coupons, votes and invites.
+  - Send many identical requests at the same time.
+  - Count how many succeeded.
+  - Compare with the limit.
+  example: Burp Repeater send group in parallel; Turbo Intruder race-single-packet-attack template; curl --parallel.
+  expected: The function succeeds as many times as the limit allows. The server uses locks or atomic updates.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    api_top10:
+    - API6:2023
+    wstg:
+    - WSTG-BUSL-05
+    asvs:
+    - V2.3.4
+    cwe:
+    - CWE-367
+    - CWE-799
+    capec:
+    - CAPEC-26
+  see:
+  - WEB-BIZ-014
+  - WEB-BIZ-004
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa6-unrestricted-access-to-sensitive-business-flows.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/10-Business_Logic/05-Number_of_Times_a_Function_Can_Be_Used_Limits.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: API-FLOW-006
+  sheet: API
+  category: FLOW
+  title: Check that B2B and developer APIs have the same anti-automation controls
+  objective: Finds machine-to-machine APIs that skip the protection of the public client.
+  steps:
+  - List the APIs for partners, developers and machines.
+  - Compare the controls of these APIs with the controls of the web client for the same flow.
+  - Run the scripted flow test against the partner API.
+  - Check the keys, quotas and alerts for each partner.
+  example: Postman collection of the partner API; comparison table of controls; review of the quota settings in the API gateway.
+  expected: Partner APIs have quotas, keys per client and alerts. The controls are not weaker than those of the public client.
+  severity: Medium
+  test_type: Manual
+  refs:
+    api_top10:
+    - API6:2023
+    cwe:
+    - CWE-799
+    - CWE-770
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa6-unrestricted-access-to-sensitive-business-flows.md
+- id: API-FLOW-007
+  sheet: API
+  category: FLOW
+  title: Check the detection of scripted misuse and the response
+  objective: Finds systems that do not detect or log non-human use of sensitive flows.
+  steps:
+  - Run a script on a sensitive flow with a very short time between steps.
+  - Look for changes in responses, blocks, captcha or extra logins.
+  - Check the logs and alerts for the script.
+  - Read the incident process for the alerts.
+  example: Burp Turbo Intruder; log search for the test source IP; review of the WAF or bot rules.
+  expected: The system detects non-human speed and device patterns on sensitive flows. It logs the events and sends an alert.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    api_top10:
+    - API6:2023
+    wstg:
+    - WSTG-BUSL-07
+    cwe:
+    - CWE-799
+    - CWE-778
+  see:
+  - WEB-BIZ-011
+  - WEB-BIZ-010
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa6-unrestricted-access-to-sensitive-business-flows.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/10-Business_Logic/07-Defenses_Against_Application_Misuse.md

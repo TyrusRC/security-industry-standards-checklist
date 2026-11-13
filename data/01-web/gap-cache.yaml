@@ -1,0 +1,73 @@
+- id: WEB-CACHE-001
+  sheet: WEB
+  category: CACHE
+  title: Test unkeyed request inputs for web cache poisoning
+  objective: Find request inputs that change a cached response but are not part of the cache key.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Find cached pages with the response headers Age, X-Cache or CF-Cache-Status.
+  - Add a cache buster to the URL so that only you see the test entry.
+  - Send unkeyed inputs one at a time, such as X-Forwarded-Host, X-Forwarded-Scheme and a body on a GET request.
+  - Look for the value in links, redirects, JSON and response headers.
+  - Request the same URL without the extra input and look for the changed response.
+  - Remove the test entry from the cache after the test.
+  example: 'curl -s "https://target/?cb=123" -H "X-Forwarded-Host: evil.example"; then curl -s "https://target/?cb=123" | grep evil; Burp Param Miner'
+  expected: Unkeyed inputs do not change a cacheable response. Forwarded headers are trusted only from the proxy, and the cache key holds every input that changes the output.
+  severity: High
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    owasp_top10:
+    - A02:2025
+    wstg:
+    - WSTG-CONF-13
+    cheatsheet:
+    - Web_Cache_Security_Cheat_Sheet
+    cwe:
+    - CWE-444
+    - CWE-524
+    capec:
+    - CAPEC-141
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Web_Cache_Security_Cheat_Sheet.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/13-Path_Confusion.md
+- id: WEB-CACHE-002
+  sheet: WEB
+  category: CACHE
+  title: Review CDN and proxy cache rules against the origin cache policy
+  objective: Find CDN or proxy rules that override origin headers and cache sensitive, error or redirect responses.
+  steps:
+  - List the cache rules of the CDN and reverse proxy.
+  - Look for rules that override Cache-Control, or that cache by file extension, path or status code.
+  - Check the cache policy of error pages, redirects and authentication responses.
+  - 'Make sure Vary: Cookie is not the only control for personalized pages.'
+  - Make sure the URL normalization is the same at the CDN, the proxy and the origin.
+  - Test the purge function for one key or one route group.
+  example: CDN configuration export; curl -sI of /login, /404, /redirect and /account with and without cookies
+  expected: Cache rules follow an allowlist of routes. No rule makes a personalized response public. Purge works for a narrow scope.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A02:2025
+    wstg:
+    - WSTG-CONF-13
+    asvs:
+    - V14.2.2
+    cheatsheet:
+    - Web_Cache_Security_Cheat_Sheet
+    cwe:
+    - CWE-524
+    capec:
+    - CAPEC-141
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Web_Cache_Security_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/13-Path_Confusion.md
+  see:
+  - WEB-CONF-013

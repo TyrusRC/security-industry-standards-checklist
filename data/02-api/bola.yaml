@@ -1,0 +1,275 @@
+- id: API-BOLA-001
+  sheet: API
+  category: BOLA
+  title: Replace object IDs in path and query with IDs of another user
+  objective: Finds API endpoints that return objects of other users when the object ID changes.
+  preconditions:
+  - Two test accounts with the same role.
+  - A list of API endpoints from the OpenAPI file or proxy history.
+  steps:
+  - Create user A and user B. Create objects for each, such as orders.
+  - List every endpoint that takes an object ID in the path or in the query string.
+  - Log in as user A. Send each request with an object ID that belongs to user B.
+  - Compare each response with the response that user B gets for the same request.
+  example: 'Burp Autorize or AuthMatrix with the token of user A; curl -H ''Authorization: Bearer <tokenA>'' https://api.example/v1/orders/<idB>; Postman collection run with two environments.'
+  expected: The API returns 403 or 404 for objects of other users. It checks the owner of the object on every request.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    api_top10:
+    - API1:2023
+    wstg:
+    - WSTG-APIT-02
+    asvs:
+    - V8.2.2
+    cheatsheet:
+    - Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet
+    - REST_Assessment_Cheat_Sheet
+    cwe:
+    - CWE-639
+    - CWE-285
+    - CWE-863
+    capec:
+    - CAPEC-1
+  see:
+  - WEB-IDOR-001
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa1-broken-object-level-authorization.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/02-API_Broken_Object_Level_Authorization.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Assessment_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: API-BOLA-002
+  sheet: API
+  category: BOLA
+  title: Change other users' objects with PUT, PATCH and DELETE
+  objective: Finds API write operations that do not check who owns the object.
+  preconditions:
+  - Do not run on production. Use test objects only.
+  steps:
+  - Create an object as user B and note its ID.
+  - Log in as user A. Send PUT, PATCH and DELETE requests for the object of user B.
+  - Send POST requests that create child objects under the object of user B.
+  - Log in as user B and read the object. Look for changes or deletion.
+  example: 'curl -X DELETE -H ''Authorization: Bearer <tokenA>'' https://api.example/v1/documents/<idB>; Burp Repeater with a Match and Replace rule for the token.'
+  expected: The API rejects every write, delete and create request on objects of other users. The object stays unchanged.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    api_top10:
+    - API1:2023
+    wstg:
+    - WSTG-APIT-02
+    asvs:
+    - V8.2.2
+    cheatsheet:
+    - Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-639
+    - CWE-285
+    capec:
+    - CAPEC-1
+  see:
+  - WEB-IDOR-002
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa1-broken-object-level-authorization.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/02-API_Broken_Object_Level_Authorization.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: API-BOLA-003
+  sheet: API
+  category: BOLA
+  title: Test object IDs in request bodies, headers and nested routes
+  objective: Finds object references outside the path that the API trusts without an owner check.
+  steps:
+  - Find IDs in JSON bodies, custom headers and nested routes such as /users/{id}/orders/{id}.
+  - Change one ID at a time to an ID of user B. Keep the other IDs valid for user A.
+  - Send a parent ID of user A with a child ID of user B.
+  - Repeat for every object type that the API exposes.
+  example: 'Burp Intruder or ZAP fuzzer with a list of IDs of user B; Postman pre-request script that swaps IDs; example request: PUT /v1/users/<idA>/orders/<idB>.'
+  expected: The API checks the owner of each object in the request, also for nested routes. A mismatch between parent and child gives 403 or 404.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    api_top10:
+    - API1:2023
+    wstg:
+    - WSTG-APIT-02
+    asvs:
+    - V8.2.2
+    cheatsheet:
+    - REST_Assessment_Cheat_Sheet
+    - Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-639
+    - CWE-863
+    capec:
+    - CAPEC-1
+  see:
+  - WEB-IDOR-003
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa1-broken-object-level-authorization.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/02-API_Broken_Object_Level_Authorization.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Assessment_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: API-BOLA-004
+  sheet: API
+  category: BOLA
+  title: Test list, search and bulk endpoints for objects of other users
+  objective: Finds collection endpoints that return all objects instead of the objects of the caller.
+  steps:
+  - Call each list endpoint, such as GET /users or GET /orders, as a normal user.
+  - Add filter parameters such as owner, user_id, tenant or all to the request.
+  - Change the page size and the sort order. Look for objects that the caller does not own.
+  - Send bulk requests that carry many IDs, some of them from user B.
+  example: 'curl ''https://api.example/v1/orders?user_id=<idB>&limit=100'' -H ''Authorization: Bearer <tokenA>''; Burp Param Miner for hidden filter names.'
+  expected: List and bulk endpoints return only the objects that the caller may access. Filter parameters cannot widen the result.
+  severity: High
+  test_type: Manual
+  refs:
+    api_top10:
+    - API1:2023
+    wstg:
+    - WSTG-APIT-02
+    cheatsheet:
+    - Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-639
+    - CWE-285
+    capec:
+    - CAPEC-1
+  see:
+  - WEB-IDOR-001
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa1-broken-object-level-authorization.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/02-API_Broken_Object_Level_Authorization.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.md
+- id: API-BOLA-005
+  sheet: API
+  category: BOLA
+  title: Test whether unpredictable IDs are the only object protection
+  objective: Finds objects that any user can read when the user learns the ID from another source.
+  steps:
+  - Collect IDs from list responses, error messages, notification links and shared URLs.
+  - Use an ID of user B that user A can see. Request the object as user A.
+  - Check if IDs are sequential or follow a pattern that a script can guess.
+  - Read the code to make sure an owner check exists for each lookup.
+  example: curl with GUIDs taken from the activity feed of user B; Burp Sequencer on a sample of IDs; code search for findById( without an owner filter.
+  expected: The API denies access even when the caller knows a valid ID. The owner check does not depend on the secrecy of the ID.
+  severity: Medium
+  test_type:
+  - Manual
+  - Code Review
+  refs:
+    api_top10:
+    - API1:2023
+    wstg:
+    - WSTG-APIT-02
+    cheatsheet:
+    - Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet
+    - REST_Assessment_Cheat_Sheet
+    cwe:
+    - CWE-639
+    capec:
+    - CAPEC-1
+  see:
+  - WEB-IDOR-005
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa1-broken-object-level-authorization.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/02-API_Broken_Object_Level_Authorization.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Assessment_Cheat_Sheet.md
+- id: API-BOLA-006
+  sheet: API
+  category: BOLA
+  title: Test cross-tenant access with changed tenant identifiers
+  objective: Finds multi-tenant APIs that let one tenant read or change the objects of another tenant.
+  steps:
+  - Create two tenants with one user each. Create objects in both tenants.
+  - Send requests from tenant A with the tenant ID, subdomain or header of tenant B.
+  - Use an object ID of tenant B in a request with the tenant context of tenant A.
+  - Look for data of tenant B in responses, exports and search results.
+  example: 'curl -H ''X-Tenant-Id: <tenantB>'' -H ''Authorization: Bearer <tokenA>'' https://api.example/v1/invoices/<idB>; Burp Match and Replace on the tenant header.'
+  expected: The API takes the tenant from the validated token or session. A tenant value from the client never widens access.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    api_top10:
+    - API1:2023
+    wstg:
+    - WSTG-APIT-02
+    asvs:
+    - V8.4.1
+    cheatsheet:
+    - Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-639
+    - CWE-285
+  see:
+  - WEB-AUTHZ-012
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa1-broken-object-level-authorization.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/02-API_Broken_Object_Level_Authorization.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: API-BOLA-007
+  sheet: API
+  category: BOLA
+  title: Check that object access uses a policy, not only the token ID
+  objective: Finds code that compares the user ID in the token to one ID parameter and misses other objects.
+  steps:
+  - Find all handlers that take an object ID from the client.
+  - Read how each handler decides if the caller may use the object.
+  - Find handlers that only compare the token user ID to a request parameter.
+  - Send requests for shared, delegated and group objects to test the policy.
+  example: grep -rn 'userId ==' src/ ; review of the authorization middleware; Postman test for an object shared with a group.
+  expected: A central policy checks the caller, the action and the object for every handler. A single ID comparison is not the only check.
+  severity: Medium
+  test_type: Code Review
+  refs:
+    api_top10:
+    - API1:2023
+    wstg:
+    - WSTG-APIT-02
+    cheatsheet:
+    - Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-285
+    - CWE-639
+  see:
+  - WEB-AUTHZ-009
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa1-broken-object-level-authorization.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/02-API_Broken_Object_Level_Authorization.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.md
+- id: API-BOLA-008
+  sheet: API
+  category: BOLA
+  title: Run automated authorization tests for object access in the build
+  objective: Finds builds that lack regression tests for object-level checks.
+  steps:
+  - Find the test suite for the API in the repository and in the build pipeline.
+  - Look for tests that call each endpoint as a second user and expect 403 or 404.
+  - Remove the owner check in a test branch. Run the pipeline.
+  - Make sure the build fails and that the change cannot be deployed.
+  example: Review of CI configuration; Postman or Newman collection with a two-user matrix; Schemathesis with a custom authorization check.
+  expected: The pipeline has object-level authorization tests for every endpoint. A test that fails blocks the deployment.
+  severity: Low
+  test_type:
+  - Config Review
+  - Code Review
+  refs:
+    api_top10:
+    - API1:2023
+    wstg:
+    - WSTG-APIT-02
+    cwe:
+    - CWE-285
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa1-broken-object-level-authorization.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/02-API_Broken_Object_Level_Authorization.md

@@ -1,0 +1,172 @@
+- id: K8S-POL-001
+  sheet: K8S
+  category: POL
+  title: Check Pod Security Admission labels on every namespace
+  objective: Finds namespaces with no enforced pod security level.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - List the pod-security labels of every namespace.
+  - Find namespaces with no enforce label or with the privileged level.
+  - Check that the audit and warn labels are set.
+  - In a test namespace, create a pod that breaks the enforced level.
+  example: kubectl get ns --show-labels | grep -v pod-security.kubernetes.io/enforce; kubectl run test --image=nginx --privileged -n <test-ns>
+  expected: Each application namespace enforces the baseline level or better, and restricted where possible. The pod that breaks the level is rejected.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K04
+    - K01
+    cloud_native_top10:
+    - CNAS-1
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-693
+    attack:
+    - T1610
+    nist_800_53:
+    - CM-6
+    - CM-7
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K04-Lack-Of-Cluster-Level-Policy-Enforcement.md
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K01-Insecure-Workload-Configurations.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-POL-002
+  sheet: K8S
+  category: POL
+  title: Check that a policy engine enforces cluster rules beyond Pod Security
+  objective: Finds clusters that depend on manual review for rules such as registries, labels and ingress settings.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - List validating admission policies and admission webhooks.
+  - Find the policy engine in use, such as Gatekeeper, Kyverno or Kubewarden.
+  - Read the policy list and the mode of each policy.
+  - Create a test object that breaks one policy.
+  example: kubectl get validatingadmissionpolicy,validatingadmissionpolicybinding,validatingwebhookconfigurations,mutatingwebhookconfigurations; kubectl get constrainttemplates; kubectl get clusterpolicies
+  expected: Policies for privileged settings, allowed registries and required labels are active and set to deny. The test object is rejected.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K04
+    cloud_native_top10:
+    - CNAS-1
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-693
+    attack:
+    - T1610
+    nist_800_53:
+    - CM-6
+    - CM-3
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K04-Lack-Of-Cluster-Level-Policy-Enforcement.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-POL-003
+  sheet: K8S
+  category: POL
+  title: Check failure mode and scope of admission webhooks
+  objective: Finds webhooks that fail open, skip namespaces, or let a user bypass policy.
+  steps:
+  - List each webhook with its failurePolicy, namespaceSelector and objectSelector.
+  - Find webhooks with failurePolicy set to Ignore after the rollout phase.
+  - Check which namespaces and objects the selectors exclude.
+  - Check that users cannot add labels that exclude their pods.
+  example: kubectl get validatingwebhookconfigurations -o yaml | grep -E "failurePolicy|namespaceSelector|objectSelector"
+  expected: Production webhooks fail closed. Selectors exclude only system namespaces, and users cannot change labels to skip a policy.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K04
+    cloud_native_top10:
+    - CNAS-1
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-693
+    - CWE-863
+    attack:
+    - T1610
+    nist_800_53:
+    - CM-6
+    - CM-5
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K04-Lack-Of-Cluster-Level-Policy-Enforcement.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-POL-004
+  sheet: K8S
+  category: POL
+  title: Check that new policies start in audit mode and move to enforce
+  objective: Finds policies that stay in audit or warn mode and so block nothing.
+  steps:
+  - List the policies and the mode of each one.
+  - Find policies in audit or warn mode longer than the rollout plan allows.
+  - Review the audit results for current violations.
+  - Check the plan and date to move to enforce.
+  example: kubectl get ns -o json | jq ".items[] | {n:.metadata.name, l:.metadata.labels}"; kubectl get constraints; kubectl get policyreport -A
+  expected: Each policy has an owner and a date to move to deny. Open violations are fixed or have an exception on record.
+  severity: Low
+  test_type: Manual
+  refs:
+    k8s_top10:
+    - K04
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-693
+    nist_800_53:
+    - CM-3
+    - CM-6
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K04-Lack-Of-Cluster-Level-Policy-Enforcement.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-POL-005
+  sheet: K8S
+  category: POL
+  title: Check that admission decisions go to a central log
+  objective: Finds policy denials and exceptions that no one sees.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Create a denied object in a test namespace.
+  - Look for the denial in the audit log and in the policy engine log.
+  - Check that the central log system receives both.
+  - Check that an alert exists for repeated denials.
+  example: kubectl logs -n <policy-ns> deploy/<policy-engine> | grep -i deny; query the central log platform for the denied request
+  expected: Denials and policy changes appear in the central log with the user, object and rule. Repeated denials raise an alert.
+  severity: Medium
+  test_type: Manual
+  refs:
+    k8s_top10:
+    - K04
+    - K10
+    cloud_native_top10:
+    - CNAS-10
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    - Logging_Cheat_Sheet
+    cwe:
+    - CWE-778
+    attack:
+    - T1685.002
+    nist_800_53:
+    - AU-2
+    - AU-6
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K04-Lack-Of-Cluster-Level-Policy-Enforcement.md
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K10-Inadequate-Logging-And-Monitoring.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x0A_logging.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md

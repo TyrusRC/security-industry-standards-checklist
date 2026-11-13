@@ -1,0 +1,192 @@
+- id: K8S-LAT-001
+  sheet: K8S
+  category: LAT
+  title: Check the cloud permissions of node roles
+  objective: Finds node identities with wide cloud rights that every pod on the node can use.
+  steps:
+  - Find the cloud identity attached to each node pool.
+  - List the policies of each node identity.
+  - Find rights to storage, databases, IAM and compute creation.
+  - Compare them to the minimum that a node needs.
+  example: aws iam list-attached-role-policies --role-name <node-role>; az aks show -n <c> -g <rg> --query identityProfile; gcloud container node-pools describe <p> --cluster <c> --format="value(config.serviceAccount)"
+  expected: Node identities hold only the rights that the node agent needs. Application rights come from workload identities.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K08
+    cloud_native_top10:
+    - CNAS-3
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-272
+    - CWE-250
+    attack:
+    - T1078.004
+    - T1552.005
+    nist_800_53:
+    - AC-6
+  see:
+  - CLD-IAM-001
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K08-Cluster-To-Cloud-Lateral-Movement.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x03_improper_auth.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-LAT-002
+  sheet: K8S
+  category: LAT
+  title: Check that pods use workload identity and not the node identity
+  objective: Finds pods that inherit the node role when a per-service-account cloud role is available.
+  steps:
+  - List service accounts with cloud role annotations or identity bindings.
+  - Find workloads that call cloud APIs without a workload identity.
+  - From a test pod, request cloud credentials and note whose identity returns.
+  - Check the scope of each workload role.
+  example: kubectl get sa -A -o json | jq ".items[] | select(.metadata.annotations) | {n:.metadata.name, a:.metadata.annotations}"; kubectl exec <pod> -- aws sts get-caller-identity
+  expected: Each workload gets a scoped, short-lived cloud role through EKS Pod Identity, IRSA, GKE Workload Identity or AKS Workload Identity. The returned identity is not the node role.
+  severity: High
+  test_type: Manual
+  refs:
+    k8s_top10:
+    - K08
+    - K03
+    cloud_native_top10:
+    - CNAS-3
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-272
+    attack:
+    - T1078.004
+    - T1552.005
+    nist_800_53:
+    - AC-6
+    - IA-5
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K08-Cluster-To-Cloud-Lateral-Movement.md
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K03-Secrets-Management-Failures.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x03_improper_auth.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-LAT-003
+  sheet: K8S
+  category: LAT
+  title: Check that pods cannot reach the instance metadata service
+  objective: Finds pods that can steal node credentials from the metadata address.
+  steps:
+  - From a test pod, request the metadata address 169.254.169.254.
+  - Check the NetworkPolicy that blocks egress to this address.
+  - 'Check the metadata settings of the node: token required and hop limit.'
+  - Check other provider metadata addresses.
+  example: kubectl exec <pod> -- curl -m 3 http://169.254.169.254/latest/meta-data/; aws ec2 describe-instances --query "Reservations[].Instances[].MetadataOptions"
+  expected: The request from the pod fails. The node requires session tokens for metadata (IMDSv2) and a network policy blocks the address.
+  severity: High
+  test_type: Manual
+  refs:
+    k8s_top10:
+    - K08
+    - K05
+    cloud_native_top10:
+    - CNAS-6
+    - CNAS-3
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    - Server_Side_Request_Forgery_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-668
+    - CWE-918
+    attack:
+    - T1552.005
+    nist_800_53:
+    - SC-7
+    - AC-6
+  see:
+  - API-SSRF-007
+  - CLD-NET-004
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K08-Cluster-To-Cloud-Lateral-Movement.md
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K05-Missing-Network-Segmentation-Controls.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x06_over_permissive_network.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x03_improper_auth.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md
+- id: K8S-LAT-004
+  sheet: K8S
+  category: LAT
+  title: Find static cloud credentials in the cluster
+  objective: Finds long-lived cloud keys in Secrets, ConfigMaps, env variables and images.
+  steps:
+  - Search Secrets, ConfigMaps and pod specs for cloud access key patterns.
+  - Scan images for cloud key files.
+  - Check the age and last use of each key found.
+  - Replace each key with workload identity.
+  example: trivy image --scanners secret <image>; kubectl get secrets,cm -A -o yaml | grep -E "AKIA|aws_access_key|client_secret|private_key"; gitleaks detect
+  expected: The cluster holds no static cloud keys. Any key found is revoked and replaced with a short-lived identity.
+  severity: High
+  test_type: Automated
+  refs:
+    k8s_top10:
+    - K08
+    - K03
+    cloud_native_top10:
+    - CNAS-5
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    - Secrets_Management_Cheat_Sheet
+    cwe:
+    - CWE-798
+    attack:
+    - T1552.001
+    - T1078.004
+    nist_800_53:
+    - IA-5
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K08-Cluster-To-Cloud-Lateral-Movement.md
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K03-Secrets-Management-Failures.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x05_insecure_secrets.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+- id: K8S-LAT-005
+  sheet: K8S
+  category: LAT
+  title: Check runtime detection of tools and shells in containers
+  objective: Finds clusters that do not alert on shells, discovery tools or cloud CLIs that start inside a container.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Check that a runtime security tool runs on all nodes.
+  - In a test pod, start a shell and run curl and a cloud CLI.
+  - Check for an alert for each action.
+  - Check who receives the alerts.
+  example: kubectl get pods -A | grep -iE "falco|tetragon"; kubectl exec -it <test-pod> -- sh -c "curl -m 3 https://example.com; which aws"
+  expected: The tool raises an alert for each unexpected shell and tool. The alerts reach the response team.
+  severity: Medium
+  test_type: Manual
+  refs:
+    k8s_top10:
+    - K08
+    - K10
+    cloud_native_top10:
+    - CNAS-10
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    - Docker_Security_Cheat_Sheet
+    cwe:
+    - CWE-778
+    attack:
+    - T1609
+    - T1613
+    nist_800_53:
+    - SI-4
+    - AU-6
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K08-Cluster-To-Cloud-Lateral-Movement.md
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K10-Inadequate-Logging-And-Monitoring.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x0A_logging.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md

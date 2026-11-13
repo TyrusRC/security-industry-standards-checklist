@@ -1,0 +1,80 @@
+- id: WEB-SW-001
+  sheet: WEB
+  category: SW
+  title: Check service worker and web worker script origin, scope and input
+  objective: Find workers that load from the wrong origin, cover too many paths or run script built from user input.
+  preconditions:
+  - A test account and a browser with developer tools.
+  - Access to the front-end source code.
+  steps:
+  - Find all calls to navigator.serviceWorker.register and new Worker. Note the script URL and scope.
+  - Make sure each worker script comes from your own origin over HTTPS.
+  - Make sure the file name of the script changes with its content.
+  - Make sure the scope is as narrow as the application needs. Find any Service-Worker-Allowed response header and examine its value.
+  - Make sure the worker script is served with a JavaScript MIME type.
+  - Look for worker URLs, Blob scripts or importScripts calls that use user-supplied input. There must be none.
+  - Review the message handlers of web workers. Make sure they validate the messages and do not call eval on message data.
+  - On a host with content of many users, make sure one user cannot register a worker for the whole site.
+  example: 'curl -sI https://target/sw.js | grep -i -E "content-type|service-worker-allowed|cache-control"; grep -rn "serviceWorker.register\|new Worker\|importScripts" src/; DevTools > Application > Service Workers'
+  expected: Workers load from the own origin over HTTPS with a narrow scope. No worker script comes from user input, and worker messages are validated.
+  severity: Medium
+  test_type:
+  - Manual
+  - Code Review
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A05:2025
+    wstg:
+    - WSTG-CLNT-06
+    asvs:
+    - V3.2.2
+    cheatsheet:
+    - HTML5_Security_Cheat_Sheet
+    cwe:
+    - CWE-94
+    - CWE-829
+    other:
+    - 'W3C Service Workers, sections 6.1 and 6.5: https://www.w3.org/TR/service-workers/'
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/HTML5_Security_Cheat_Sheet.md
+  - sources/extra/gap3-A/ServiceWorker.md
+- id: WEB-SW-002
+  sheet: WEB
+  category: SW
+  title: Check service worker caches for private data and removal at logout
+  objective: Find a service worker that keeps private responses in the Cache API or stays active after logout or a compromise.
+  preconditions:
+  - A test account and a browser with developer tools.
+  steps:
+  - Log in and use the application. Open the Cache Storage view in the developer tools.
+  - Look for responses with personal data, tokens or account pages in the cache entries.
+  - Make sure the worker code excludes responses that carry sensitive data. The Cache API does not use HTTP cache headers.
+  - Log out. Make sure the private cache entries are deleted.
+  - Go offline and open a private page. Make sure no private data shows.
+  - Find the documented recovery process. Make sure it can unregister the worker and delete its caches.
+  - Make sure responses that hold private data still send Cache-Control with no-store.
+  example: 'DevTools > Application > Cache Storage; navigator.serviceWorker.getRegistrations().then(r => r.length); caches.keys().then(console.log); curl -sI https://target/account | grep -i cache-control'
+  expected: No sensitive response is in a worker cache. Logout deletes private entries, and a recovery process exists that unregisters the worker and removes its caches.
+  severity: Medium
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A02:2025
+    wstg:
+    - WSTG-CLNT-12
+    asvs:
+    - V14.3.1
+    - V14.3.2
+    cheatsheet:
+    - HTML5_Security_Cheat_Sheet
+    cwe:
+    - CWE-525
+    - CWE-922
+  see:
+  - WEB-CLIENT-006
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/HTML5_Security_Cheat_Sheet.md
+  - sources/extra/gap3-A/ServiceWorker.md

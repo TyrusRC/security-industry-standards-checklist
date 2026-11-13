@@ -1,0 +1,516 @@
+- id: WEB-CONF-001
+  sheet: WEB
+  category: CONF
+  title: Review the network infrastructure configuration and known server vulnerabilities
+  objective: Find open ports, outdated servers and weak network rules around the application.
+  preconditions:
+  - Do not run vulnerability scripts on production without approval.
+  steps:
+  - Get the list of ports that the application needs from the owner.
+  - Scan the hosts with Nmap and compare the open ports with the list.
+  - Run Nuclei or Nikto and check each version-based finding by hand.
+  - Review security groups, firewall and container network rules for rules that are wider than the list.
+  - Look at the admin interfaces of the infrastructure for default credentials.
+  example: nmap -Pn -sV --script vuln -p- 192.0.2.10; nuclei -u https://example.com -severity medium,high,critical; nikto -h https://example.com
+  expected: Only needed ports are open. Components are patched. Network rules follow the change-controlled port list.
+  severity: Medium
+  test_type:
+  - Manual
+  - Automated
+  - Config Review
+  refs:
+    wstg:
+    - WSTG-CONF-01
+    owasp_top10:
+    - A02:2025
+    cwe:
+    - CWE-1188
+    capec:
+    - CAPEC-176
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/01-Network_Infrastructure_Configuration.md
+  - sources/repos/Top10/2025/docs/en/A02_2025-Security_Misconfiguration.md
+- id: WEB-CONF-002
+  sheet: WEB
+  category: CONF
+  title: Remove default, sample and debug functionality from production
+  objective: Find sample applications, debug modes, debug endpoints and test code that remain in the production deployment.
+  steps:
+  - Request known sample paths such as phpinfo.php, /swagger-ui, /actuator/env and framework welcome pages.
+  - Trigger an application error and look for stack traces, local variables or an interactive debugger.
+  - Look for DEBUG, FLASK_DEBUG and similar settings in the effective runtime configuration.
+  - Check GraphQL introspection and source maps in production builds.
+  - Review container images for sample files, build-time secrets and debug environment variables.
+  - Compare installed modules and features with the list of required functions.
+  example: curl -si https://example.com/actuator/env; curl -si https://example.com/phpinfo.php; nuclei -u https://example.com -tags exposure,debug,misconfig
+  expected: No sample, test or debug functionality is reachable. Debug mode is off in all components. Only required functionality is deployed.
+  severity: High
+  test_type:
+  - Manual
+  - Automated
+  - Config Review
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-CONF-02
+    asvs:
+    - V13.4.2
+    - V15.2.3
+    owasp_top10:
+    - A02:2025
+    cwe:
+    - CWE-489
+    - CWE-215
+    - CWE-11
+    capec:
+    - CAPEC-176
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/02-Application_Platform_Configuration.md
+  - sources/repos/Top10/2025/docs/en/A02_2025-Security_Misconfiguration.md
+- id: WEB-CONF-003
+  sheet: WEB
+  category: CONF
+  title: Make sure documentation and monitoring endpoints are not exposed
+  objective: Find API documentation, health and metrics endpoints that are open to users who do not need them.
+  steps:
+  - Request /swagger.json, /openapi.json, /api-docs, /graphql, /metrics, /health and /actuator without credentials.
+  - Request the same paths with a low-privilege account.
+  - Look in robots.txt and JavaScript files for more documentation paths.
+  - Read the content of each reachable endpoint for internal host names and secrets.
+  - Compare the result with the list of intended public endpoints.
+  example: ffuf -u https://example.com/FUZZ -w api-docs-wordlist.txt -mc 200,401,403; curl -si https://example.com/openapi.json
+  expected: Documentation and monitoring endpoints need authentication and are limited to the intended network, or they do not exist.
+  severity: Medium
+  test_type:
+  - Manual
+  - Automated
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-APIT-01
+    - WSTG-CONF-05
+    asvs:
+    - V13.4.5
+    owasp_top10:
+    - A02:2025
+    cwe:
+    - CWE-200
+    capec:
+    - CAPEC-54
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/01-API_Reconnaissance.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/05-Enumerate_Infrastructure_and_Application_Admin_Interfaces.md
+  - sources/repos/Top10/2025/docs/en/A02_2025-Security_Misconfiguration.md
+- id: WEB-CONF-004
+  sheet: WEB
+  category: CONF
+  title: Find old, backup and unreferenced files and unsafe file extension handling
+  objective: Find backup copies, include files, archives and dumps that the web server serves in readable form.
+  steps:
+  - 'Request common suffixes on known files: .bak, .old, .orig, .save, .swp, .inc, .zip and the tilde suffix.'
+  - Request archives and dumps such as backup.zip, db.sql, .env and terraform.tfstate on the web root.
+  - Check how the server handles unknown and sensitive extensions in each directory.
+  - Try Windows 8.3 short names where the host runs Windows.
+  - Check cloud storage that holds static files for forgotten artifacts.
+  - Look at the server configuration for the allowed file extensions.
+  example: ffuf -u https://example.com/FUZZ -w raft-medium-files.txt -e .bak,.old,.zip,.sql,.inc,.env,~ -mc 200; nuclei -u https://example.com -tags backup,config
+  expected: The web tier serves only files with approved extensions. No backup, dump or include file is reachable.
+  severity: High
+  test_type:
+  - Manual
+  - Automated
+  - Config Review
+  level: ASVS L3
+  refs:
+    wstg:
+    - WSTG-CONF-03
+    - WSTG-CONF-04
+    asvs:
+    - V13.4.7
+    owasp_top10:
+    - A02:2025
+    cwe:
+    - CWE-538
+    - CWE-540
+    - CWE-541
+    capec:
+    - CAPEC-150
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/03-File_Extensions_Handling_for_Sensitive_Information.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/04-Review_Old_Backup_and_Unreferenced_Files_for_Sensitive_Information.md
+  - sources/repos/Top10/2025/docs/en/A02_2025-Security_Misconfiguration.md
+- id: WEB-CONF-005
+  sheet: WEB
+  category: CONF
+  title: Make sure source control metadata is not deployed or reachable
+  objective: Find .git, .svn and similar folders that expose source code and history.
+  steps:
+  - Request /.git/HEAD, /.git/config, /.svn/entries and /.hg/ on the web root and on each subpath.
+  - If a response is valid, dump the repository with a safe tool and look for secrets in the history.
+  - Check the deployed file tree and the container image for these folders.
+  - Check that the application process cannot read these folders.
+  example: curl -si https://example.com/.git/HEAD; git-dumper https://example.com/.git ./dump && trufflehog git file://./dump
+  expected: Source control folders do not exist in the deployment, or the server and the application cannot read them.
+  severity: High
+  test_type:
+  - Manual
+  - Automated
+  level: ASVS L1
+  refs:
+    asvs:
+    - V13.4.1
+    owasp_top10:
+    - A02:2025
+    cwe:
+    - CWE-538
+    capec:
+    - CAPEC-150
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A02_2025-Security_Misconfiguration.md
+- id: WEB-CONF-006
+  sheet: WEB
+  category: CONF
+  title: Make sure directory listing is disabled
+  objective: Find directories where the server shows a file index to users.
+  steps:
+  - Request each directory path found during the crawl with and without a trailing slash.
+  - Request upload, static, backup and log directories.
+  - Look for index pages such as Index of or Directory listing for.
+  - Review the server configuration for the autoindex or Options Indexes setting.
+  example: curl -s https://example.com/static/ | grep -iE 'index of|directory listing'; nikto -h https://example.com -Tuning 2
+  expected: The server returns 403 or 404 for directories without an index file. No file list is shown.
+  severity: Medium
+  test_type:
+  - Manual
+  - Automated
+  - Config Review
+  level: ASVS L2
+  refs:
+    asvs:
+    - V13.4.3
+    owasp_top10:
+    - A02:2025
+    cwe:
+    - CWE-548
+    capec:
+    - CAPEC-127
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A02_2025-Security_Misconfiguration.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/04-Review_Old_Backup_and_Unreferenced_Files_for_Sensitive_Information.md
+- id: WEB-CONF-007
+  sheet: WEB
+  category: CONF
+  title: Find admin interfaces and check them for weak exposure and default credentials
+  objective: Find infrastructure and application admin consoles that are reachable by the wrong users or use default credentials.
+  steps:
+  - Enumerate admin paths for the framework with a wordlist, and on alternative ports.
+  - Look at source comments and documentation for admin links.
+  - Check consoles such as Actuator, Kubernetes Dashboard, Jenkins, Portainer and database UIs.
+  - Try the documented default credentials of each product, within the rules of engagement.
+  - Make sure each console is not reachable from the public internet and uses TLS.
+  - Make sure setup wizards cannot run again.
+  example: ffuf -u https://example.com/FUZZ -w admin-panels.txt -mc 200,301,302,401,403; nmap -p 8080,8443,9000,10250,2379 192.0.2.10
+  expected: Admin interfaces are not public, need strong authentication and TLS, and have no default credentials.
+  severity: High
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    wstg:
+    - WSTG-CONF-05
+    owasp_top10:
+    - A02:2025
+    cwe:
+    - CWE-1188
+    - CWE-668
+    capec:
+    - CAPEC-1
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/05-Enumerate_Infrastructure_and_Application_Admin_Interfaces.md
+  - sources/repos/Top10/2025/docs/en/A02_2025-Security_Misconfiguration.md
+- id: WEB-CONF-008
+  sheet: WEB
+  category: CONF
+  title: Make sure only needed HTTP methods work and method override is blocked
+  objective: Find enabled methods such as PUT, DELETE, CONNECT and WebDAV, and method override that bypass access control.
+  steps:
+  - Send OPTIONS and read the Allow header.
+  - Send each method from the list, and an unknown method, to each key path.
+  - Send PUT to upload a test file and DELETE on a test file in a safe location.
+  - Try X-HTTP-Method-Override and the _method parameter on a protected action.
+  - Repeat the checks through the CDN or proxy and directly on the origin.
+  - Send the request with a mixed-case method name.
+  example: curl -si -X OPTIONS https://example.com/; curl -si -X FOO https://example.com/; nmap -p443 --script http-methods --script-args http-methods.url-path=/ example.com
+  expected: Only the methods that the application supports are accepted. Other methods get 405 or 501 and unused methods are blocked.
+  severity: Medium
+  test_type:
+  - Manual
+  - Automated
+  - Config Review
+  level: ASVS L3
+  refs:
+    wstg:
+    - WSTG-CONF-06
+    - WSTG-INJT-03
+    asvs:
+    - V4.1.4
+    owasp_top10:
+    - A02:2025
+    cwe:
+    - CWE-650
+    - CWE-749
+    capec:
+    - CAPEC-1
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/06-HTTP_Methods.md
+  - sources/repos/Top10/2025/docs/en/A02_2025-Security_Misconfiguration.md
+- id: WEB-CONF-009
+  sheet: WEB
+  category: CONF
+  title: Make sure the HTTP TRACE method is not supported
+  objective: Find TRACE or TRACK support that echoes requests and leaks headers.
+  steps:
+  - Send a TRACE request with a custom header to the host.
+  - Send a TRACK request to the host.
+  - Repeat on every HTTP service and port found.
+  example: 'curl -si -X TRACE -H ''X-Test: 1'' https://example.com/; nmap -p443 --script http-trace example.com'
+  expected: The server rejects TRACE and TRACK with 405 or 501 and does not echo the request.
+  severity: Low
+  test_type:
+  - Manual
+  - Automated
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-CONF-06
+    asvs:
+    - V13.4.4
+    cwe:
+    - CWE-200
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/06-HTTP_Methods.md
+- id: WEB-CONF-010
+  sheet: WEB
+  category: CONF
+  title: Review file and directory permissions on host, container and cloud storage
+  objective: Find files, secrets and volumes that have wider permissions than needed.
+  steps:
+  - List permissions of web root, config, key, log, upload and temp directories with namei and ls -l.
+  - Look for world-writable files and files owned by root that the web user can change.
+  - Inspect the container image for root user and wide file modes.
+  - Review Kubernetes securityContext, Secret defaultMode and hostPath mounts.
+  - Review bucket ACLs and IAM bindings for public grants.
+  example: namei -l /var/www/app/config; find /var/www -perm -o+w -type f; docker inspect --format '{{.Config.User}}' app:latest
+  expected: Files and secrets have least-privilege permissions. The web process cannot write to code or configuration.
+  severity: Medium
+  test_type:
+  - Config Review
+  refs:
+    wstg:
+    - WSTG-CONF-09
+    owasp_top10:
+    - A02:2025
+    cwe:
+    - CWE-732
+    - CWE-276
+    - CWE-250
+    capec:
+    - CAPEC-122
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/09-File_Permissions.md
+  - sources/repos/Top10/2025/docs/en/A02_2025-Security_Misconfiguration.md
+- id: WEB-CONF-011
+  sheet: WEB
+  category: CONF
+  title: Find subdomain takeover through dangling DNS records
+  objective: Find DNS records that point to external services that no longer exist and that an attacker can claim.
+  steps:
+  - Enumerate subdomains with subfinder and keep names with CNAME, NS or MX records.
+  - Run subzy and the Nuclei takeover templates on the list.
+  - Resolve each hit with dig and compare the page with the can-i-take-over-xyz fingerprint.
+  - Check expired domains used in CNAME records.
+  - Do not claim the resource. Report the finding.
+  example: subfinder -d example.com -silent | subzy run --targets /dev/stdin; nuclei -l subs.txt -t http/takeovers/; dig CNAME dev.example.com
+  expected: No DNS record points to an unclaimed or expired resource.
+  severity: High
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    wstg:
+    - WSTG-CONF-10
+    owasp_top10:
+    - A02:2025
+    cwe:
+    - CWE-668
+    capec:
+    - CAPEC-148
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/10-Subdomain_Takeover.md
+  - sources/repos/Top10/2025/docs/en/A02_2025-Security_Misconfiguration.md
+- id: WEB-CONF-012
+  sheet: WEB
+  category: CONF
+  title: Check cloud storage for public access, weak signed URLs and old versions
+  objective: Find buckets and containers that allow public listing, write access, long-lived signed URLs or exposed old object versions.
+  steps:
+  - Find bucket URLs in page source and responses.
+  - Request the bucket root unauthenticated and look for a file list.
+  - Try an unauthenticated write to the bucket.
+  - Review ACL and policy for AllUsers and AuthenticatedUsers grants.
+  - Check signed URL expiry, scope and tampering of path and query.
+  - Check versioning for objects that were deleted but still readable.
+  example: curl -si https://BUCKET.s3.amazonaws.com/; aws s3api get-bucket-acl --bucket BUCKET; S3Scanner scan -b BUCKET
+  expected: Buckets are private except for intended public assets. Signed URLs are short-lived and scoped. Deleted data is not readable.
+  severity: High
+  test_type:
+  - Manual
+  - Automated
+  - Config Review
+  refs:
+    wstg:
+    - WSTG-CONF-11
+    owasp_top10:
+    - A02:2025
+    cheatsheet:
+    - Secure_Cloud_Architecture_Cheat_Sheet
+    cwe:
+    - CWE-732
+    - CWE-668
+    capec:
+    - CAPEC-150
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/11-Cloud_Storage.md
+  - sources/repos/Top10/2025/docs/en/A02_2025-Security_Misconfiguration.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Cloud_Architecture_Cheat_Sheet.md
+- id: WEB-CONF-013
+  sheet: WEB
+  category: CONF
+  title: Test path confusion between proxy, cache, WAF and application
+  objective: Find path variants that bypass access control or cache rules because components read the path in different ways.
+  steps:
+  - Take a protected path and request it with a trailing slash, other case and double slash.
+  - Request it with dot segments and encoded separators such as %2f.
+  - Add a static extension such as /none.js to a dynamic path and look at the cache headers.
+  - Compare status code and body for each variant against the original.
+  - Review the route rules in the application for loose regular expressions.
+  example: for p in /user/dashboard/ /User/Dashboard //user/dashboard /user%2Fdashboard /user/dashboard/none.js; do curl -s -o /dev/null -w "$p %{http_code}\n" https://example.com$p; done
+  expected: All path variants give the same access-control result. Dynamic pages are not cached by extension.
+  severity: Medium
+  test_type:
+  - Manual
+  - Code Review
+  refs:
+    wstg:
+    - WSTG-CONF-13
+    owasp_top10:
+    - A02:2025
+    cwe:
+    - CWE-444
+    - CWE-22
+    capec:
+    - CAPEC-153
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/13-Path_Confusion.md
+  - sources/repos/Top10/2025/docs/en/A02_2025-Security_Misconfiguration.md
+  see:
+  - WEB-CACHE-002
+- id: WEB-CONF-014
+  sheet: WEB
+  category: CONF
+  title: Check that security controls do not depend on client-controlled feature flags
+  objective: Find feature flags and kill switches that let a user turn off a security control or that fail open.
+  steps:
+  - Find feature flags in JavaScript bundles, API responses and cookies.
+  - Change the flag values in the client and send the request again.
+  - Call the hidden function with a user that has no right, and look for server-side authorization.
+  - Block the flag service and look at how the application behaves.
+  - Read flag configuration for internal names and user segments.
+  - List old flags that are no longer toggled.
+  example: grep -rEi 'featureflag|flags\.|launchdarkly|unleash' ./static/*.js; curl -s https://example.com/api/flags
+  expected: The server enforces authorization without regard to flag state. A failed flag service gives the safe default.
+  severity: Medium
+  test_type:
+  - Manual
+  - Code Review
+  refs:
+    wstg:
+    - WSTG-CONF-15
+    owasp_top10:
+    - A02:2025
+    cwe:
+    - CWE-15
+    - CWE-636
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/15-Feature_Flag_Security_Bypass.md
+  - sources/repos/Top10/2025/docs/en/A02_2025-Security_Misconfiguration.md
+- id: WEB-CONF-015
+  sheet: WEB
+  category: CONF
+  title: Make sure clients cannot override proxy headers or spoof the client IP
+  objective: Find headers such as X-Forwarded-For, X-Real-IP and X-User-ID that a user can set and that the application trusts.
+  steps:
+  - List the headers that the proxy or load balancer sets for the application.
+  - Send the same headers with other values directly from the client.
+  - Send X-Forwarded-For with a spoofed address and look at the logs and the rate limit.
+  - Add the header name to the Connection header and look for stripped headers.
+  - Look at the proxy configuration for headers that it overwrites or removes.
+  example: 'curl -si -H ''X-Forwarded-For: 127.0.0.1'' -H ''X-Real-IP: 127.0.0.1'' -H ''X-User-ID: 1'' https://example.com/admin; curl -si -H ''Connection: close, X-Auth-User'' https://example.com/'
+  expected: The proxy overwrites or removes these headers from clients. The application uses the real client IP for logs and rate limits.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-CONF-14
+    asvs:
+    - V4.1.3
+    - V15.3.4
+    cwe:
+    - CWE-348
+    - CWE-290
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/14-Other_HTTP_Security_Header_Misconfigurations.md
+- id: WEB-CONF-016
+  sheet: WEB
+  category: CONF
+  title: Review the cross-domain policy files of legacy rich clients
+  objective: Find legacy crossdomain.xml and clientaccesspolicy.xml files that allow untrusted domains.
+  steps:
+  - Request /crossdomain.xml and /clientaccesspolicy.xml.
+  - Look for wildcard domain entries.
+  - Remove the files if no legacy client needs them.
+  example: curl -si https://example.com/crossdomain.xml; curl -si https://example.com/clientaccesspolicy.xml
+  expected: Policy files do not exist, or they list only trusted domains.
+  severity: Low
+  test_type:
+  - Manual
+  refs:
+    wstg:
+    - WSTG-CONF-08
+    owasp_top10:
+    - A02:2025
+    cwe:
+    - CWE-942
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/08-RIA_Cross_Domain_Policy.md
+  - sources/repos/Top10/2025/docs/en/A02_2025-Security_Misconfiguration.md
+  notes: The WSTG page for this ID says the content was removed. This test is a minimal check for legacy files, with the source A02 CWE-942 mapping.

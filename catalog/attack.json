@@ -1,0 +1,4683 @@
+{
+ "source": "MITRE ATT&CK",
+ "version": "enterprise:20.1; mobile:20.1; ics:20.1",
+ "url": "https://github.com/mitre-attack/attack-stix-data",
+ "retrieved": "2026-11-12",
+ "items": [
+  {
+   "id": "T1055.011",
+   "title": "Extra Window Memory Injection",
+   "chapter": "enterprise: stealth,privilege-escalation"
+  },
+  {
+   "id": "T1053.005",
+   "title": "Scheduled Task",
+   "chapter": "enterprise: execution,persistence,privilege-escalation"
+  },
+  {
+   "id": "T1205.002",
+   "title": "Socket Filters",
+   "chapter": "enterprise: stealth,persistence,command-and-control"
+  },
+  {
+   "id": "T1560.001",
+   "title": "Archive via Utility",
+   "chapter": "enterprise: collection"
+  },
+  {
+   "id": "T1021.005",
+   "title": "VNC",
+   "chapter": "enterprise: lateral-movement"
+  },
+  {
+   "id": "T1047",
+   "title": "Windows Management Instrumentation",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1687",
+   "title": "Exploitation for Defense Impairment",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1113",
+   "title": "Screen Capture",
+   "chapter": "enterprise: collection"
+  },
+  {
+   "id": "T1027.011",
+   "title": "Fileless Storage",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1037",
+   "title": "Boot or Logon Initialization Scripts",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1557",
+   "title": "Adversary-in-the-Middle",
+   "chapter": "enterprise: credential-access,collection"
+  },
+  {
+   "id": "T1033",
+   "title": "System Owner/User Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1583",
+   "title": "Acquire Infrastructure",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1218.011",
+   "title": "Rundll32",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1613",
+   "title": "Container and Resource Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1583.007",
+   "title": "Serverless",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1132.001",
+   "title": "Standard Encoding",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1027.009",
+   "title": "Embedded Payloads",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1556.003",
+   "title": "Pluggable Authentication Modules",
+   "chapter": "enterprise: defense-impairment,persistence,credential-access"
+  },
+  {
+   "id": "T1578.004",
+   "title": "Revert Cloud Instance",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1592",
+   "title": "Gather Victim Host Information",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1596.003",
+   "title": "Digital Certificates",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1056.001",
+   "title": "Keylogging",
+   "chapter": "enterprise: collection,credential-access"
+  },
+  {
+   "id": "T1564.012",
+   "title": "File/Path Exclusions",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1222.002",
+   "title": "Linux and Mac Permissions",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1110.001",
+   "title": "Password Guessing",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1216.001",
+   "title": "PubPrn",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1597.002",
+   "title": "Purchase Technical Data",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1003",
+   "title": "OS Credential Dumping",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1129",
+   "title": "Shared Modules",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1602",
+   "title": "Data from Configuration Repository",
+   "chapter": "enterprise: collection"
+  },
+  {
+   "id": "T1561.002",
+   "title": "Disk Structure Wipe",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1498.001",
+   "title": "Direct Network Flood",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1574.007",
+   "title": "Path Interception by PATH Environment Variable",
+   "chapter": "enterprise: stealth,execution"
+  },
+  {
+   "id": "T1213.002",
+   "title": "Sharepoint",
+   "chapter": "enterprise: collection"
+  },
+  {
+   "id": "T1006",
+   "title": "Direct Volume Access",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1588.007",
+   "title": "Artificial Intelligence",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1666",
+   "title": "Modify Cloud Resource Hierarchy",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1564.008",
+   "title": "Email Hiding Rules",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1491.002",
+   "title": "External Defacement",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1027.013",
+   "title": "Encrypted/Encoded File",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1590.005",
+   "title": "IP Addresses",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1499.001",
+   "title": "OS Exhaustion Flood",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1014",
+   "title": "Rootkit",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1546.013",
+   "title": "PowerShell Profile",
+   "chapter": "enterprise: privilege-escalation,persistence"
+  },
+  {
+   "id": "T1059.007",
+   "title": "JavaScript",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1685.003",
+   "title": "Modify or Spoof Tool UI",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1590.002",
+   "title": "DNS",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1485.001",
+   "title": "Lifecycle-Triggered Deletion",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1123",
+   "title": "Audio Capture",
+   "chapter": "enterprise: collection"
+  },
+  {
+   "id": "T1543",
+   "title": "Create or Modify System Process",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1133",
+   "title": "External Remote Services",
+   "chapter": "enterprise: persistence,initial-access"
+  },
+  {
+   "id": "T1546.006",
+   "title": "LC_LOAD_DYLIB Addition",
+   "chapter": "enterprise: privilege-escalation,persistence"
+  },
+  {
+   "id": "T1539",
+   "title": "Steal Web Session Cookie",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1053.007",
+   "title": "Container Orchestration Job",
+   "chapter": "enterprise: execution,persistence,privilege-escalation"
+  },
+  {
+   "id": "T1568.002",
+   "title": "Domain Generation Algorithms",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1036.007",
+   "title": "Double File Extension",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1548.002",
+   "title": "Bypass User Account Control",
+   "chapter": "enterprise: privilege-escalation"
+  },
+  {
+   "id": "T1496.003",
+   "title": "SMS Pumping",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1016.001",
+   "title": "Internet Connection Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1548.003",
+   "title": "Sudo and Sudo Caching",
+   "chapter": "enterprise: privilege-escalation"
+  },
+  {
+   "id": "T1685.001",
+   "title": "Disable or Modify Windows Event Log",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1682",
+   "title": "Query Public AI Services",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1560.003",
+   "title": "Archive via Custom Method",
+   "chapter": "enterprise: collection"
+  },
+  {
+   "id": "T1578",
+   "title": "Modify Cloud Compute Infrastructure",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1584.008",
+   "title": "Network Devices",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1583.008",
+   "title": "Malvertising",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1069",
+   "title": "Permission Groups Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1114",
+   "title": "Email Collection",
+   "chapter": "enterprise: collection"
+  },
+  {
+   "id": "T1003.002",
+   "title": "Security Account Manager",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1596.002",
+   "title": "WHOIS",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1542.001",
+   "title": "System Firmware",
+   "chapter": "enterprise: stealth,persistence"
+  },
+  {
+   "id": "T1594",
+   "title": "Search Victim-Owned Websites",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1069.003",
+   "title": "Cloud Groups",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1574.011",
+   "title": "Services Registry Permissions Weakness",
+   "chapter": "enterprise: stealth,execution"
+  },
+  {
+   "id": "T1596.001",
+   "title": "DNS/Passive DNS",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1499.003",
+   "title": "Application Exhaustion Flood",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1195.001",
+   "title": "Compromise Software Dependencies and Development Tools",
+   "chapter": "enterprise: initial-access"
+  },
+  {
+   "id": "T1588.004",
+   "title": "Digital Certificates",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1583.002",
+   "title": "DNS Server",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1561",
+   "title": "Disk Wipe",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1071.004",
+   "title": "DNS",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1552.005",
+   "title": "Cloud Instance Metadata API",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1555.002",
+   "title": "Securityd Memory",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1615",
+   "title": "Group Policy Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1542.003",
+   "title": "Bootkit",
+   "chapter": "enterprise: stealth,persistence"
+  },
+  {
+   "id": "T1025",
+   "title": "Data from Removable Media",
+   "chapter": "enterprise: collection"
+  },
+  {
+   "id": "T1218.013",
+   "title": "Mavinject",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1074.001",
+   "title": "Local Data Staging",
+   "chapter": "enterprise: collection"
+  },
+  {
+   "id": "T1036.005",
+   "title": "Match Legitimate Resource Name or Location",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1587.003",
+   "title": "Digital Certificates",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1565.001",
+   "title": "Stored Data Manipulation",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1110.002",
+   "title": "Password Cracking",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1114.001",
+   "title": "Local Email Collection",
+   "chapter": "enterprise: collection"
+  },
+  {
+   "id": "T1555.001",
+   "title": "Keychain",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1547",
+   "title": "Boot or Logon Autostart Execution",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1003.004",
+   "title": "LSA Secrets",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1600",
+   "title": "Weaken Encryption",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1606.002",
+   "title": "SAML Tokens",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1036.008",
+   "title": "Masquerade File Type",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1489",
+   "title": "Service Stop",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1587.001",
+   "title": "Malware",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1652",
+   "title": "Device Driver Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1087.002",
+   "title": "Domain Account",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1547.014",
+   "title": "Active Setup",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1564",
+   "title": "Hide Artifacts",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1559.002",
+   "title": "Dynamic Data Exchange",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1204.002",
+   "title": "Malicious File",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1591.003",
+   "title": "Identify Business Tempo",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1685.004",
+   "title": "Disable or Modify Linux Audit System Log",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1071.005",
+   "title": "Publish/Subscribe Protocols",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1592.001",
+   "title": "Hardware",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1080",
+   "title": "Taint Shared Content",
+   "chapter": "enterprise: lateral-movement"
+  },
+  {
+   "id": "T1484.002",
+   "title": "Trust Modification",
+   "chapter": "enterprise: defense-impairment,privilege-escalation"
+  },
+  {
+   "id": "T1213.006",
+   "title": "Databases",
+   "chapter": "enterprise: collection"
+  },
+  {
+   "id": "T1573.001",
+   "title": "Symmetric Cryptography",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1087.001",
+   "title": "Local Account",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1586.001",
+   "title": "Social Media Accounts",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1176.001",
+   "title": "Browser Extensions",
+   "chapter": "enterprise: persistence"
+  },
+  {
+   "id": "T1542.005",
+   "title": "TFTP Boot",
+   "chapter": "enterprise: stealth,persistence"
+  },
+  {
+   "id": "T1686.003",
+   "title": "Windows Host Firewall",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1543.003",
+   "title": "Windows Service",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1568.001",
+   "title": "Fast Flux DNS",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1497.001",
+   "title": "System Checks",
+   "chapter": "enterprise: stealth,discovery"
+  },
+  {
+   "id": "T1053.003",
+   "title": "Cron",
+   "chapter": "enterprise: execution,persistence,privilege-escalation"
+  },
+  {
+   "id": "T1069.002",
+   "title": "Domain Groups",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1588.006",
+   "title": "Vulnerabilities",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1566.002",
+   "title": "Spearphishing Link",
+   "chapter": "enterprise: initial-access"
+  },
+  {
+   "id": "T1499.004",
+   "title": "Application or System Exploitation",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1137",
+   "title": "Office Application Startup",
+   "chapter": "enterprise: persistence"
+  },
+  {
+   "id": "T1218.004",
+   "title": "InstallUtil",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1598.003",
+   "title": "Spearphishing Link",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1021.004",
+   "title": "SSH",
+   "chapter": "enterprise: lateral-movement"
+  },
+  {
+   "id": "T1098.003",
+   "title": "Additional Cloud Roles",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1547.012",
+   "title": "Print Processors",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1566.001",
+   "title": "Spearphishing Attachment",
+   "chapter": "enterprise: initial-access"
+  },
+  {
+   "id": "T1027.008",
+   "title": "Stripped Payloads",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1559.001",
+   "title": "Component Object Model",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1574.001",
+   "title": "DLL",
+   "chapter": "enterprise: stealth,execution"
+  },
+  {
+   "id": "T1119",
+   "title": "Automated Collection",
+   "chapter": "enterprise: collection"
+  },
+  {
+   "id": "T1689",
+   "title": "Downgrade Attack",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1115",
+   "title": "Clipboard Data",
+   "chapter": "enterprise: collection"
+  },
+  {
+   "id": "T1003.007",
+   "title": "Proc Filesystem",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1583.005",
+   "title": "Botnet",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1555.005",
+   "title": "Password Managers",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1553.001",
+   "title": "Gatekeeper Bypass",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1675",
+   "title": "ESXi Administration Command",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1608.004",
+   "title": "Drive-by Target",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1007",
+   "title": "System Service Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1040",
+   "title": "Network Sniffing",
+   "chapter": "enterprise: credential-access,discovery"
+  },
+  {
+   "id": "T1553.002",
+   "title": "Code Signing",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1530",
+   "title": "Data from Cloud Storage",
+   "chapter": "enterprise: collection"
+  },
+  {
+   "id": "T1565.003",
+   "title": "Runtime Data Manipulation",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1552.002",
+   "title": "Credentials in Registry",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1135",
+   "title": "Network Share Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1120",
+   "title": "Peripheral Device Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1036.009",
+   "title": "Break Process Trees",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1590.004",
+   "title": "Network Topology",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1587.002",
+   "title": "Code Signing Certificates",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1222.001",
+   "title": "Windows Permissions",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1137.006",
+   "title": "Add-ins",
+   "chapter": "enterprise: persistence"
+  },
+  {
+   "id": "T1685.002",
+   "title": "Disable or Modify Cloud Log",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1505.002",
+   "title": "Transport Agent",
+   "chapter": "enterprise: persistence"
+  },
+  {
+   "id": "T1082",
+   "title": "System Information Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1071",
+   "title": "Application Layer Protocol",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1574.014",
+   "title": "AppDomainManager",
+   "chapter": "enterprise: stealth,execution"
+  },
+  {
+   "id": "T1074.002",
+   "title": "Remote Data Staging",
+   "chapter": "enterprise: collection"
+  },
+  {
+   "id": "T1098.006",
+   "title": "Additional Container Cluster Roles",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1053",
+   "title": "Scheduled Task/Job",
+   "chapter": "enterprise: execution,persistence,privilege-escalation"
+  },
+  {
+   "id": "T1218.007",
+   "title": "Msiexec",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1590.003",
+   "title": "Network Trust Dependencies",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1498.002",
+   "title": "Reflection Amplification",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1556.002",
+   "title": "Password Filter DLL",
+   "chapter": "enterprise: defense-impairment,persistence,credential-access"
+  },
+  {
+   "id": "T1505.005",
+   "title": "Terminal Services DLL",
+   "chapter": "enterprise: persistence"
+  },
+  {
+   "id": "T1059.002",
+   "title": "AppleScript",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1176",
+   "title": "Software Extensions",
+   "chapter": "enterprise: persistence"
+  },
+  {
+   "id": "T1499.002",
+   "title": "Service Exhaustion Flood",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1195.003",
+   "title": "Compromise Hardware Supply Chain",
+   "chapter": "enterprise: initial-access"
+  },
+  {
+   "id": "T1106",
+   "title": "Native API",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1558.005",
+   "title": "Ccache Files",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1070.007",
+   "title": "Clear Network Connection History and Configurations",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1558.004",
+   "title": "AS-REP Roasting",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1584.003",
+   "title": "Virtual Private Server",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1059.010",
+   "title": "AutoHotKey & AutoIT",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1600.001",
+   "title": "Reduce Key Space",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1070.003",
+   "title": "Clear Command History",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1202",
+   "title": "Indirect Command Execution",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1091",
+   "title": "Replication Through Removable Media",
+   "chapter": "enterprise: lateral-movement,initial-access"
+  },
+  {
+   "id": "T1005",
+   "title": "Data from Local System",
+   "chapter": "enterprise: collection"
+  },
+  {
+   "id": "T1140",
+   "title": "Deobfuscate/Decode Files or Information",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1137.005",
+   "title": "Outlook Rules",
+   "chapter": "enterprise: persistence"
+  },
+  {
+   "id": "T1586.003",
+   "title": "Cloud Accounts",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1586.002",
+   "title": "Email Accounts",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1098.007",
+   "title": "Additional Local or Domain Groups",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1608.001",
+   "title": "Upload Malware",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1195",
+   "title": "Supply Chain Compromise",
+   "chapter": "enterprise: initial-access"
+  },
+  {
+   "id": "T1190",
+   "title": "Exploit Public-Facing Application",
+   "chapter": "enterprise: initial-access"
+  },
+  {
+   "id": "T1558",
+   "title": "Steal or Forge Kerberos Tickets",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1555",
+   "title": "Credentials from Password Stores",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1567",
+   "title": "Exfiltration Over Web Service",
+   "chapter": "enterprise: exfiltration"
+  },
+  {
+   "id": "T1219",
+   "title": "Remote Access Tools",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1583.001",
+   "title": "Domains",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1560.002",
+   "title": "Archive via Library",
+   "chapter": "enterprise: collection"
+  },
+  {
+   "id": "T1055.003",
+   "title": "Thread Execution Hijacking",
+   "chapter": "enterprise: stealth,privilege-escalation"
+  },
+  {
+   "id": "T1684",
+   "title": "Social Engineering",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1036",
+   "title": "Masquerading",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1546.011",
+   "title": "Application Shimming",
+   "chapter": "enterprise: privilege-escalation,persistence"
+  },
+  {
+   "id": "T1552",
+   "title": "Unsecured Credentials",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1547.010",
+   "title": "Port Monitors",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1070.008",
+   "title": "Clear Mailbox Data",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1037.002",
+   "title": "Login Hook",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1659",
+   "title": "Content Injection",
+   "chapter": "enterprise: initial-access,command-and-control"
+  },
+  {
+   "id": "T1055",
+   "title": "Process Injection",
+   "chapter": "enterprise: stealth,privilege-escalation"
+  },
+  {
+   "id": "T1567.004",
+   "title": "Exfiltration Over Webhook",
+   "chapter": "enterprise: exfiltration"
+  },
+  {
+   "id": "T1205",
+   "title": "Traffic Signaling",
+   "chapter": "enterprise: stealth,persistence,command-and-control"
+  },
+  {
+   "id": "T1021.008",
+   "title": "Direct Cloud VM Connections",
+   "chapter": "enterprise: lateral-movement"
+  },
+  {
+   "id": "T1218",
+   "title": "System Binary Proxy Execution",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1070.006",
+   "title": "Timestomp",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1557.004",
+   "title": "Evil Twin",
+   "chapter": "enterprise: credential-access,collection"
+  },
+  {
+   "id": "T1620",
+   "title": "Reflective Code Loading",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1016.002",
+   "title": "Wi-Fi Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1480.002",
+   "title": "Mutual Exclusion",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1564.011",
+   "title": "Ignore Process Interrupts",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1611",
+   "title": "Escape to Host",
+   "chapter": "enterprise: privilege-escalation"
+  },
+  {
+   "id": "T1518.002",
+   "title": "Backup Software Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1547.009",
+   "title": "Shortcut Modification",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1010",
+   "title": "Application Window Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1569.003",
+   "title": "Systemctl",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1087.003",
+   "title": "Email Account",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1497.003",
+   "title": "Time Based Checks",
+   "chapter": "enterprise: stealth,discovery"
+  },
+  {
+   "id": "T1218.003",
+   "title": "CMSTP",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1563.001",
+   "title": "SSH Hijacking",
+   "chapter": "enterprise: lateral-movement"
+  },
+  {
+   "id": "T1029",
+   "title": "Scheduled Transfer",
+   "chapter": "enterprise: exfiltration"
+  },
+  {
+   "id": "T1021.002",
+   "title": "SMB/Windows Admin Shares",
+   "chapter": "enterprise: lateral-movement"
+  },
+  {
+   "id": "T1525",
+   "title": "Implant Internal Image",
+   "chapter": "enterprise: persistence"
+  },
+  {
+   "id": "T1572",
+   "title": "Protocol Tunneling",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1218.002",
+   "title": "Control Panel",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1599.001",
+   "title": "Network Address Translation Traversal",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1608.002",
+   "title": "Upload Tool",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1547.005",
+   "title": "Security Support Provider",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1036.011",
+   "title": "Overwrite Process Arguments",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1550",
+   "title": "Use Alternate Authentication Material",
+   "chapter": "enterprise: lateral-movement"
+  },
+  {
+   "id": "T1597.001",
+   "title": "Threat Intel Vendors",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1011",
+   "title": "Exfiltration Over Other Network Medium",
+   "chapter": "enterprise: exfiltration"
+  },
+  {
+   "id": "T1602.002",
+   "title": "Network Device Configuration Dump",
+   "chapter": "enterprise: collection"
+  },
+  {
+   "id": "T1589",
+   "title": "Gather Victim Identity Information",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1560",
+   "title": "Archive Collected Data",
+   "chapter": "enterprise: collection"
+  },
+  {
+   "id": "T1553.003",
+   "title": "SIP and Trust Provider Hijacking",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1185",
+   "title": "Browser Session Hijacking",
+   "chapter": "enterprise: collection"
+  },
+  {
+   "id": "T1021",
+   "title": "Remote Services",
+   "chapter": "enterprise: lateral-movement"
+  },
+  {
+   "id": "T1071.003",
+   "title": "Mail Protocols",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1556.007",
+   "title": "Hybrid Identity",
+   "chapter": "enterprise: defense-impairment,persistence,credential-access"
+  },
+  {
+   "id": "T1595.002",
+   "title": "Vulnerability Scanning",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1059.009",
+   "title": "Cloud API",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1596",
+   "title": "Search Open Technical Databases",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1218.015",
+   "title": "Electron Applications",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1207",
+   "title": "Rogue Domain Controller",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1553.006",
+   "title": "Code Signing Policy Modification",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1610",
+   "title": "Deploy Container",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1112",
+   "title": "Modify Registry",
+   "chapter": "enterprise: defense-impairment,persistence"
+  },
+  {
+   "id": "T1543.004",
+   "title": "Launch Daemon",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1580",
+   "title": "Cloud Infrastructure Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1555.003",
+   "title": "Credentials from Web Browsers",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1574.008",
+   "title": "Path Interception by Search Order Hijacking",
+   "chapter": "enterprise: stealth,execution"
+  },
+  {
+   "id": "T1491",
+   "title": "Defacement",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1535",
+   "title": "Unused/Unsupported Cloud Regions",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1557.003",
+   "title": "DHCP Spoofing",
+   "chapter": "enterprise: credential-access,collection"
+  },
+  {
+   "id": "T1563",
+   "title": "Remote Service Session Hijacking",
+   "chapter": "enterprise: lateral-movement"
+  },
+  {
+   "id": "T1564.013",
+   "title": "Bind Mounts",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1027.001",
+   "title": "Binary Padding",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1505.003",
+   "title": "Web Shell",
+   "chapter": "enterprise: persistence"
+  },
+  {
+   "id": "T1484.001",
+   "title": "Group Policy Modification",
+   "chapter": "enterprise: defense-impairment,privilege-escalation"
+  },
+  {
+   "id": "T1685.006",
+   "title": "Clear Linux or Mac System Logs",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1217",
+   "title": "Browser Information Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1552.004",
+   "title": "Private Keys",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1583.004",
+   "title": "Server",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1021.006",
+   "title": "Windows Remote Management",
+   "chapter": "enterprise: lateral-movement"
+  },
+  {
+   "id": "T1011.001",
+   "title": "Exfiltration Over Bluetooth",
+   "chapter": "enterprise: exfiltration"
+  },
+  {
+   "id": "T1078.001",
+   "title": "Default Accounts",
+   "chapter": "enterprise: stealth,persistence,privilege-escalation,initial-access"
+  },
+  {
+   "id": "T1547.003",
+   "title": "Time Providers",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1546.005",
+   "title": "Trap",
+   "chapter": "enterprise: privilege-escalation,persistence"
+  },
+  {
+   "id": "T1574.006",
+   "title": "Dynamic Linker Hijacking",
+   "chapter": "enterprise: stealth,execution"
+  },
+  {
+   "id": "T1136.001",
+   "title": "Local Account",
+   "chapter": "enterprise: persistence"
+  },
+  {
+   "id": "T1681",
+   "title": "Search Threat Vendor Data",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1674",
+   "title": "Input Injection",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1092",
+   "title": "Communication Through Removable Media",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1585.002",
+   "title": "Email Accounts",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1557.001",
+   "title": "Name Resolution Poisoning and SMB Relay",
+   "chapter": "enterprise: credential-access,collection"
+  },
+  {
+   "id": "T1222",
+   "title": "File and Directory Permissions Modification",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1003.001",
+   "title": "LSASS Memory",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1176.002",
+   "title": "IDE Extensions",
+   "chapter": "enterprise: persistence"
+  },
+  {
+   "id": "T1595",
+   "title": "Active Scanning",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1027.016",
+   "title": "Junk Code Insertion",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1548",
+   "title": "Abuse Elevation Control Mechanism",
+   "chapter": "enterprise: privilege-escalation"
+  },
+  {
+   "id": "T1134.002",
+   "title": "Create Process with Token",
+   "chapter": "enterprise: stealth,privilege-escalation"
+  },
+  {
+   "id": "T1548.001",
+   "title": "Setuid and Setgid",
+   "chapter": "enterprise: privilege-escalation"
+  },
+  {
+   "id": "T1547.004",
+   "title": "Winlogon Helper DLL",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1021.003",
+   "title": "Distributed Component Object Model",
+   "chapter": "enterprise: lateral-movement"
+  },
+  {
+   "id": "T1110.003",
+   "title": "Password Spraying",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1090.002",
+   "title": "External Proxy",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1056.003",
+   "title": "Web Portal Capture",
+   "chapter": "enterprise: collection,credential-access"
+  },
+  {
+   "id": "T1589.002",
+   "title": "Email Addresses",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1598.004",
+   "title": "Spearphishing Voice",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1683.001",
+   "title": "Written Content",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1003.005",
+   "title": "Cached Domain Credentials",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1098.004",
+   "title": "SSH Authorized Keys",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1673",
+   "title": "Virtual Machine Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1590.006",
+   "title": "Network Security Appliances",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1546.012",
+   "title": "Image File Execution Options Injection",
+   "chapter": "enterprise: privilege-escalation,persistence"
+  },
+  {
+   "id": "T1218.008",
+   "title": "Odbcconf",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1593.002",
+   "title": "Search Engines",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1591.002",
+   "title": "Business Relationships",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1548.005",
+   "title": "Temporary Elevated Cloud Access",
+   "chapter": "enterprise: privilege-escalation"
+  },
+  {
+   "id": "T1125",
+   "title": "Video Capture",
+   "chapter": "enterprise: collection"
+  },
+  {
+   "id": "T1055.013",
+   "title": "Process Doppelgänging",
+   "chapter": "enterprise: stealth,privilege-escalation"
+  },
+  {
+   "id": "T1016",
+   "title": "System Network Configuration Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1578.003",
+   "title": "Delete Cloud Instance",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1593.003",
+   "title": "Code Repositories",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1574.005",
+   "title": "Executable Installer File Permissions Weakness",
+   "chapter": "enterprise: stealth,execution"
+  },
+  {
+   "id": "T1546.008",
+   "title": "Accessibility Features",
+   "chapter": "enterprise: privilege-escalation,persistence"
+  },
+  {
+   "id": "T1496.002",
+   "title": "Bandwidth Hijacking",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1087",
+   "title": "Account Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1090",
+   "title": "Proxy",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1059",
+   "title": "Command and Scripting Interpreter",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1204.005",
+   "title": "Malicious Library",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1685.005",
+   "title": "Clear Windows Event Logs",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1136.002",
+   "title": "Domain Account",
+   "chapter": "enterprise: persistence"
+  },
+  {
+   "id": "T1564.014",
+   "title": "Extended Attributes",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1589.003",
+   "title": "Employee Names",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1677",
+   "title": "Poisoned Pipeline Execution",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1482",
+   "title": "Domain Trust Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1558.001",
+   "title": "Golden Ticket",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1020",
+   "title": "Automated Exfiltration",
+   "chapter": "enterprise: exfiltration"
+  },
+  {
+   "id": "T1592.004",
+   "title": "Client Configurations",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1219.001",
+   "title": "IDE Tunneling",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1036.002",
+   "title": "Right-to-Left Override",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1588.001",
+   "title": "Malware",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1027.017",
+   "title": "SVG Smuggling",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1542.002",
+   "title": "Component Firmware",
+   "chapter": "enterprise: stealth,persistence"
+  },
+  {
+   "id": "T1070",
+   "title": "Indicator Removal",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1048.001",
+   "title": "Exfiltration Over Symmetric Encrypted Non-C2 Protocol",
+   "chapter": "enterprise: exfiltration"
+  },
+  {
+   "id": "T1137.001",
+   "title": "Office Template Macros",
+   "chapter": "enterprise: persistence"
+  },
+  {
+   "id": "T1583.003",
+   "title": "Virtual Private Server",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1213.001",
+   "title": "Confluence",
+   "chapter": "enterprise: collection"
+  },
+  {
+   "id": "T1550.003",
+   "title": "Pass the Ticket",
+   "chapter": "enterprise: lateral-movement"
+  },
+  {
+   "id": "T1609",
+   "title": "Container Administration Command",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1083",
+   "title": "File and Directory Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1568",
+   "title": "Dynamic Resolution",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1036.004",
+   "title": "Masquerade Task or Service",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1055.004",
+   "title": "Asynchronous Procedure Call",
+   "chapter": "enterprise: stealth,privilege-escalation"
+  },
+  {
+   "id": "T1020.001",
+   "title": "Traffic Duplication",
+   "chapter": "enterprise: exfiltration"
+  },
+  {
+   "id": "T1647",
+   "title": "Plist File Modification",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1127.003",
+   "title": "JamPlus",
+   "chapter": "enterprise: stealth,execution"
+  },
+  {
+   "id": "T1546.009",
+   "title": "AppCert DLLs",
+   "chapter": "enterprise: privilege-escalation,persistence"
+  },
+  {
+   "id": "T1114.003",
+   "title": "Email Forwarding Rule",
+   "chapter": "enterprise: collection"
+  },
+  {
+   "id": "T1074",
+   "title": "Data Staged",
+   "chapter": "enterprise: collection"
+  },
+  {
+   "id": "T1649",
+   "title": "Steal or Forge Authentication Certificates",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1098.005",
+   "title": "Device Registration",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1049",
+   "title": "System Network Connections Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1584",
+   "title": "Compromise Infrastructure",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1553.005",
+   "title": "Mark-of-the-Web Bypass",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1600.002",
+   "title": "Disable Crypto Hardware",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1542",
+   "title": "Pre-OS Boot",
+   "chapter": "enterprise: stealth,persistence"
+  },
+  {
+   "id": "T1612",
+   "title": "Build Image on Host",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1055.002",
+   "title": "Portable Executable Injection",
+   "chapter": "enterprise: stealth,privilege-escalation"
+  },
+  {
+   "id": "T1218.012",
+   "title": "Verclsid",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1586",
+   "title": "Compromise Accounts",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1569.001",
+   "title": "Launchctl",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1584.005",
+   "title": "Botnet",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1059.008",
+   "title": "Network Device CLI",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1552.003",
+   "title": "Shell History",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1559.003",
+   "title": "XPC Services",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1497",
+   "title": "Virtualization/Sandbox Evasion",
+   "chapter": "enterprise: stealth,discovery"
+  },
+  {
+   "id": "T1102",
+   "title": "Web Service",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1552.001",
+   "title": "Credentials In Files",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1568.003",
+   "title": "DNS Calculation",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1218.005",
+   "title": "Mshta",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1547.015",
+   "title": "Login Items",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1608",
+   "title": "Stage Capabilities",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1608.005",
+   "title": "Link Target",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1104",
+   "title": "Multi-Stage Channels",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1657",
+   "title": "Financial Theft",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1480",
+   "title": "Execution Guardrails",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1619",
+   "title": "Cloud Storage Object Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1606.001",
+   "title": "Web Cookies",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1654",
+   "title": "Log Enumeration",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1134.001",
+   "title": "Token Impersonation/Theft",
+   "chapter": "enterprise: stealth,privilege-escalation"
+  },
+  {
+   "id": "T1567.001",
+   "title": "Exfiltration to Code Repository",
+   "chapter": "enterprise: exfiltration"
+  },
+  {
+   "id": "T1021.007",
+   "title": "Cloud Services",
+   "chapter": "enterprise: lateral-movement"
+  },
+  {
+   "id": "T1205.001",
+   "title": "Port Knocking",
+   "chapter": "enterprise: stealth,persistence,command-and-control"
+  },
+  {
+   "id": "T1027.012",
+   "title": "LNK Icon Smuggling",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1583.006",
+   "title": "Web Services",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1528",
+   "title": "Steal Application Access Token",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1598.002",
+   "title": "Spearphishing Attachment",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1098.001",
+   "title": "Additional Cloud Credentials",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1204",
+   "title": "User Execution",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1491.001",
+   "title": "Internal Defacement",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1564.002",
+   "title": "Hidden Users",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1134.003",
+   "title": "Make and Impersonate Token",
+   "chapter": "enterprise: stealth,privilege-escalation"
+  },
+  {
+   "id": "T1552.006",
+   "title": "Group Policy Preferences",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1048.002",
+   "title": "Exfiltration Over Asymmetric Encrypted Non-C2 Protocol",
+   "chapter": "enterprise: exfiltration"
+  },
+  {
+   "id": "T1087.004",
+   "title": "Cloud Account",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1683.002",
+   "title": "Audio-Visual Content",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1057",
+   "title": "Process Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1556.008",
+   "title": "Network Provider DLL",
+   "chapter": "enterprise: defense-impairment,persistence,credential-access"
+  },
+  {
+   "id": "T1546.003",
+   "title": "Windows Management Instrumentation Event Subscription",
+   "chapter": "enterprise: privilege-escalation,persistence"
+  },
+  {
+   "id": "T1596.004",
+   "title": "CDNs",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1497.002",
+   "title": "User Activity Based Checks",
+   "chapter": "enterprise: stealth,discovery"
+  },
+  {
+   "id": "T1496.004",
+   "title": "Cloud Service Hijacking",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1585.003",
+   "title": "Cloud Accounts",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1072",
+   "title": "Software Deployment Tools",
+   "chapter": "enterprise: execution,lateral-movement"
+  },
+  {
+   "id": "T1041",
+   "title": "Exfiltration Over C2 Channel",
+   "chapter": "enterprise: exfiltration"
+  },
+  {
+   "id": "T1134.004",
+   "title": "Parent PID Spoofing",
+   "chapter": "enterprise: stealth,privilege-escalation"
+  },
+  {
+   "id": "T1591",
+   "title": "Gather Victim Org Information",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1606",
+   "title": "Forge Web Credentials",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1621",
+   "title": "Multi-Factor Authentication Request Generation",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1554",
+   "title": "Compromise Host Software Binary",
+   "chapter": "enterprise: persistence"
+  },
+  {
+   "id": "T1552.008",
+   "title": "Chat Messages",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1059.001",
+   "title": "PowerShell",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1546.001",
+   "title": "Change Default File Association",
+   "chapter": "enterprise: privilege-escalation,persistence"
+  },
+  {
+   "id": "T1055.014",
+   "title": "VDSO Hijacking",
+   "chapter": "enterprise: stealth,privilege-escalation"
+  },
+  {
+   "id": "T1071.002",
+   "title": "File Transfer Protocols",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1679",
+   "title": "Selective Exclusion",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1212",
+   "title": "Exploitation for Credential Access",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1546.014",
+   "title": "Emond",
+   "chapter": "enterprise: privilege-escalation,persistence"
+  },
+  {
+   "id": "T1102.003",
+   "title": "One-Way Communication",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1590",
+   "title": "Gather Victim Network Information",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1210",
+   "title": "Exploitation of Remote Services",
+   "chapter": "enterprise: lateral-movement"
+  },
+  {
+   "id": "T1534",
+   "title": "Internal Spearphishing",
+   "chapter": "enterprise: lateral-movement"
+  },
+  {
+   "id": "T1574.010",
+   "title": "Services File Permissions Weakness",
+   "chapter": "enterprise: stealth,execution"
+  },
+  {
+   "id": "T1547.001",
+   "title": "Registry Run Keys / Startup Folder",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1199",
+   "title": "Trusted Relationship",
+   "chapter": "enterprise: initial-access"
+  },
+  {
+   "id": "T1136.003",
+   "title": "Cloud Account",
+   "chapter": "enterprise: persistence"
+  },
+  {
+   "id": "T1069.001",
+   "title": "Local Groups",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1593",
+   "title": "Search Open Websites/Domains",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1098",
+   "title": "Account Manipulation",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1048",
+   "title": "Exfiltration Over Alternative Protocol",
+   "chapter": "enterprise: exfiltration"
+  },
+  {
+   "id": "T1547.006",
+   "title": "Kernel Modules and Extensions",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1678",
+   "title": "Delay Execution",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1056.002",
+   "title": "GUI Input Capture",
+   "chapter": "enterprise: collection,credential-access"
+  },
+  {
+   "id": "T1686.002",
+   "title": "Network Device Firewall",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1588.002",
+   "title": "Tool",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1052.001",
+   "title": "Exfiltration over USB",
+   "chapter": "enterprise: exfiltration"
+  },
+  {
+   "id": "T1574.013",
+   "title": "KernelCallbackTable",
+   "chapter": "enterprise: stealth,execution"
+  },
+  {
+   "id": "T1597",
+   "title": "Search Closed Sources",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1053.006",
+   "title": "Systemd Timers",
+   "chapter": "enterprise: execution,persistence,privilege-escalation"
+  },
+  {
+   "id": "T1566",
+   "title": "Phishing",
+   "chapter": "enterprise: initial-access"
+  },
+  {
+   "id": "T1542.004",
+   "title": "ROMMONkit",
+   "chapter": "enterprise: stealth,persistence"
+  },
+  {
+   "id": "T1218.001",
+   "title": "Compiled HTML File",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1496.001",
+   "title": "Compute Hijacking",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1070.005",
+   "title": "Network Share Connection Removal",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1090.003",
+   "title": "Multi-hop Proxy",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1110",
+   "title": "Brute Force",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1059.004",
+   "title": "Unix Shell",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1137.003",
+   "title": "Outlook Forms",
+   "chapter": "enterprise: persistence"
+  },
+  {
+   "id": "T1219.003",
+   "title": "Remote Access Hardware",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1565",
+   "title": "Data Manipulation",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1559",
+   "title": "Inter-Process Communication",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1001",
+   "title": "Data Obfuscation",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1039",
+   "title": "Data from Network Shared Drive",
+   "chapter": "enterprise: collection"
+  },
+  {
+   "id": "T1584.006",
+   "title": "Web Services",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1601",
+   "title": "Modify System Image",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1574",
+   "title": "Hijack Execution Flow",
+   "chapter": "enterprise: stealth,execution"
+  },
+  {
+   "id": "T1036.012",
+   "title": "Browser Fingerprint",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1059.011",
+   "title": "Lua",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1027.005",
+   "title": "Indicator Removal from Tools",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1204.003",
+   "title": "Malicious Image",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1543.005",
+   "title": "Container Service",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1078",
+   "title": "Valid Accounts",
+   "chapter": "enterprise: stealth,persistence,privilege-escalation,initial-access"
+  },
+  {
+   "id": "T1571",
+   "title": "Non-Standard Port",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1585.001",
+   "title": "Social Media Accounts",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1055.012",
+   "title": "Process Hollowing",
+   "chapter": "enterprise: stealth,privilege-escalation"
+  },
+  {
+   "id": "T1068",
+   "title": "Exploitation for Privilege Escalation",
+   "chapter": "enterprise: privilege-escalation"
+  },
+  {
+   "id": "T1564.009",
+   "title": "Resource Forking",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1531",
+   "title": "Account Access Removal",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1110.004",
+   "title": "Credential Stuffing",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1027",
+   "title": "Obfuscated Files or Information",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1556.006",
+   "title": "Multi-Factor Authentication",
+   "chapter": "enterprise: defense-impairment,persistence,credential-access"
+  },
+  {
+   "id": "T1114.002",
+   "title": "Remote Email Collection",
+   "chapter": "enterprise: collection"
+  },
+  {
+   "id": "T1505.004",
+   "title": "IIS Components",
+   "chapter": "enterprise: persistence"
+  },
+  {
+   "id": "T1036.001",
+   "title": "Invalid Code Signature",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1683",
+   "title": "Generate Content",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1564.006",
+   "title": "Run Virtual Instance",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1027.014",
+   "title": "Polymorphic Code",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1201",
+   "title": "Password Policy Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1546",
+   "title": "Event Triggered Execution",
+   "chapter": "enterprise: privilege-escalation,persistence"
+  },
+  {
+   "id": "T1546.004",
+   "title": "Unix Shell Configuration Modification",
+   "chapter": "enterprise: privilege-escalation,persistence"
+  },
+  {
+   "id": "T1187",
+   "title": "Forced Authentication",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1134.005",
+   "title": "SID-History Injection",
+   "chapter": "enterprise: stealth,privilege-escalation"
+  },
+  {
+   "id": "T1599",
+   "title": "Network Boundary Bridging",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1486",
+   "title": "Data Encrypted for Impact",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1690",
+   "title": "Prevent Command History Logging",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1553",
+   "title": "Subvert Trust Controls",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1548.004",
+   "title": "Elevated Execution with Prompt",
+   "chapter": "enterprise: privilege-escalation"
+  },
+  {
+   "id": "T1592.003",
+   "title": "Firmware",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1573",
+   "title": "Encrypted Channel",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1547.002",
+   "title": "Authentication Package",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1218.010",
+   "title": "Regsvr32",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1567.003",
+   "title": "Exfiltration to Text Storage Sites",
+   "chapter": "enterprise: exfiltration"
+  },
+  {
+   "id": "T1592.002",
+   "title": "Software",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1056",
+   "title": "Input Capture",
+   "chapter": "enterprise: collection,credential-access"
+  },
+  {
+   "id": "T1566.004",
+   "title": "Spearphishing Voice",
+   "chapter": "enterprise: initial-access"
+  },
+  {
+   "id": "T1587.004",
+   "title": "Exploits",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1685",
+   "title": "Disable or Modify Tools",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1593.001",
+   "title": "Social Media",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1213.004",
+   "title": "Customer Relationship Management Software",
+   "chapter": "enterprise: collection"
+  },
+  {
+   "id": "T1546.015",
+   "title": "Component Object Model Hijacking",
+   "chapter": "enterprise: privilege-escalation,persistence"
+  },
+  {
+   "id": "T1589.001",
+   "title": "Credentials",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1195.002",
+   "title": "Compromise Software Supply Chain",
+   "chapter": "enterprise: initial-access"
+  },
+  {
+   "id": "T1036.003",
+   "title": "Rename Legitimate Utilities",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1102.002",
+   "title": "Bidirectional Communication",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1203",
+   "title": "Exploitation for Client Execution",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1595.003",
+   "title": "Wordlist Scanning",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1667",
+   "title": "Email Bombing",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1137.004",
+   "title": "Outlook Home Page",
+   "chapter": "enterprise: persistence"
+  },
+  {
+   "id": "T1573.002",
+   "title": "Asymmetric Cryptography",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1567.002",
+   "title": "Exfiltration to Cloud Storage",
+   "chapter": "enterprise: exfiltration"
+  },
+  {
+   "id": "T1570",
+   "title": "Lateral Tool Transfer",
+   "chapter": "enterprise: lateral-movement"
+  },
+  {
+   "id": "T1574.009",
+   "title": "Path Interception by Unquoted Path",
+   "chapter": "enterprise: stealth,execution"
+  },
+  {
+   "id": "T1608.003",
+   "title": "Install Digital Certificate",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1037.005",
+   "title": "Startup Items",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1614.001",
+   "title": "System Language Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1095",
+   "title": "Non-Application Layer Protocol",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1059.013",
+   "title": "Container CLI/API",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1027.003",
+   "title": "Steganography",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1584.002",
+   "title": "DNS Server",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1671",
+   "title": "Cloud Application Integration",
+   "chapter": "enterprise: persistence"
+  },
+  {
+   "id": "T1001.003",
+   "title": "Protocol or Service Impersonation",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1012",
+   "title": "Query Registry",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1030",
+   "title": "Data Transfer Size Limits",
+   "chapter": "enterprise: exfiltration"
+  },
+  {
+   "id": "T1550.004",
+   "title": "Web Session Cookie",
+   "chapter": "enterprise: lateral-movement"
+  },
+  {
+   "id": "T1078.002",
+   "title": "Domain Accounts",
+   "chapter": "enterprise: stealth,persistence,privilege-escalation,initial-access"
+  },
+  {
+   "id": "T1218.009",
+   "title": "Regsvcs/Regasm",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1546.018",
+   "title": "Python Startup Hooks",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1553.004",
+   "title": "Install Root Certificate",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1037.003",
+   "title": "Network Logon Script",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1499",
+   "title": "Endpoint Denial of Service",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1027.004",
+   "title": "Compile After Delivery",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1688",
+   "title": "Safe Mode Boot",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1614",
+   "title": "System Location Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1564.007",
+   "title": "VBA Stomping",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1197",
+   "title": "BITS Jobs",
+   "chapter": "enterprise: stealth,persistence,execution"
+  },
+  {
+   "id": "T1127.001",
+   "title": "MSBuild",
+   "chapter": "enterprise: stealth,execution"
+  },
+  {
+   "id": "T1578.005",
+   "title": "Modify Cloud Compute Configurations",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1090.004",
+   "title": "Domain Fronting",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1557.002",
+   "title": "ARP Cache Poisoning",
+   "chapter": "enterprise: credential-access,collection"
+  },
+  {
+   "id": "T1518.001",
+   "title": "Security Software Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1564.003",
+   "title": "Hidden Window",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1127.002",
+   "title": "ClickOnce",
+   "chapter": "enterprise: stealth,execution"
+  },
+  {
+   "id": "T1059.006",
+   "title": "Python",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1070.010",
+   "title": "Relocate Malware",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1591.004",
+   "title": "Identify Roles",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1132",
+   "title": "Data Encoding",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1546.010",
+   "title": "AppInit DLLs",
+   "chapter": "enterprise: privilege-escalation,persistence"
+  },
+  {
+   "id": "T1598",
+   "title": "Phishing for Information",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1496",
+   "title": "Resource Hijacking",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1684.001",
+   "title": "Impersonation",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1585",
+   "title": "Establish Accounts",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1588",
+   "title": "Obtain Capabilities",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1546.002",
+   "title": "Screensaver",
+   "chapter": "enterprise: privilege-escalation,persistence"
+  },
+  {
+   "id": "T1556.009",
+   "title": "Conditional Access Policies",
+   "chapter": "enterprise: defense-impairment,persistence,credential-access"
+  },
+  {
+   "id": "T1578.002",
+   "title": "Create Cloud Instance",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1555.006",
+   "title": "Cloud Secrets Management Stores",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1213.003",
+   "title": "Code Repositories",
+   "chapter": "enterprise: collection"
+  },
+  {
+   "id": "T1565.002",
+   "title": "Transmitted Data Manipulation",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1003.008",
+   "title": "/etc/passwd and /etc/shadow",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1543.001",
+   "title": "Launch Agent",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1569",
+   "title": "System Services",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1059.003",
+   "title": "Windows Command Shell",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1055.009",
+   "title": "Proc Memory",
+   "chapter": "enterprise: stealth,privilege-escalation"
+  },
+  {
+   "id": "T1650",
+   "title": "Acquire Access",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1601.001",
+   "title": "Patch System Image",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1558.002",
+   "title": "Silver Ticket",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1213",
+   "title": "Data from Information Repositories",
+   "chapter": "enterprise: collection"
+  },
+  {
+   "id": "T1070.009",
+   "title": "Clear Persistence",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1059.012",
+   "title": "Hypervisor CLI",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1555.004",
+   "title": "Windows Credential Manager",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1036.010",
+   "title": "Masquerade Account Name",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1200",
+   "title": "Hardware Additions",
+   "chapter": "enterprise: initial-access"
+  },
+  {
+   "id": "T1219.002",
+   "title": "Remote Desktop Software",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1505",
+   "title": "Server Software Component",
+   "chapter": "enterprise: persistence"
+  },
+  {
+   "id": "T1485",
+   "title": "Data Destruction",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1132.002",
+   "title": "Non-Standard Encoding",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1556.001",
+   "title": "Domain Controller Authentication",
+   "chapter": "enterprise: defense-impairment,persistence,credential-access"
+  },
+  {
+   "id": "T1537",
+   "title": "Transfer Data to Cloud Account",
+   "chapter": "enterprise: exfiltration"
+  },
+  {
+   "id": "T1027.006",
+   "title": "HTML Smuggling",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1556.005",
+   "title": "Reversible Encryption",
+   "chapter": "enterprise: defense-impairment,persistence,credential-access"
+  },
+  {
+   "id": "T1027.010",
+   "title": "Command Obfuscation",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1070.004",
+   "title": "File Deletion",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1189",
+   "title": "Drive-by Compromise",
+   "chapter": "enterprise: initial-access"
+  },
+  {
+   "id": "T1498",
+   "title": "Network Denial of Service",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1651",
+   "title": "Cloud Administration Command",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1546.016",
+   "title": "Installer Packages",
+   "chapter": "enterprise: privilege-escalation,persistence"
+  },
+  {
+   "id": "T1595.001",
+   "title": "Scanning IP Blocks",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1221",
+   "title": "Template Injection",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1037.004",
+   "title": "RC Scripts",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1134",
+   "title": "Access Token Manipulation",
+   "chapter": "enterprise: stealth,privilege-escalation"
+  },
+  {
+   "id": "T1111",
+   "title": "Multi-Factor Authentication Interception",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1027.002",
+   "title": "Software Packing",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1584.007",
+   "title": "Serverless",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1071.001",
+   "title": "Web Protocols",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1059.005",
+   "title": "Visual Basic",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1564.005",
+   "title": "Hidden File System",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1543.002",
+   "title": "Systemd Service",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1668",
+   "title": "Exclusive Control",
+   "chapter": "enterprise: persistence"
+  },
+  {
+   "id": "T1563.002",
+   "title": "RDP Hijacking",
+   "chapter": "enterprise: lateral-movement"
+  },
+  {
+   "id": "T1136",
+   "title": "Create Account",
+   "chapter": "enterprise: persistence"
+  },
+  {
+   "id": "T1547.013",
+   "title": "XDG Autostart Entries",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1584.004",
+   "title": "Server",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1526",
+   "title": "Cloud Service Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1204.004",
+   "title": "Malicious Copy and Paste",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1018",
+   "title": "Remote System Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1046",
+   "title": "Network Service Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1590.001",
+   "title": "Domain Properties",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1518",
+   "title": "Software Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1538",
+   "title": "Cloud Service Dashboard",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1055.005",
+   "title": "Thread Local Storage",
+   "chapter": "enterprise: stealth,privilege-escalation"
+  },
+  {
+   "id": "T1622",
+   "title": "Debugger Evasion",
+   "chapter": "enterprise: stealth,discovery"
+  },
+  {
+   "id": "T1036.006",
+   "title": "Space after Filename",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1547.007",
+   "title": "Re-opened Applications",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1608.006",
+   "title": "SEO Poisoning",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1550.002",
+   "title": "Pass the Hash",
+   "chapter": "enterprise: lateral-movement"
+  },
+  {
+   "id": "T1052",
+   "title": "Exfiltration Over Physical Medium",
+   "chapter": "enterprise: exfiltration"
+  },
+  {
+   "id": "T1105",
+   "title": "Ingress Tool Transfer",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1216.002",
+   "title": "SyncAppvPublishingServer",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1098.002",
+   "title": "Additional Email Delegate Permissions",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1588.003",
+   "title": "Code Signing Certificates",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1648",
+   "title": "Serverless Execution",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1548.006",
+   "title": "TCC Manipulation",
+   "chapter": "enterprise: privilege-escalation"
+  },
+  {
+   "id": "T1027.018",
+   "title": "Invisible Unicode",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1055.008",
+   "title": "Ptrace System Calls",
+   "chapter": "enterprise: stealth,privilege-escalation"
+  },
+  {
+   "id": "T1653",
+   "title": "Power Settings",
+   "chapter": "enterprise: persistence"
+  },
+  {
+   "id": "T1027.007",
+   "title": "Dynamic API Resolution",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1021.001",
+   "title": "Remote Desktop Protocol",
+   "chapter": "enterprise: lateral-movement"
+  },
+  {
+   "id": "T1037.001",
+   "title": "Logon Script (Windows)",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1055.015",
+   "title": "ListPlanting",
+   "chapter": "enterprise: stealth,privilege-escalation"
+  },
+  {
+   "id": "T1665",
+   "title": "Hide Infrastructure",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1484",
+   "title": "Domain or Tenant Policy Modification",
+   "chapter": "enterprise: defense-impairment,privilege-escalation"
+  },
+  {
+   "id": "T1220",
+   "title": "XSL Script Processing",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1596.005",
+   "title": "Scan Databases",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1564.001",
+   "title": "Hidden Files and Directories",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1578.001",
+   "title": "Create Snapshot",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1591.001",
+   "title": "Determine Physical Locations",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1137.002",
+   "title": "Office Test",
+   "chapter": "enterprise: persistence"
+  },
+  {
+   "id": "T1587",
+   "title": "Develop Capabilities",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1003.003",
+   "title": "NTDS",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1686.001",
+   "title": "Cloud Firewall",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1602.001",
+   "title": "SNMP (MIB Dump)",
+   "chapter": "enterprise: collection"
+  },
+  {
+   "id": "T1686",
+   "title": "Disable or Modify System Firewall",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1001.002",
+   "title": "Steganography",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1204.001",
+   "title": "Malicious Link",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1550.001",
+   "title": "Application Access Token",
+   "chapter": "enterprise: lateral-movement"
+  },
+  {
+   "id": "T1547.008",
+   "title": "LSASS Driver",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1569.002",
+   "title": "Service Execution",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1078.004",
+   "title": "Cloud Accounts",
+   "chapter": "enterprise: stealth,persistence,privilege-escalation,initial-access"
+  },
+  {
+   "id": "T1480.001",
+   "title": "Environmental Keying",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1008",
+   "title": "Fallback Channels",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1680",
+   "title": "Local Storage Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1564.004",
+   "title": "NTFS File Attributes",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1558.003",
+   "title": "Kerberoasting",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1003.006",
+   "title": "DCSync",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1124",
+   "title": "System Time Discovery",
+   "chapter": "enterprise: discovery"
+  },
+  {
+   "id": "T1053.002",
+   "title": "At",
+   "chapter": "enterprise: execution,persistence,privilege-escalation"
+  },
+  {
+   "id": "T1055.001",
+   "title": "Dynamic-link Library Injection",
+   "chapter": "enterprise: stealth,privilege-escalation"
+  },
+  {
+   "id": "T1588.005",
+   "title": "Exploits",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1556",
+   "title": "Modify Authentication Process",
+   "chapter": "enterprise: defense-impairment,persistence,credential-access"
+  },
+  {
+   "id": "T1546.017",
+   "title": "Udev Rules",
+   "chapter": "enterprise: persistence,privilege-escalation"
+  },
+  {
+   "id": "T1056.004",
+   "title": "Credential API Hooking",
+   "chapter": "enterprise: collection,credential-access"
+  },
+  {
+   "id": "T1495",
+   "title": "Firmware Corruption",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1490",
+   "title": "Inhibit System Recovery",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1546.007",
+   "title": "Netsh Helper DLL",
+   "chapter": "enterprise: privilege-escalation,persistence"
+  },
+  {
+   "id": "T1566.003",
+   "title": "Spearphishing via Service",
+   "chapter": "enterprise: initial-access"
+  },
+  {
+   "id": "T1090.001",
+   "title": "Internal Proxy",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1216",
+   "title": "System Script Proxy Execution",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1102.001",
+   "title": "Dead Drop Resolver",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1001.001",
+   "title": "Junk Data",
+   "chapter": "enterprise: command-and-control"
+  },
+  {
+   "id": "T1598.001",
+   "title": "Spearphishing Service",
+   "chapter": "enterprise: reconnaissance"
+  },
+  {
+   "id": "T1505.006",
+   "title": "vSphere Installation Bundles",
+   "chapter": "enterprise: persistence"
+  },
+  {
+   "id": "T1552.007",
+   "title": "Container API",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1584.001",
+   "title": "Domains",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1505.001",
+   "title": "SQL Stored Procedures",
+   "chapter": "enterprise: persistence"
+  },
+  {
+   "id": "T1556.004",
+   "title": "Network Device Authentication",
+   "chapter": "enterprise: defense-impairment,persistence,credential-access"
+  },
+  {
+   "id": "T1561.001",
+   "title": "Disk Content Wipe",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1213.005",
+   "title": "Messaging Applications",
+   "chapter": "enterprise: collection"
+  },
+  {
+   "id": "T1048.003",
+   "title": "Exfiltration Over Unencrypted Non-C2 Protocol",
+   "chapter": "enterprise: exfiltration"
+  },
+  {
+   "id": "T1027.015",
+   "title": "Compression",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1574.004",
+   "title": "Dylib Hijacking",
+   "chapter": "enterprise: stealth,execution"
+  },
+  {
+   "id": "T1601.002",
+   "title": "Downgrade System Image",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1684.002",
+   "title": "Email Spoofing",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1078.003",
+   "title": "Local Accounts",
+   "chapter": "enterprise: stealth,persistence,privilege-escalation,initial-access"
+  },
+  {
+   "id": "T1669",
+   "title": "Wi-Fi Networks",
+   "chapter": "enterprise: initial-access"
+  },
+  {
+   "id": "T1211",
+   "title": "Exploitation for Stealth",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1127",
+   "title": "Trusted Developer Utilities Proxy Execution",
+   "chapter": "enterprise: stealth,execution"
+  },
+  {
+   "id": "T1529",
+   "title": "System Shutdown/Reboot",
+   "chapter": "enterprise: impact"
+  },
+  {
+   "id": "T1218.014",
+   "title": "MMC",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1564.010",
+   "title": "Process Argument Spoofing",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1574.012",
+   "title": "COR_PROFILER",
+   "chapter": "enterprise: stealth,execution"
+  },
+  {
+   "id": "T1696",
+   "title": "Anti-Automation Evasion",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1697",
+   "title": "Steal Application Specific Passwords",
+   "chapter": "enterprise: credential-access"
+  },
+  {
+   "id": "T1698",
+   "title": "Indirect Prompt Injection",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1699",
+   "title": "Direct Prompt Injection",
+   "chapter": "enterprise: execution"
+  },
+  {
+   "id": "T1608.007",
+   "title": "AI Result Poisoning",
+   "chapter": "enterprise: resource-development"
+  },
+  {
+   "id": "T1696.001",
+   "title": "Automate CAPTCHA Completion",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1696.002",
+   "title": "Avoid CAPTCHA",
+   "chapter": "enterprise: stealth"
+  },
+  {
+   "id": "T1685.007",
+   "title": "Impair Autonomous Defenses",
+   "chapter": "enterprise: defense-impairment"
+  },
+  {
+   "id": "T1700",
+   "title": "AI-Enabled Exfiltration",
+   "chapter": "enterprise: exfiltration"
+  },
+  {
+   "id": "T1603",
+   "title": "Scheduled Task/Job",
+   "chapter": "mobile: execution,persistence"
+  },
+  {
+   "id": "T1638",
+   "title": "Adversary-in-the-Middle",
+   "chapter": "mobile: collection"
+  },
+  {
+   "id": "T1626",
+   "title": "Abuse Elevation Control Mechanism",
+   "chapter": "mobile: privilege-escalation"
+  },
+  {
+   "id": "T1663",
+   "title": "Remote Access Software",
+   "chapter": "mobile: command-and-control"
+  },
+  {
+   "id": "T1630.001",
+   "title": "Uninstall Malicious Application",
+   "chapter": "mobile: defense-evasion"
+  },
+  {
+   "id": "T1630",
+   "title": "Indicator Removal on Host",
+   "chapter": "mobile: defense-evasion"
+  },
+  {
+   "id": "T1474",
+   "title": "Supply Chain Compromise",
+   "chapter": "mobile: initial-access"
+  },
+  {
+   "id": "T1430.002",
+   "title": "Impersonate SS7 Nodes",
+   "chapter": "mobile: collection,discovery"
+  },
+  {
+   "id": "T1655.001",
+   "title": "Match Legitimate Name or Location",
+   "chapter": "mobile: defense-evasion"
+  },
+  {
+   "id": "T1636",
+   "title": "Protected User Data",
+   "chapter": "mobile: collection"
+  },
+  {
+   "id": "T1521.002",
+   "title": "Asymmetric Cryptography",
+   "chapter": "mobile: command-and-control"
+  },
+  {
+   "id": "T1418",
+   "title": "Software Discovery",
+   "chapter": "mobile: discovery"
+  },
+  {
+   "id": "T1424",
+   "title": "Process Discovery",
+   "chapter": "mobile: discovery"
+  },
+  {
+   "id": "T1636.002",
+   "title": "Call Log",
+   "chapter": "mobile: collection"
+  },
+  {
+   "id": "T1418.001",
+   "title": "Security Software Discovery",
+   "chapter": "mobile: discovery"
+  },
+  {
+   "id": "T1631.001",
+   "title": "Ptrace System Calls",
+   "chapter": "mobile: defense-evasion,privilege-escalation"
+  },
+  {
+   "id": "T1629",
+   "title": "Impair Defenses",
+   "chapter": "mobile: defense-evasion"
+  },
+  {
+   "id": "T1453",
+   "title": "Abuse Accessibility Features",
+   "chapter": "mobile: collection,credential-access"
+  },
+  {
+   "id": "T1428",
+   "title": "Exploitation of Remote Services",
+   "chapter": "mobile: lateral-movement"
+  },
+  {
+   "id": "T1437.001",
+   "title": "Web Protocols",
+   "chapter": "mobile: command-and-control"
+  },
+  {
+   "id": "T1635",
+   "title": "Steal Application Access Token",
+   "chapter": "mobile: credential-access"
+  },
+  {
+   "id": "T1628.002",
+   "title": "User Evasion",
+   "chapter": "mobile: defense-evasion"
+  },
+  {
+   "id": "T1633",
+   "title": "Virtualization/Sandbox Evasion",
+   "chapter": "mobile: defense-evasion"
+  },
+  {
+   "id": "T1661",
+   "title": "Application Versioning",
+   "chapter": "mobile: initial-access,defense-evasion"
+  },
+  {
+   "id": "T1623",
+   "title": "Command and Scripting Interpreter",
+   "chapter": "mobile: execution"
+  },
+  {
+   "id": "T1629.003",
+   "title": "Disable or Modify Tools",
+   "chapter": "mobile: defense-evasion"
+  },
+  {
+   "id": "T1544",
+   "title": "Ingress Tool Transfer",
+   "chapter": "mobile: command-and-control"
+  },
+  {
+   "id": "T1637",
+   "title": "Dynamic Resolution",
+   "chapter": "mobile: command-and-control"
+  },
+  {
+   "id": "T1423",
+   "title": "Network Service Scanning",
+   "chapter": "mobile: discovery"
+  },
+  {
+   "id": "T1646",
+   "title": "Exfiltration Over C2 Channel",
+   "chapter": "mobile: exfiltration"
+  },
+  {
+   "id": "T1636.005",
+   "title": "Accounts",
+   "chapter": "mobile: collection"
+  },
+  {
+   "id": "T1404",
+   "title": "Exploitation for Privilege Escalation",
+   "chapter": "mobile: privilege-escalation"
+  },
+  {
+   "id": "T1616",
+   "title": "Call Control",
+   "chapter": "mobile: collection,impact,command-and-control"
+  },
+  {
+   "id": "T1639.001",
+   "title": "Exfiltration Over Unencrypted Non-C2 Protocol",
+   "chapter": "mobile: exfiltration"
+  },
+  {
+   "id": "T1624.001",
+   "title": "Broadcast Receivers",
+   "chapter": "mobile: persistence"
+  },
+  {
+   "id": "T1517",
+   "title": "Access Notifications",
+   "chapter": "mobile: collection,credential-access"
+  },
+  {
+   "id": "T1639",
+   "title": "Exfiltration Over Alternative Protocol",
+   "chapter": "mobile: exfiltration"
+  },
+  {
+   "id": "T1422.001",
+   "title": "Internet Connection Discovery",
+   "chapter": "mobile: discovery"
+  },
+  {
+   "id": "T1398",
+   "title": "Boot or Logon Initialization Scripts",
+   "chapter": "mobile: persistence"
+  },
+  {
+   "id": "T1627",
+   "title": "Execution Guardrails",
+   "chapter": "mobile: defense-evasion"
+  },
+  {
+   "id": "T1417.002",
+   "title": "GUI Input Capture",
+   "chapter": "mobile: credential-access,collection"
+  },
+  {
+   "id": "T1645",
+   "title": "Compromise Client Software Binary",
+   "chapter": "mobile: persistence"
+  },
+  {
+   "id": "T1406.002",
+   "title": "Software Packing",
+   "chapter": "mobile: defense-evasion"
+  },
+  {
+   "id": "T1575",
+   "title": "Native API",
+   "chapter": "mobile: defense-evasion,execution"
+  },
+  {
+   "id": "T1476",
+   "title": "Deliver Malicious Application via Other Means",
+   "chapter": "mobile: initial-access"
+  },
+  {
+   "id": "T1658",
+   "title": "Exploitation for Client Execution",
+   "chapter": "mobile: execution"
+  },
+  {
+   "id": "T1604",
+   "title": "Proxy Through Victim",
+   "chapter": "mobile: defense-evasion"
+  },
+  {
+   "id": "T1541",
+   "title": "Foreground Persistence",
+   "chapter": "mobile: defense-evasion,persistence"
+  },
+  {
+   "id": "T1458",
+   "title": "Replication Through Removable Media",
+   "chapter": "mobile: initial-access,lateral-movement"
+  },
+  {
+   "id": "T1429",
+   "title": "Audio Capture",
+   "chapter": "mobile: collection"
+  },
+  {
+   "id": "T1625",
+   "title": "Hijack Execution Flow",
+   "chapter": "mobile: persistence"
+  },
+  {
+   "id": "T1623.001",
+   "title": "Unix Shell",
+   "chapter": "mobile: execution"
+  },
+  {
+   "id": "T1437",
+   "title": "Application Layer Protocol",
+   "chapter": "mobile: command-and-control"
+  },
+  {
+   "id": "T1407",
+   "title": "Download New Code at Runtime",
+   "chapter": "mobile: defense-evasion"
+  },
+  {
+   "id": "T1664",
+   "title": "Exploitation for Initial Access",
+   "chapter": "mobile: initial-access"
+  },
+  {
+   "id": "T1633.001",
+   "title": "System Checks",
+   "chapter": "mobile: defense-evasion"
+  },
+  {
+   "id": "T1409",
+   "title": "Stored Application Data",
+   "chapter": "mobile: collection"
+  },
+  {
+   "id": "T1513",
+   "title": "Screen Capture",
+   "chapter": "mobile: collection"
+  },
+  {
+   "id": "T1641.001",
+   "title": "Transmitted Data Manipulation",
+   "chapter": "mobile: impact"
+  },
+  {
+   "id": "T1474.001",
+   "title": "Compromise Software Dependencies and Development Tools",
+   "chapter": "mobile: initial-access"
+  },
+  {
+   "id": "T1635.001",
+   "title": "URI Hijacking",
+   "chapter": "mobile: credential-access"
+  },
+  {
+   "id": "T1632",
+   "title": "Subvert Trust Controls",
+   "chapter": "mobile: defense-evasion"
+  },
+  {
+   "id": "T1634.001",
+   "title": "Keychain",
+   "chapter": "mobile: credential-access"
+  },
+  {
+   "id": "T1670",
+   "title": "Virtualization Solution",
+   "chapter": "mobile: defense-evasion"
+  },
+  {
+   "id": "T1481.002",
+   "title": "Bidirectional Communication",
+   "chapter": "mobile: command-and-control"
+  },
+  {
+   "id": "T1509",
+   "title": "Non-Standard Port",
+   "chapter": "mobile: command-and-control"
+  },
+  {
+   "id": "T1474.003",
+   "title": "Compromise Software Supply Chain",
+   "chapter": "mobile: initial-access"
+  },
+  {
+   "id": "T1481.001",
+   "title": "Dead Drop Resolver",
+   "chapter": "mobile: command-and-control"
+  },
+  {
+   "id": "T1430",
+   "title": "Location Tracking",
+   "chapter": "mobile: collection,discovery"
+  },
+  {
+   "id": "T1626.001",
+   "title": "Device Administrator Permissions",
+   "chapter": "mobile: privilege-escalation"
+  },
+  {
+   "id": "T1430.001",
+   "title": "Remote Device Management Services",
+   "chapter": "mobile: collection,discovery"
+  },
+  {
+   "id": "T1662",
+   "title": "Data Destruction",
+   "chapter": "mobile: impact"
+  },
+  {
+   "id": "T1676",
+   "title": "Linked Devices",
+   "chapter": "mobile: collection,persistence"
+  },
+  {
+   "id": "T1451",
+   "title": "SIM Card Swap",
+   "chapter": "mobile: initial-access"
+  },
+  {
+   "id": "T1417",
+   "title": "Input Capture",
+   "chapter": "mobile: collection,credential-access"
+  },
+  {
+   "id": "T1643",
+   "title": "Generate Traffic from Victim",
+   "chapter": "mobile: impact"
+  },
+  {
+   "id": "T1630.003",
+   "title": "Disguise Root/Jailbreak Indicators",
+   "chapter": "mobile: defense-evasion"
+  },
+  {
+   "id": "T1636.001",
+   "title": "Calendar Entries",
+   "chapter": "mobile: collection"
+  },
+  {
+   "id": "T1630.002",
+   "title": "File Deletion",
+   "chapter": "mobile: defense-evasion"
+  },
+  {
+   "id": "T1629.002",
+   "title": "Device Lockout",
+   "chapter": "mobile: defense-evasion"
+  },
+  {
+   "id": "T1417.001",
+   "title": "Keylogging",
+   "chapter": "mobile: collection,credential-access"
+  },
+  {
+   "id": "T1582",
+   "title": "SMS Control",
+   "chapter": "mobile: impact"
+  },
+  {
+   "id": "T1631",
+   "title": "Process Injection",
+   "chapter": "mobile: defense-evasion,privilege-escalation"
+  },
+  {
+   "id": "T1521.001",
+   "title": "Symmetric Cryptography",
+   "chapter": "mobile: command-and-control"
+  },
+  {
+   "id": "T1422.002",
+   "title": "Wi-Fi Discovery",
+   "chapter": "mobile: discovery"
+  },
+  {
+   "id": "T1474.002",
+   "title": "Compromise Hardware Supply Chain",
+   "chapter": "mobile: initial-access"
+  },
+  {
+   "id": "T1414",
+   "title": "Clipboard Data",
+   "chapter": "mobile: collection,credential-access"
+  },
+  {
+   "id": "T1641",
+   "title": "Data Manipulation",
+   "chapter": "mobile: impact"
+  },
+  {
+   "id": "T1636.004",
+   "title": "SMS Messages",
+   "chapter": "mobile: collection"
+  },
+  {
+   "id": "T1481",
+   "title": "Web Service",
+   "chapter": "mobile: command-and-control"
+  },
+  {
+   "id": "T1625.001",
+   "title": "System Runtime API Hijacking",
+   "chapter": "mobile: persistence"
+  },
+  {
+   "id": "T1634",
+   "title": "Credentials from Password Store",
+   "chapter": "mobile: credential-access"
+  },
+  {
+   "id": "T1617",
+   "title": "Hooking",
+   "chapter": "mobile: defense-evasion"
+  },
+  {
+   "id": "T1420",
+   "title": "File and Directory Discovery",
+   "chapter": "mobile: discovery"
+  },
+  {
+   "id": "T1406",
+   "title": "Obfuscated Files or Information",
+   "chapter": "mobile: defense-evasion"
+  },
+  {
+   "id": "T1516",
+   "title": "Input Injection",
+   "chapter": "mobile: defense-evasion,impact"
+  },
+  {
+   "id": "T1464",
+   "title": "Network Denial of Service",
+   "chapter": "mobile: impact"
+  },
+  {
+   "id": "T1577",
+   "title": "Compromise Application Executable",
+   "chapter": "mobile: persistence"
+  },
+  {
+   "id": "T1624",
+   "title": "Event Triggered Execution",
+   "chapter": "mobile: persistence"
+  },
+  {
+   "id": "T1422",
+   "title": "System Network Configuration Discovery",
+   "chapter": "mobile: discovery"
+  },
+  {
+   "id": "T1512",
+   "title": "Video Capture",
+   "chapter": "mobile: collection"
+  },
+  {
+   "id": "T1481.003",
+   "title": "One-Way Communication",
+   "chapter": "mobile: command-and-control"
+  },
+  {
+   "id": "T1471",
+   "title": "Data Encrypted for Impact",
+   "chapter": "mobile: impact"
+  },
+  {
+   "id": "T1629.001",
+   "title": "Prevent Application Removal",
+   "chapter": "mobile: defense-evasion"
+  },
+  {
+   "id": "T1421",
+   "title": "System Network Connections Discovery",
+   "chapter": "mobile: discovery"
+  },
+  {
+   "id": "T1660",
+   "title": "Phishing",
+   "chapter": "mobile: initial-access"
+  },
+  {
+   "id": "T1521.003",
+   "title": "SSL Pinning",
+   "chapter": "mobile: command-and-control"
+  },
+  {
+   "id": "T1461",
+   "title": "Lockscreen Bypass",
+   "chapter": "mobile: initial-access"
+  },
+  {
+   "id": "T1636.003",
+   "title": "Contact List",
+   "chapter": "mobile: collection"
+  },
+  {
+   "id": "T1533",
+   "title": "Data from Local System",
+   "chapter": "mobile: collection"
+  },
+  {
+   "id": "T1640",
+   "title": "Account Access Removal",
+   "chapter": "mobile: impact"
+  },
+  {
+   "id": "T1426",
+   "title": "System Information Discovery",
+   "chapter": "mobile: discovery"
+  },
+  {
+   "id": "T1532",
+   "title": "Archive Collected Data",
+   "chapter": "mobile: collection"
+  },
+  {
+   "id": "T1627.001",
+   "title": "Geofencing",
+   "chapter": "mobile: defense-evasion"
+  },
+  {
+   "id": "T1628.003",
+   "title": "Conceal Multimedia Files",
+   "chapter": "mobile: defense-evasion"
+  },
+  {
+   "id": "T1642",
+   "title": "Endpoint Denial of Service",
+   "chapter": "mobile: impact"
+  },
+  {
+   "id": "T1644",
+   "title": "Out of Band Data",
+   "chapter": "mobile: command-and-control"
+  },
+  {
+   "id": "T1521",
+   "title": "Encrypted Channel",
+   "chapter": "mobile: command-and-control"
+  },
+  {
+   "id": "T1628.001",
+   "title": "Suppress Application Icon",
+   "chapter": "mobile: defense-evasion"
+  },
+  {
+   "id": "T1655",
+   "title": "Masquerading",
+   "chapter": "mobile: defense-evasion"
+  },
+  {
+   "id": "T1406.001",
+   "title": "Steganography",
+   "chapter": "mobile: defense-evasion"
+  },
+  {
+   "id": "T1628",
+   "title": "Hide Artifacts",
+   "chapter": "mobile: defense-evasion"
+  },
+  {
+   "id": "T1632.001",
+   "title": "Code Signing Policy Modification",
+   "chapter": "mobile: defense-evasion"
+  },
+  {
+   "id": "T1637.001",
+   "title": "Domain Generation Algorithms",
+   "chapter": "mobile: command-and-control"
+  },
+  {
+   "id": "T1456",
+   "title": "Drive-By Compromise",
+   "chapter": "mobile: initial-access"
+  },
+  {
+   "id": "T0881",
+   "title": "Service Stop",
+   "chapter": "ics: inhibit-response-function"
+  },
+  {
+   "id": "T0836",
+   "title": "Modify Parameter",
+   "chapter": "ics: impair-process-control"
+  },
+  {
+   "id": "T0821",
+   "title": "Modify Controller Tasking",
+   "chapter": "ics: execution"
+  },
+  {
+   "id": "T0887",
+   "title": "Wireless Sniffing",
+   "chapter": "ics: discovery,collection"
+  },
+  {
+   "id": "T0829",
+   "title": "Loss of View",
+   "chapter": "ics: impact"
+  },
+  {
+   "id": "T1691.001",
+   "title": "Command Message",
+   "chapter": "ics: inhibit-response-function"
+  },
+  {
+   "id": "T0800",
+   "title": "Activate Firmware Update Mode",
+   "chapter": "ics: inhibit-response-function"
+  },
+  {
+   "id": "T0831",
+   "title": "Manipulation of Control",
+   "chapter": "ics: impact"
+  },
+  {
+   "id": "T0814",
+   "title": "Denial of Service",
+   "chapter": "ics: inhibit-response-function"
+  },
+  {
+   "id": "T0894",
+   "title": "System Binary Proxy Execution",
+   "chapter": "ics: evasion"
+  },
+  {
+   "id": "T0861",
+   "title": "Point & Tag Identification",
+   "chapter": "ics: collection"
+  },
+  {
+   "id": "T0816",
+   "title": "Device Restart/Shutdown",
+   "chapter": "ics: inhibit-response-function"
+  },
+  {
+   "id": "T0863",
+   "title": "User Execution",
+   "chapter": "ics: execution"
+  },
+  {
+   "id": "T0860",
+   "title": "Wireless Compromise",
+   "chapter": "ics: initial-access"
+  },
+  {
+   "id": "T0858",
+   "title": "Change Operating Mode",
+   "chapter": "ics: execution,evasion"
+  },
+  {
+   "id": "T0878",
+   "title": "Alarm Suppression",
+   "chapter": "ics: inhibit-response-function"
+  },
+  {
+   "id": "T0868",
+   "title": "Detect Operating Mode",
+   "chapter": "ics: collection"
+  },
+  {
+   "id": "T0837",
+   "title": "Loss of Protection",
+   "chapter": "ics: impact"
+  },
+  {
+   "id": "T0801",
+   "title": "Monitor Process State",
+   "chapter": "ics: collection"
+  },
+  {
+   "id": "T0888",
+   "title": "Remote System Information Discovery",
+   "chapter": "ics: discovery"
+  },
+  {
+   "id": "T0845",
+   "title": "Program Upload",
+   "chapter": "ics: collection"
+  },
+  {
+   "id": "T0819",
+   "title": "Exploit Public-Facing Application",
+   "chapter": "ics: initial-access"
+  },
+  {
+   "id": "T1691",
+   "title": "Block Operational Technology Message",
+   "chapter": "ics: inhibit-response-function"
+  },
+  {
+   "id": "T0811",
+   "title": "Data from Information Repositories",
+   "chapter": "ics: collection"
+  },
+  {
+   "id": "T0864",
+   "title": "Transient Cyber Asset",
+   "chapter": "ics: initial-access"
+  },
+  {
+   "id": "T0873.001",
+   "title": "Siemens Project File Format",
+   "chapter": "ics: persistence"
+  },
+  {
+   "id": "T0835",
+   "title": "Manipulate I/O Image",
+   "chapter": "ics: inhibit-response-function"
+  },
+  {
+   "id": "T0842",
+   "title": "Network Sniffing",
+   "chapter": "ics: discovery"
+  },
+  {
+   "id": "T0851",
+   "title": "Rootkit",
+   "chapter": "ics: evasion,inhibit-response-function"
+  },
+  {
+   "id": "T0802",
+   "title": "Automated Collection",
+   "chapter": "ics: collection"
+  },
+  {
+   "id": "T1694",
+   "title": "Insecure Credentials",
+   "chapter": "ics: persistence,lateral-movement"
+  },
+  {
+   "id": "T1692.001",
+   "title": "Command Message",
+   "chapter": "ics: evasion,impair-process-control"
+  },
+  {
+   "id": "T0809",
+   "title": "Data Destruction",
+   "chapter": "ics: inhibit-response-function"
+  },
+  {
+   "id": "T0832",
+   "title": "Manipulation of View",
+   "chapter": "ics: impact"
+  },
+  {
+   "id": "T1692.002",
+   "title": "Reporting Message",
+   "chapter": "ics: evasion,impair-process-control"
+  },
+  {
+   "id": "T0872",
+   "title": "Indicator Removal on Host",
+   "chapter": "ics: evasion"
+  },
+  {
+   "id": "T0877",
+   "title": "I/O Image",
+   "chapter": "ics: collection"
+  },
+  {
+   "id": "T1695.001",
+   "title": "Serial COM",
+   "chapter": "ics: inhibit-response-function"
+  },
+  {
+   "id": "T1694.001",
+   "title": "Default Credentials",
+   "chapter": "ics: persistence,lateral-movement"
+  },
+  {
+   "id": "T0815",
+   "title": "Denial of View",
+   "chapter": "ics: impact"
+  },
+  {
+   "id": "T0843.003",
+   "title": "Program Append",
+   "chapter": "ics: lateral-movement"
+  },
+  {
+   "id": "T0871",
+   "title": "Execution through API",
+   "chapter": "ics: execution"
+  },
+  {
+   "id": "T0846.001",
+   "title": "Port Scan",
+   "chapter": "ics: discovery"
+  },
+  {
+   "id": "T0862",
+   "title": "Supply Chain Compromise",
+   "chapter": "ics: initial-access"
+  },
+  {
+   "id": "T0880",
+   "title": "Loss of Safety",
+   "chapter": "ics: impact"
+  },
+  {
+   "id": "T1695.002",
+   "title": "Ethernet",
+   "chapter": "ics: inhibit-response-function"
+  },
+  {
+   "id": "T0828",
+   "title": "Loss of Productivity and Revenue",
+   "chapter": "ics: impact"
+  },
+  {
+   "id": "T0865",
+   "title": "Spearphishing Attachment",
+   "chapter": "ics: initial-access"
+  },
+  {
+   "id": "T0846.003",
+   "title": "Multicast Discovery",
+   "chapter": "ics: discovery"
+  },
+  {
+   "id": "T1693.001",
+   "title": "System Firmware",
+   "chapter": "ics: persistence,inhibit-response-function,impair-process-control"
+  },
+  {
+   "id": "T1694.002",
+   "title": "Hardcoded Credentials",
+   "chapter": "ics: persistence,lateral-movement"
+  },
+  {
+   "id": "T1695.003",
+   "title": "Wi-Fi",
+   "chapter": "ics: inhibit-response-function"
+  },
+  {
+   "id": "T1693.002",
+   "title": "Module Firmware",
+   "chapter": "ics: persistence,inhibit-response-function,impair-process-control"
+  },
+  {
+   "id": "T0843.001",
+   "title": "Download All",
+   "chapter": "ics: lateral-movement"
+  },
+  {
+   "id": "T0895",
+   "title": "Autorun Image",
+   "chapter": "ics: execution"
+  },
+  {
+   "id": "T0817",
+   "title": "Drive-by Compromise",
+   "chapter": "ics: initial-access"
+  },
+  {
+   "id": "T1691.002",
+   "title": "Reporting Message",
+   "chapter": "ics: inhibit-response-function"
+  },
+  {
+   "id": "T1693",
+   "title": "Modify Firmware",
+   "chapter": "ics: persistence,inhibit-response-function,impair-process-control"
+  },
+  {
+   "id": "T0879",
+   "title": "Damage to Property",
+   "chapter": "ics: impact"
+  },
+  {
+   "id": "T0866",
+   "title": "Exploitation of Remote Services",
+   "chapter": "ics: initial-access,lateral-movement"
+  },
+  {
+   "id": "T0822",
+   "title": "External Remote Services",
+   "chapter": "ics: initial-access"
+  },
+  {
+   "id": "T0806",
+   "title": "Brute Force I/O",
+   "chapter": "ics: impair-process-control"
+  },
+  {
+   "id": "T0830",
+   "title": "Adversary-in-the-Middle",
+   "chapter": "ics: collection"
+  },
+  {
+   "id": "T0820",
+   "title": "Exploitation for Evasion",
+   "chapter": "ics: evasion"
+  },
+  {
+   "id": "T0827",
+   "title": "Loss of Control",
+   "chapter": "ics: impact"
+  },
+  {
+   "id": "T0874",
+   "title": "Hooking",
+   "chapter": "ics: execution,privilege-escalation"
+  },
+  {
+   "id": "T0823",
+   "title": "Graphical User Interface",
+   "chapter": "ics: execution"
+  },
+  {
+   "id": "T0848",
+   "title": "Rogue Master",
+   "chapter": "ics: initial-access"
+  },
+  {
+   "id": "T0834",
+   "title": "Native API",
+   "chapter": "ics: execution"
+  },
+  {
+   "id": "T0826",
+   "title": "Loss of Availability",
+   "chapter": "ics: impact"
+  },
+  {
+   "id": "T0882",
+   "title": "Theft of Operational Information",
+   "chapter": "ics: impact"
+  },
+  {
+   "id": "T0849",
+   "title": "Masquerading",
+   "chapter": "ics: evasion"
+  },
+  {
+   "id": "T0843",
+   "title": "Program Download",
+   "chapter": "ics: lateral-movement"
+  },
+  {
+   "id": "T0847",
+   "title": "Replication Through Removable Media",
+   "chapter": "ics: initial-access"
+  },
+  {
+   "id": "T0846.002",
+   "title": "Broadcast Discovery",
+   "chapter": "ics: discovery"
+  },
+  {
+   "id": "T0852",
+   "title": "Screen Capture",
+   "chapter": "ics: collection"
+  },
+  {
+   "id": "T0859",
+   "title": "Valid Accounts",
+   "chapter": "ics: persistence,lateral-movement"
+  },
+  {
+   "id": "T0890",
+   "title": "Exploitation for Privilege Escalation",
+   "chapter": "ics: privilege-escalation"
+  },
+  {
+   "id": "T0846",
+   "title": "Remote System Discovery",
+   "chapter": "ics: discovery"
+  },
+  {
+   "id": "T0884",
+   "title": "Connection Proxy",
+   "chapter": "ics: command-and-control"
+  },
+  {
+   "id": "T0843.002",
+   "title": "Online Edit",
+   "chapter": "ics: lateral-movement"
+  },
+  {
+   "id": "T0869",
+   "title": "Standard Application Layer Protocol",
+   "chapter": "ics: command-and-control"
+  },
+  {
+   "id": "T1692",
+   "title": "Unauthorized Message",
+   "chapter": "ics: evasion,impair-process-control"
+  },
+  {
+   "id": "T0886",
+   "title": "Remote Services",
+   "chapter": "ics: initial-access,lateral-movement"
+  },
+  {
+   "id": "T0813",
+   "title": "Denial of Control",
+   "chapter": "ics: impact"
+  },
+  {
+   "id": "T0838",
+   "title": "Modify Alarm Settings",
+   "chapter": "ics: inhibit-response-function"
+  },
+  {
+   "id": "T0885",
+   "title": "Commonly Used Port",
+   "chapter": "ics: command-and-control"
+  },
+  {
+   "id": "T0873",
+   "title": "Project File Infection",
+   "chapter": "ics: persistence"
+  },
+  {
+   "id": "T0840",
+   "title": "Network Connection Enumeration",
+   "chapter": "ics: discovery"
+  },
+  {
+   "id": "T0867",
+   "title": "Lateral Tool Transfer",
+   "chapter": "ics: lateral-movement"
+  },
+  {
+   "id": "T0883",
+   "title": "Internet Accessible Device",
+   "chapter": "ics: initial-access"
+  },
+  {
+   "id": "T0893",
+   "title": "Data from Local System",
+   "chapter": "ics: collection"
+  },
+  {
+   "id": "T0892",
+   "title": "Change Credential",
+   "chapter": "ics: inhibit-response-function"
+  },
+  {
+   "id": "T1695",
+   "title": "Block Communications",
+   "chapter": "ics: inhibit-response-function"
+  },
+  {
+   "id": "T0889",
+   "title": "Modify Program",
+   "chapter": "ics: persistence"
+  },
+  {
+   "id": "T1701.003",
+   "title": "Unix Shell",
+   "chapter": "ics: execution"
+  },
+  {
+   "id": "T1701.006",
+   "title": "JavaScript",
+   "chapter": "ics: execution"
+  },
+  {
+   "id": "T1701.005",
+   "title": "Python",
+   "chapter": "ics: execution"
+  },
+  {
+   "id": "T0869.002",
+   "title": "Publish/Subscribe Protocols",
+   "chapter": "ics: command-and-control"
+  },
+  {
+   "id": "T1701",
+   "title": "Command and Scripting Interpreter",
+   "chapter": "ics: execution"
+  },
+  {
+   "id": "T1701.001",
+   "title": "PowerShell",
+   "chapter": "ics: execution"
+  },
+  {
+   "id": "T1701.002",
+   "title": "Windows Command Shell",
+   "chapter": "ics: execution"
+  },
+  {
+   "id": "T1701.004",
+   "title": "Visual Basic",
+   "chapter": "ics: execution"
+  },
+  {
+   "id": "T0869.001",
+   "title": "DNS",
+   "chapter": "ics: command-and-control"
+  }
+ ]
+}

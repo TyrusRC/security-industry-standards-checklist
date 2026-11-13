@@ -1,0 +1,210 @@
+- id: K8S-CMP-001
+  sheet: K8S
+  category: CMP
+  title: Run a hardening scan on the cluster components
+  objective: Finds control plane and node settings that stay on weak defaults.
+  steps:
+  - Run a configuration benchmark tool against the control plane and nodes.
+  - List all failed checks with the component name.
+  - Rank the failed checks by risk for this cluster.
+  - Record accepted deviations with an owner.
+  example: kube-bench run; kubescape scan; trivy k8s --report summary cluster
+  expected: Failed checks are fixed or have an accepted reason with an owner. API server, controller manager, scheduler, kubelet and etcd settings are hardened.
+  severity: Medium
+  test_type: Automated
+  refs:
+    k8s_top10:
+    - K07
+    cloud_native_top10:
+    - CNAS-1
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-1188
+    attack:
+    - T1190
+    nist_800_53:
+    - CM-6
+    - CM-2
+  notes: The CIS Benchmarks are not on disk and are not cited. Use the tool output as an input and map failed checks to this sheet.
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K07-Misconfigured-And-Vulnerable-Cluster-Components.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-CMP-002
+  sheet: K8S
+  category: CMP
+  title: Check that Kubernetes and its components are on a supported release
+  objective: Finds clusters on end-of-life versions that no longer get security fixes.
+  steps:
+  - Get the version of the API server, kubelets and kube-proxy.
+  - Compare each to the list of supported releases.
+  - Check the patch level against the latest security fixes.
+  - Check the upgrade plan and the owner.
+  example: kubectl version; kubectl get nodes -o custom-columns=NAME:.metadata.name,KUBELET:.status.nodeInfo.kubeletVersion,RUNTIME:.status.nodeInfo.containerRuntimeVersion
+  expected: All components run a supported release with current patches. A dated upgrade plan exists for any component that is behind.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K07
+    cloud_native_top10:
+    - CNAS-7
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    - Docker_Security_Cheat_Sheet
+    cwe:
+    - CWE-1104
+    - CWE-1395
+    attack:
+    - T1190
+    - T1068
+    nist_800_53:
+    - SI-2
+    - RA-5
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K07-Misconfigured-And-Vulnerable-Cluster-Components.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x07_vuln_components.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+- id: K8S-CMP-003
+  sheet: K8S
+  category: CMP
+  title: Check patch level of the container runtime and the node kernel
+  objective: Finds nodes with known container escape or kernel privilege escalation flaws.
+  steps:
+  - List the runtime and kernel versions on all nodes.
+  - Compare them to the current security advisories for the runtime, runc and the kernel.
+  - Check the node image age.
+  - Check the process to replace or patch nodes.
+  example: kubectl get nodes -o wide; uname -r; runc --version; containerd --version; trivy rootfs / (on the node)
+  expected: Runtime, runc and kernel have no open known critical flaws. Nodes are replaced or patched on a set schedule.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K07
+    - K01
+    cloud_native_top10:
+    - CNAS-7
+    cheatsheet:
+    - Docker_Security_Cheat_Sheet
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-1395
+    attack:
+    - T1611
+    - T1068
+    nist_800_53:
+    - SI-2
+    - RA-5
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K07-Misconfigured-And-Vulnerable-Cluster-Components.md
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K01-Insecure-Workload-Configurations.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x07_vuln_components.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-CMP-004
+  sheet: K8S
+  category: CMP
+  title: Check hardening of the node operating system
+  objective: Finds general-purpose node images that carry many unneeded services and packages.
+  steps:
+  - List the node operating system and image for each node pool.
+  - Check if the image is a minimal container-focused OS.
+  - List the services and packages on a sample node.
+  - Check the firewall rules and local accounts of the node.
+  example: kubectl get nodes -o wide; systemctl list-units --type=service --state=running; ss -tlnp
+  expected: Nodes use a minimal OS image with few services. Firewall rules are strict, and no unneeded packages are present.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K07
+    cloud_native_top10:
+    - CNAS-1
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-1188
+    attack:
+    - T1133
+    nist_800_53:
+    - CM-7
+    - CM-6
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K07-Misconfigured-And-Vulnerable-Cluster-Components.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-CMP-005
+  sheet: K8S
+  category: CMP
+  title: Check API server flags for admission control and secure access
+  objective: Finds API server settings that turn off protections for requests and objects.
+  steps:
+  - Read the command line of the API server.
+  - Check that the list of enabled admission plugins has no disabled security plugins.
+  - Check the TLS settings and the anonymous-auth flag.
+  - Check the audit and authorization flags.
+  example: kubectl -n kube-system get pod -l component=kube-apiserver -o yaml | grep -E "enable-admission|disable-admission|anonymous-auth|tls-"; kube-bench run --targets master
+  expected: The API server has no disabled security plugins, anonymous auth is off, and the TLS settings are strong.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K07
+    - K04
+    cloud_native_top10:
+    - CNAS-1
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-1188
+    - CWE-319
+    attack:
+    - T1190
+    nist_800_53:
+    - CM-6
+    - SC-8
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K07-Misconfigured-And-Vulnerable-Cluster-Components.md
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K04-Lack-Of-Cluster-Level-Policy-Enforcement.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-CMP-006
+  sheet: K8S
+  category: CMP
+  title: Build an inventory of clusters, namespaces, workloads and owners
+  objective: Finds unknown, abandoned or unowned clusters, namespaces and workloads that nobody patches.
+  steps:
+  - List all clusters of the organization from the cloud accounts.
+  - List namespaces and workloads in each cluster with owner labels.
+  - Find workloads with no owner or with no recent deploy.
+  - Compare the result to the asset register.
+  example: aws eks list-clusters; az aks list; gcloud container clusters list; kubectl get ns --show-labels; kubectl get deploy -A -o wide
+  expected: Every cluster, namespace and workload is in the asset register with an owner. Abandoned items are removed.
+  severity: Medium
+  test_type: Manual
+  refs:
+    k8s_top10:
+    - K07
+    cloud_native_top10:
+    - CNAS-8
+    cheatsheet:
+    - Infrastructure_as_Code_Security_Cheat_Sheet
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-1104
+    nist_800_53:
+    - CM-8
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K07-Misconfigured-And-Vulnerable-Cluster-Components.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x08_asset_mgmt.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Infrastructure_as_Code_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md

@@ -1,0 +1,26 @@
+- id: CICD-VULN-007
+  sheet: CICD
+  category: VULN
+  title: Check that workflow files are scanned and the scan blocks merges
+  objective: Finds workflow vulnerabilities that nobody detects because no tool scans the workflow files.
+  steps:
+  - Look for CodeQL with the actions language or for zizmor in the repository settings or workflows.
+  - Make sure the scan runs on each pull request and is a required status check.
+  - Make sure the scan blocks a merge for high and critical findings.
+  - Make sure a scheduled full scan runs and that the team tracks each finding to closure.
+  example: gh api repos/ORG/REPO/code-scanning/default-setup; gh api repos/ORG/REPO/rulesets; zizmor --pedantic .github/workflows/
+  expected: Workflow files are scanned on each pull request and on a schedule. High and critical findings block the merge.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    cicd_top10:
+    - CICD-SEC-4
+    - CICD-SEC-7
+    cheatsheet:
+    - GitHub_Actions_Security_Cheat_Sheet
+    cwe:
+    - CWE-94
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/GitHub_Actions_Security_Cheat_Sheet.md

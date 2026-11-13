@@ -1,0 +1,197 @@
+- id: CLD-SRV-001
+  sheet: CLD
+  category: SRV
+  title: Check that each function has its own minimal role
+  objective: Finds functions that share a broad role and so give a breach the rights of many functions.
+  steps:
+  - List all functions and their execution roles.
+  - Find roles that more than one function shares.
+  - Find roles with wildcard actions or resources.
+  - Compare the role actions to the actions in the function code.
+  example: aws lambda list-functions --query "Functions[].[FunctionName,Role]"; aws iam list-attached-role-policies --role-name <r>; gcloud functions list --format="value(name,serviceAccountEmail)"; az functionapp identity show -n <f> -g <rg>
+  expected: Each function has a separate role with only the actions and resources it needs. No wildcard policy is attached.
+  severity: High
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-3
+    - CNAS-1
+    cheatsheet:
+    - Serverless_FaaS_Security_Cheat_Sheet
+    cwe:
+    - CWE-272
+    - CWE-250
+    attack:
+    - T1078.004
+    - T1648
+    nist_800_53:
+    - AC-6
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x03_improper_auth.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Serverless_FaaS_Security_Cheat_Sheet.md
+- id: CLD-SRV-002
+  sheet: CLD
+  category: SRV
+  title: Check authentication on every function trigger
+  objective: Finds triggers that let anyone invoke a function or feed it events.
+  steps:
+  - 'List all triggers: API gateways, function URLs, queues, topics, buckets and schedules.'
+  - Check the authorizer or access policy of each trigger.
+  - Invoke each public trigger without credentials.
+  - Check the resource policy for public principals.
+  example: aws lambda get-policy --function-name <f>; aws lambda get-function-url-config --function-name <f>; curl -i https://<function-url>; gcloud functions get-iam-policy <f>
+  expected: Every trigger needs authentication and authorization. Resource policies allow only named principals, and a call without credentials fails.
+  severity: High
+  test_type: Manual
+  refs:
+    cloud_native_top10:
+    - CNAS-3
+    cheatsheet:
+    - Serverless_FaaS_Security_Cheat_Sheet
+    cwe:
+    - CWE-306
+    - CWE-862
+    attack:
+    - T1190
+    - T1648
+    nist_800_53:
+    - IA-2
+    - AC-3
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x03_improper_auth.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Serverless_FaaS_Security_Cheat_Sheet.md
+- id: CLD-SRV-003
+  sheet: CLD
+  category: SRV
+  title: Check network isolation and egress of functions
+  objective: Finds functions with unneeded Internet access or access to internal networks.
+  steps:
+  - List functions with VPC or network settings.
+  - Find functions in the default network or with open egress.
+  - Check that sensitive functions sit in a separate network from general functions.
+  - From a test function, connect to an unlisted host.
+  example: aws lambda get-function-configuration --function-name <f> --query VpcConfig; gcloud functions describe <f> --format="value(vpcConnector,ingressSettings)"; az functionapp vnet-integration list -n <f> -g <rg>
+  expected: Functions that need no Internet access have none. Sensitive functions run in private subnets with controlled egress.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-6
+    - CNAS-1
+    cheatsheet:
+    - Serverless_FaaS_Security_Cheat_Sheet
+    cwe:
+    - CWE-923
+    attack:
+    - T1048
+    nist_800_53:
+    - SC-7
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x06_over_permissive_network.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Serverless_FaaS_Security_Cheat_Sheet.md
+- id: CLD-SRV-004
+  sheet: CLD
+  category: SRV
+  title: Check execution context reuse and temporary storage
+  objective: Finds functions that keep secrets or user data in global variables or /tmp between calls.
+  preconditions:
+  - Use a test build only.
+  steps:
+  - Read the function code for global variables that hold secrets or user data.
+  - Call the function twice with different test users.
+  - Check /tmp and memory for data from the first call.
+  - Check for use of single-use environments for sensitive functions.
+  example: Code review of global and static variables; invoke the function with two test identities and print the /tmp listing in a test build
+  expected: No secret or user data persists between calls. Code reads secrets fresh and clears temporary files.
+  severity: Medium
+  test_type: Code Review
+  refs:
+    cloud_native_top10:
+    - CNAS-5
+    - CNAS-1
+    cheatsheet:
+    - Serverless_FaaS_Security_Cheat_Sheet
+    cwe:
+    - CWE-200
+    - CWE-312
+    attack:
+    - T1648
+    nist_800_53:
+    - SC-28
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x05_insecure_secrets.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Serverless_FaaS_Security_Cheat_Sheet.md
+- id: CLD-SRV-005
+  sheet: CLD
+  category: SRV
+  title: Check function-to-function calls and chaining
+  objective: Finds functions that call other functions with no caller proof, so a breach can trigger the whole chain.
+  steps:
+  - Map which functions invoke other functions.
+  - Check that each call uses a workload identity or a signed token.
+  - Check that the callee checks the caller identity.
+  - Check which role may invoke which function.
+  example: aws lambda list-event-source-mappings; aws lambda get-policy --function-name <f>; gcloud functions get-iam-policy <f>
+  expected: Function calls are authenticated with workload identity or signed tokens. Each function allows only named callers.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-3
+    cheatsheet:
+    - Serverless_FaaS_Security_Cheat_Sheet
+    - Microservices_Security_Cheat_Sheet
+    cwe:
+    - CWE-306
+    attack:
+    - T1648
+    nist_800_53:
+    - IA-3
+    - AC-3
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x03_improper_auth.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Serverless_FaaS_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Microservices_Security_Cheat_Sheet.md
+- id: CLD-SRV-006
+  sheet: CLD
+  category: SRV
+  title: Check concurrency limits and throttling for functions
+  objective: Finds functions that can scale without bound and cause cost or denial of service.
+  steps:
+  - List concurrency and timeout settings of each function.
+  - Find functions with no reserved or maximum concurrency.
+  - Check API gateway throttling in front of them.
+  - Check the cost alerts for function invocations.
+  example: aws lambda get-function-concurrency --function-name <f>; aws lambda get-function-configuration --function-name <f> --query Timeout; aws apigateway get-stages --rest-api-id <id>
+  expected: Functions have concurrency and timeout limits. Gateways throttle callers, and cost and invocation alerts exist.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-9
+    cheatsheet:
+    - Serverless_FaaS_Security_Cheat_Sheet
+    - Denial_of_Service_Cheat_Sheet
+    - Secure_Cloud_Architecture_Cheat_Sheet
+    cwe:
+    - CWE-770
+    attack:
+    - T1499
+    - T1496
+    nist_800_53:
+    - SC-5
+    - SC-6
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x09_compute_resources.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Serverless_FaaS_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Denial_of_Service_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Cloud_Architecture_Cheat_Sheet.md

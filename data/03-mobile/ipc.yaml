@@ -1,0 +1,592 @@
+- id: MOB-IPC-001
+  sheet: MOB
+  category: IPC
+  title: Check exported Android components for missing permissions
+  objective: Finds activities, services and receivers that other apps can start or call without permission.
+  preconditions:
+  - Android device or emulator with the app installed.
+  - A second test app or the shell as an untrusted caller.
+  steps:
+  - 'Android: Decode the APK and read the AndroidManifest.xml.'
+  - 'Android: List every activity, service and receiver with android:exported and android:permission.'
+  - 'Android: Find components that are exported without a permission or with a normal protection level.'
+  - 'Android: Read the code of each exported component for sensitive data or actions.'
+  - 'Android: Start each exported component from the shell. Send a crafted intent to each receiver.'
+  - 'Android: Make sure each service checks the caller permission at runtime before it acts.'
+  example: 'apktool d app.apk -o out ; aapt2 d xmltree app.apk --file AndroidManifest.xml | grep -A20 -E "E: (activity|service|receiver)" ; adb shell am start -n <pkg>/<exported.Activity> ; adb shell am startservice -n <pkg>/<exported.Service> ; adb shell am broadcast -a <action> -n <pkg>/<exported.Receiver> --es key value'
+  expected: The app exports only components that must be public. Each exported component that handles sensitive data needs a signature-level permission, and no unauthenticated caller can reach it.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Code Review
+  - Manual
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M8:2024
+    masvs:
+    - MASVS-PLATFORM-1
+    mastg:
+    - MASTG-TEST-0364
+    - MASTG-TEST-0365
+    - MASTG-TEST-0366
+    maswe:
+    - MASWE-0018
+    cwe:
+    - CWE-306
+    - CWE-749
+    - CWE-862
+    - CWE-863
+    - CWE-923
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PLATFORM-1.md
+  - sources/mastg/files/tests-beta_android_MASVS-PLATFORM_MASTG-TEST-0364.md
+  - sources/mastg/files/tests-beta_android_MASVS-PLATFORM_MASTG-TEST-0365.md
+  - sources/mastg/files/tests-beta_android_MASVS-PLATFORM_MASTG-TEST-0366.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-AUTH_MASWE-0018.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m8-security-misconfiguration.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0160.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0161.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0162.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0117.md
+- id: MOB-IPC-002
+  sheet: MOB
+  category: IPC
+  title: Check exported content providers for missing permissions and data leaks
+  objective: Finds content providers that give other apps read or write access to private app data.
+  preconditions:
+  - Android device with the app installed and test data entered.
+  steps:
+  - 'Android: Read the AndroidManifest.xml. List each provider with android:exported, readPermission and writePermission.'
+  - 'Android: Find exported providers that have no android:permission, readPermission or writePermission.'
+  - 'Android: Look at the protection level of each declared permission. Normal and dangerous levels do not limit access.'
+  - 'Android: Use the app until the database holds sensitive test data.'
+  - 'Android: Query each exported provider from the shell without any permission.'
+  - 'Android: Look at the rows that come back for sensitive data.'
+  example: adb shell content query --uri content://<authority>/<path> ; adb shell content query --uri content://<authority>/<path> --where "name='Bob'" ; xmlstarlet sel -t -m "//provider" -v "@android:name" -o " exported=" -v "@android:exported" -n AndroidManifest.xml
+  expected: No exported content provider returns or changes sensitive data for a caller without a signature-level permission. Providers for internal use are not exported.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M8:2024
+    masvs:
+    - MASVS-PLATFORM-1
+    mastg:
+    - MASTG-TEST-0355
+    - MASTG-TEST-0356
+    maswe:
+    - MASWE-0018
+    cwe:
+    - CWE-306
+    - CWE-749
+    - CWE-862
+    - CWE-863
+    - CWE-923
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PLATFORM-1.md
+  - sources/mastg/files/tests-beta_android_MASVS-PLATFORM_MASTG-TEST-0355.md
+  - sources/mastg/files/tests-beta_android_MASVS-PLATFORM_MASTG-TEST-0356.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-AUTH_MASWE-0018.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m8-security-misconfiguration.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0150.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0148.md
+- id: MOB-IPC-003
+  sheet: MOB
+  category: IPC
+  title: Check FileProvider paths for access outside the shared directory
+  objective: Finds FileProvider path settings that let other apps open private files through content URIs.
+  preconditions:
+  - Decompiled app code.
+  steps:
+  - 'Android: Decode the APK. Find each exported FileProvider in the AndroidManifest.xml.'
+  - 'Android: Open the file paths XML resource that the provider uses.'
+  - 'Android: Look for root-path entries and for path values of "/", "." or an empty string.'
+  - 'Android: Find calls to FileProvider.getUriForFile in the code.'
+  - 'Android: Make sure no attacker-controlled input, such as a URI query value, reaches the file argument.'
+  - 'Android: Make sure the provider requires a permission with a dangerous or signature protection level.'
+  example: jadx -d out app.apk ; grep -rn "getUriForFile\|root-path" out/ ; cat out/resources/res/xml/file_paths.xml
+  expected: The FileProvider shares only the intended directory. Path settings do not expose root or private storage, and attacker-controlled input never selects the file.
+  severity: High
+  test_type:
+  - Config Review
+  - Code Review
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M8:2024
+    masvs:
+    - MASVS-PLATFORM-1
+    mastg:
+    - MASTG-TEST-0357
+    maswe:
+    - MASWE-0018
+    cwe:
+    - CWE-306
+    - CWE-749
+    - CWE-862
+    - CWE-863
+    - CWE-923
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PLATFORM-1.md
+  - sources/mastg/files/tests-beta_android_MASVS-PLATFORM_MASTG-TEST-0357.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-AUTH_MASWE-0018.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m8-security-misconfiguration.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0159.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+- id: MOB-IPC-004
+  sheet: MOB
+  category: IPC
+  title: Check PendingIntent objects for mutable flags and implicit base intents
+  objective: Finds PendingIntent objects that other apps can change or redirect.
+  preconditions:
+  - Decompiled app code.
+  steps:
+  - 'Android: Search the decompiled code for PendingIntent.getActivity, getActivities, getService, getForegroundService and getBroadcast.'
+  - 'Android: Read the flags argument of each call for FLAG_IMMUTABLE or FLAG_MUTABLE.'
+  - 'Android: Read the minSdkVersion in the AndroidManifest.xml.'
+  - 'Android: Check if the base intent names its target with setClass, setClassName or setComponent.'
+  - 'Android: Find a valid use case for each mutable PendingIntent, such as an inline reply.'
+  example: jadx -d out app.apk ; grep -rn "PendingIntent\.\(getActivity\|getActivities\|getService\|getForegroundService\|getBroadcast\)" out/ ; grep -rn "FLAG_MUTABLE\|FLAG_IMMUTABLE" out/
+  expected: Each PendingIntent uses FLAG_IMMUTABLE unless mutability is required and documented. Each base intent is explicit and names its target component.
+  severity: Medium
+  test_type:
+  - Code Review
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M8:2024
+    masvs:
+    - MASVS-PLATFORM-1
+    mastg:
+    - MASTG-TEST-0381
+    maswe:
+    - MASWE-0032
+    cwe:
+    - CWE-927
+    - CWE-940
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PLATFORM-1.md
+  - sources/mastg/files/tests-beta_android_MASVS-PLATFORM_MASTG-TEST-0381.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0032.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m8-security-misconfiguration.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+- id: MOB-IPC-005
+  sheet: MOB
+  category: IPC
+  title: Check implicit intents used for internal communication and sensitive extras
+  objective: Finds implicit intents that another app can intercept to read data or take over a flow.
+  preconditions:
+  - Decompiled app code.
+  steps:
+  - 'Android: Find all places where the app builds an Intent and sends it with startActivity, startService, bindService or sendBroadcast.'
+  - 'Android: Mark the intents that have no setPackage, setClass, setClassName or setComponent call.'
+  - 'Android: Check if the intent is for an internal component and not a user-selected app or chooser.'
+  - 'Android: Look for putExtra calls with tokens, session IDs, one-time codes or personal data.'
+  - 'Android: Make sure another app cannot register an intent-filter that matches the action, data and categories.'
+  - 'Android: Make sure each broadcast with sensitive data requires a receiver permission.'
+  example: jadx -d out app.apk ; grep -rn "new Intent(\"\|setAction(\|putExtra(\|sendBroadcast(" out/ ; semgrep --config <rules> out/
+  expected: Intents for internal communication name an explicit component or package. Intents that carry sensitive extras go only to a known recipient.
+  severity: Medium
+  test_type:
+  - Code Review
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M8:2024
+    masvs:
+    - MASVS-PLATFORM-1
+    - MASVS-CODE-4
+    mastg:
+    - MASTG-TEST-0372
+    - MASTG-TEST-0374
+    maswe:
+    - MASWE-0032
+    cwe:
+    - CWE-927
+    - CWE-940
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PLATFORM-1.md
+  - sources/masvs/controls-master/MASVS-CODE-4.md
+  - sources/mastg/files/tests-beta_android_MASVS-CODE_MASTG-TEST-0372.md
+  - sources/mastg/files/tests-beta_android_MASVS-CODE_MASTG-TEST-0374.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0032.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m8-security-misconfiguration.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+- id: MOB-IPC-006
+  sheet: MOB
+  category: IPC
+  title: Check validation of data that other apps return to the app
+  objective: Finds flows where data from an external intent result reaches a sensitive operation without checks.
+  preconditions:
+  - Android device with Frida server.
+  - A test app that returns crafted results.
+  steps:
+  - 'Android: Install the app and attach a Frida hook to startActivityForResult, ActivityResultLauncher and onActivityResult.'
+  - 'Android: Use the app to start each flow that asks another app for a file, a document or an account.'
+  - 'Android: Install a test app that answers with a crafted URI scheme or a file name with path separators.'
+  - 'Android: Record the reads of Intent.getData, ClipData, extras and ContentResolver calls.'
+  - 'Android: Look at the backtraces. Find returned data that reaches file, parse, storage, network or authorization code.'
+  - 'Android: Make sure the app checks the data before each use.'
+  example: frida -U -f <pkg> -l hook_intent_results.js ; objection -g <pkg> explore, then android hooking watch class_method android.app.Activity.onActivityResult --dump-args --dump-backtrace
+  expected: The app treats data returned from other apps as untrusted. It checks scheme, path, name and type before it uses the data.
+  severity: Medium
+  test_type:
+  - Manual
+  - Code Review
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M4:2024
+    masvs:
+    - MASVS-CODE-4
+    - MASVS-PLATFORM-1
+    mastg:
+    - MASTG-TEST-0375
+    maswe:
+    - MASWE-0050
+    - MASWE-0032
+    cwe:
+    - CWE-20
+    - CWE-22
+    - CWE-73
+    - CWE-89
+    - CWE-116
+  sources_read:
+  - sources/masvs/controls-master/MASVS-CODE-4.md
+  - sources/masvs/controls-master/MASVS-PLATFORM-1.md
+  - sources/mastg/files/tests-beta_android_MASVS-CODE_MASTG-TEST-0375.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-CODE_MASWE-0050.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0032.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m4-insufficient-input-output-validation.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0043.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0005.md
+- id: MOB-IPC-007
+  sheet: MOB
+  category: IPC
+  title: Check deep links for App Links or Universal Links verification
+  objective: Finds deep links that another app can claim and use to capture tokens or links.
+  preconditions:
+  - Decoded APK and IPA.
+  steps:
+  - 'Android: List the intent-filters with http or https data and the VIEW and BROWSABLE entries in the AndroidManifest.xml.'
+  - 'Android: Find filters that miss android:autoVerify="true".'
+  - 'Android: Check on the device that each declared domain has the verified state.'
+  - 'Android: Look for custom URL schemes used for login, reset or payment flows.'
+  - 'iOS: Read the Associated Domains entitlement of the app binary.'
+  - 'iOS: Fetch the apple-app-site-association file of each domain and compare its paths with the app.'
+  - Make sure no deep link carries a long-lived token or other secret.
+  example: adb shell pm get-app-links <pkg> ; python3 deeplink_analyser.py -op verify-applinks -apk app.apk ; rabin2 -OC app_binary | grep -A3 associated-domains ; curl https://<domain>/.well-known/apple-app-site-association
+  expected: Sensitive flows use only verified Android App Links and iOS Universal Links. Custom URL schemes do not start sensitive actions, and links carry no long-lived secrets.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M4:2024
+    masvs:
+    - MASVS-PLATFORM-1
+    mastg:
+    - MASTG-TEST-0393
+    maswe:
+    - MASWE-0029
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-939
+    - CWE-917
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PLATFORM-1.md
+  - sources/mastg/files/tests-beta_android_MASVS-PLATFORM_MASTG-TEST-0393.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0029.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m4-insufficient-input-output-validation.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0172.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0174.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0111.md
+- id: MOB-IPC-008
+  sheet: MOB
+  category: IPC
+  title: Check input validation in deep link and URL scheme handlers
+  objective: Finds deep link handlers that use attacker-controlled parameters without checks.
+  preconditions:
+  - Know the schemes and hosts from the manifest and Info.plist.
+  steps:
+  - 'Android: Find the code for each intent-filter that has a VIEW action and a custom scheme or http scheme.'
+  - 'iOS: Find the code for each custom URL scheme and each Universal Link handler in the binary.'
+  - Read how the handler converts, limits and sanitizes each path and query parameter.
+  - Look for raw strings used for amounts, file paths, SQL queries, WebView URLs or navigation.
+  - Open the deep link on the device with a negative number, a path traversal value and a script value.
+  - Make sure the handler rejects each value and keeps the app stable.
+  example: adb shell am start -W -a android.intent.action.VIEW -d "myapp://open?path=../../data/x" ; adb shell am start -W -a android.intent.action.VIEW -d "myapp://transfer?amount=-1" ; xcrun devicectl device process launch --device <UDID> --payload-url 'mastgtest://open?path=../../x' <bundle_id> ; xcrun simctl openurl booted "https://example.com/open?path=../../x"
+  expected: Handlers convert each parameter to its expected type, check ranges and allowlists, and sanitize special characters before the value reaches a sink.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M4:2024
+    masvs:
+    - MASVS-PLATFORM-1
+    - MASVS-CODE-4
+    mastg:
+    - MASTG-TEST-0394
+    - MASTG-TEST-0370
+    - MASTG-TEST-0395
+    maswe:
+    - MASWE-0029
+    - MASWE-0050
+    cwe:
+    - CWE-939
+    - CWE-917
+    - CWE-20
+    - CWE-22
+    - CWE-73
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PLATFORM-1.md
+  - sources/masvs/controls-master/MASVS-CODE-4.md
+  - sources/mastg/files/tests-beta_android_MASVS-PLATFORM_MASTG-TEST-0394.md
+  - sources/mastg/files/tests-beta_ios_MASVS-PLATFORM_MASTG-TEST-0370.md
+  - sources/mastg/files/tests-beta_ios_MASVS-PLATFORM_MASTG-TEST-0395.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0029.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-CODE_MASWE-0050.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m4-insufficient-input-output-validation.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0172.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0173.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0169.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+- id: MOB-IPC-009
+  sheet: MOB
+  category: IPC
+  title: Check source validation in iOS custom URL scheme handlers
+  objective: Finds URL scheme handlers that act on sensitive requests without checking the calling app.
+  preconditions:
+  - Extracted IPA binary.
+  steps:
+  - 'iOS: Find the scene(_:openURLContexts:) method in the app binary.'
+  - 'iOS: Look for reads of UIOpenURLContext.options.sourceApplication.'
+  - 'iOS: Check if the handler compares the source with an allowlist before it acts.'
+  - 'iOS: Find out if the scheme starts a privileged or irreversible action.'
+  - 'Android: Note that Android gives no caller identity for scheme intents. Check that the handler needs a separate user approval or token for sensitive actions.'
+  example: r2 -A <app_binary> ; afl~openURLContexts ; izz~sourceApplication
+  expected: Handlers that start security-sensitive actions read the source application and check it against an allowlist. Sensitive actions also need another check, as the source is often nil.
+  severity: Low
+  test_type:
+  - Code Review
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M4:2024
+    masvs:
+    - MASVS-PLATFORM-1
+    mastg:
+    - MASTG-TEST-0371
+    maswe:
+    - MASWE-0029
+    cwe:
+    - CWE-939
+    - CWE-917
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PLATFORM-1.md
+  - sources/mastg/files/tests-beta_ios_MASVS-PLATFORM_MASTG-TEST-0371.md
+  - sources/mastg/files/tests-beta_android_MASVS-PLATFORM_MASTG-TEST-0394.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0029.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m4-insufficient-input-output-validation.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0076.md
+- id: MOB-IPC-010
+  sheet: MOB
+  category: IPC
+  title: Check the use of the general pasteboard and the clipboard
+  objective: Finds sensitive data on the system clipboard that other apps or devices can read.
+  preconditions:
+  - Jailbroken iOS device with Frida, or an instrumented build.
+  steps:
+  - 'iOS: Search the binary for UIPasteboard.general and the calls addItems, setItems, string and items.'
+  - 'iOS: Run the app. Copy a password or personal data. Monitor the general pasteboard with Frida.'
+  - 'iOS: Make sure setItems uses the localOnly and expirationDate options for sensitive data.'
+  - 'iOS: Check that the app clears the pasteboard with items = [] when it goes to the background or ends.'
+  - 'Android: Search the code for ClipboardManager.setPrimaryClip and ClipDescription.EXTRA_IS_SENSITIVE.'
+  - 'Android: Make sure sensitive fields cannot be copied, or that copied values have the sensitive flag and a short life.'
+  - Treat pasted clipboard data as untrusted input.
+  example: r2 -A <app_binary> ; afl~UIPasteboard ; frida -U -n <app> -l monitor_pasteboard.js (poll UIPasteboard.generalPasteboard().changeCount()) ; grep -rn "setPrimaryClip\|EXTRA_IS_SENSITIVE" out/
+  expected: The app does not put secrets on the clipboard. If it must, the data is local only, expires soon, is marked sensitive and is cleared.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M6:2024
+    masvs:
+    - MASVS-PLATFORM-1
+    mastg:
+    - MASTG-TEST-0276
+    - MASTG-TEST-0277
+    - MASTG-TEST-0278
+    - MASTG-TEST-0279
+    - MASTG-TEST-0280
+    maswe:
+    - MASWE-0030
+    cwe:
+    - CWE-200
+    - CWE-668
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PLATFORM-1.md
+  - sources/mastg/files/tests-beta_ios_MASVS-PLATFORM_MASTG-TEST-0276.md
+  - sources/mastg/files/tests-beta_ios_MASVS-PLATFORM_MASTG-TEST-0277.md
+  - sources/mastg/files/tests-beta_ios_MASVS-PLATFORM_MASTG-TEST-0278.md
+  - sources/mastg/files/tests-beta_ios_MASVS-PLATFORM_MASTG-TEST-0279.md
+  - sources/mastg/files/tests-beta_ios_MASVS-PLATFORM_MASTG-TEST-0280.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0030.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m6-inadequate-privacy-controls.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0134.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+- id: MOB-IPC-011
+  sheet: MOB
+  category: IPC
+  title: Check that the app restricts custom keyboards for sensitive input
+  objective: Finds apps that let third-party keyboards read passwords and other secrets.
+  preconditions:
+  - Extracted IPA.
+  steps:
+  - 'iOS: Look for application:shouldAllowExtensionPointIdentifier: in the app delegate of the binary.'
+  - 'iOS: Check that the method returns false for UIApplicationKeyboardExtensionPointIdentifier.'
+  - 'iOS: Check that password, PIN and OTP fields use isSecureTextEntry, so that they use the system keyboard.'
+  - 'iOS: Open the Info.plist of each bundled keyboard extension. Look at RequestsOpenAccess.'
+  - 'iOS: Find keyboard code that sends typed text off the device or writes it to a shared container.'
+  - 'Android: Note that this control has no MASTG test for Android. Check that sensitive fields use a non-caching text input type.'
+  example: unzip app.ipa ; plutil -p Payload/App.app/PlugIns/*.appex/Info.plist | grep -i RequestsOpenAccess ; r2 -A <app_binary> ; afl~shouldAllowExtensionPointIdentifier
+  expected: The app rejects custom keyboards app-wide when it handles sensitive input. A bundled keyboard asks for Full Access only with a feature that needs it.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Config Review
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M6:2024
+    masvs:
+    - MASVS-PLATFORM-1
+    - MASVS-PRIVACY-1
+    mastg:
+    - MASTG-TEST-0389
+    - MASTG-TEST-0390
+    maswe:
+    - MASWE-0031
+    - MASWE-0066
+    cwe:
+    - CWE-829
+    - CWE-250
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PLATFORM-1.md
+  - sources/masvs/controls-master/MASVS-PRIVACY-1.md
+  - sources/mastg/files/tests-beta_ios_MASVS-PLATFORM_MASTG-TEST-0389.md
+  - sources/mastg/files/tests-beta_ios_MASVS-PLATFORM_MASTG-TEST-0390.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0031.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PRIVACY_MASWE-0066.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m6-inadequate-privacy-controls.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0076.md
+- id: MOB-IPC-012
+  sheet: MOB
+  category: IPC
+  title: Check the app for unsafe object deserialization of untrusted data
+  objective: Finds deserialization of data from other apps or the network that can lead to code execution.
+  preconditions:
+  - Decompiled app code or extracted IPA.
+  steps:
+  - 'Android: Search for ObjectInputStream, Serializable and Parcelable reads in Intent extras, Bundles, files and network data.'
+  - 'iOS: Search the binary for decodeObject(forKey:), unarchiveObject(with:) and unarchiveTopLevelObjectWithData.'
+  - 'iOS: Check that NSKeyedUnarchiver uses secure coding and a list of allowed classes.'
+  - Follow the data back to its source. Find sources that other apps or attackers control.
+  - Make sure the app uses a data-only format such as JSON, or checks a signature, before it deserializes.
+  example: jadx -d out app.apk ; grep -rn "ObjectInputStream\|readSerializable\|getSerializableExtra" out/ ; r2 -A <app_binary> ; afl~unarchive
+  expected: The app does not deserialize native objects from untrusted sources. If it must, it restricts the classes and checks integrity first.
+  severity: High
+  test_type:
+  - Code Review
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M4:2024
+    masvs:
+    - MASVS-CODE-4
+    mastg:
+    - MASTG-TEST-0337
+    - MASTG-TEST-0386
+    maswe:
+    - MASWE-0050
+    cheatsheet:
+    - Deserialization_Cheat_Sheet
+    - Input_Validation_Cheat_Sheet
+    cwe:
+    - CWE-20
+    - CWE-22
+    - CWE-73
+    - CWE-89
+    - CWE-116
+  sources_read:
+  - sources/masvs/controls-master/MASVS-CODE-4.md
+  - sources/mastg/files/tests-beta_android_MASVS-CODE_MASTG-TEST-0337.md
+  - sources/mastg/files/tests-beta_ios_MASVS-CODE_MASTG-TEST-0386.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-CODE_MASWE-0050.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m4-insufficient-input-output-validation.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Deserialization_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+- id: MOB-IPC-013
+  sheet: MOB
+  category: IPC
+  title: Check SQL queries built from content provider URIs for injection
+  objective: Finds content providers that put URI or selection input into SQL text.
+  preconditions:
+  - Exported or reachable content provider.
+  steps:
+  - 'Android: Find every ContentProvider class in the decompiled code.'
+  - 'Android: Look at the query, update and delete methods for uses of Uri.getPathSegments and appendWhere.'
+  - 'Android: Find SQL text that joins strings from the URI or the selection argument.'
+  - 'Android: Send a quote character or an OR clause through the URI from the shell.'
+  - 'Android: Make sure the provider uses selection arguments or a query builder with bound parameters.'
+  example: adb shell content query --uri content://<authority>/students/1%20OR%201=1 ; adb shell content query --uri content://<authority>/students --where "name='a' OR '1'='1" ; grep -rn "appendWhere\|getPathSegments\|rawQuery" out/
+  expected: The provider binds all input from URIs and selection arguments as parameters. No input becomes part of the SQL text.
+  severity: High
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M4:2024
+    masvs:
+    - MASVS-CODE-4
+    - MASVS-PLATFORM-1
+    mastg:
+    - MASTG-TEST-0339
+    maswe:
+    - MASWE-0050
+    cheatsheet:
+    - Input_Validation_Cheat_Sheet
+    cwe:
+    - CWE-20
+    - CWE-22
+    - CWE-73
+    - CWE-89
+    - CWE-116
+  sources_read:
+  - sources/masvs/controls-master/MASVS-CODE-4.md
+  - sources/masvs/controls-master/MASVS-PLATFORM-1.md
+  - sources/mastg/files/tests-beta_android_MASVS-CODE_MASTG-TEST-0339.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-CODE_MASWE-0050.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m4-insufficient-input-output-validation.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0148.md

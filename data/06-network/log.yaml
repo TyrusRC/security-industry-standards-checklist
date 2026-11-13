@@ -1,0 +1,175 @@
+- id: NET-LOG-001
+  sheet: NET
+  category: LOG
+  title: Review firewall, router and IDS logs for blocked and unusual traffic
+  objective: Finds attacks, misconfigurations and compromised hosts that the logs show but nobody acts on.
+  steps:
+  - Get the logs of firewalls, routers, IDS or IPS and authentication servers for a set period.
+  - Look for unauthorized connection attempts and traffic that the rules should block.
+  - Look for outbound connections from internal hosts to unknown destinations.
+  - Look for repeated failed logins and for account changes.
+  - Write down each event that nobody investigated.
+  example: 'grep -E "DENY|DROP|REJECT" /var/log/firewall.log | awk "{print \$<src-col>}" | sort | uniq -c | sort -rn | head ; zeek-cut id.orig_h id.resp_h < conn.log'
+  expected: The logs show the events that the logging policy requires. Each unusual event has an investigation record, and no log shows traffic that the rules should block.
+  severity: Medium
+  test_type: Manual
+  refs:
+    cheatsheet:
+    - Logging_Cheat_Sheet
+    owasp_top10:
+    - A09:2025
+    cwe:
+    - CWE-778
+    nist_800_53:
+    - AU-6
+    - SI-4
+    pci_dss:
+    - '10.4.1'
+    other:
+    - NIST SP 800-115 section 3.2 (log review)
+  see:
+  - WEB-LOG-014
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A09_2025-Security_Logging_and_Alerting_Failures.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-LOG-002
+  sheet: NET
+  category: LOG
+  title: Check that devices send logs securely to a central server
+  objective: Finds devices whose logs stay on the device, where an attacker can delete them.
+  steps:
+  - List all firewalls, routers, switches, IDS and servers in scope.
+  - Read the log destination on each device.
+  - Make sure the destination is a separate central log server.
+  - Make sure the transport is secure, for example syslog over TLS.
+  - Generate a test event on a device and find it on the log server.
+  example: 'show logging | include host ; logger -p auth.notice "net-log-test" ; grep net-log-test /var/log/central/*.log'
+  expected: Every device sends its logs promptly to a central log server on a separate system, over a secure channel. The test event arrives on the server.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cheatsheet:
+    - Logging_Cheat_Sheet
+    - Network_Segmentation_Cheat_Sheet
+    nist_800_53:
+    - AU-9
+    - AU-9(2)
+    - AU-12
+    pci_dss:
+    - '10.3.3'
+    - '10.2.1'
+  see:
+  - WEB-LOG-013
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Network_Segmentation_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-LOG-003
+  sheet: NET
+  category: LOG
+  title: Check that devices share one time source and keep logs long enough
+  objective: Finds logs that cannot be matched across devices, or that are gone when needed.
+  steps:
+  - Compare the clocks of a sample of devices and servers with the time source.
+  - Look at the time zone and the time format in the log entries.
+  - Read the retention settings of the log server.
+  - Make sure logs of the last 12 months exist.
+  - Make sure logs of the last three months are ready for analysis.
+  example: 'chronyc tracking ; ntpq -p ; show clock detail ; ls -l /var/log/central/ | head'
+  expected: All devices follow one time source and log in a common time format. Logs are kept for at least 12 months, with the last three months ready for analysis.
+  severity: Low
+  test_type: Config Review
+  refs:
+    cheatsheet:
+    - Logging_Cheat_Sheet
+    nist_800_53:
+    - SC-45
+    - AU-8
+    pci_dss:
+    - '10.6.1'
+    - '10.5.1'
+  see:
+  - WEB-LOG-003
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-LOG-004
+  sheet: NET
+  category: LOG
+  title: Check that a port scan and failed logins create logs and alerts
+  objective: Finds monitoring that does not see common attack steps on the network.
+  preconditions:
+  - Written approval and notice to the security operations team, as the plan says.
+  - Do not run on production without a test window.
+  steps:
+  - Tell the contact in the plan about the source address of the test.
+  - Run a port scan from an external test host.
+  - Send a small number of failed logins to a test account on a remote service.
+  - Look at the firewall, IDS and authentication logs for both actions.
+  - Look at the alerts and the time until a responder reads them.
+  example: 'nmap -Pn -sS -p 1-1024 <target> ; hydra -l testuser -p wrong-password -t 1 ssh://<target> ; check SIEM search for the test source address'
+  expected: Both actions appear in the logs of the right devices. The monitoring raises an alert and a responder reads it in the agreed time.
+  severity: Medium
+  test_type: Manual
+  refs:
+    cheatsheet:
+    - Logging_Cheat_Sheet
+    owasp_top10:
+    - A09:2025
+    cwe:
+    - CWE-778
+    nist_800_53:
+    - SI-4
+    - AU-6
+    - CA-8
+    pci_dss:
+    - '11.5.1'
+    - '12.10.5'
+    other:
+    - NIST SP 800-115 sections 4.2 and 5.2 (compare logs with scans; defenders ability to detect)
+  see:
+  - WEB-LOG-014
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A09_2025-Security_Logging_and_Alerting_Failures.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-LOG-005
+  sheet: NET
+  category: LOG
+  title: Check that logins and configuration changes on network devices are logged
+  objective: Finds devices where an attacker or admin can change settings without a record.
+  steps:
+  - Make sure the device logs successful and failed administrator logins.
+  - Change a harmless setting on a test device.
+  - Look at the device log and the central log server for the change.
+  - Make sure the entry shows who, when and from where.
+  example: 'show logging | include (LOGIN|CONFIG) ; journalctl -u sshd --since "10 min ago" ; grep "config" /var/log/central/*.log'
+  expected: Logins and configuration changes appear in the logs with the user, the time and the source address. Logs do not hold passwords.
+  severity: Medium
+  test_type: Manual
+  refs:
+    cheatsheet:
+    - Logging_Cheat_Sheet
+    cwe:
+    - CWE-778
+    - CWE-532
+    nist_800_53:
+    - AU-2
+    - AU-3
+    - AU-12
+    pci_dss:
+    - '10.2.1'
+  see:
+  - WEB-LOG-007
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md

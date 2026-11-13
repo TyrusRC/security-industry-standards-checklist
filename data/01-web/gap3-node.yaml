@@ -1,0 +1,196 @@
+- id: WEB-NODE-001
+  sheet: WEB
+  category: NODE
+  title: Call Next.js Server Actions and route handlers directly without the page
+  objective: Find Server Actions, Route Handlers and Draft Mode handlers that skip authentication or object checks because only the page checks them.
+  preconditions:
+  - Two test accounts with different roles, and one account in a second tenant.
+  - Source code or the built client bundle to list the action identifiers.
+  steps:
+  - List Server Actions, Route Handlers, Pages API Routes and Draft Mode handlers from the route and source tree.
+  - Mark each entry point as public or protected.
+  - Send a POST request to each protected action without a session and without loading the page first.
+  - Send the same request with a session of a user who does not own the object or tenant.
+  - Change a user or tenant identifier in the arguments. Make sure the server does not accept it as proof of permission.
+  - Send a request with a foreign Origin header to a Server Action. Make sure the request fails.
+  - Call each Draft Mode handler without credentials. Make sure no __prerender_bypass cookie is set.
+  example: 'curl -i -X POST https://target/dashboard -H "Next-Action: <action-id>" -H "Content-Type: text/plain;charset=UTF-8" -d "[\"other-user-id\"]"; curl -i https://target/api/draft'
+  expected: Each protected entry point denies unauthenticated, wrong-owner and wrong-tenant requests by itself. Foreign origins fail, and Draft Mode needs authentication.
+  severity: High
+  test_type:
+  - Manual
+  - Code Review
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A01:2025
+    wstg:
+    - WSTG-ATHZ-02
+    asvs:
+    - V8.2.1
+    - V8.2.2
+    cheatsheet:
+    - Nextjs_Security_Cheat_Sheet
+    cwe:
+    - CWE-862
+    - CWE-639
+    capec:
+    - CAPEC-1
+    other:
+    - 'Next.js authentication guide: https://nextjs.org/docs/app/guides/authentication'
+  see:
+  - WEB-AUTHZ-009
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Nextjs_Security_Cheat_Sheet.md
+- id: WEB-NODE-002
+  sheet: WEB
+  category: NODE
+  title: Check that authorization does not rely on Next.js Proxy or middleware alone
+  objective: Find protected routes that become open when the Proxy matcher misses a route or the middleware is bypassed.
+  preconditions:
+  - Access to the next.config file, the Proxy or middleware file and the framework version.
+  steps:
+  - Read the Proxy or middleware matcher. List the protected route families it does not match.
+  - Request each unmatched protected route without a session. Make sure the handler or data layer denies it.
+  - Look at the data access code. Make sure it checks authorization before it reads protected data.
+  - Make sure the Next.js version is a patched release for CVE-2025-29927.
+  example: 'curl -i https://target/admin/users; grep -n "matcher" proxy.ts middleware.ts'
+  expected: Every protected path is denied when the Proxy or middleware is skipped. The Proxy only redirects early, and the framework version is patched.
+  severity: Critical
+  test_type:
+  - Manual
+  - Code Review
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A01:2025
+    wstg:
+    - WSTG-ATHZ-02
+    asvs:
+    - V8.2.1
+    cheatsheet:
+    - Nextjs_Security_Cheat_Sheet
+    cwe:
+    - CWE-862
+    capec:
+    - CAPEC-1
+    other:
+    - 'CVE-2025-29927 advisory: https://github.com/vercel/next.js/security/advisories/GHSA-f82v-jwr5-mffw'
+  see:
+  - WEB-AUTHZ-009
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Nextjs_Security_Cheat_Sheet.md
+- id: WEB-NODE-003
+  sheet: WEB
+  category: NODE
+  title: Look for server-only data sent to the browser in Next.js responses
+  objective: Find secrets, internal fields and full database records that the server passes to Client Components, page props or action results.
+  preconditions:
+  - A test account, a proxy such as Burp and access to the built application.
+  steps:
+  - Open the rendered HTML of each page. Search for fields that must stay on the server.
+  - Look at the React Server Component payloads, Pages Router data responses and Server Action responses.
+  - Search the client JavaScript for values from NEXT_PUBLIC_ variables. Make sure each one is public on purpose.
+  - Review the code that passes data to Client Components. Make sure it builds a narrow DTO and does not pass ORM records or session objects.
+  - Request the production site for .map files. Make sure source maps are off unless the owner accepted the exposure.
+  - Make sure the production service runs the optimized build and not next dev.
+  example: 'curl -s https://target/page | grep -oE "(password|token|secret|apiKey)[^,]{0,60}"; curl -sI https://target/_next/static/chunks/main.js.map; grep -rn "NEXT_PUBLIC_" .env*'
+  expected: Responses hold only fields the user may see. No secret is in client code, no source map is public, and the production server is not in development mode.
+  severity: High
+  test_type:
+  - Manual
+  - Code Review
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A02:2025
+    wstg:
+    - WSTG-CONF-02
+    asvs:
+    - V13.4.2
+    - V13.4.7
+    cheatsheet:
+    - Nextjs_Security_Cheat_Sheet
+    cwe:
+    - CWE-200
+    - CWE-540
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Nextjs_Security_Cheat_Sheet.md
+- id: WEB-NODE-004
+  sheet: WEB
+  category: NODE
+  title: Test Next.js cache entries for cross-user and cross-tenant reuse
+  objective: Find cached data that one user or tenant fills and another user or tenant reads.
+  preconditions:
+  - Two identities with different entitlements, and one identity in another tenant.
+  - Do not run on production.
+  steps:
+  - List cached functions, ISR pages, getStaticProps pages and shared CDN rules. Note the audience of each one.
+  - Fill the cache as identity A. Request the same route and object identifiers as identity B.
+  - Change a role or tenant membership. Request the route again and look for old data.
+  - Look at the Cache-Control header of each getServerSideProps response with personal data. Make sure it is not shared.
+  - Make sure no cache key holds a raw cookie or bearer token.
+  - Call the revalidation handlers without credentials. Make sure they fail.
+  example: 'curl -s -H "Cookie: session=<A>" https://target/account/42; curl -s -H "Cookie: session=<B>" https://target/account/42; curl -sI https://target/account/42 | grep -i cache-control'
+  expected: Identity B never receives data of identity A. Each cache key holds only verified dimensions, permission changes take effect, and invalidation needs authorization.
+  severity: High
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A01:2025
+    wstg:
+    - WSTG-ATHZ-04
+    asvs:
+    - V14.2.5
+    cheatsheet:
+    - Nextjs_Security_Cheat_Sheet
+    cwe:
+    - CWE-524
+    - CWE-639
+  see:
+  - WEB-CACHE-002
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Nextjs_Security_Cheat_Sheet.md
+- id: WEB-NODE-005
+  sheet: WEB
+  category: NODE
+  title: Test Node.js request size limits and event-loop blocking
+  objective: Find a Node.js server that large bodies or CPU-heavy requests can make unresponsive.
+  preconditions:
+  - A test instance. Do not run on production.
+  - Source code access for the body parsers and the request handlers.
+  steps:
+  - Find the body parser settings. Make sure the JSON and URL-encoded parsers have a size limit.
+  - Send a JSON body larger than the limit. Make sure the server returns a client error.
+  - Send a large body with a changed Content-Type header. Make sure the server still applies a limit.
+  - Look in the handlers for long synchronous work, such as large JSON parsing, sync crypto and unsafe regular expressions.
+  - Send one slow request. At the same time, send a health check and measure the latency.
+  - Make sure the server returns 503 or sheds load when the event loop is too slow.
+  example: 'curl -s -o /dev/null -w "%{http_code}\n" -X POST https://target/api -H "Content-Type: application/json" --data-binary @big.json; autocannon -c 20 -d 15 https://target/slow-route; clinic doctor -- node server.js'
+  expected: Oversize bodies get a 413 response for every Content-Type. Slow requests do not block other requests, and the server sheds load when it is too busy.
+  severity: Medium
+  test_type:
+  - Manual
+  - Code Review
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A06:2025
+    asvs:
+    - V15.2.2
+    - V2.4.1
+    cheatsheet:
+    - Nodejs_Security_Cheat_Sheet
+    cwe:
+    - CWE-400
+    - CWE-770
+    - CWE-1333
+    capec:
+    - CAPEC-125
+    - CAPEC-492
+  see:
+  - API-RES-003
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Nodejs_Security_Cheat_Sheet.md

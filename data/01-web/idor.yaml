@@ -1,0 +1,167 @@
+- id: WEB-IDOR-001
+  sheet: WEB
+  category: IDOR
+  title: Test access to other users' objects by changing the reference
+  objective: Finds objects that a user can read by changing an ID in the request.
+  steps:
+  - Create user A and user B. Create objects for each, such as invoices.
+  - 'Map every place where input refers to an object: URL, body, header and cookie.'
+  - Log in as A and request the objects of B by changing the reference.
+  - Compare the response with the response for the owner.
+  example: curl -b 'session=<userA>' 'https://foo.bar/somepage?invoice=<id of B>' ; Burp Autorize with the session of user A.
+  expected: The server returns 403 or 404 for objects of other users. It checks ownership on every request.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A01:2025
+    wstg:
+    - WSTG-ATHZ-04
+    - WSTG-ATHZ-02
+    asvs:
+    - V8.2.2
+    cheatsheet:
+    - Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet
+    - Authorization_Cheat_Sheet
+    cwe:
+    - CWE-639
+    - CWE-566
+    - CWE-863
+    capec:
+    - CAPEC-1
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/04-Insecure_Direct_Object_References.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/02-Bypassing_Authorization_Schema.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authorization_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A01_2025-Broken_Access_Control.md
+- id: WEB-IDOR-002
+  sheet: WEB
+  category: IDOR
+  title: Test write, delete and export operations for IDOR
+  objective: Finds update and delete calls that do not check ownership.
+  preconditions:
+  - Do not run on production data.
+  steps:
+  - 'List all operations that take an object reference: read, create, update, delete, export.'
+  - As user A send each operation with the object ID of user B.
+  - Check the effect as user B.
+  - Test all HTTP methods and bulk calls.
+  example: curl -X DELETE -b 'session=<userA>' https://target/api/documents/<id of B>
+  expected: No operation acts on an object of another user. Every method checks ownership.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A01:2025
+    wstg:
+    - WSTG-ATHZ-04
+    asvs:
+    - V8.2.2
+    cheatsheet:
+    - Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-639
+    - CWE-862
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/04-Insecure_Direct_Object_References.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A01_2025-Broken_Access_Control.md
+- id: WEB-IDOR-003
+  sheet: WEB
+  category: IDOR
+  title: Test operations that take a user parameter
+  objective: Finds password change, profile change or other functions that act on a user named in the request.
+  steps:
+  - Find requests with user, uid, account or email parameters.
+  - Log in as A and replace the value with the name of B.
+  - 'Use multi-step flows: change the value in each step.'
+  - Check split references, where the object uses two parameters.
+  example: 'Burp Repeater: GET /changepassword?user=userB with the session of user A.'
+  expected: The server takes the user from the session and ignores or rejects other values.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A01:2025
+    wstg:
+    - WSTG-ATHZ-04
+    asvs:
+    - V8.2.2
+    cheatsheet:
+    - Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-639
+    - CWE-620
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/04-Insecure_Direct_Object_References.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A01_2025-Broken_Access_Control.md
+- id: WEB-IDOR-004
+  sheet: WEB
+  category: IDOR
+  title: Test file and resource references
+  objective: Finds file names or IDs that give access to other users' files.
+  steps:
+  - Find parameters that name files or images.
+  - Upload a file as A. Note its reference.
+  - Request it as B and with no session.
+  - Try names of other files, also from other folders.
+  example: curl -i -b 'session=<userB>' 'https://foo.bar/showImage?img=img00011'
+  expected: Files are served only to users who own them or have a right. Direct links do not skip the check.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A01:2025
+    wstg:
+    - WSTG-ATHZ-04
+    asvs:
+    - V8.2.2
+    cheatsheet:
+    - Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-639
+    - CWE-425
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/04-Insecure_Direct_Object_References.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A01_2025-Broken_Access_Control.md
+- id: WEB-IDOR-005
+  sheet: WEB
+  category: IDOR
+  title: Check that hard-to-guess IDs are not the only protection
+  objective: Finds objects protected only by secret-looking IDs such as UUIDs.
+  steps:
+  - Create an object as A and note its UUID or slug.
+  - Find the UUID in lists, emails, logs or shared links.
+  - Request the object as B with the known UUID.
+  - Check for sequential or time-based IDs.
+  example: curl -b 'session=<userB>' https://target/api/docs/550e8400-e29b-41d4-a716-446655440000
+  expected: The server checks permission for every object, also when the ID is a UUID. Random IDs are only extra defense.
+  severity: Medium
+  test_type: Manual
+  refs:
+    owasp_top10:
+    - A01:2025
+    wstg:
+    - WSTG-ATHZ-04
+    cheatsheet:
+    - Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet
+    - Authorization_Cheat_Sheet
+    cwe:
+    - CWE-639
+    - CWE-340
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/04-Insecure_Direct_Object_References.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authorization_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A01_2025-Broken_Access_Control.md

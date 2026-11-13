@@ -1,0 +1,165 @@
+- id: DESK-CODE-001
+  sheet: DESK
+  category: CODE
+  title: Check code signing of the installer, binaries and libraries
+  objective: Finds unsigned or wrongly signed files.
+  steps:
+  - List all executables and DLL files in the install.
+  - Check the signature of each file.
+  - Check that the certificate chain and time stamp are valid.
+  - Change one file and start the product.
+  example: sigcheck.exe -u -e -s "C:\Program Files\Vendor"; Get-AuthenticodeSignature; codesign -v on macOS.
+  expected: All shipped code has a valid signature from the vendor. A changed file is rejected by the installer or loader.
+  severity: Medium
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    cwe:
+    - CWE-494
+    - CWE-345
+    cheatsheet:
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    desktop_top10:
+    - DA8
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-CODE-002
+  sheet: DESK
+  category: CODE
+  title: Test for DLL search order hijacking and untrusted load paths
+  objective: Finds loads of libraries from folders that a user can write.
+  steps:
+  - Run the product with Process Monitor.
+  - Filter on NAME NOT FOUND for DLL loads.
+  - Check the write rights of the searched folders.
+  - Place a harmless test library in a writable searched folder.
+  example: 'Procmon filter: Result is NAME NOT FOUND and Path ends with .dll. Use a benign test DLL that writes a marker file.'
+  expected: The product loads libraries from fixed trusted paths. No searched folder is writable by normal users.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-426
+    - CWE-427
+    cheatsheet:
+    - DotNet_Security_Cheat_Sheet
+    desktop_top10:
+    - DA8
+    - DA5
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/DotNet_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-CODE-003
+  sheet: DESK
+  category: CODE
+  title: Test temporary files and update steps for race conditions
+  objective: Finds time-of-check time-of-use gaps in file handling.
+  steps:
+  - Find the temporary files and folders the product makes.
+  - Check the names and the access rights.
+  - Replace the file between check and use in a test setup.
+  - Check that the product checks the file again.
+  example: Procmon file events; script that swaps a test file in a lab.
+  expected: Temporary files have random names in a private folder. The product opens each file once and keeps the handle.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-367
+    - CWE-378
+    desktop_top10:
+    - DA8
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-CODE-004
+  sheet: DESK
+  category: CODE
+  title: Check binary hardening flags and memory safety of native code
+  objective: Finds missing ASLR, DEP and stack protection and unsafe functions.
+  steps:
+  - List native binaries in the install.
+  - Read the hardening flags of each.
+  - Search for unsafe copy functions in the code or symbols.
+  - Send over-long input to parsers in a test lab.
+  example: winchecksec; checksec --file on Linux; dumpbin /headers; fuzz parsers with a lab fuzzer.
+  expected: All native binaries use ASLR, DEP and stack protection. Parsers check lengths and fail safely on long input.
+  severity: Medium
+  test_type:
+  - Automated
+  - Manual
+  refs:
+    cwe:
+    - CWE-120
+    - CWE-787
+    - CWE-125
+    - CWE-416
+    asvs:
+    - V1.4.1
+    desktop_top10:
+    - DA8
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-CODE-005
+  sheet: DESK
+  category: CODE
+  title: Check the release build for debug code and test data
+  objective: Finds dead code, test accounts and debug switches in the release.
+  steps:
+  - Decompile the release build.
+  - Search for debug flags, test accounts and test URLs.
+  - Look for debug symbols and verbose log switches.
+  - Start the client with a debug argument.
+  example: ILSpy; strings; command line flags such as --debug or environment variables in the code.
+  expected: The release has no debug mode, test accounts or test data. Debug switches do not change security.
+  severity: Low
+  test_type:
+  - Manual
+  - Code Review
+  refs:
+    cwe:
+    - CWE-489
+    - CWE-215
+    asvs:
+    - V13.4.2
+    desktop_top10:
+    - DA8
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-CODE-006
+  sheet: DESK
+  category: CODE
+  title: Check that critical decisions do not depend on tamper detection alone
+  objective: Finds license and admin checks that a debugger or hook can change.
+  steps:
+  - Attach a debugger to the client in a lab.
+  - Hook the license or admin check with Frida.
+  - Change the return value.
+  - Check that the server confirms the result.
+  example: Frida script that only logs and changes one boolean in a test copy.
+  expected: Critical decisions are made on the server. Hooking the client does not give paid or admin functions.
+  severity: Low
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-693
+    desktop_top10:
+    - DA8
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/cwe/cwec_latest.xml.zip

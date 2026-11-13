@@ -1,0 +1,487 @@
+- id: CLD-LOG-006
+  sheet: CLD
+  category: LOG
+  title: Check that threat detection runs in all regions under a central admin
+  objective: Finds regions and accounts with no managed threat detection or open high findings.
+  steps:
+  - List the regions and accounts in use.
+  - Check that the threat detection service is on in each region.
+  - Check that a delegated admin manages all member accounts.
+  - Open the findings and look for high severity items.
+  - Create a sample finding and follow it to the response team.
+  example: aws guardduty list-detectors --region <r>; aws guardduty list-members --detector-id <d>; aws guardduty list-findings --detector-id <d> --finding-criteria '{"Criterion":{"severity":{"Gte":7}}}'; aws guardduty create-sample-findings --detector-id <d>; prowler aws --services guardduty
+  expected: Threat detection is on in all regions and accounts under one admin account. High findings have an owner. The sample finding reaches the response team.
+  severity: High
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-10
+    tool_check:
+    - prowler:aws:guardduty_centrally_managed
+    - prowler:aws:guardduty_delegated_admin_enabled_all_regions
+    - prowler:aws:guardduty_is_enabled
+    - prowler:aws:guardduty_no_high_severity_findings
+    cwe:
+    - CWE-778
+    attack:
+    - T1685.002
+    nist_800_53:
+    - SI-4
+    - IR-4
+    other:
+    - Microsoft cloud security benchmark v1 LT-1
+    - Microsoft cloud security benchmark v1 LT-5
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/guardduty/guardduty_centrally_managed/guardduty_centrally_managed.metadata.json
+  - sources/repos/prowler/prowler/providers/aws/services/guardduty/guardduty_no_high_severity_findings/guardduty_no_high_severity_findings.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-LOG-007
+  sheet: CLD
+  category: LOG
+  title: Check threat detection protection plans for storage, containers, functions and databases
+  objective: Finds workloads that the threat detection service does not watch.
+  steps:
+  - List the protection plans of the threat detection service.
+  - Check that the plans for storage, Kubernetes, functions, databases and malware are on.
+  - Check that runtime monitoring agents run on the nodes.
+  - Run a test action that the plan must detect.
+  example: aws guardduty get-detector --detector-id <d> --query Features; aws guardduty list-detectors; prowler aws --services guardduty
+  expected: All protection plans for the used workload types are on. Runtime agents run on all nodes. The test action creates a finding.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-10
+    tool_check:
+    - prowler:aws:guardduty_ai_protection_enabled
+    - prowler:aws:guardduty_ec2_malware_protection_enabled
+    - prowler:aws:guardduty_eks_audit_log_enabled
+    - prowler:aws:guardduty_eks_runtime_monitoring_enabled
+    - prowler:aws:guardduty_lambda_protection_enabled
+    - prowler:aws:guardduty_rds_protection_enabled
+    - prowler:aws:guardduty_runtime_monitoring_enabled
+    - prowler:aws:guardduty_s3_protection_enabled
+    cwe:
+    - CWE-778
+    attack:
+    - T1496
+    - T1530
+    nist_800_53:
+    - SI-4
+    other:
+    - Microsoft cloud security benchmark v1 LT-1
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/guardduty/guardduty_ai_protection_enabled/guardduty_ai_protection_enabled.metadata.json
+  - sources/repos/prowler/prowler/providers/aws/services/guardduty/guardduty_s3_protection_enabled/guardduty_s3_protection_enabled.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-LOG-008
+  sheet: CLD
+  category: LOG
+  title: Check that cloud workload protection plans are on for each resource type
+  objective: Finds resource types with no cloud workload protection plan.
+  steps:
+  - List the protection plans of the subscription.
+  - Check that plans for servers, databases, storage, key vault, containers, DNS and resource manager are on.
+  - Check that posture management is on at the right tier.
+  - Trigger a test alert for one plan.
+  example: az security pricing list --query "[].[name,pricingTier]"; az security alert list; prowler azure --services defender
+  expected: Every used resource type has its protection plan on. Posture management is at the tier the plan needs. The test alert appears in the portal.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-10
+    tool_check:
+    - prowler:azure:defender_ensure_defender_cspm_is_on
+    - prowler:azure:defender_ensure_defender_for_app_services_is_on
+    - prowler:azure:defender_ensure_defender_for_arm_is_on
+    - prowler:azure:defender_ensure_defender_for_azure_sql_databases_is_on
+    - prowler:azure:defender_ensure_defender_for_containers_is_on
+    - prowler:azure:defender_ensure_defender_for_cosmosdb_is_on
+    - prowler:azure:defender_ensure_defender_for_databases_is_on
+    - prowler:azure:defender_ensure_defender_for_dns_is_on
+    - prowler:azure:defender_ensure_defender_for_keyvault_is_on
+    - prowler:azure:defender_ensure_defender_for_os_relational_databases_is_on
+    - prowler:azure:defender_ensure_defender_for_server_is_on
+    - prowler:azure:defender_ensure_defender_for_sql_servers_is_on
+    - prowler:azure:defender_ensure_defender_for_storage_is_on
+    - prowler:azure:defender_ensure_iot_hub_defender_is_on
+    - prowler:azure:defender_ensure_mcas_is_enabled
+    - prowler:azure:sqlserver_microsoft_defender_enabled
+    cwe:
+    - CWE-778
+    attack:
+    - T1496
+    - T1530
+    nist_800_53:
+    - SI-4
+    - RA-5
+    other:
+    - Microsoft cloud security benchmark v1 LT-1
+    - Microsoft cloud security benchmark v1 LT-2
+  sources_read:
+  - sources/repos/prowler/prowler/providers/azure/services/defender/defender_ensure_defender_cspm_is_on/defender_ensure_defender_cspm_is_on.metadata.json
+  - sources/repos/prowler/prowler/providers/azure/services/sqlserver/sqlserver_microsoft_defender_enabled/sqlserver_microsoft_defender_enabled.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-LOG-009
+  sheet: CLD
+  category: LOG
+  title: Check agents, endpoint protection and alert routing of the workload protection service
+  objective: Finds VMs without agents or endpoint protection and alerts that nobody reads.
+  steps:
+  - List the VMs and their agent state.
+  - Check that endpoint protection and the monitoring agent are installed.
+  - Check that auto-provisioning and vulnerability assessment are on.
+  - Check the email and attack path notification settings.
+  - Look at the alerts of the last 30 days.
+  example: az security auto-provisioning-setting list; az security setting list; az security assessment list --query "[?contains(name,'endpoint')]"; az security contact list; prowler azure --services defender
+  expected: All VMs have agents and endpoint protection. Provisioning is automatic. Alert and attack path notices go to the response team.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-10
+    tool_check:
+    - prowler:azure:defender_assessments_vm_endpoint_protection_installed
+    - prowler:azure:defender_attack_path_notifications_properly_configured
+    - prowler:azure:defender_auto_provisioning_log_analytics_agent_vms_on
+    - prowler:azure:defender_auto_provisioning_vulnerabilty_assessments_machines_on
+    - prowler:azure:defender_ensure_wdatp_is_enabled
+    cwe:
+    - CWE-778
+    attack:
+    - T1685
+    - T1496
+    nist_800_53:
+    - SI-3
+    - SI-4
+    other:
+    - Microsoft cloud security benchmark v1 ES-1
+    - Microsoft cloud security benchmark v1 PV-5
+  sources_read:
+  - sources/repos/prowler/prowler/providers/azure/services/defender/defender_assessments_vm_endpoint_protection_installed/defender_assessments_vm_endpoint_protection_installed.metadata.json
+  - sources/repos/prowler/prowler/providers/azure/services/defender/defender_ensure_wdatp_is_enabled/defender_ensure_wdatp_is_enabled.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-LOG-010
+  sheet: CLD
+  category: LOG
+  title: Check sensitive data discovery on object storage
+  objective: Finds object storage with sensitive data that nobody has classified.
+  steps:
+  - List buckets in each account.
+  - Check that automated sensitive data discovery is on.
+  - Open the findings of the last scan.
+  - Place a test file with fake card numbers in a bucket and look for a finding.
+  example: aws macie2 get-macie-session; aws macie2 get-automated-discovery-configuration; aws macie2 list-findings; prowler aws --services macie
+  expected: Discovery is on for all accounts. Sensitive data findings have an owner. The test file creates a finding.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-10
+    - CNAS-8
+    tool_check:
+    - prowler:aws:macie_automated_sensitive_data_discovery_enabled
+    - prowler:aws:macie_is_enabled
+    cwe:
+    - CWE-200
+    attack:
+    - T1530
+    - T1619
+    nist_800_53:
+    - RA-2
+    - SI-4
+    other:
+    - Microsoft cloud security benchmark v1 DP-1
+    - Microsoft cloud security benchmark v1 DP-2
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/macie/macie_automated_sensitive_data_discovery_enabled/macie_automated_sensitive_data_discovery_enabled.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-LOG-011
+  sheet: CLD
+  category: LOG
+  title: Check audit log detection for enumeration, privilege escalation and LLM abuse
+  objective: Finds missing detections on audit log patterns for recon and stolen model access.
+  steps:
+  - List the detection rules on the audit log.
+  - Check rules for API enumeration, privilege escalation and model abuse.
+  - Check that AI service control-plane calls are in the audit log.
+  - Run a test enumeration with a test identity and look for an alert.
+  example: aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,AttributeValue=ListRoles; aws cloudtrail get-event-selectors --trail-name <t>; az monitor activity-log list; prowler aws --services cloudtrail
+  expected: Rules alert on enumeration, privilege escalation and unusual model calls. The test enumeration creates an alert.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    cloud_native_top10:
+    - CNAS-10
+    tool_check:
+    - prowler:aws:cloudtrail_bedrock_logging_enabled
+    - prowler:aws:cloudtrail_threat_detection_enumeration
+    - prowler:aws:cloudtrail_threat_detection_llm_jacking
+    - prowler:aws:cloudtrail_threat_detection_privilege_escalation
+    - prowler:azure:apim_threat_detection_llm_jacking
+    cwe:
+    - CWE-778
+    attack:
+    - T1580
+    - T1526
+    - T1087.004
+    nist_800_53:
+    - AU-6
+    - SI-4
+    other:
+    - Microsoft cloud security benchmark v1 LT-2
+    - Microsoft cloud security benchmark v1 LT-3
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/cloudtrail/cloudtrail_bedrock_logging_enabled/cloudtrail_bedrock_logging_enabled.metadata.json
+  - sources/repos/prowler/prowler/providers/azure/services/apim/apim_threat_detection_llm_jacking/apim_threat_detection_llm_jacking.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-LOG-012
+  sheet: CLD
+  category: LOG
+  title: Check access and execution logs of APIs, functions, workflows and build jobs
+  objective: Finds application services that keep no request or execution record.
+  steps:
+  - List API stages, GraphQL APIs, workflows, build projects and web apps.
+  - Check that access logs and execution logs are on.
+  - Check that the logs go to central storage.
+  - Send a test request and find it in the logs.
+  example: aws apigateway get-stage --rest-api-id <id> --stage-name <s> --query accessLogSettings; aws apigatewayv2 get-stages --api-id <id>; aws stepfunctions describe-state-machine --state-machine-arn <a> --query loggingConfiguration; az monitor diagnostic-settings list --resource <id>; prowler aws --services apigateway apigatewayv2 stepfunctions
+  expected: Every application service writes access and execution logs to central storage. The test request is found with caller and time.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-10
+    tool_check:
+    - prowler:aws:apigateway_restapi_logging_enabled
+    - prowler:aws:apigateway_restapi_tracing_enabled
+    - prowler:aws:apigatewayv2_api_access_logging_enabled
+    - prowler:aws:appsync_field_level_logging_enabled
+    - prowler:aws:athena_workgroup_logging_enabled
+    - prowler:aws:awslambda_function_invoke_api_operations_cloudtrail_logging_enabled
+    - prowler:aws:codebuild_project_logging_enabled
+    - prowler:aws:datasync_task_logging_enabled
+    - prowler:aws:directoryservice_directory_log_forwarding_enabled
+    - prowler:aws:stepfunctions_statemachine_logging_enabled
+    - prowler:azure:app_function_application_insights_enabled
+    - prowler:azure:app_http_logs_enabled
+    - prowler:azure:appinsights_ensure_is_configured
+    - prowler:azure:keyvault_logging_enabled
+    cwe:
+    - CWE-778
+    attack:
+    - T1685.002
+    nist_800_53:
+    - AU-2
+    - AU-12
+    other:
+    - Microsoft cloud security benchmark v1 LT-3
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/apigateway/apigateway_restapi_logging_enabled/apigateway_restapi_logging_enabled.metadata.json
+  - sources/repos/prowler/prowler/providers/azure/services/keyvault/keyvault_logging_enabled/keyvault_logging_enabled.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-LOG-013
+  sheet: CLD
+  category: LOG
+  title: Check audit and query logs of databases, search domains and brokers
+  objective: Finds data services that keep no record of logins, queries or schema changes.
+  steps:
+  - List databases, search domains, brokers and replication tasks.
+  - Check that audit logs and log exports are on.
+  - Check log settings for connections, disconnections and statements.
+  - Run a test query and find it in the log.
+  example: aws rds describe-db-instances --query "DBInstances[].[DBInstanceIdentifier,EnabledCloudwatchLogsExports]"; aws opensearch describe-domain --domain-name <d> --query DomainStatus.LogPublishingOptions; az postgres flexible-server parameter list -g <rg> -s <s>; gcloud sql instances describe <i> --format="value(settings.databaseFlags)"; prowler aws --services rds redshift opensearch
+  expected: Data services log connections, statements and schema changes to central storage. The test query is found in the log.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-10
+    tool_check:
+    - prowler:aws:dms_replication_task_source_logging_enabled
+    - prowler:aws:dms_replication_task_target_logging_enabled
+    - prowler:aws:documentdb_cluster_cloudwatch_log_export
+    - prowler:aws:mq_broker_logging_enabled
+    - prowler:aws:neptune_cluster_integration_cloudwatch_logs
+    - prowler:aws:opensearch_service_domains_audit_logging_enabled
+    - prowler:aws:opensearch_service_domains_cloudwatch_logging_enabled
+    - prowler:aws:rds_cluster_integration_cloudwatch_logs
+    - prowler:aws:rds_instance_integration_cloudwatch_logs
+    - prowler:aws:redshift_cluster_audit_logging
+    - prowler:azure:mysql_flexible_server_audit_log_connection_activated
+    - prowler:azure:mysql_flexible_server_audit_log_enabled
+    - prowler:azure:postgresql_flexible_server_log_checkpoints_on
+    - prowler:azure:postgresql_flexible_server_log_connections_on
+    - prowler:azure:postgresql_flexible_server_log_disconnections_on
+    - prowler:azure:postgresql_flexible_server_log_retention_days_greater_3
+    - prowler:azure:sqlserver_auditing_enabled
+    - prowler:gcp:cloudsql_instance_postgres_enable_pgaudit_flag
+    - prowler:gcp:cloudsql_instance_postgres_log_connections_flag
+    - prowler:gcp:cloudsql_instance_postgres_log_disconnections_flag
+    - prowler:gcp:cloudsql_instance_postgres_log_error_verbosity_flag
+    - prowler:gcp:cloudsql_instance_postgres_log_min_duration_statement_flag
+    - prowler:gcp:cloudsql_instance_postgres_log_min_error_statement_flag
+    - prowler:gcp:cloudsql_instance_postgres_log_min_messages_flag
+    - prowler:gcp:cloudsql_instance_postgres_log_statement_flag
+    cwe:
+    - CWE-778
+    attack:
+    - T1213
+    - T1685.002
+    nist_800_53:
+    - AU-2
+    - AU-12
+    other:
+    - Microsoft cloud security benchmark v1 LT-3
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/dms/dms_replication_task_source_logging_enabled/dms_replication_task_source_logging_enabled.metadata.json
+  - sources/repos/prowler/prowler/providers/gcp/services/cloudsql/cloudsql_instance_postgres_log_statement_flag/cloudsql_instance_postgres_log_statement_flag.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-LOG-014
+  sheet: CLD
+  category: LOG
+  title: Check control plane, container and cluster logs
+  objective: Finds clusters and container services that keep no control plane or runtime logs.
+  steps:
+  - List clusters and container services.
+  - Check that all control plane log types are on.
+  - Check that container logs and metrics are on.
+  - Check that the security profile of the cluster is on.
+  - Run a test API call and find it in the log.
+  example: aws eks describe-cluster --name <c> --query cluster.logging; aws ecs describe-clusters --clusters <c> --include SETTINGS; az aks show -n <c> -g <rg> --query "[addonProfiles,securityProfile]"; prowler aws --services eks ecs; prowler azure --services aks
+  expected: All control plane log types are on. Container logs and metrics are collected. The test call is found in the log.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-10
+    tool_check:
+    - prowler:aws:ecs_cluster_container_insights_enabled
+    - prowler:aws:ecs_task_definitions_logging_block_mode
+    - prowler:aws:ecs_task_definitions_logging_enabled
+    - prowler:aws:eks_control_plane_logging_all_types_enabled
+    - prowler:aws:elasticbeanstalk_environment_cloudwatch_logging_enabled
+    - prowler:aws:elasticbeanstalk_environment_enhanced_health_reporting
+    - prowler:azure:aks_cluster_azure_monitor_enabled
+    - prowler:azure:aks_cluster_defender_enabled
+    cwe:
+    - CWE-778
+    attack:
+    - T1613
+    - T1610
+    nist_800_53:
+    - AU-2
+    - AU-12
+    other:
+    - Microsoft cloud security benchmark v1 LT-3
+    - Microsoft cloud security benchmark v1 LT-1
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/ecs/ecs_cluster_container_insights_enabled/ecs_cluster_container_insights_enabled.metadata.json
+  - sources/repos/prowler/prowler/providers/azure/services/aks/aks_cluster_defender_enabled/aks_cluster_defender_enabled.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-LOG-015
+  sheet: CLD
+  category: LOG
+  title: Check storage access logs and object change notifications
+  objective: Finds buckets where reads and changes leave no record.
+  steps:
+  - List buckets and containers.
+  - Check that server access logging is on.
+  - Check that change notifications exist for important buckets.
+  - Read a test object and find the record.
+  example: aws s3api get-bucket-logging --bucket <b>; aws s3api get-bucket-notification-configuration --bucket <b>; gcloud storage buckets describe gs://<b> --format="value(logging)"; prowler aws --services s3
+  expected: Access logs go to a separate protected bucket. Change notifications alert on important buckets. The test read is found in the log.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-10
+    tool_check:
+    - prowler:aws:s3_bucket_event_notifications_enabled
+    - prowler:aws:s3_bucket_server_access_logging_enabled
+    - prowler:gcp:cloudstorage_bucket_logging_enabled
+    cwe:
+    - CWE-778
+    attack:
+    - T1530
+    - T1685.002
+    nist_800_53:
+    - AU-2
+    - AU-12
+    other:
+    - Microsoft cloud security benchmark v1 LT-3
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/s3/s3_bucket_event_notifications_enabled/s3_bucket_event_notifications_enabled.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-LOG-016
+  sheet: CLD
+  category: LOG
+  title: Check detailed monitoring metrics for hosts and brokers
+  objective: Finds hosts and brokers with coarse metrics that hide short attacks.
+  steps:
+  - List instances, databases and brokers.
+  - Check that detailed or enhanced monitoring is on.
+  - Check that alarms use the detailed metrics.
+  example: aws ec2 describe-instances --query "Reservations[].Instances[].[InstanceId,Monitoring.State]"; aws kafka describe-cluster --cluster-arn <a> --query ClusterInfo.EnhancedMonitoring; prowler aws --services ec2 kafka
+  expected: Detailed monitoring is on for critical systems. Alarms use one-minute metrics.
+  severity: Info
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-10
+    tool_check:
+    - prowler:aws:ec2_instance_detailed_monitoring_enabled
+    - prowler:aws:kafka_cluster_enhanced_monitoring_enabled
+    cwe:
+    - CWE-778
+    attack:
+    - T1496
+    nist_800_53:
+    - SI-4
+    - AU-6
+    other:
+    - Microsoft cloud security benchmark v1 LT-3
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/ec2/ec2_instance_detailed_monitoring_enabled/ec2_instance_detailed_monitoring_enabled.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-LOG-017
+  sheet: CLD
+  category: LOG
+  title: Check invocation logs and diagnostic logs of AI services
+  objective: Finds AI services that keep no record of model calls and data-plane use.
+  steps:
+  - List the AI services and model endpoints.
+  - Check that invocation logging or diagnostic logging is on.
+  - Check that log storage is encrypted and access is limited.
+  - Make a test model call and find it in the log.
+  example: aws bedrock get-model-invocation-logging-configuration; az monitor diagnostic-settings list --resource <ai-account-id>; prowler aws --services bedrock; prowler azure --services aiservices
+  expected: Model calls are logged with caller and time. Log storage is encrypted and restricted. The test call is found in the log.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-10
+    tool_check:
+    - prowler:aws:bedrock_model_invocation_logging_enabled
+    - prowler:aws:bedrock_model_invocation_logging_text_data_enabled
+    - prowler:aws:bedrock_model_invocation_logs_encryption_enabled
+    - prowler:aws:cloudtrail_agentcore_data_events_enabled
+    - prowler:aws:cloudwatch_log_group_agentcore_data_protection_policy_enabled
+    - prowler:azure:aiservices_account_diagnostic_logging_enabled
+    cwe:
+    - CWE-778
+    attack:
+    - T1685.002
+    - T1496
+    nist_800_53:
+    - AU-2
+    - AU-9
+    other:
+    - Microsoft cloud security benchmark v1 LT-3
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/bedrock/bedrock_model_invocation_logging_enabled/bedrock_model_invocation_logging_enabled.metadata.json
+  - sources/repos/prowler/prowler/providers/azure/services/aiservices/aiservices_account_diagnostic_logging_enabled/aiservices_account_diagnostic_logging_enabled.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx

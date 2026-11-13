@@ -1,0 +1,71 @@
+- id: CLD-SUP-005
+  sheet: CLD
+  category: SUP
+  title: Check image tag immutability and lifecycle rules in registries
+  objective: Finds registries where a tag can point to a new image or old images pile up.
+  steps:
+  - List the repositories.
+  - Check that tag immutability is on.
+  - Check that a lifecycle policy removes old images.
+  - Push a changed image to an existing tag in a test repository.
+  example: aws ecr describe-repositories --query "repositories[].[repositoryName,imageTagMutability]"; aws ecr get-lifecycle-policy --repository-name <r>; prowler aws --services ecr
+  expected: Tags are immutable. Lifecycle rules remove old images. The push to an existing tag fails.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-4
+    tool_check:
+    - prowler:aws:ecr_repositories_lifecycle_policy_enabled
+    - prowler:aws:ecr_repositories_tag_immutability
+    cwe:
+    - CWE-494
+    attack:
+    - T1525
+    - T1195.002
+    nist_800_53:
+    - CM-2
+    - SI-7
+    other:
+    - Microsoft cloud security benchmark v1 DS-2
+    - Microsoft cloud security benchmark v1 AM-3
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/ecr/ecr_repositories_lifecycle_policy_enabled/ecr_repositories_lifecycle_policy_enabled.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-SUP-006
+  sheet: CLD
+  category: SUP
+  title: Check database vulnerability assessment scans and reports
+  objective: Finds databases with no recurring vulnerability scan or no report recipient.
+  steps:
+  - List the managed database servers.
+  - Check that vulnerability assessment is on.
+  - Check that scans run each week.
+  - Check that reports go to the admins.
+  - Open the latest report and examine the findings.
+  example: az sql server va-setting show -g <rg> -n <s>; az sql db threat-policy show -g <rg> -s <s> -n <d>; prowler azure --services sqlserver
+  expected: Vulnerability assessment runs on a schedule. Reports go to the admins. Open findings have an owner and a due date.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-7
+    tool_check:
+    - prowler:azure:sqlserver_va_emails_notifications_admins_enabled
+    - prowler:azure:sqlserver_va_periodic_recurring_scans_enabled
+    - prowler:azure:sqlserver_va_scan_reports_configured
+    - prowler:azure:sqlserver_vulnerability_assessment_enabled
+    cwe:
+    - CWE-1188
+    attack:
+    - T1190
+    nist_800_53:
+    - RA-5
+    - SI-2
+    other:
+    - Microsoft cloud security benchmark v1 PV-5
+    - Microsoft cloud security benchmark v1 PV-6
+  sources_read:
+  - sources/repos/prowler/prowler/providers/azure/services/sqlserver/sqlserver_va_emails_notifications_admins_enabled/sqlserver_va_emails_notifications_admins_enabled.metadata.json
+  - sources/repos/prowler/prowler/providers/azure/services/sqlserver/sqlserver_vulnerability_assessment_enabled/sqlserver_vulnerability_assessment_enabled.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx

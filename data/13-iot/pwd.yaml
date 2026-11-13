@@ -1,0 +1,165 @@
+- id: IOT-PWD-001
+  sheet: IOT
+  category: PWD
+  title: Find default and shared credentials on the device
+  objective: Finds devices that ship with the same login on every unit.
+  steps:
+  - Read the quick start guide and the label for default logins.
+  - Log in to each interface with the default login.
+  - Reset two devices to factory state.
+  - Compare the credentials of the two devices.
+  example: 'nmap -sV -p- device; hydra is not needed: try only the vendor documented login on a lab unit.'
+  expected: Each device has a unique credential or forces a new one at first use. A reset never restores a shared default.
+  severity: Critical
+  test_type:
+  - Manual
+  refs:
+    other:
+    - UK Code of Practice for Consumer IoT Security provision 1, as listed in iot_map.md
+    - GSMA CLP13_6.8
+    cwe:
+    - CWE-1392
+    - CWE-1393
+    - CWE-1391
+    attack:
+    - T1694.001
+    iot_top10:
+    - I1
+    - I9
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/cwe/cwec_latest.xml.zip
+  - sources/attack/ics-attack.json
+- id: IOT-PWD-002
+  sheet: IOT
+  category: PWD
+  title: Search the firmware for hard-coded passwords and keys
+  objective: Finds credentials and backdoor accounts inside the firmware image.
+  steps:
+  - Get the firmware image from the vendor site or the device.
+  - Unpack it with binwalk -e.
+  - Search the files for passwd, shadow, keys and strings.
+  - Test each found account on a lab device.
+  example: binwalk -e fw.bin; firmwalker.sh _fw.bin.extracted; strings -n 8 bin/* | grep -i pass; cat etc/shadow.
+  expected: The firmware holds no hard-coded password, key or backdoor account. All secrets are made per device.
+  severity: Critical
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    other:
+    - UK Code of Practice for Consumer IoT Security provision 4, as listed in iot_map.md
+    cwe:
+    - CWE-798
+    - CWE-259
+    - CWE-321
+    cheatsheet:
+    - Key_Management_Cheat_Sheet
+    - Secrets_Management_Cheat_Sheet
+    attack:
+    - T1694.002
+    iot_top10:
+    - I1
+    - I7
+  see:
+  - WEB-CRYPTO-018
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+  - sources/attack/ics-attack.json
+  - sources/repos/www-project-internet-of-things/tab_validate_and_test.md
+- id: IOT-PWD-003
+  sheet: IOT
+  category: PWD
+  title: Test password policy and lock-out on the device interfaces
+  objective: Finds weak passwords and unlimited guessing on web, SSH and Telnet.
+  steps:
+  - List every interface that accepts a password.
+  - Set a short and a common password.
+  - Send 20 wrong logins in a row to a lab unit.
+  - Check for a delay, a lock or an alert.
+  example: Burp Intruder at low rate on the device web login; nmap --script ssh-auth-methods.
+  expected: The device rejects weak passwords. Repeated wrong logins cause a delay or a lock.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-1391
+    cheatsheet:
+    - Password_Storage_Cheat_Sheet
+    attack:
+    - T0859
+    iot_top10:
+    - I1
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Password_Storage_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+  - sources/attack/ics-attack.json
+- id: IOT-PWD-004
+  sheet: IOT
+  category: PWD
+  title: Check how the device stores and checks user passwords
+  objective: Finds clear text and weak hashes in device databases.
+  steps:
+  - Find the password file or database in the extracted firmware.
+  - Read the stored value format.
+  - Identify the hash type and salt.
+  - Check the hash cost.
+  example: cat etc/shadow; sqlite3 config.db .dump; look for crypt prefixes $1$, $5$, $6$, $y$.
+  expected: Passwords are stored with a salted, slow hash such as Argon2id, bcrypt or PBKDF2.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-256
+    - CWE-257
+    - CWE-916
+    cheatsheet:
+    - Password_Storage_Cheat_Sheet
+    iot_top10:
+    - I1
+    - I7
+  see:
+  - WEB-CRYPTO-013
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Password_Storage_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: IOT-PWD-005
+  sheet: IOT
+  category: PWD
+  title: Check device-to-cloud identity and mutual authentication
+  objective: Finds devices that share one cloud key or do not prove their identity.
+  steps:
+  - Capture the device enrollment.
+  - Compare the device credentials of two units.
+  - Present one device credential from another device in a lab.
+  - Check that the cloud rejects the copy.
+  example: Wireshark and a lab proxy; compare client certificates or tokens of two devices.
+  expected: Each device has its own identity. The cloud rejects a credential that comes from a different unit or is revoked.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    other:
+    - GSMA CLP13_6.20
+    - GSMA CLP13_7.6
+    cwe:
+    - CWE-306
+    - CWE-798
+    iot_top10:
+    - I1
+    - I3
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/cwe/cwec_latest.xml.zip

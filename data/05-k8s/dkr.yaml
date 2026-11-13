@@ -1,0 +1,213 @@
+- id: K8S-DKR-001
+  sheet: K8S
+  category: DKR
+  title: Check that the Docker daemon socket is not exposed
+  objective: Finds hosts and containers where access to the Docker API gives root on the host.
+  steps:
+  - Check if the daemon listens on a TCP port.
+  - Check the permissions and group members of /var/run/docker.sock.
+  - List containers that mount the socket, also with a read-only flag.
+  - Check if remote API access uses TLS and client certificates.
+  example: ss -tlnp | grep dockerd; ls -l /var/run/docker.sock; docker ps -q | xargs docker inspect --format "{{.Name}} {{.Mounts}}" | grep docker.sock
+  expected: The daemon does not listen on unencrypted TCP. No container mounts the socket. Access to the socket is limited to named admins.
+  severity: Critical
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K01
+    cloud_native_top10:
+    - CNAS-1
+    cheatsheet:
+    - Docker_Security_Cheat_Sheet
+    cwe:
+    - CWE-306
+    - CWE-668
+    attack:
+    - T1610
+    - T1611
+    nist_800_53:
+    - AC-3
+    - CM-7
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K01-Insecure-Workload-Configurations.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+- id: K8S-DKR-002
+  sheet: K8S
+  category: DKR
+  title: Check that Docker hosts use rootless mode or user namespace remapping
+  objective: Finds daemons and containers where root in the container is root on the host.
+  steps:
+  - Check if the daemon runs in rootless mode.
+  - If not, read the userns-remap setting.
+  - Run id inside a container and compare it to the host user.
+  - Check the limits of rootless mode for the workload.
+  example: docker info --format "{{.SecurityOptions}}"; cat /etc/docker/daemon.json; docker run --rm alpine id
+  expected: The daemon runs rootless or with user namespace remapping, and container root maps to an unprivileged host user.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K01
+    cloud_native_top10:
+    - CNAS-1
+    cheatsheet:
+    - Docker_Security_Cheat_Sheet
+    cwe:
+    - CWE-250
+    attack:
+    - T1611
+    nist_800_53:
+    - AC-6
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K01-Insecure-Workload-Configurations.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+- id: K8S-DKR-003
+  sheet: K8S
+  category: DKR
+  title: Check published ports, firewall rules and container connectivity
+  objective: Finds container ports open on all interfaces and containers that talk to each other with no limit.
+  steps:
+  - List published ports for each container.
+  - Find ports bound to 0.0.0.0 that need only local access.
+  - Check the host firewall for rules that the container runtime bypasses.
+  - List the Docker networks and the containers on each.
+  example: docker ps --format "{{.Names}} {{.Ports}}"; docker network ls; docker network inspect bridge; iptables -S DOCKER-USER
+  expected: Ports bind to 127.0.0.1 unless public use is needed. Containers share a user-defined network only when they must talk to each other.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K05
+    cloud_native_top10:
+    - CNAS-6
+    - CNAS-1
+    cheatsheet:
+    - Docker_Security_Cheat_Sheet
+    cwe:
+    - CWE-668
+    - CWE-1327
+    attack:
+    - T1190
+    nist_800_53:
+    - SC-7
+    - CM-7
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K05-Missing-Network-Segmentation-Controls.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x06_over_permissive_network.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+- id: K8S-DKR-004
+  sheet: K8S
+  category: DKR
+  title: Check resource limits and restart policy on containers
+  objective: Finds containers that can use all memory, CPU, processes or restarts on a host.
+  preconditions:
+  - Do not run the stress test on production.
+  steps:
+  - List memory, CPU, pids and ulimit settings of each container.
+  - Find containers with no limit.
+  - Check the restart policy and the maximum restart count.
+  - Run a stress test in a test container.
+  example: docker inspect --format "{{.Name}} {{.HostConfig.Memory}} {{.HostConfig.CpuShares}} {{.HostConfig.PidsLimit}} {{.HostConfig.RestartPolicy}}" $(docker ps -q); docker stats --no-stream
+  expected: Each container has memory, CPU and process limits and a bounded restart policy. A stress test does not harm other containers.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K01
+    cloud_native_top10:
+    - CNAS-9
+    cheatsheet:
+    - Docker_Security_Cheat_Sheet
+    - Denial_of_Service_Cheat_Sheet
+    cwe:
+    - CWE-770
+    attack:
+    - T1499
+    - T1496
+    nist_800_53:
+    - SC-5
+    - SC-6
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K01-Insecure-Workload-Configurations.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x09_compute_resources.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Denial_of_Service_Cheat_Sheet.md
+- id: K8S-DKR-005
+  sheet: K8S
+  category: DKR
+  title: Check Docker secrets and build-time secret handling
+  objective: Finds secrets in image layers, build arguments and container environments.
+  steps:
+  - Search Dockerfiles for ARG, ENV or COPY that handle credentials.
+  - Run docker history on each image.
+  - Check if builds use BuildKit secret mounts.
+  - Check that runtime secrets use Docker secrets or an external store.
+  example: docker history --no-trunc <image>; grep -nE "ARG|ENV" Dockerfile | grep -iE "pass|token|key|secret"; docker build --secret id=mysecret,src=./secret.txt .
+  expected: Images hold no secrets in layers, ARG or ENV. Builds use secret mounts and runtime secrets come from a managed store.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K03
+    cloud_native_top10:
+    - CNAS-5
+    cheatsheet:
+    - Docker_Security_Cheat_Sheet
+    - Secrets_Management_Cheat_Sheet
+    cwe:
+    - CWE-798
+    - CWE-312
+    attack:
+    - T1552.001
+    nist_800_53:
+    - IA-5
+    - SC-28
+  see:
+  - CICD-CRED-005
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K03-Secrets-Management-Failures.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x05_insecure_secrets.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+- id: K8S-DKR-006
+  sheet: K8S
+  category: DKR
+  title: Check the Docker daemon log level and host benchmark results
+  objective: Finds Docker hosts with debug logging or other weak daemon settings.
+  steps:
+  - Read the log-level setting in daemon.json and the dockerd command line.
+  - Run a Docker host benchmark tool.
+  - List failed checks.
+  - Fix or record each failed check.
+  example: cat /etc/docker/daemon.json; ps aux | grep "[d]ockerd"; docker-bench-security
+  expected: The daemon log level is info unless debug is needed for a short time. Failed benchmark checks are fixed or recorded with an owner.
+  severity: Low
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K07
+    cloud_native_top10:
+    - CNAS-10
+    - CNAS-1
+    cheatsheet:
+    - Docker_Security_Cheat_Sheet
+    cwe:
+    - CWE-1188
+    nist_800_53:
+    - AU-2
+    - CM-6
+  notes: docker-bench-security is a third-party tool, named here as a hint only. The CIS Docker Benchmark is not on disk and is not cited.
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K07-Misconfigured-And-Vulnerable-Cluster-Components.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x0A_logging.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md

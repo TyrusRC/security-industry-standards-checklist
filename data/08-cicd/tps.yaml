@@ -1,0 +1,229 @@
+- id: CICD-TPS-001
+  sheet: CICD
+  category: TPS
+  title: List all third-party integrations in the SCM and CI
+  objective: Finds integrations that nobody approved, such as apps, OAuth apps, tokens, SSH keys and webhooks.
+  preconditions:
+  - Admin read access to the SCM organization.
+  steps:
+  - List GitHub or GitLab apps, OAuth apps, personal tokens, deploy keys and webhooks.
+  - Record the owner, the method and the permission level of each.
+  - Find integrations without an approval record.
+  - Check that webhook targets belong to known vendors and use a secret.
+  example: gh api orgs/ORG/installations; gh api orgs/ORG/hooks; gh api repos/ORG/REPO/keys; gh api repos/ORG/REPO/hooks
+  expected: Every integration has an approval record, an owner and a known permission level. No unknown app, key or webhook exists.
+  severity: High
+  test_type: &id001
+  - Manual
+  - Config Review
+  refs:
+    owasp_top10:
+    - A03:2025
+    cicd_top10:
+    - CICD-SEC-8
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-829
+    attack:
+    - T1199
+    nist_800_53:
+    - SR-3
+    - CM-8
+    other:
+    - SSDF PW.4.1
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-08-Ungoverned-Usage-of-3rd-Party-Services.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+- id: CICD-TPS-002
+  sheet: CICD
+  category: TPS
+  title: Compare granted and used permissions of third-party integrations
+  objective: Finds integrations with more access than they use.
+  preconditions:
+  - Admin read access to the SCM organization.
+  steps:
+  - For each integration, read the permissions it holds and the repositories it can reach.
+  - Look at the audit log for the permissions it used in the last 90 days.
+  - Mark unused and excess permissions.
+  - Reduce the access to the used set.
+  example: gh api orgs/ORG/installations --jq '.installations[]|{app_slug,permissions,repository_selection}'
+  expected: Each integration holds only the permissions it uses, on the repositories it needs. Excess permissions are removed.
+  severity: High
+  test_type: *id001
+  refs:
+    owasp_top10:
+    - A03:2025
+    cicd_top10:
+    - CICD-SEC-8
+    - CICD-SEC-2
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-269
+    attack:
+    - T1199
+    nist_800_53:
+    - AC-6
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-08-Ungoverned-Usage-of-3rd-Party-Services.md
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-02-Inadequate-Identity-And-Access-Management.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+- id: CICD-TPS-003
+  sheet: CICD
+  category: TPS
+  title: Check that third-party actions and plugins are approved and pinned
+  objective: Finds build steps that load unreviewed third-party code that can change without notice.
+  preconditions:
+  - Read access to the pipeline files.
+  steps:
+  - Read the allowed actions policy of the organization.
+  - List each action, plugin or orb in the pipelines.
+  - Make sure each is on an approved list.
+  - Make sure each is pinned to a full commit hash or a fixed version.
+  example: gh api orgs/ORG/actions/permissions --jq .allowed_actions; zizmor --pedantic .github/workflows/; pinact run --check
+  expected: Only approved third-party steps are allowed. Each one is pinned to a commit hash or a fixed version, and the pin changes only through review.
+  severity: High
+  test_type:
+  - Config Review
+  - Automated
+  refs:
+    owasp_top10:
+    - A03:2025
+    - A08:2025
+    cicd_top10:
+    - CICD-SEC-8
+    - CICD-SEC-3
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-829
+    - CWE-1357
+    capec:
+    - CAPEC-446
+    attack:
+    - T1195.002
+    nist_800_53:
+    - SR-3
+    other:
+    - SSDF PW.4.1
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-08-Ungoverned-Usage-of-3rd-Party-Services.md
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-03-Dependency-Chain-Abuse.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/Top10/2025/docs/en/A08_2025-Software_or_Data_Integrity_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+- id: CICD-TPS-004
+  sheet: CICD
+  category: TPS
+  title: Check who can install plugins and add integrations
+  objective: Finds users who can extend the CI/CD platform without vetting.
+  preconditions:
+  - Admin read access to the CI platform.
+  steps:
+  - List the roles that can install plugins, apps and integrations.
+  - Make sure the group is small.
+  - 'Read the vetting steps for a new plugin: vendor history, upkeep and needed settings.'
+  - Look at the last three additions and find their approval record.
+  example: curl -s https://JENKINS/role-strategy/strategy/getAllRoles; gh api orgs/ORG --jq .members_can_install_apps
+  expected: Only a small group can add plugins and integrations. Each addition has a vetting record and enters configuration management.
+  severity: Medium
+  test_type: *id001
+  refs:
+    owasp_top10:
+    - A03:2025
+    cicd_top10:
+    - CICD-SEC-8
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-284
+    nist_800_53:
+    - CM-5
+    - CM-7
+    other:
+    - SSDF PW.4.1
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-08-Ungoverned-Usage-of-3rd-Party-Services.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+- id: CICD-TPS-005
+  sheet: CICD
+  category: TPS
+  title: Check assessment of third-party suppliers and components
+  objective: Finds suppliers and open-source components that entered the chain without a risk review.
+  preconditions:
+  - Access to the supplier review records.
+  steps:
+  - Pick five recent new suppliers or components.
+  - Look for a record of security history, upkeep and vulnerability handling.
+  - Make sure the review matches the criticality of the component.
+  - Make sure the process names who approves.
+  example: scorecard --repo=github.com/OWNER/PROJECT; osv-scanner --lockfile=package-lock.json
+  expected: Each supplier and component has a review record. High-risk items get a deeper review and a named approver.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    owasp_top10:
+    - A03:2025
+    cicd_top10:
+    - CICD-SEC-8
+    - CICD-SEC-3
+    cheatsheet:
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-1357
+    - CWE-1104
+    other:
+    - SSDF PW.4.1
+    - SSDF PW.4.4
+    - SSDF PO.1.3
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-08-Ungoverned-Usage-of-3rd-Party-Services.md
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-03-Dependency-Chain-Abuse.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+- id: CICD-TPS-006
+  sheet: CICD
+  category: TPS
+  title: Review removal of unused integrations
+  objective: Finds integrations, apps and webhooks that stay active after the need ended.
+  preconditions:
+  - Admin read access to the SCM organization.
+  steps:
+  - List integrations and their last activity date.
+  - Find integrations with no activity in the policy period.
+  - Make sure there is a periodic review with named owners.
+  - Remove one unused test integration and check the process.
+  example: gh api orgs/ORG/installations --jq '.installations[]|{app_slug,updated_at}'; gh api orgs/ORG/audit-log?phrase=action:integration_installation
+  expected: A scheduled review removes unused integrations. No integration is idle longer than the policy period.
+  severity: Low
+  test_type: *id001
+  refs:
+    owasp_top10:
+    - A03:2025
+    cicd_top10:
+    - CICD-SEC-8
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-284
+    nist_800_53:
+    - CM-8
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-08-Ungoverned-Usage-of-3rd-Party-Services.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md

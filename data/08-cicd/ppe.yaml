@@ -1,0 +1,309 @@
+- id: CICD-PPE-001
+  sheet: CICD
+  category: PPE
+  title: Test direct poisoned pipeline execution from an unreviewed branch
+  objective: Finds pipelines where a changed CI file on an unreviewed branch runs with secrets.
+  preconditions:
+  - Do not run on production. Use a test repository or a test branch with no real secrets.
+  steps:
+  - List the events that start each pipeline, such as push and pull request.
+  - Make sure the pipeline for a push to an unprotected branch has no secrets and no deploy rights.
+  - Push a harmless change to a CI file on a test branch that prints a marker text.
+  - Look at the run and make sure no secret or protected environment was available.
+  example: zizmor .github/workflows/; actionlint; gh api repos/ORG/REPO/actions/secrets; echo CANARY-OK in a test workflow
+  expected: A changed CI file on an unreviewed branch or pull request runs without secrets, without deploy rights and without protected environments.
+  severity: Critical
+  test_type: &id001
+  - Manual
+  - Config Review
+  refs:
+    owasp_top10:
+    - A08:2025
+    cicd_top10:
+    - CICD-SEC-4
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-94
+    - CWE-77
+    capec:
+    - CAPEC-445
+    attack:
+    - T1195.002
+    - T1072
+    other:
+    - SSDF PS.1.1
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-04-Poisoned-Pipeline-Execution.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/Top10/2025/docs/en/A08_2025-Software_or_Data_Integrity_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+- id: CICD-PPE-002
+  sheet: CICD
+  category: PPE
+  title: Check that CI configuration files need review before they run
+  objective: Finds CI definitions that a user can change without a second person reviewing them.
+  preconditions:
+  - Read access to the repository settings.
+  steps:
+  - Find where the CI configuration file is stored.
+  - Make sure a named owner must review changes to it, or that it comes from a protected source.
+  - Read the CODEOWNERS file for the workflow and pipeline paths.
+  - Make sure branch protection requires the code owner review.
+  example: cat .github/CODEOWNERS | grep -E 'workflows|Jenkinsfile|\.gitlab-ci'; gh api repos/ORG/REPO/branches/main/protection --jq .required_pull_request_reviews.require_code_owner_reviews
+  expected: CI configuration changes need code owner review. Or the pipeline reads its definition from a protected branch or a separate protected repository.
+  severity: High
+  test_type: *id001
+  refs:
+    owasp_top10:
+    - A08:2025
+    cicd_top10:
+    - CICD-SEC-4
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-284
+    capec:
+    - CAPEC-445
+    attack:
+    - T1195.002
+    - T1072
+    nist_800_53:
+    - CM-3
+    - CM-5
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-04-Poisoned-Pipeline-Execution.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/Top10/2025/docs/en/A08_2025-Software_or_Data_Integrity_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+- id: CICD-PPE-003
+  sheet: CICD
+  category: PPE
+  title: Test indirect poisoned pipeline execution through referenced files
+  objective: Finds jobs that run repository files, such as Makefile, scripts and test code, with secrets.
+  preconditions:
+  - Do not run on production. Use a test branch with no real secrets.
+  steps:
+  - List the files that the pipeline runs, such as Makefile, scripts, test code and linter configuration.
+  - Find the jobs that run these files together with secrets.
+  - Change a referenced script on a test branch to print a marker text.
+  - Make sure the changed file runs without secrets until a reviewer approves it.
+  example: grep -rnE 'make |bash |sh |python |npm run' .github/workflows Jenkinsfile; grep -rn 'secrets\.' .github/workflows
+  expected: Jobs with secrets run only reviewed files. Unreviewed files run in a job without secrets, or the secret step does not run repository scripts.
+  severity: High
+  test_type: *id001
+  refs:
+    owasp_top10:
+    - A08:2025
+    cicd_top10:
+    - CICD-SEC-4
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-94
+    capec:
+    - CAPEC-445
+    attack:
+    - T1195.002
+    - T1072
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-04-Poisoned-Pipeline-Execution.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/Top10/2025/docs/en/A08_2025-Software_or_Data_Integrity_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+- id: CICD-PPE-004
+  sheet: CICD
+  category: PPE
+  title: Test public poisoned pipeline execution from forks
+  objective: Finds public repositories that run code from anonymous contributors with secrets or write tokens.
+  preconditions:
+  - Read access to the repository settings.
+  steps:
+  - List the workflows that run on pull requests from forks.
+  - Make sure forks do not receive secrets and get a read-only token.
+  - Look for pull_request_target or similar triggers that check out and run fork code.
+  - Make sure first-time contributors need manual approval before a run.
+  example: zizmor --pedantic .github/workflows/; gh api repos/ORG/REPO/actions/permissions/fork-pr-contributor-approval; grep -rn 'pull_request_target' .github/workflows
+  expected: Fork pull requests run without secrets and with a read-only token. Triggers with write rights never run fork code. Outside contributors need approval.
+  severity: Critical
+  test_type:
+  - Config Review
+  - Automated
+  refs:
+    owasp_top10:
+    - A08:2025
+    cicd_top10:
+    - CICD-SEC-4
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-94
+    - CWE-250
+    capec:
+    - CAPEC-445
+    attack:
+    - T1195.002
+    - T1072
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-04-Poisoned-Pipeline-Execution.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/Top10/2025/docs/en/A08_2025-Software_or_Data_Integrity_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+- id: CICD-PPE-005
+  sheet: CICD
+  category: PPE
+  title: Check that public repository pipelines do not share runners with private ones
+  objective: Finds public project builds that run on the same CI instance or runner as private projects.
+  preconditions:
+  - Admin read access to the CI settings.
+  steps:
+  - List the runners and the CI instances for public and private repositories.
+  - Find runners that serve both.
+  - Look for shared caches, volumes and credentials between them.
+  - Make sure public builds use separate ephemeral runners.
+  example: gh api orgs/ORG/actions/runner-groups --jq '.runner_groups[]|{name,visibility,allows_public_repositories}'
+  expected: Public and private pipelines use separate runners, caches and credentials. Runners for public builds are ephemeral.
+  severity: High
+  test_type: *id001
+  refs:
+    owasp_top10:
+    - A08:2025
+    cicd_top10:
+    - CICD-SEC-4
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-284
+    attack:
+    - T1195.002
+    - T1072
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-04-Poisoned-Pipeline-Execution.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/Top10/2025/docs/en/A08_2025-Software_or_Data_Integrity_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+- id: CICD-PPE-006
+  sheet: CICD
+  category: PPE
+  title: Test CI steps for injection from untrusted context values
+  objective: Finds steps that put names of branches, pull request titles or commit messages into shell commands.
+  preconditions:
+  - Use a test repository. Use only a harmless marker text.
+  steps:
+  - Search the pipeline files for context values that enter run steps, such as titles, branch names and issue text.
+  - Make sure the values pass through environment variables, not direct text insertion.
+  - Open a test pull request with a title that holds a harmless command substitution marker.
+  - Look at the run log and make sure the marker is printed as plain text.
+  example: zizmor --format plain .github/workflows/ | grep -i injection; actionlint -shellcheck=; grep -rn '\${{ github.event' .github/workflows
+  expected: Untrusted values never go into shell code. The marker text appears in the log as plain text.
+  severity: High
+  test_type:
+  - Code Review
+  - Automated
+  refs:
+    owasp_top10:
+    - A08:2025
+    cicd_top10:
+    - CICD-SEC-4
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-77
+    - CWE-94
+    attack:
+    - T1195.002
+    - T1072
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-04-Poisoned-Pipeline-Execution.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/Top10/2025/docs/en/A08_2025-Software_or_Data_Integrity_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+- id: CICD-PPE-007
+  sheet: CICD
+  category: PPE
+  title: Check user-controlled build parameters
+  objective: Finds build parameters that let a user change how the build runs, for example scripts or URLs.
+  preconditions:
+  - Read access to the pipeline configuration.
+  steps:
+  - List the manual triggers and the input parameters of each pipeline.
+  - Find parameters that set commands, URLs, branches or script paths.
+  - Make sure only authorized users can start these triggers.
+  - Remove the parameters that are not needed.
+  example: grep -rn 'workflow_dispatch\|parameters {' -A8 .github/workflows Jenkinsfile
+  expected: Build parameters are few. They accept only validated values and do not set commands or script locations. Only authorized users can start the build.
+  severity: Medium
+  test_type: *id001
+  refs:
+    owasp_top10:
+    - A08:2025
+    cicd_top10:
+    - CICD-SEC-4
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-77
+    attack:
+    - T1195.002
+    - T1072
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-04-Poisoned-Pipeline-Execution.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/Top10/2025/docs/en/A08_2025-Software_or_Data_Integrity_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+- id: CICD-PPE-008
+  sheet: CICD
+  category: PPE
+  title: Make sure pipeline definitions and build scripts are in version control
+  objective: Finds pipeline settings that exist only in the CI user interface with no history or review.
+  preconditions:
+  - Read access to the CI system.
+  steps:
+  - List the pipelines and jobs in the CI system.
+  - Find jobs whose definition is only in the CI user interface.
+  - Make sure each pipeline definition and build script is in a repository.
+  - Make sure the audit log shows who changed a job setting.
+  example: curl -s https://JENKINS/api/json?tree=jobs[name,_class]; gh api repos/ORG/REPO/contents/.github/workflows
+  expected: Every pipeline definition and build script is in version control with review and history. No job exists only in the user interface.
+  severity: Medium
+  test_type: *id001
+  refs:
+    owasp_top10:
+    - A08:2025
+    cicd_top10:
+    - CICD-SEC-4
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-1269
+    attack:
+    - T1195.002
+    - T1072
+    nist_800_53:
+    - CM-3
+    - CM-2
+    other:
+    - SSDF PS.1.1
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-04-Poisoned-Pipeline-Execution.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/Top10/2025/docs/en/A08_2025-Software_or_Data_Integrity_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt

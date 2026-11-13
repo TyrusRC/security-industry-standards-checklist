@@ -1,0 +1,279 @@
+- id: CICD-IAM-001
+  sheet: CICD
+  category: IAM
+  title: Review identities and permissions across the CI/CD systems
+  objective: Finds overly permissive human and programmatic identities in the SCM, CI and registries.
+  preconditions:
+  - Admin read access to the SCM, CI and artifact registry.
+  steps:
+  - List all human and programmatic identities in the SCM, CI, registry and deployment tools.
+  - Record the identity provider and the permission level of each identity.
+  - Compare the granted permissions with the permissions in use.
+  - Find identities with organization-wide write or admin rights.
+  - Create a ticket to remove unused permissions.
+  example: legitify analyze --namespace ORG; gh api orgs/ORG/members --jq '.[].login'; gh api orgs/ORG/outside_collaborators
+  expected: Every identity is mapped to an owner and an identity provider. Each identity holds only the permissions it uses, on the repositories it needs.
+  severity: High
+  test_type: &id001
+  - Manual
+  - Config Review
+  refs:
+    cicd_top10:
+    - CICD-SEC-2
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-269
+    - CWE-250
+    attack:
+    - T1078
+    nist_800_53:
+    - AC-2
+    - AC-6
+    other:
+    - SSDF PS.1.1
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-02-Inadequate-Identity-And-Access-Management.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+- id: CICD-IAM-002
+  sheet: CICD
+  category: IAM
+  title: Find stale human and service accounts and tokens
+  objective: Finds unused accounts and tokens that still give access to CI/CD systems.
+  preconditions:
+  - Admin read access to the SCM, CI and artifact registry.
+  steps:
+  - Get the policy period after which an inactive identity must be disabled.
+  - List the last activity date of each user, service account and token.
+  - Find identities that exceed the period.
+  - Make sure former employees and contractors have no active account in any CI/CD system.
+  example: gh api orgs/ORG/audit-log?phrase=actor:USER; gh api /orgs/ORG/personal-access-tokens --jq '.[]|{owner:.owner.login,last_used:.token_last_used_at}'
+  expected: A defined inactivity period exists. No identity exceeds it. Accounts of people who left are removed from all CI/CD systems.
+  severity: Medium
+  test_type: *id001
+  refs:
+    cicd_top10:
+    - CICD-SEC-2
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-269
+    attack:
+    - T1078
+    nist_800_53:
+    - AC-2
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-02-Inadequate-Identity-And-Access-Management.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+- id: CICD-IAM-003
+  sheet: CICD
+  category: IAM
+  title: Check central IdP login, no local accounts and enforced MFA
+  objective: Finds local accounts and logins without MFA on CI/CD platforms.
+  preconditions:
+  - Admin read access to the SCM, CI and artifact registry.
+  steps:
+  - Read the authentication settings of the SCM, CI and registry.
+  - Make sure login uses the central IdP with SSO.
+  - List local accounts that do not use the IdP.
+  - Make sure MFA is required for all users and for admins.
+  example: gh api orgs/ORG --jq .two_factor_requirement_enabled; gh api orgs/ORG/members?filter=2fa_disabled; curl -s https://JENKINS/securityRealm/
+  expected: All users log in through the central IdP with MFA. Local accounts do not exist, or each one is documented and disabled when unused.
+  severity: High
+  test_type:
+  - Config Review
+  - Automated
+  refs:
+    cicd_top10:
+    - CICD-SEC-2
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-1390
+    - CWE-306
+    attack:
+    - T1078.003
+    nist_800_53:
+    - IA-2
+    - AC-2
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-02-Inadequate-Identity-And-Access-Management.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+- id: CICD-IAM-004
+  sheet: CICD
+  category: IAM
+  title: Make sure self-registration and base permissions are off
+  objective: Finds CI/CD platforms where anyone with a valid email can register and get access.
+  preconditions:
+  - Do not run on production. Use a test instance or get written approval.
+  steps:
+  - Open the sign-up page of the self-managed SCM or CI from an unauthenticated browser.
+  - Try to start a registration with an address from the company domain, on a test system.
+  - Read the default permission level for new users and for large groups.
+  - Make sure the default permission is none.
+  example: curl -sI https://git.example.org/users/sign_up; glab api application/settings | jq '.signup_enabled,.default_project_creation'
+  expected: Self-registration is off or needs admin approval. New users and large groups start with no permission.
+  severity: High
+  test_type: *id001
+  refs:
+    cicd_top10:
+    - CICD-SEC-2
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-1188
+    - CWE-284
+    attack:
+    - T1078.001
+    nist_800_53:
+    - AC-2
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-02-Inadequate-Identity-And-Access-Management.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+- id: CICD-IAM-005
+  sheet: CICD
+  category: IAM
+  title: Check that only organization email domains are allowed
+  objective: Finds accounts that use personal or external email addresses on CI/CD platforms.
+  preconditions:
+  - Admin read access to the SCM, CI and artifact registry.
+  steps:
+  - List the email address of each user in the SCM, CI and registry.
+  - Find addresses outside domains that the organization owns.
+  - Check for a domain restriction in the platform settings.
+  - Make sure each non-organization account has a documented reason and an owner.
+  example: gh api orgs/ORG/members --paginate --jq '.[].login' | xargs -I{} gh api users/{} --jq '.email'; glab api application/settings | jq .domain_allowlist
+  expected: Only addresses from domains that the organization manages can hold accounts. Exceptions are documented and reviewed.
+  severity: Medium
+  test_type: *id001
+  refs:
+    cicd_top10:
+    - CICD-SEC-2
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-284
+    nist_800_53:
+    - AC-2
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-02-Inadequate-Identity-And-Access-Management.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+- id: CICD-IAM-006
+  sheet: CICD
+  category: IAM
+  title: Review external collaborators and their access expiry
+  objective: Finds external collaborators with permanent or excessive access to repositories and pipelines.
+  preconditions:
+  - Admin read access to the SCM, CI and artifact registry.
+  steps:
+  - List external collaborators and outside contractors on all CI/CD systems.
+  - Look at the permission level and the repositories of each one.
+  - Make sure each access has an expiry date and an internal sponsor.
+  - Make sure access ends when the work is done.
+  example: gh api orgs/ORG/outside_collaborators --paginate; gh api repos/ORG/REPO/invitations
+  expected: External collaborators have least privilege on named repositories only. Each access has an expiry date and an internal owner.
+  severity: Medium
+  test_type: *id001
+  refs:
+    cicd_top10:
+    - CICD-SEC-2
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-269
+    attack:
+    - T1199
+    nist_800_53:
+    - AC-2
+    - AC-6
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-02-Inadequate-Identity-And-Access-Management.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+- id: CICD-IAM-007
+  sheet: CICD
+  category: IAM
+  title: Check for shared accounts and shared service credentials
+  objective: Finds accounts or credentials that several people or systems share.
+  preconditions:
+  - Admin read access to the SCM, CI and artifact registry.
+  steps:
+  - List service accounts and the systems that use each one.
+  - Find accounts that more than one person or more than one pipeline uses.
+  - Look at the audit log for one account that logs in from several locations.
+  - Make sure each context has its own account with its own permissions.
+  example: gh api orgs/ORG/audit-log --jq '.[]|select(.actor=="SERVICE_ACCOUNT")|.actor_ip' | sort -u
+  expected: Each person and each pipeline context has its own identity. No credential is shared between people, between systems, or between people and systems.
+  severity: Medium
+  test_type: *id001
+  refs:
+    cicd_top10:
+    - CICD-SEC-2
+    - CICD-SEC-6
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Secrets_Management_Cheat_Sheet
+    cwe:
+    - CWE-522
+    attack:
+    - T1078
+    nist_800_53:
+    - IA-2
+    - AC-6
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-02-Inadequate-Identity-And-Access-Management.md
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-06-Insufficient-Credential-Hygiene.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+- id: CICD-IAM-008
+  sheet: CICD
+  category: IAM
+  title: Check package publishing accounts for 2FA and trusted publishing
+  objective: Finds package publishing accounts and tokens that an attacker can use to push malicious versions.
+  preconditions:
+  - Account access to the package registry.
+  steps:
+  - List the accounts and tokens that can publish packages for your organization.
+  - Make sure 2FA is on for each publisher account.
+  - Make sure CI publishing uses trusted publishing with OIDC where the registry supports it.
+  - Make sure remaining tokens are granular, short-lived and not committed.
+  example: npm token list; npm profile get; npm access list collaborators PACKAGE
+  expected: Publishing needs 2FA or trusted publishing. Tokens are granular, scoped to named packages and expire soon.
+  severity: High
+  test_type: *id001
+  refs:
+    cicd_top10:
+    - CICD-SEC-2
+    - CICD-SEC-6
+    cheatsheet:
+    - NPM_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-522
+    capec:
+    - CAPEC-538
+    attack:
+    - T1195.001
+    - T1528
+    nist_800_53:
+    - IA-2
+    - IA-5
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-02-Inadequate-Identity-And-Access-Management.md
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-06-Insufficient-Credential-Hygiene.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/NPM_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md

@@ -1,0 +1,26 @@
+- id: NET-MAIL-001
+  sheet: NET
+  category: MAIL
+  title: Check SPF, DKIM and DMARC records for each mail domain
+  objective: Finds domains where other parties can send mail that looks like it came from the organization.
+  steps:
+  - List all domains and subdomains that send or receive mail.
+  - Query the SPF, DKIM and DMARC records of each domain.
+  - Compare the SPF sources with the mail servers that the organization owns.
+  - Look for SPF mechanisms that match addresses of removed or taken-over hosts.
+  - Read the DMARC aggregate reports and look for senders that the organization did not start.
+  example: dig TXT example.com +short ; dig TXT _dmarc.example.com +short ; dig TXT <selector>._domainkey.example.com +short ; dnsrecon -d example.com -t std
+  expected: Each mail domain has SPF, DKIM and DMARC records. They list only the senders that the organization owns, and DMARC reports show no unknown sender.
+  severity: Medium
+  test_type: Manual
+  refs:
+    cheatsheet:
+    - Subdomain_Takeover_Prevention_Cheat_Sheet
+    nist_800_53:
+    - SC-20
+    - SI-4
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Subdomain_Takeover_Prevention_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  see:
+  - NET-SVC-014

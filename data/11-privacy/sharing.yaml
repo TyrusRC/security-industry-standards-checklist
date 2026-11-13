@@ -1,0 +1,138 @@
+- id: PRIV-SHARE-001
+  sheet: PRIV
+  category: SHARE
+  title: Find all third parties that receive personal data in application traffic
+  objective: Finds trackers, widgets and SDKs that send data to third parties without notice.
+  steps:
+  - Start a clean browser profile and a proxy.
+  - Load the main pages and log in.
+  - List every third-party host in the traffic.
+  - Look at the parameters sent to each host.
+  example: Burp Suite HTTP history filtered by host; browser developer tools Network tab; look for e-mail, user ID, location in parameters.
+  expected: Only documented recipients receive data. No personal data goes to a tracker before consent.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    privacy_top10:
+    - P1
+    - P2
+    - P4
+    other:
+    - GDPR Art. 6
+    - GDPR Art. 7
+    - GDPR Art. 13
+    cwe:
+    - CWE-359
+    - CWE-201
+    cheatsheet:
+    - Third_Party_Javascript_Management_Cheat_Sheet
+  see:
+  - WEB-DATA-004
+  - MOB-PRIV-005
+  sources_read:
+  - sources/repos/www-project-top-10-privacy-risks/tab_topprivacy.md
+  - sources/repos/www-project-top-10-privacy-risks/OWASP_Top_10_Privacy_Risks_Countermeasures_v2.0.pdf
+  - sources/extra/gdpr.html
+  - sources/repos/CheatSheetSeries/cheatsheets/Third_Party_Javascript_Management_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: PRIV-SHARE-002
+  sheet: PRIV
+  category: SHARE
+  title: Make sure no tracker fires before consent or after refusal
+  objective: Finds trackers that run without the required consent.
+  steps:
+  - Open the site with a clean profile and do not click the banner.
+  - Record all requests.
+  - Refuse optional cookies and reload.
+  - Record the requests again and compare.
+  example: Browser developer tools Network tab with preserve log; compare host list before and after the consent action.
+  expected: No analytics or advertising request exists before consent or after refusal.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    privacy_top10:
+    - P4
+    - P10
+    other:
+    - GDPR Art. 6
+    - GDPR Art. 7
+  sources_read: &id001
+  - sources/repos/www-project-top-10-privacy-risks/tab_topprivacy.md
+  - sources/repos/www-project-top-10-privacy-risks/OWASP_Top_10_Privacy_Risks_Countermeasures_v2.0.pdf
+  - sources/extra/gdpr.html
+- id: PRIV-SHARE-003
+  sheet: PRIV
+  category: SHARE
+  title: Check processor contracts and the list of sub-processors
+  objective: Finds processors that have no contract terms for security and instructions.
+  steps:
+  - Ask for the list of processors.
+  - Ask for the contract of each processor.
+  - Check that each contract has the required terms.
+  - Check the notice process for new sub-processors.
+  example: 'Document review: contract clauses on instructions, security measures, sub-processors, deletion, audit.'
+  expected: Each processor has a contract with the required terms. Changes of sub-processors need prior authorisation.
+  severity: Medium
+  test_type:
+  - Config Review
+  refs:
+    privacy_top10:
+    - P2
+    other:
+    - GDPR Art. 28
+    - GDPR Art. 30
+  sources_read: *id001
+- id: PRIV-SHARE-004
+  sheet: PRIV
+  category: SHARE
+  title: Check that partner data feeds are minimised and pseudonymised
+  objective: Finds partner feeds that hold more data than the partner needs.
+  steps:
+  - List the data feeds to partners.
+  - Look at a sample payload of each feed.
+  - Compare the fields with the contract purpose.
+  - Check for pseudonymisation of identifiers.
+  example: Sample payload review; field list against the data processing agreement.
+  expected: Each feed carries only the fields that the partner needs. Identifiers are pseudonymised where the purpose allows.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    privacy_top10:
+    - P2
+    - P10
+    other:
+    - GDPR Art. 25
+    - GDPR Art. 28
+  sources_read: *id001
+- id: PRIV-SHARE-005
+  sheet: PRIV
+  category: SHARE
+  title: Make sure external content does not leak the IP address
+  objective: Finds third-party images and scripts that disclose the user IP address or page URL.
+  steps:
+  - List all external images, fonts and scripts on user pages.
+  - Look at the Referer header sent to each host.
+  - Check if users can block external content.
+  - Check that user-supplied URLs are not loaded without a proxy.
+  example: Browser developer tools Network tab; check the Referrer-Policy header.
+  expected: The application loads external content only from documented hosts. Referrer data is limited. Users can block external content.
+  severity: Low
+  test_type:
+  - Manual
+  refs:
+    privacy_top10:
+    - P2
+    other:
+    - GDPR Art. 5
+    - GDPR Art. 25
+    cheatsheet:
+    - User_Privacy_Protection_Cheat_Sheet
+  sources_read:
+  - sources/repos/www-project-top-10-privacy-risks/tab_topprivacy.md
+  - sources/repos/www-project-top-10-privacy-risks/OWASP_Top_10_Privacy_Risks_Countermeasures_v2.0.pdf
+  - sources/extra/gdpr.html
+  - sources/repos/CheatSheetSeries/cheatsheets/User_Privacy_Protection_Cheat_Sheet.md

@@ -1,0 +1,157 @@
+- id: DESK-DATA-001
+  sheet: DESK
+  category: DATA
+  title: Search binaries and config files for hard-coded secrets
+  objective: Finds keys, passwords and connection strings inside the installer and files.
+  steps:
+  - Install the client in a clean virtual machine.
+  - Run strings and a secret scanner over all installed files.
+  - Decompile managed code and search for keys and connection strings.
+  - Test each found value for use.
+  example: strings -n 8 app.dll | grep -iE "pass|key|secret|conn"; gitleaks or trufflehog directory scan; ILSpy.
+  expected: No secret is in any binary, config or resource. Each install gets its own credentials from a secret store.
+  severity: High
+  test_type:
+  - Automated
+  - Manual
+  refs:
+    cwe:
+    - CWE-798
+    - CWE-321
+    - CWE-259
+    cheatsheet:
+    - Secrets_Management_Cheat_Sheet
+    - Key_Management_Cheat_Sheet
+    asvs:
+    - V13.3.1
+    desktop_top10:
+    - DA3
+    - DA8
+  see:
+  - WEB-CRYPTO-018
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-DATA-002
+  sheet: DESK
+  category: DATA
+  title: Check data at rest for clear text and weak access rights
+  objective: Finds databases, caches and temporary files that hold sensitive data in clear form.
+  steps:
+  - Use the client with test data in each feature.
+  - Watch file and registry writes with Procmon.
+  - Open each written file and look for the test data.
+  - Check the file permissions and the temporary folders.
+  example: Procmon filter Operation is WriteFile; icacls on the data folder; sqlite3 .dump on local databases.
+  expected: Sensitive data is encrypted with a key that is not in the files. Only the user and the app can read the files.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-312
+    - CWE-922
+    - CWE-378
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    - DotNet_Security_Cheat_Sheet
+    desktop_top10:
+    - DA3
+    - DA5
+  see:
+  - WEB-DATA-013
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/DotNet_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-DATA-003
+  sheet: DESK
+  category: DATA
+  title: Check process memory after logout for sensitive data
+  objective: Finds secrets and personal data that stay in memory after the session ends.
+  steps:
+  - Log in and open sensitive records.
+  - Log out or lock the client.
+  - Make a memory dump of the client process.
+  - Search the dump for the test values and tokens.
+  example: procdump -ma app.exe dump.dmp; strings -el dump.dmp | grep -i testvalue; Frida memory scan on a lab host.
+  expected: Secrets and sensitive records are cleared after use or logout. The dump does not hold them in readable form.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-312
+    cheatsheet:
+    - Secrets_Management_Cheat_Sheet
+    - Key_Management_Cheat_Sheet
+    desktop_top10:
+    - DA3
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-DATA-004
+  sheet: DESK
+  category: DATA
+  title: Check logs, crash dumps and debug output for sensitive data
+  objective: Finds tokens, passwords and personal data in logs and dumps.
+  steps:
+  - Use all main functions with default logging.
+  - Cause an error and a crash.
+  - Search log files, dump files and the event log for test values.
+  - Check the folders and access rights.
+  example: Search the client log folder for password and token strings; Windows Event Viewer; Windows Error Reporting dump folder.
+  expected: Logs and dumps hold no secrets or personal data. Debug output is off in the release.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-532
+    - CWE-215
+    - CWE-489
+    cheatsheet:
+    - Logging_Cheat_Sheet
+    asvs:
+    - V16.2.5
+    - V13.4.2
+    desktop_top10:
+    - DA3
+    - DA10
+  see:
+  - WEB-LOG-006
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-DATA-005
+  sheet: DESK
+  category: DATA
+  title: Check clipboard and recent-file lists for leaks
+  objective: Finds sensitive data that the client copies to shared OS areas.
+  steps:
+  - Copy a sensitive field in the client.
+  - Read the clipboard and the clipboard history.
+  - Look at the recent-file lists and the thumbnails.
+  - Look at the task switcher preview.
+  example: Windows clipboard history (Win+V); Get-Clipboard in PowerShell; recent items folder.
+  expected: The client clears or limits clipboard data for secrets. Sensitive views are hidden in previews where the OS allows it.
+  severity: Low
+  test_type:
+  - Manual
+  refs:
+    desktop_top10:
+    - DA3
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md

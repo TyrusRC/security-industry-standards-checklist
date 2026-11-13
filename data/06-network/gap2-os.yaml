@@ -1,0 +1,863 @@
+- id: NET-OS-001
+  sheet: NET
+  category: OS
+  title: Check the owner and mode of account files and their backups
+  objective: Finds password and group files that other users can read or change.
+  preconditions: &id001
+  - Root or sudo read access to the host in scope.
+  - Do not change settings on a production host without a change window.
+  steps:
+  - List /etc/passwd, /etc/shadow, /etc/group, /etc/gshadow and /etc/shells.
+  - List the backup files with a dash suffix, such as /etc/shadow-.
+  - List /etc/security/opasswd and opasswd.old.
+  - Make sure root owns the files and the modes are as strict as the standard sets.
+  example: stat -c "%U:%G %a %n" /etc/passwd /etc/shadow /etc/group /etc/gshadow /etc/shells /etc/passwd- /etc/shadow- /etc/group- /etc/gshadow- /etc/security/opasswd
+  expected: Root owns all account files. /etc/passwd and /etc/group have a mode of 0644 or stricter. Shadow files and password history have a mode of 0000 or 0640 at most.
+  severity: High
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:file_etc_security_opasswd
+    - cac:file_groupowner_backup_etc_group
+    - cac:file_groupowner_backup_etc_gshadow
+    - cac:file_groupowner_backup_etc_passwd
+    - cac:file_groupowner_backup_etc_shadow
+    - cac:file_groupowner_etc_group
+    - cac:file_groupowner_etc_gshadow
+    - cac:file_groupowner_etc_passwd
+    - cac:file_groupowner_etc_security_opasswd
+    - cac:file_groupowner_etc_security_opasswd_old
+    - cac:file_groupowner_etc_shadow
+    - cac:file_groupowner_etc_shells
+    - cac:file_owner_backup_etc_group
+    - cac:file_owner_backup_etc_gshadow
+    - cac:file_owner_backup_etc_passwd
+    - cac:file_owner_backup_etc_shadow
+    - cac:file_owner_etc_group
+    - cac:file_owner_etc_gshadow
+    - cac:file_owner_etc_passwd
+    - cac:file_owner_etc_security_opasswd
+    - cac:file_owner_etc_security_opasswd_old
+    - cac:file_owner_etc_shadow
+    - cac:file_owner_etc_shells
+    - cac:file_permissions_backup_etc_group
+    - cac:file_permissions_backup_etc_gshadow
+    - cac:file_permissions_backup_etc_passwd
+    - cac:file_permissions_backup_etc_shadow
+    - cac:file_permissions_etc_group
+    - cac:file_permissions_etc_gshadow
+    - cac:file_permissions_etc_passwd
+    - cac:file_permissions_etc_security_opasswd
+    - cac:file_permissions_etc_security_opasswd_old
+    - cac:file_permissions_etc_shadow
+    - cac:file_permissions_etc_shells
+    nist_800_53:
+    - CM-6
+    - AC-6
+    - AC-3
+    - MP-2
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/permissions/files/permissions_important_account_files/file_etc_security_opasswd/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/permissions/files/permissions_important_account_files/file_groupowner_etc_security_opasswd/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/permissions/files/permissions_important_account_files/file_owner_etc_gshadow/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/permissions/files/permissions_important_account_files/file_permissions_backup_etc_passwd/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/permissions/files/permissions_important_account_files/file_permissions_etc_shells/rule.yml
+- id: NET-OS-002
+  sheet: NET
+  category: OS
+  title: Find world-writable, unowned and unauthorized setuid files
+  objective: Finds files that any user can change, files without an owner and setuid programs that are not approved.
+  preconditions: *id001
+  steps:
+  - Find world-writable files on the local file systems.
+  - Find world-writable directories without the sticky bit.
+  - Find files and directories with no owner or no group.
+  - Find setuid and setgid files and compare them with the approved list.
+  example: find / -xdev -type f -perm -0002 -ls ; find / -xdev -type d -perm -0002 ! -perm -1000 -ls ; find / -xdev \( -nouser -o -nogroup \) -ls ; find / -xdev -type f \( -perm -4000 -o -perm -2000 \)
+    -ls
+  expected: No file is world-writable. Each world-writable directory has the sticky bit. No file lacks an owner or a group. Only approved programs have setuid or setgid.
+  severity: High
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:dir_perms_world_writable_root_owned
+    - cac:dir_perms_world_writable_sticky_bits
+    - cac:dir_perms_world_writable_system_owned
+    - cac:dir_perms_world_writable_system_owned_group
+    - cac:file_permissions_unauthorized_sgid
+    - cac:file_permissions_unauthorized_suid
+    - cac:file_permissions_unauthorized_world_writable
+    - cac:file_permissions_ungroupowned
+    - cac:no_files_or_dirs_ungroupowned
+    - cac:no_files_or_dirs_unowned_by_user
+    - cac:no_files_unowned_by_user
+    nist_800_53:
+    - CM-6
+    - AC-6
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/permissions/files/dir_perms_world_writable_root_owned/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/permissions/files/dir_perms_world_writable_system_owned/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/permissions/files/file_permissions_unauthorized_suid/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/permissions/files/no_files_or_dirs_ungroupowned/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/permissions/files/no_files_unowned_by_user/rule.yml
+- id: NET-OS-003
+  sheet: NET
+  category: OS
+  title: Check ownership and mode of system binaries, libraries and boot map files
+  objective: Finds system programs and libraries that non-root users can replace.
+  preconditions: *id001
+  steps:
+  - List the files in /bin, /sbin, /usr/bin, /usr/sbin, /usr/local/bin and /usr/local/sbin with their owner and mode.
+  - List the files in /lib, /lib64, /usr/lib and /usr/lib64.
+  - Find files with a group-write or world-write bit and files not owned by root.
+  - List System.map, /etc/crypttab and the sysconfig files for sshd.
+  example: find /bin /sbin /usr/bin /usr/sbin /usr/local/bin /usr/local/sbin /lib /lib64 /usr/lib /usr/lib64 \( -perm /022 -o ! -user root \) -ls ; stat -c "%U:%G %a %n" /boot/System.map-* /etc/crypttab
+  expected: Root owns all system programs and libraries. None has a group-write or world-write bit. System.map and crypttab have a mode of 0600 or 0644 and are owned by root.
+  severity: High
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:dir_group_ownership_library_dirs
+    - cac:dir_groupownership_binary_dirs
+    - cac:dir_ownership_binary_dirs
+    - cac:dir_ownership_library_dirs
+    - cac:dir_permissions_binary_dirs
+    - cac:dir_permissions_library_dirs
+    - cac:dir_system_commands_group_root_owned
+    - cac:dir_system_commands_root_owned
+    - cac:file_groupowner_etc_crypttab
+    - cac:file_groupowner_etc_sysconfig_sshd
+    - cac:file_groupowner_systemmap
+    - cac:file_groupownership_system_commands_dirs
+    - cac:file_owner_etc_crypttab
+    - cac:file_owner_etc_sysconfig_sshd
+    - cac:file_owner_systemmap
+    - cac:file_ownership_binary_dirs
+    - cac:file_ownership_library_dirs
+    - cac:file_permissions_binary_dirs
+    - cac:file_permissions_etc_crypttab
+    - cac:file_permissions_etc_sysconfig_sshd
+    - cac:file_permissions_library_dirs
+    - cac:file_permissions_system_commands_dirs
+    - cac:file_permissions_systemmap
+    - cac:root_permissions_syslibrary_files
+    - cac:rootfiles_configured
+    - cac:run_chkstat
+    nist_800_53:
+    - CM-5
+    - CM-6
+    - AC-6
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/permissions/files/permissions_within_important_dirs/dir_group_ownership_library_dirs/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/permissions/files/dir_system_commands_group_root_owned/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/permissions/files/file_owner_etc_sysconfig_sshd/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/permissions/files/file_permissions_etc_sysconfig_sshd/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/permissions/permissions_local/run_chkstat/rule.yml
+- id: NET-OS-004
+  sheet: NET
+  category: OS
+  title: Check mount options nodev, nosuid and noexec on partitions
+  objective: Finds partitions where users can run programs, create devices or use setuid files.
+  preconditions: *id001
+  steps:
+  - Read /etc/fstab and the live mounts with findmnt.
+  - Look at /tmp, /var/tmp, /dev/shm, /home, /boot, /var and /var/log and /var/log/audit.
+  - Make sure each one has nodev, nosuid and noexec where the role allows.
+  - Look at the mount options of removable media and of remote file systems (NFS, SMB).
+  - Look at hidepid on /proc and at the quota options on /home.
+  example: findmnt -no TARGET,OPTIONS /tmp /var/tmp /dev/shm /home /boot /var /var/log /var/log/audit /proc ; grep -vE "^#" /etc/fstab ; mount | grep -E "nfs|cifs"
+  expected: Each partition has the options that the standard lists, at least nodev and nosuid, and noexec on /tmp, /var/tmp and /dev/shm. Remote and removable file systems use nosuid, nodev and noexec.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:mount_option_boot_efi_nosuid
+    - cac:mount_option_boot_noauto
+    - cac:mount_option_boot_nodev
+    - cac:mount_option_boot_noexec
+    - cac:mount_option_boot_nosuid
+    - cac:mount_option_dev_shm_nodev
+    - cac:mount_option_dev_shm_noexec
+    - cac:mount_option_dev_shm_nosuid
+    - cac:mount_option_home_grpquota
+    - cac:mount_option_home_nodev
+    - cac:mount_option_home_noexec
+    - cac:mount_option_home_nosuid
+    - cac:mount_option_home_usrquota
+    - cac:mount_option_krb_sec_remote_filesystems
+    - cac:mount_option_nodev_nonroot_local_partitions
+    - cac:mount_option_nodev_remote_filesystems
+    - cac:mount_option_nodev_removable_partitions
+    - cac:mount_option_noexec_remote_filesystems
+    - cac:mount_option_noexec_removable_partitions
+    - cac:mount_option_nosuid_remote_filesystems
+    - cac:mount_option_nosuid_removable_partitions
+    - cac:mount_option_opt_nosuid
+    - cac:mount_option_proc_hidepid
+    - cac:mount_option_smb_client_signing
+    - cac:mount_option_srv_nosuid
+    - cac:mount_option_tmp_nodev
+    - cac:mount_option_tmp_noexec
+    - cac:mount_option_tmp_nosuid
+    - cac:mount_option_var_log_audit_nodev
+    - cac:mount_option_var_log_audit_noexec
+    - cac:mount_option_var_log_audit_nosuid
+    - cac:mount_option_var_log_nodev
+    - cac:mount_option_var_log_noexec
+    - cac:mount_option_var_log_nosuid
+    - cac:mount_option_var_nodev
+    - cac:mount_option_var_noexec
+    - cac:mount_option_var_nosuid
+    - cac:mount_option_var_tmp_bind
+    - cac:mount_option_var_tmp_nodev
+    - cac:mount_option_var_tmp_noexec
+    - cac:mount_option_var_tmp_nosuid
+    nist_800_53:
+    - AC-6
+    - CM-7
+    - CM-6
+    - MP-7
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/permissions/partitions/mount_option_boot_efi_nosuid/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/permissions/partitions/mount_option_home_noexec/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/permissions/partitions/mount_option_nosuid_removable_partitions/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/permissions/partitions/mount_option_var_log_audit_nosuid/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/permissions/partitions/mount_option_var_tmp_nosuid/rule.yml
+- id: NET-OS-005
+  sheet: NET
+  category: OS
+  title: Check separate partitions and disk encryption for data and logs
+  objective: Finds hosts where a full or abused directory can stop the system, or where data on disk is not encrypted.
+  preconditions: *id001
+  steps:
+  - List the mounts with lsblk and findmnt.
+  - Look for separate partitions for /boot, /home, /tmp, /var, /var/tmp, /var/log, /var/log/audit, /srv, /opt, /usr and /dev/shm.
+  - Check if /tmp is a systemd tmp.mount unit or a partition.
+  - Look for encrypted volumes with cryptsetup.
+  example: lsblk -f ; findmnt -no TARGET,SOURCE /boot /home /tmp /var /var/tmp /var/log /var/log/audit /srv /opt ; systemctl is-enabled tmp.mount ; cryptsetup status <name>
+  expected: The directories that the standard names are on separate partitions. Data volumes are encrypted at rest.
+  severity: Low
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:encrypt_partitions
+    - cac:partition_for_boot
+    - cac:partition_for_dev_shm
+    - cac:partition_for_home
+    - cac:partition_for_opt
+    - cac:partition_for_srv
+    - cac:partition_for_tmp
+    - cac:partition_for_usr
+    - cac:partition_for_var
+    - cac:partition_for_var_log
+    - cac:partition_for_var_log_audit
+    - cac:partition_for_var_tmp
+    - cac:systemd_tmp_mount_enabled
+    nist_800_53:
+    - CM-6
+    - SC-5
+    - SC-28
+    - AU-4
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/disk_partitioning/encrypt_partitions/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/disk_partitioning/partition_for_home/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/disk_partitioning/partition_for_tmp/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/disk_partitioning/partition_for_var_log/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/disk_partitioning/systemd_tmp_mount_enabled/rule.yml
+- id: NET-OS-006
+  sheet: NET
+  category: OS
+  title: Check that USB storage, automount and BIOS boot options are limited
+  objective: Finds hosts that mount removable media on their own or boot from an unapproved device.
+  preconditions: *id001
+  steps:
+  - Look at the autofs package and service.
+  - Look at the usb-storage module and the nousb kernel argument.
+  - Look at the udisks and desktop automount settings.
+  - Read the firmware settings for boot devices and the firmware password.
+  example: systemctl is-enabled autofs ; modprobe -n -v usb-storage ; grep -o "nousb" /proc/cmdline ; lsmod | grep usb_storage
+  expected: Automount is off. USB storage is blocked on hosts that do not need it. Boot from removable media is off and the firmware has a password.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    tool_check:
+    - cac:bios_assign_password
+    - cac:bios_disable_usb_boot
+    - cac:coreos_nousb_kernel_argument
+    - cac:grub2_nousb_argument
+    - cac:kernel_module_usb-storage_disabled
+    - cac:kernel_module_vfat_disabled
+    - cac:package_autofs_removed
+    - cac:service_autofs_disabled
+    nist_800_53:
+    - CM-7
+    - CM-6
+    - MP-7
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/permissions/mounting/bios_assign_password/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/permissions/mounting/coreos_nousb_kernel_argument/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/permissions/mounting/kernel_module_usb-storage_disabled/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/permissions/mounting/package_autofs_removed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/permissions/mounting/service_autofs_disabled/rule.yml
+- id: NET-OS-007
+  sheet: NET
+  category: OS
+  title: Check bootloader password, file permissions and recovery options
+  objective: Finds hosts where a person with console access can change boot options or start a root shell.
+  preconditions: *id001
+  steps:
+  - Read /boot/grub2/grub.cfg or /boot/efi/EFI/<vendor>/grub.cfg and the user.cfg file.
+  - Look for the superuser line and the password hash. Make sure the hash is PBKDF2.
+  - List the owner and mode of grub.cfg and user.cfg.
+  - Look for the recovery menu entries and for the removable media boot option.
+  - Look at the zipl bootmap on s390 systems if they are in scope.
+  example: grep -E "set superusers|password_pbkdf2" /boot/grub2/grub.cfg /boot/grub2/user.cfg /boot/efi/EFI/*/user.cfg ; stat -c "%U:%G %a %n" /boot/grub2/grub.cfg /boot/grub2/user.cfg /boot/efi/EFI/*/grub.cfg
+    ; grep -c "recovery" /boot/grub2/grub.cfg
+  expected: The bootloader needs a superuser and a hashed password to edit boot entries. Root owns the grub files and the mode is 0600 or 0700 as the standard says. Recovery entries are off.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:file_groupowner_boot_grub2
+    - cac:file_groupowner_efi_grub2_cfg
+    - cac:file_groupowner_efi_user_cfg
+    - cac:file_groupowner_grub2_cfg
+    - cac:file_groupowner_user_cfg
+    - cac:file_owner_boot_grub2
+    - cac:file_owner_efi_grub2_cfg
+    - cac:file_owner_efi_user_cfg
+    - cac:file_owner_grub2_cfg
+    - cac:file_owner_user_cfg
+    - cac:file_permissions_boot_grub2
+    - cac:file_permissions_efi_grub2_cfg
+    - cac:file_permissions_efi_user_cfg
+    - cac:file_permissions_grub2_cfg
+    - cac:file_permissions_user_cfg
+    - cac:grub2_admin_username
+    - cac:grub2_disable_recovery
+    - cac:grub2_no_removeable_media
+    - cac:grub2_password
+    - cac:grub2_password_legacy
+    - cac:grub2_systemd_debug-shell_argument_absent
+    - cac:grub2_uefi_admin_username
+    - cac:grub2_uefi_password
+    - cac:grub2_uefi_password_legacy
+    - cac:uefi_no_removeable_media
+    - cac:zipl_bls_entries_only
+    - cac:zipl_bootmap_is_up_to_date
+    nist_800_53:
+    - CM-6
+    - AC-6
+    - AC-3
+    pci_dss:
+    - '7.1'
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/bootloader-grub2/file_groupowner_boot_grub2/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/bootloader-grub2/uefi/file_owner_efi_grub2_cfg/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/bootloader-grub2/non-uefi/file_permissions_grub2_cfg/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/bootloader-grub2/grub2_systemd_debug-shell_argument_absent/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/bootloader-zipl/zipl_bootmap_is_up_to_date/rule.yml
+- id: NET-OS-008
+  sheet: NET
+  category: OS
+  title: Check that UEFI Secure Boot is on
+  objective: Finds hosts that start unsigned boot components.
+  preconditions: *id001
+  steps:
+  - Run mokutil --sb-state or read the firmware setting.
+  - Look at the kernel messages for the Secure Boot line.
+  - Look at the list of enrolled keys.
+  example: mokutil --sb-state ; dmesg | grep -i "secure boot" ; bootctl status | grep -i secure
+  expected: Secure Boot is enabled and the host starts only signed boot components.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:secure_boot_enabled
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/secureboot/secure_boot_enabled/rule.yml
+- id: NET-OS-009
+  sheet: NET
+  category: OS
+  title: Check that SELinux is enforcing with the targeted policy
+  objective: Finds hosts where mandatory access control is off or lets daemons run unconfined.
+  preconditions: *id001
+  steps:
+  - Run getenforce and sestatus.
+  - Read /etc/selinux/config for SELINUX and SELINUXTYPE.
+  - Look at the kernel command line for selinux=0 or enforcing=0.
+  - List unconfined processes and unlabeled device files.
+  - Look at the SELinux user mappings for logins.
+  example: getenforce ; sestatus ; grep -E "^SELINUX" /etc/selinux/config ; grep -E "selinux=0|enforcing=0" /proc/cmdline ; ps -eZ | grep unconfined_service_t ; semanage login -l
+  expected: SELinux runs in enforcing mode with the targeted policy. No daemon runs unconfined and no device file is unlabeled. The SELinux packages are installed and troubleshooting tools are removed.
+  severity: High
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:coreos_enable_selinux_kernel_argument
+    - cac:directory_groupowner_etc_selinux
+    - cac:directory_owner_etc_selinux
+    - cac:directory_permissions_etc_selinux
+    - cac:file_groupowner_etc_sestatus_conf
+    - cac:file_owner_etc_sestatus_conf
+    - cac:file_permissions_etc_sestatus_conf
+    - cac:grub2_enable_selinux
+    - cac:package_libselinux_installed
+    - cac:package_mcstrans_removed
+    - cac:package_policycoreutils-python-utils_installed
+    - cac:package_policycoreutils_installed
+    - cac:package_setroubleshoot-plugins_removed
+    - cac:package_setroubleshoot-server_removed
+    - cac:package_setroubleshoot_removed
+    - cac:selinux_all_devicefiles_labeled
+    - cac:selinux_confine_to_least_privilege
+    - cac:selinux_confinement_of_daemons
+    - cac:selinux_context_elevation_for_sudo
+    - cac:selinux_not_disabled
+    - cac:selinux_policytype
+    - cac:selinux_state
+    - cac:selinux_user_login_roles
+    nist_800_53:
+    - AC-3
+    - CM-7
+    - AC-6
+    - CM-6
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/selinux/coreos_enable_selinux_kernel_argument/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/selinux/file_owner_etc_sestatus_conf/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/selinux/package_policycoreutils_installed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/selinux/selinux_confinement_of_daemons/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/selinux/selinux_user_login_roles/rule.yml
+- id: NET-OS-010
+  sheet: NET
+  category: OS
+  title: Check that risky SELinux booleans are off
+  objective: Finds SELinux booleans that give daemons more rights than the default policy.
+  preconditions: *id001
+  steps:
+  - List all booleans with getsebool -a.
+  - Compare the on booleans with the list of rules in the tool check references.
+  - Find each boolean that is on and is not in the approved list.
+  - Check the need and the owner of each exception.
+  example: getsebool -a | grep -- "--> on" ; semanage boolean -l -C
+  expected: The booleans that the standard names as risky are off. Each boolean that is on has a written need.
+  severity: Low
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:sebool_abrt_anon_write
+    - cac:sebool_abrt_handle_event
+    - cac:sebool_abrt_upload_watch_anon_write
+    - cac:sebool_antivirus_can_scan_system
+    - cac:sebool_antivirus_use_jit
+    - cac:sebool_auditadm_exec_content
+    - cac:sebool_authlogin_nsswitch_use_ldap
+    - cac:sebool_authlogin_radius
+    - cac:sebool_authlogin_yubikey
+    - cac:sebool_awstats_purge_apache_log_files
+    - cac:sebool_boinc_execmem
+    - cac:sebool_cdrecord_read_content
+    - cac:sebool_cluster_can_network_connect
+    - cac:sebool_cluster_manage_all_files
+    - cac:sebool_cluster_use_execmem
+    - cac:sebool_cobbler_anon_write
+    - cac:sebool_cobbler_can_network_connect
+    - cac:sebool_cobbler_use_cifs
+    - cac:sebool_cobbler_use_nfs
+    - cac:sebool_collectd_tcp_network_connect
+    - cac:sebool_condor_tcp_network_connect
+    - cac:sebool_conman_can_network
+    - cac:sebool_container_connect_any
+    - cac:sebool_cron_can_relabel
+    - cac:sebool_cron_system_cronjob_use_shares
+    - cac:sebool_cron_userdomain_transition
+    - cac:sebool_cups_execmem
+    - cac:sebool_cvs_read_shadow
+    - cac:sebool_daemons_dump_core
+    - cac:sebool_daemons_enable_cluster_mode
+    - cac:sebool_daemons_use_tcp_wrapper
+    - cac:sebool_daemons_use_tty
+    - cac:sebool_dbadm_exec_content
+    - cac:sebool_dbadm_manage_user_files
+    - cac:sebool_dbadm_read_user_files
+    - cac:sebool_deny_execmem
+    - cac:sebool_deny_ptrace
+    - cac:sebool_dhcpc_exec_iptables
+    - cac:sebool_dhcpd_use_ldap
+    - cac:sebool_domain_fd_use
+    - cac:sebool_domain_kernel_load_modules
+    - cac:sebool_entropyd_use_audio
+    - cac:sebool_exim_can_connect_db
+    - cac:sebool_exim_manage_user_files
+    - cac:sebool_exim_read_user_files
+    - cac:sebool_fcron_crond
+    - cac:sebool_fenced_can_network_connect
+    - cac:sebool_fenced_can_ssh
+    - cac:sebool_fips_mode
+    - cac:sebool_ftpd_anon_write
+    - cac:sebool_ftpd_connect_all_unreserved
+    - cac:sebool_ftpd_connect_db
+    - cac:sebool_ftpd_full_access
+    - cac:sebool_ftpd_use_cifs
+    - cac:sebool_ftpd_use_fusefs
+    - cac:sebool_ftpd_use_nfs
+    - cac:sebool_ftpd_use_passive_mode
+    - cac:sebool_git_cgi_enable_homedirs
+    - cac:sebool_git_cgi_use_cifs
+    - cac:sebool_git_cgi_use_nfs
+    - cac:sebool_git_session_bind_all_unreserved_ports
+    - cac:sebool_git_session_users
+    - cac:sebool_git_system_enable_homedirs
+    - cac:sebool_git_system_use_cifs
+    - cac:sebool_git_system_use_nfs
+    - cac:sebool_gitosis_can_sendmail
+    - cac:sebool_glance_api_can_network
+    - cac:sebool_glance_use_execmem
+    - cac:sebool_glance_use_fusefs
+    - cac:sebool_global_ssp
+    - cac:sebool_gluster_anon_write
+    - cac:sebool_gluster_export_all_ro
+    - cac:sebool_gluster_export_all_rw
+    - cac:sebool_gpg_web_anon_write
+    - cac:sebool_gssd_read_tmp
+    - cac:sebool_guest_exec_content
+    - cac:sebool_haproxy_connect_any
+    - cac:sebool_httpd_anon_write
+    - cac:sebool_httpd_builtin_scripting
+    - cac:sebool_httpd_can_check_spam
+    - cac:sebool_httpd_can_connect_ftp
+    - cac:sebool_httpd_can_connect_ldap
+    - cac:sebool_httpd_can_connect_mythtv
+    - cac:sebool_httpd_can_connect_zabbix
+    - cac:sebool_httpd_can_network_connect
+    - cac:sebool_httpd_can_network_connect_cobbler
+    - cac:sebool_httpd_can_network_connect_db
+    - cac:sebool_httpd_can_network_memcache
+    - cac:sebool_httpd_can_network_relay
+    - cac:sebool_httpd_can_sendmail
+    - cac:sebool_httpd_dbus_avahi
+    - cac:sebool_httpd_dbus_sssd
+    - cac:sebool_httpd_dontaudit_search_dirs
+    - cac:sebool_httpd_enable_cgi
+    - cac:sebool_httpd_enable_ftp_server
+    - cac:sebool_httpd_enable_homedirs
+    - cac:sebool_httpd_execmem
+    - cac:sebool_httpd_graceful_shutdown
+    - cac:sebool_httpd_manage_ipa
+    - cac:sebool_httpd_mod_auth_ntlm_winbind
+    - cac:sebool_httpd_mod_auth_pam
+    - cac:sebool_httpd_read_user_content
+    - cac:sebool_httpd_run_ipa
+    - cac:sebool_httpd_run_preupgrade
+    - cac:sebool_httpd_run_stickshift
+    - cac:sebool_httpd_serve_cobbler_files
+    - cac:sebool_httpd_setrlimit
+    - cac:sebool_httpd_ssi_exec
+    - cac:sebool_httpd_sys_script_anon_write
+    - cac:sebool_httpd_tmp_exec
+    - cac:sebool_httpd_tty_comm
+    - cac:sebool_httpd_unified
+    - cac:sebool_httpd_use_cifs
+    - cac:sebool_httpd_use_fusefs
+    - cac:sebool_httpd_use_gpg
+    - cac:sebool_httpd_use_nfs
+    - cac:sebool_httpd_use_openstack
+    - cac:sebool_httpd_use_sasl
+    - cac:sebool_httpd_verify_dns
+    - cac:sebool_icecast_use_any_tcp_ports
+    - cac:sebool_irc_use_any_tcp_ports
+    - cac:sebool_irssi_use_full_network
+    - cac:sebool_kdumpgui_run_bootloader
+    - cac:sebool_kerberos_enabled
+    - cac:sebool_ksmtuned_use_cifs
+    - cac:sebool_ksmtuned_use_nfs
+    - cac:sebool_logadm_exec_content
+    - cac:sebool_logging_syslogd_can_sendmail
+    - cac:sebool_logging_syslogd_run_nagios_plugins
+    - cac:sebool_logging_syslogd_use_tty
+    - cac:sebool_login_console_enabled
+    - cac:sebool_logrotate_use_nfs
+    - cac:sebool_logwatch_can_network_connect_mail
+    - cac:sebool_lsmd_plugin_connect_any
+    - cac:sebool_mailman_use_fusefs
+    - cac:sebool_mcelog_client
+    - cac:sebool_mcelog_exec_scripts
+    - cac:sebool_mcelog_foreground
+    - cac:sebool_mcelog_server
+    - cac:sebool_minidlna_read_generic_user_content
+    - cac:sebool_mmap_low_allowed
+    - cac:sebool_mock_enable_homedirs
+    - cac:sebool_mount_anyfile
+    - cac:sebool_mozilla_plugin_bind_unreserved_ports
+    - cac:sebool_mozilla_plugin_can_network_connect
+    - cac:sebool_mozilla_plugin_use_bluejeans
+    - cac:sebool_mozilla_plugin_use_gps
+    - cac:sebool_mozilla_plugin_use_spice
+    - cac:sebool_mozilla_read_content
+    - cac:sebool_mpd_enable_homedirs
+    - cac:sebool_mpd_use_cifs
+    - cac:sebool_mpd_use_nfs
+    - cac:sebool_mplayer_execstack
+    - cac:sebool_mysql_connect_any
+    - cac:sebool_nagios_run_pnp4nagios
+    - cac:sebool_nagios_run_sudo
+    - cac:sebool_named_tcp_bind_http_port
+    - cac:sebool_named_write_master_zones
+    - cac:sebool_neutron_can_network
+    - cac:sebool_nfs_export_all_ro
+    - cac:sebool_nfs_export_all_rw
+    - cac:sebool_nfsd_anon_write
+    - cac:sebool_nis_enabled
+    - cac:sebool_nscd_use_shm
+    - cac:sebool_openshift_use_nfs
+    - cac:sebool_openvpn_can_network_connect
+    - cac:sebool_openvpn_enable_homedirs
+    - cac:sebool_openvpn_run_unconfined
+    - cac:sebool_pcp_bind_all_unreserved_ports
+    - cac:sebool_pcp_read_generic_logs
+    - cac:sebool_piranha_lvs_can_network_connect
+    - cac:sebool_polipo_connect_all_unreserved
+    - cac:sebool_polipo_session_bind_all_unreserved_ports
+    - cac:sebool_polipo_session_users
+    - cac:sebool_polipo_use_cifs
+    - cac:sebool_polipo_use_nfs
+    - cac:sebool_polyinstantiation_enabled
+    - cac:sebool_postfix_local_write_mail_spool
+    - cac:sebool_postgresql_can_rsync
+    - cac:sebool_postgresql_selinux_transmit_client_label
+    - cac:sebool_postgresql_selinux_unconfined_dbadm
+    - cac:sebool_postgresql_selinux_users_ddl
+    - cac:sebool_pppd_can_insmod
+    - cac:sebool_pppd_for_user
+    - cac:sebool_privoxy_connect_any
+    - cac:sebool_prosody_bind_http_port
+    - cac:sebool_puppetagent_manage_all_files
+    - cac:sebool_puppetmaster_use_db
+    - cac:sebool_racoon_read_shadow
+    - cac:sebool_rsync_anon_write
+    - cac:sebool_rsync_client
+    - cac:sebool_rsync_export_all_ro
+    - cac:sebool_rsync_full_access
+    - cac:sebool_samba_create_home_dirs
+    - cac:sebool_samba_domain_controller
+    - cac:sebool_samba_enable_home_dirs
+    - cac:sebool_samba_export_all_ro
+    - cac:sebool_samba_export_all_rw
+    - cac:sebool_samba_load_libgfapi
+    - cac:sebool_samba_portmapper
+    - cac:sebool_samba_run_unconfined
+    - cac:sebool_samba_share_fusefs
+    - cac:sebool_samba_share_nfs
+    - cac:sebool_sanlock_use_fusefs
+    - cac:sebool_sanlock_use_nfs
+    - cac:sebool_sanlock_use_samba
+    - cac:sebool_saslauthd_read_shadow
+    - cac:sebool_secadm_exec_content
+    - cac:sebool_secure_mode
+    - cac:sebool_secure_mode_insmod
+    - cac:sebool_secure_mode_policyload
+    - cac:sebool_selinuxuser_direct_dri_enabled
+    - cac:sebool_selinuxuser_execheap
+    - cac:sebool_selinuxuser_execmod
+    - cac:sebool_selinuxuser_execstack
+    - cac:sebool_selinuxuser_mysql_connect_enabled
+    - cac:sebool_selinuxuser_ping
+    - cac:sebool_selinuxuser_postgresql_connect_enabled
+    - cac:sebool_selinuxuser_rw_noexattrfile
+    - cac:sebool_selinuxuser_share_music
+    - cac:sebool_selinuxuser_tcp_server
+    - cac:sebool_selinuxuser_udp_server
+    - cac:sebool_selinuxuser_use_ssh_chroot
+    - cac:sebool_sge_domain_can_network_connect
+    - cac:sebool_sge_use_nfs
+    - cac:sebool_smartmon_3ware
+    - cac:sebool_smbd_anon_write
+    - cac:sebool_spamassassin_can_network
+    - cac:sebool_spamd_enable_home_dirs
+    - cac:sebool_squid_connect_any
+    - cac:sebool_squid_use_tproxy
+    - cac:sebool_ssh_chroot_rw_homedirs
+    - cac:sebool_ssh_keysign
+    - cac:sebool_ssh_sysadm_login
+    - cac:sebool_staff_exec_content
+    - cac:sebool_staff_use_svirt
+    - cac:sebool_swift_can_network
+    - cac:sebool_sysadm_exec_content
+    - cac:sebool_telepathy_connect_all_ports
+    - cac:sebool_telepathy_tcp_connect_generic_network_ports
+    - cac:sebool_tftp_anon_write
+    - cac:sebool_tftp_home_dir
+    - cac:sebool_tmpreaper_use_nfs
+    - cac:sebool_tmpreaper_use_samba
+    - cac:sebool_tor_bind_all_unreserved_ports
+    - cac:sebool_tor_can_network_relay
+    - cac:sebool_unconfined_chrome_sandbox_transition
+    - cac:sebool_unconfined_login
+    - cac:sebool_unconfined_mozilla_plugin_transition
+    - cac:sebool_unprivuser_use_svirt
+    - cac:sebool_use_ecryptfs_home_dirs
+    - cac:sebool_use_fusefs_home_dirs
+    - cac:sebool_use_lpd_server
+    - cac:sebool_use_nfs_home_dirs
+    - cac:sebool_use_samba_home_dirs
+    - cac:sebool_user_exec_content
+    - cac:sebool_varnishd_connect_any
+    - cac:sebool_virt_read_qemu_ga_data
+    - cac:sebool_virt_rw_qemu_ga_data
+    - cac:sebool_virt_sandbox_use_all_caps
+    - cac:sebool_virt_sandbox_use_audit
+    - cac:sebool_virt_sandbox_use_mknod
+    - cac:sebool_virt_sandbox_use_netlink
+    - cac:sebool_virt_sandbox_use_sys_admin
+    - cac:sebool_virt_transition_userdomain
+    - cac:sebool_virt_use_comm
+    - cac:sebool_virt_use_execmem
+    - cac:sebool_virt_use_fusefs
+    - cac:sebool_virt_use_nfs
+    - cac:sebool_virt_use_rawip
+    - cac:sebool_virt_use_samba
+    - cac:sebool_virt_use_sanlock
+    - cac:sebool_virt_use_usb
+    - cac:sebool_virt_use_xserver
+    - cac:sebool_webadm_manage_user_files
+    - cac:sebool_webadm_read_user_files
+    - cac:sebool_wine_mmap_zero_ignore
+    - cac:sebool_xdm_bind_vnc_tcp_port
+    - cac:sebool_xdm_exec_bootloader
+    - cac:sebool_xdm_sysadm_login
+    - cac:sebool_xdm_write_home
+    - cac:sebool_xen_use_nfs
+    - cac:sebool_xend_run_blktap
+    - cac:sebool_xend_run_qemu
+    - cac:sebool_xguest_connect_network
+    - cac:sebool_xguest_exec_content
+    - cac:sebool_xguest_mount_media
+    - cac:sebool_xguest_use_bluetooth
+    - cac:sebool_xserver_clients_write_xshm
+    - cac:sebool_xserver_execmem
+    - cac:sebool_xserver_object_manager
+    - cac:sebool_zabbix_can_network
+    - cac:sebool_zarafa_setrlimit
+    - cac:sebool_zebra_write_config
+    - cac:sebool_zoneminder_anon_write
+    - cac:sebool_zoneminder_run_sudo
+    nist_800_53:
+    - SC-12
+    - IA-7
+    - SC-13
+    - CM-6
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/selinux/selinux-booleans/sebool_abrt_anon_write/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/selinux/selinux-booleans/sebool_gssd_read_tmp/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/selinux/selinux-booleans/sebool_mozilla_read_content/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/selinux/selinux-booleans/sebool_selinuxuser_use_ssh_chroot/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/selinux/selinux-booleans/sebool_zoneminder_run_sudo/rule.yml
+- id: NET-OS-011
+  sheet: NET
+  category: OS
+  title: Check that AppArmor is loaded and its profiles are enforced
+  objective: Finds hosts where profiles are missing or are only in complain mode.
+  preconditions: *id001
+  steps:
+  - Run aa-status.
+  - Look at the number of profiles in enforce, complain and unconfined mode.
+  - Look for the AppArmor kernel argument and packages.
+  - Look at the pam_apparmor module.
+  example: aa-status ; cat /sys/module/apparmor/parameters/enabled ; grep apparmor /proc/cmdline ; dpkg -l apparmor apparmor-utils libpam-apparmor
+  expected: AppArmor is on. All profiles are in enforce mode. The packages are installed.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:all_apparmor_profiles_enforced
+    - cac:all_apparmor_profiles_in_enforce_complain_mode
+    - cac:apparmor_configured
+    - cac:grub2_enable_apparmor
+    - cac:package_apparmor-utils_installed
+    - cac:package_apparmor_installed
+    - cac:package_pam_apparmor_installed
+    nist_800_53:
+    - AC-6
+    - CM-7
+    - AC-3
+    - SC-7
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/apparmor/all_apparmor_profiles_enforced/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/apparmor/all_apparmor_profiles_in_enforce_complain_mode/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/apparmor/grub2_enable_apparmor/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/apparmor/package_apparmor_installed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/apparmor/package_pam_apparmor_installed/rule.yml
+- id: NET-OS-012
+  sheet: NET
+  category: OS
+  title: Check desktop login, screen lock and remote access settings
+  objective: Finds desktop hosts that allow guest login, automatic login, unlocked screens or open remote desktops.
+  preconditions: *id001
+  steps:
+  - Read /etc/gdm/custom.conf and /etc/dconf/db for the lock, idle and login settings.
+  - Look at AutomaticLogin, TimedLogin, guest login and XDMCP.
+  - Look at the idle delay, the lock delay and the settings locks.
+  - Look at automount, autorun, remote access encryption and the user list.
+  - Look for X server packages on hosts that do not need a desktop.
+  example: grep -rE "AutomaticLogin|TimedLogin|Enable=" /etc/gdm/custom.conf ; dconf dump /org/gnome/desktop/screensaver/ ; gsettings get org.gnome.desktop.session idle-delay ; systemctl get-default ; rpm
+    -q gdm xorg-x11-server-common
+  expected: Automatic login, guest login and XDMCP are off. The screen locks after idle time and users cannot change the lock settings. Servers have no desktop.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:dconf_db_up_to_date
+    - cac:dconf_gnome_disable_automount
+    - cac:dconf_gnome_disable_automount_open
+    - cac:dconf_gnome_disable_autorun
+    - cac:dconf_gnome_disable_ctrlaltdel_reboot
+    - cac:dconf_gnome_disable_geolocation
+    - cac:dconf_gnome_disable_power_settings
+    - cac:dconf_gnome_disable_restart_shutdown
+    - cac:dconf_gnome_disable_thumbnailers
+    - cac:dconf_gnome_disable_user_admin
+    - cac:dconf_gnome_disable_user_list
+    - cac:dconf_gnome_disable_wifi_create
+    - cac:dconf_gnome_disable_wifi_notification
+    - cac:dconf_gnome_enable_smartcard_auth
+    - cac:dconf_gnome_lock_screen_on_smartcard_removal
+    - cac:dconf_gnome_login_retries
+    - cac:dconf_gnome_remote_access_credential_prompt
+    - cac:dconf_gnome_remote_access_encryption
+    - cac:dconf_gnome_screensaver_idle_activation_enabled
+    - cac:dconf_gnome_screensaver_idle_activation_locked
+    - cac:dconf_gnome_screensaver_idle_delay
+    - cac:dconf_gnome_screensaver_lock_delay
+    - cac:dconf_gnome_screensaver_lock_enabled
+    - cac:dconf_gnome_screensaver_lock_locked
+    - cac:dconf_gnome_screensaver_mode_blank
+    - cac:dconf_gnome_screensaver_user_info
+    - cac:dconf_gnome_screensaver_user_locks
+    - cac:dconf_gnome_session_idle_user_locks
+    - cac:enable_dconf_user_profile
+    - cac:gnome_gdm_disable_automatic_login
+    - cac:gnome_gdm_disable_guest_login
+    - cac:gnome_gdm_disable_unattended_automatic_login
+    - cac:gnome_gdm_disable_xdmcp
+    - cac:package_gdm_removed
+    - cac:package_xorg-x11-server-Xwayland_removed
+    - cac:package_xorg-x11-server-common_removed
+    - cac:xwayland_disabled
+    - cac:xwindows_remove_packages
+    - cac:xwindows_runlevel_target
+    nist_800_53:
+    - CM-6
+    - CM-7
+    - IA-2
+    - AC-11
+    pci_dss:
+    - '6.2'
+    - '8.3'
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/gnome/dconf_db_up_to_date/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/gnome/gnome_system_settings/dconf_gnome_disable_user_admin/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/gnome/gnome_screen_locking/dconf_gnome_screensaver_idle_activation_locked/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/gnome/gnome_login_screen/gnome_gdm_disable_automatic_login/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/xwindows/disabling_xwindows/xwindows_runlevel_target/rule.yml

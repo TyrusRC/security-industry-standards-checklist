@@ -1,0 +1,119 @@
+- id: WEB-REBIND-001
+  sheet: WEB
+  category: REBIND
+  title: Test server-side fetch for DNS rebinding between check and connection
+  objective: Find a server-side fetch that checks a host name once and then connects to another address after a second DNS answer.
+  preconditions:
+  - A feature that fetches a user-supplied URL, such as a webhook, an image import or a preview.
+  - A DNS name under your control that you can switch between a public and an internal address, with a very low TTL.
+  - Do not run on production.
+  steps:
+  - Register the URL of your DNS name in the fetch feature while it resolves to a public address. Make sure the request works.
+  - Set the name to answer with a public address first and an internal address second, for example 127.0.0.1 or 169.254.169.254.
+  - Send the URL again many times. Look for a response that comes from the internal service.
+  - Review the code. Find out if the client resolves the name once, checks the IP and connects to that exact IP.
+  - Make sure the Host header and SNI keep the original host name when the client connects by IP.
+  - Make sure redirects get the same checks. Make sure the delivery worker cannot reach internal networks.
+  example: a custom DNS server with TTL 0 that alternates 203.0.113.10 and 127.0.0.1; curl -X POST https://target/api/webhooks -d "{\"url\":\"https://rebind.attacker.test/hook\"}"
+  expected: The client validates the address it connects to, and a changed DNS answer gets no internal access. Redirects are checked, and workers have no route to internal services.
+  severity: High
+  test_type:
+  - Manual
+  - Code Review
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A01:2025
+    wstg:
+    - WSTG-INJT-19
+    asvs:
+    - V1.3.6
+    - V13.2.4
+    cheatsheet:
+    - Webhook_Security_Cheat_Sheet
+    cwe:
+    - CWE-918
+    - CWE-367
+    capec:
+    - CAPEC-275
+  see:
+  - API-SSRF-002
+  - API-SSRF-004
+  - API-SSRF-005
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Webhook_Security_Cheat_Sheet.md
+  - sources/capec/capec_latest.xml
+- id: WEB-REBIND-002
+  sheet: WEB
+  category: REBIND
+  title: Send unknown Host headers to internal and localhost web services
+  objective: Find internal or local HTTP services that answer any Host value and so work for a DNS rebinding page.
+  preconditions:
+  - A list of internal web interfaces and local services, such as admin panels, device interfaces and developer servers.
+  - Network access to the service from a test client.
+  steps:
+  - Send a request to each service with the correct Host header. Note the response.
+  - Send the same request with Host set to an attacker domain, such as rebind.attacker.test.
+  - Send the same request with Host set to a random name and with an empty Host value.
+  - Make sure the service rejects each request whose Host is not on its allow-list.
+  - Check the DNS resolver for internal names. Make sure external names cannot resolve to internal addresses.
+  - Make sure the service needs authentication even when the request comes from localhost.
+  example: 'curl -i http://127.0.0.1:8080/ -H "Host: rebind.attacker.test"; curl -i http://10.0.0.5/admin -H "Host: x"; dig +short internal-test.attacker.test @internal-resolver'
+  expected: Requests with an unknown Host header get a 4xx response. The resolver blocks external names that point to internal addresses, and the service requires authentication.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A02:2025
+    wstg:
+    - WSTG-INJT-17
+    asvs:
+    - V13.2.4
+    cwe:
+    - CWE-346
+    - CWE-1327
+    capec:
+    - CAPEC-275
+  see:
+  - LLM-MCP-005
+  sources_read:
+  - sources/capec/capec_latest.xml
+  - sources/extra/gap3-A/private-network-access.md
+- id: WEB-REBIND-003
+  sheet: WEB
+  category: REBIND
+  title: Test local network services for cross-site requests and preflight handling
+  objective: Find services on loopback or a private network that act on a request from a public web page.
+  preconditions:
+  - A service on loopback or a private address, and a test page on a public origin.
+  - A browser. Note the version, because browser support for Private Network Access differs.
+  steps:
+  - From the public test page, send a simple GET or POST request to the local service. Look at the log of the service.
+  - Look for state changes, such as a setting change or a command. A simple request needs no preflight.
+  - Send a preflight OPTIONS request with Access-Control-Request-Private-Network set to true and an Origin of the public site.
+  - Make sure the service does not answer the preflight with approval. A 50x answer or a missing header is safe.
+  - Make sure each state-changing action needs a token or credential that a foreign page cannot send.
+  - Make sure the service does not trust the access only because the request comes from the local machine.
+  example: 'curl -i -X OPTIONS http://127.0.0.1:8080/api/set -H "Origin: https://public.attacker.test" -H "Access-Control-Request-Method: GET" -H "Access-Control-Request-Private-Network: true"'
+  expected: The service refuses preflights from public origins. State-changing requests need a token or credential. A request from the local machine is not trusted by itself.
+  severity: High
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A01:2025
+    asvs:
+    - V3.4.2
+    cwe:
+    - CWE-346
+    - CWE-352
+    capec:
+    - CAPEC-275
+    other:
+    - 'WICG Private Network Access: https://wicg.github.io/private-network-access/'
+  sources_read:
+  - sources/extra/gap3-A/private-network-access.md

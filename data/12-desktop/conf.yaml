@@ -1,0 +1,131 @@
+- id: DESK-CONF-001
+  sheet: DESK
+  category: CONF
+  title: Check named pipes, local ports and IPC for access control
+  objective: Finds local interfaces that any user or any host can use.
+  steps:
+  - List named pipes, sockets and listening ports of the product.
+  - Check the access rights of each pipe.
+  - Check the bind address of each port.
+  - Send a request as another local user.
+  example: pipelist.exe; accesschk.exe \pipe\name; netstat -ano; nmap -p- from a second host.
+  expected: IPC objects allow only the needed accounts. Local services bind to loopback and need authentication.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-732
+    - CWE-306
+    cheatsheet:
+    - Attack_Surface_Analysis_Cheat_Sheet
+    desktop_top10:
+    - DA6
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Attack_Surface_Analysis_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-CONF-002
+  sheet: DESK
+  category: CONF
+  title: Check Windows services for unquoted paths and weak folder rights
+  objective: Finds services that a user can hijack through the service path.
+  steps:
+  - List the services that the product installs.
+  - Read the image path of each service.
+  - Look for spaces in unquoted paths.
+  - Check the write rights of each parent folder.
+  example: wmic service get name,pathname; sc qc; icacls on each folder in the path.
+  expected: Service paths are quoted. No folder in the path is writable by normal users.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-428
+    - CWE-732
+    desktop_top10:
+    - DA6
+    - DA5
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-CONF-003
+  sheet: DESK
+  category: CONF
+  title: Check file open and import functions for type and content checks
+  objective: Finds file handlers that accept any file or parse unsafe content.
+  steps:
+  - List the file types the client opens or imports.
+  - Open files with a wrong type and a wrong content.
+  - Open files with an odd size and a long name.
+  - Watch the client for crashes and file writes.
+  example: Procmon; WinDbg crash notes; test file set with a changed header.
+  expected: The client checks file type and content before it parses the file. Bad files give a clear error and no crash.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-120
+    desktop_top10:
+    - DA6
+    - DA8
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-CONF-004
+  sheet: DESK
+  category: CONF
+  title: Check back-end services of the client for default credentials
+  objective: Finds databases, queues and directory services with default accounts.
+  steps:
+  - List the back-end services that the client uses.
+  - Read the connection settings in the config.
+  - Try the vendor default account on a test instance.
+  - Check the network rules around each service.
+  example: Look in the config for sa, root and admin accounts; nmap -sV on the service host.
+  expected: Back-end services have no default accounts and allow access only from the client network.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    cwe:
+    - CWE-1392
+    - CWE-1188
+    asvs:
+    - V13.2.3
+    desktop_top10:
+    - DA6
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-CONF-005
+  sheet: DESK
+  category: CONF
+  title: Check local-only features for exposure over the network
+  objective: Finds services meant for the same machine that listen on all interfaces.
+  steps:
+  - List all listening sockets of the product.
+  - Read the local address of each.
+  - Connect from a second host.
+  - Check the firewall rules that the installer adds.
+  example: netstat -ano | findstr LISTENING; Test-NetConnection from another host.
+  expected: Local-only features bind to 127.0.0.1. The installer adds no inbound allow rule for them.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-1188
+    desktop_top10:
+    - DA6
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/cwe/cwec_latest.xml.zip

@@ -1,0 +1,152 @@
+- id: IOT-ECO-001
+  sheet: IOT
+  category: ECO
+  title: Test the device web interface for authentication and input flaws
+  objective: Finds missing login, injection and XSS in the device web interface.
+  steps:
+  - Map every page and request of the web interface.
+  - Call each admin request without a login.
+  - Send special characters in each field.
+  - Check the cookie and header settings.
+  example: Burp Suite; commix only in a lab for command injection checks.
+  expected: Every request needs authentication and authorization. Input is validated. The interface has no injection flaw.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    other:
+    - UK Code of Practice for Consumer IoT Security provision 13, as listed in iot_map.md
+    - GSMA CLP12_6.9
+    cwe:
+    - CWE-306
+    - CWE-78
+    - CWE-79
+    attack:
+    - T0819
+    iot_top10:
+    - I3
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/cwe/cwec_latest.xml.zip
+  - sources/attack/ics-attack.json
+- id: IOT-ECO-002
+  sheet: IOT
+  category: ECO
+  title: Test the cloud and back-end API used by the device
+  objective: Finds API calls that expose other devices or users.
+  steps:
+  - Capture the API calls of the device and the app.
+  - Change the device ID in each call.
+  - Replay calls with a token from another account.
+  - Check the responses for other data.
+  example: Burp Repeater; compare the responses for device A and device B.
+  expected: The API checks that the caller owns the device. Changed IDs give an error and no data.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    other:
+    - GSMA CLP12_6.8
+    - GSMA CLP12_6.12
+    cwe:
+    - CWE-862
+    - CWE-863
+    iot_top10:
+    - I3
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: IOT-ECO-003
+  sheet: IOT
+  category: ECO
+  title: Check the companion mobile app and the device for shared trust
+  objective: Finds mobile app flows that let a user take control of a device they do not own.
+  steps:
+  - Pair a lab device with account A.
+  - Try to pair or control it with account B.
+  - Check the ownership change and reset steps.
+  - Check what the old owner can still do.
+  example: Burp Suite on the app; Frida only on a lab device; the mobile app tests are in the MOB sheet.
+  expected: Only the owner can control the device. An ownership change removes the access of the old owner.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-863
+    cheatsheet:
+    - Automotive_Security_Cheat_Sheet
+    iot_top10:
+    - I3
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Automotive_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: IOT-ECO-004
+  sheet: IOT
+  category: ECO
+  title: Check input validation and output filtering on all device interfaces
+  objective: Finds interfaces that act on data without a check of type, length and range.
+  steps:
+  - 'List all input paths: API, radio, serial, file.'
+  - Send out-of-range and wrong-type values.
+  - Check the state in which the action is allowed.
+  - Check the output for internal data.
+  example: Protocol client scripts for MQTT, CoAP or HTTP; compare the responses.
+  expected: The device checks type, length, range and state before it acts. Errors show no internal data.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    other:
+    - UK Code of Practice for Consumer IoT Security provision 13, as listed in iot_map.md
+    - GSMA CLP12_6.10
+    cwe:
+    - CWE-120
+    cheatsheet:
+    - Automotive_Security_Cheat_Sheet
+    iot_top10:
+    - I3
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Automotive_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: IOT-ECO-005
+  sheet: IOT
+  category: ECO
+  title: Test command messages for replay and spoofing
+  objective: Finds control messages that an attacker can copy and send again.
+  steps:
+  - Capture a command message such as lock or open.
+  - Send it again later from another host.
+  - Change a field and send it with the old signature.
+  - Check for a counter or timestamp check.
+  example: Wireshark capture; scapy or mosquitto_pub replay in a lab.
+  expected: The device rejects replayed, changed and unauthenticated commands.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-345
+    - CWE-353
+    cheatsheet:
+    - Drone_Security_Cheat_Sheet
+    - Automotive_Security_Cheat_Sheet
+    attack:
+    - T1692
+    - T0830
+    iot_top10:
+    - I3
+    - I7
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Drone_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Automotive_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+  - sources/attack/ics-attack.json

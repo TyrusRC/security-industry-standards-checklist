@@ -1,0 +1,102 @@
+- id: NET-PEN-001
+  sheet: NET
+  category: PEN
+  title: Run an external penetration test with a defined methodology
+  objective: Finds attack paths from the internet that scans alone do not show.
+  preconditions:
+  - Signed rules of engagement with scope, exclusions, tester source addresses and incident contacts.
+  - Do not run on production without a test window and the approval of the system owners.
+  steps:
+  - Plan the test with the rules of engagement and the goals.
+  - Collect host names, addresses, services and versions of the external perimeter.
+  - Compare the services with vulnerability databases and with the scan results.
+  - Try to exploit each confirmed vulnerability to prove that it works.
+  - Try to use each success to reach more systems, and go back to the discovery step.
+  - Write the report with the evidence, the risk rating and the fix advice.
+  example: 'nmap -sV -oX ext.xml <range> ; searchsploit --nmap ext.xml ; msfconsole (exploit modules) ; Wireshark to record the test traffic'
+  expected: The test finds no exploitable path to critical systems. Any finding has a risk rating and a fix, and the test repeats after the fix.
+  severity: High
+  test_type: Manual
+  refs:
+    attack:
+    - T1190
+    - T1210
+    capec:
+    - CAPEC-310
+    nist_800_53:
+    - CA-8
+    - CA-8(1)
+    pci_dss:
+    - '11.4.1'
+    - '11.4.3'
+    - '11.4.4'
+    other:
+    - NIST SP 800-115 section 5.2 (penetration testing phases)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-PEN-002
+  sheet: NET
+  category: PEN
+  title: Run an internal penetration test from a user network position
+  objective: Finds paths from a normal internal host to critical systems and data.
+  preconditions:
+  - Signed rules of engagement with scope, exclusions, tester source addresses and incident contacts.
+  - Do not run on production without a test window and the approval of the system owners.
+  steps:
+  - Connect a test host to a user network, as a normal employee or visitor would.
+  - Find hosts, services and shares with passive and active discovery.
+  - Look for misconfigurations, default accounts and weak passwords on the hosts found.
+  - Try to exploit confirmed weaknesses and to move to more systems.
+  - Record each step with time and evidence.
+  - Stop and tell the contact if you find an intruder or a real incident.
+  example: 'nmap -sV -p- --open <internal-range> ; crackmapexec smb <range> ; Responder -A ; msfconsole'
+  expected: The test host cannot reach critical systems or sensitive data. The security team detects the test activity from the agreed source addresses.
+  severity: High
+  test_type: Manual
+  refs:
+    attack:
+    - T1210
+    - T1021
+    - T1078.001
+    nist_800_53:
+    - CA-8
+    - CA-8(1)
+    pci_dss:
+    - '11.4.2'
+    - '11.4.4'
+    other:
+    - NIST SP 800-115 section 5.2 (penetration testing and attack phase categories)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-PEN-003
+  sheet: NET
+  category: PEN
+  title: Check that exploitable findings are corrected and tested again
+  objective: Finds penetration test findings that stay open or that return after a fix.
+  steps:
+  - Get the report of the last penetration test and the fix tickets.
+  - Compare the risk rating of each finding with the time that the team needed to fix it.
+  - Repeat the exploit steps for each finding that the team closed.
+  - Reopen each finding that still works.
+  example: 'Repeat the exploit from the report, for example: msfconsole -x "use <module>; set RHOSTS <host>; check" ; compare with the first nmap -sV output'
+  expected: Each exploitable finding is fixed in the time that its rating sets. A new test shows that the fix works.
+  severity: Medium
+  test_type: Manual
+  refs:
+    nist_800_53:
+    - CA-8
+    - RA-5
+    - SI-2
+    pci_dss:
+    - '11.4.4'
+    - '6.3.1'
+    other:
+    - NIST SP 800-115 section 8.3 (remediation and mitigation)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md

@@ -1,0 +1,114 @@
+- id: PRIV-CONSENT-001
+  sheet: PRIV
+  category: CONSENT
+  title: Check that consent is collected separately for each purpose
+  objective: Finds consent that is bundled for several purposes, such as service use and advertising profiling.
+  steps:
+  - List all processing purposes in the privacy notice and the consent records.
+  - Open the sign-up flow and the consent dialogs.
+  - Count the consent choices shown for each purpose.
+  - Try to finish sign-up while you refuse every optional purpose.
+  example: 'Evidence: screenshots of each consent dialog, consent database schema, list of purposes and legal bases.'
+  expected: Each purpose has its own consent choice. The user can refuse optional purposes and still use the core service.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    privacy_top10:
+    - P4
+    other:
+    - GDPR Art. 6
+    - GDPR Art. 7
+  sources_read: &id001
+  - sources/repos/www-project-top-10-privacy-risks/tab_topprivacy.md
+  - sources/repos/www-project-top-10-privacy-risks/OWASP_Top_10_Privacy_Risks_Countermeasures_v2.0.pdf
+  - sources/extra/gdpr.html
+- id: PRIV-CONSENT-002
+  sheet: PRIV
+  category: CONSENT
+  title: Check that optional consent is off by default
+  objective: Finds pre-ticked boxes and opt-out defaults for purposes that the service does not need.
+  steps:
+  - Create a new account with default settings.
+  - Look at every consent switch, tick box and cookie setting.
+  - Look at the stored consent values after sign-up.
+  - Record each optional purpose that is on without a user action.
+  example: Compare the consent table after a fresh sign-up with the list of necessary purposes.
+  expected: All consent switches for optional purposes are off until the user acts. The stored value shows no consent.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    privacy_top10:
+    - P4
+    - P10
+    other:
+    - GDPR Art. 7
+    - GDPR Art. 25
+  sources_read: *id001
+- id: PRIV-CONSENT-003
+  sheet: PRIV
+  category: CONSENT
+  title: Make sure users can withdraw consent as easily as they give it
+  objective: Finds consent that is easy to give but hard to withdraw.
+  steps:
+  - Count the clicks that give consent.
+  - Count the clicks that withdraw the same consent.
+  - Withdraw one consent and look at the stored consent record.
+  - Watch network traffic for trackers after the withdrawal.
+  example: 'Burp Suite or browser developer tools: compare requests before and after withdrawal; check the consent log row.'
+  expected: Withdrawal needs no more steps than consent. Processing and tracker calls for that purpose stop after withdrawal.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    privacy_top10:
+    - P4
+    other:
+    - GDPR Art. 7
+  sources_read: *id001
+- id: PRIV-CONSENT-004
+  sheet: PRIV
+  category: CONSENT
+  title: Make sure the service keeps proof of consent and its version
+  objective: Finds services that cannot show who agreed to which text and when.
+  steps:
+  - Ask for the consent log of one test user.
+  - Look for the timestamp, the purpose and the text version in each record.
+  - Change the policy text and look for a new consent request.
+  - Check that old records keep their original text version.
+  example: 'Document review: consent table export with user ID, purpose, version, timestamp, source.'
+  expected: Each consent record shows the user, purpose, text version and time. Users accept new versions of changed terms.
+  severity: Low
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    privacy_top10:
+    - P4
+    - P5
+    other:
+    - GDPR Art. 7
+  sources_read: *id001
+- id: PRIV-CONSENT-005
+  sheet: PRIV
+  category: CONSENT
+  title: Check that consent is voluntary and not a condition for unrelated service
+  objective: Finds services that block use unless the user agrees to processing that the service does not need.
+  steps:
+  - List the data fields and purposes that the service needs for its core function.
+  - Refuse every optional consent in the sign-up flow.
+  - Try to use the core service.
+  - Record any blocked feature and the reason that the service shows.
+  example: Walk through the flow with all optional consents refused; note any "accept to continue" wall.
+  expected: The core service works when the user refuses consent for data that the service does not need.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    privacy_top10:
+    - P4
+    other:
+    - GDPR Art. 7
+  sources_read: *id001

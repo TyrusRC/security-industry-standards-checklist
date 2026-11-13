@@ -1,0 +1,352 @@
+- id: WEB-TLS-001
+  sheet: WEB
+  category: TLS
+  title: Make sure only TLS 1.2 and TLS 1.3 are enabled
+  objective: Find old protocol versions (SSLv3, TLS 1.0, TLS 1.1) or weak settings such as compression.
+  steps:
+  - Scan the HTTPS port with testssl.sh or sslscan.
+  - Make sure SSLv2, SSLv3, TLS 1.0 and TLS 1.1 are off.
+  - Make sure TLS 1.3 is available and preferred.
+  - Make sure TLS compression is off.
+  - Repeat on every other TLS port that the application uses.
+  example: testssl.sh --protocols --vulnerable example.com:443; nmap --script ssl-enum-ciphers -p443 example.com
+  expected: Only TLS 1.2 and TLS 1.3 are enabled, with the latest version preferred. Compression is off and no known TLS attack applies.
+  severity: Medium
+  test_type:
+  - Automated
+  - Config Review
+  level: ASVS L1
+  refs:
+    wstg:
+    - WSTG-CRYP-01
+    asvs:
+    - V12.1.1
+    owasp_top10:
+    - A04:2025
+    cheatsheet:
+    - Transport_Layer_Security_Cheat_Sheet
+    cwe:
+    - CWE-326
+    - CWE-327
+    - CWE-757
+    capec:
+    - CAPEC-217
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/09-Weak_Cryptography/01-Weak_Transport_Layer_Security.md
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Transport_Layer_Security_Cheat_Sheet.md
+- id: WEB-TLS-002
+  sheet: WEB
+  category: TLS
+  title: Make sure only strong cipher suites with forward secrecy are enabled
+  objective: Find weak cipher suites, such as NULL, anonymous, EXPORT, RSA key transport and CBC, and weak key exchange groups.
+  steps:
+  - List all cipher suites that the server accepts for each protocol version.
+  - Make sure NULL, anonymous, EXPORT and RC4 and 3DES suites are off.
+  - Make sure TLS 1.2 uses ECDHE with AEAD suites and the server order puts the strongest first.
+  - Make sure RSA key transport and static DH suites are off. They have no forward secrecy.
+  - Check the Diffie-Hellman groups and look for ffdhe2048 or larger, x25519 or secp256r1.
+  example: testssl.sh -E example.com:443; sslyze --regular example.com; Mozilla SSL config generator https://ssl-config.mozilla.org/
+  expected: Only AEAD cipher suites with forward secrecy are accepted, strongest first. No NULL, anonymous, EXPORT or RSA key transport suite exists.
+  severity: Medium
+  test_type:
+  - Automated
+  - Config Review
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-CRYP-01
+    asvs:
+    - V12.1.2
+    owasp_top10:
+    - A04:2025
+    cheatsheet:
+    - Transport_Layer_Security_Cheat_Sheet
+    cwe:
+    - CWE-326
+    - CWE-327
+    capec:
+    - CAPEC-217
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/09-Weak_Cryptography/01-Weak_Transport_Layer_Security.md
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Transport_Layer_Security_Cheat_Sheet.md
+- id: WEB-TLS-003
+  sheet: WEB
+  category: TLS
+  title: Make sure external services use valid, publicly trusted TLS certificates
+  objective: Find expired, self-signed, wrong-host or chain-broken certificates on public services.
+  steps:
+  - Get the certificate chain of each public host with openssl s_client or testssl.sh.
+  - Make sure the validity dates are current and the chain ends at a public CA.
+  - Make sure the Subject Alternative Name matches the host name.
+  - Make sure the certificate uses a SHA-256 or stronger signature and a strong key.
+  - Look for internal names or IP addresses in the Issuer and SAN fields.
+  example: echo | openssl s_client -connect example.com:443 -servername example.com 2>/dev/null | openssl x509 -noout -text | grep -E 'Not After|Subject Alternative|Signature Algorithm|Public-Key'; testssl.sh
+    -S example.com
+  expected: All public services present valid certificates from a public CA, with matching SAN, SHA-256 or stronger signature, and no internal data.
+  severity: Medium
+  test_type:
+  - Automated
+  - Manual
+  level: ASVS L1
+  refs:
+    wstg:
+    - WSTG-CRYP-01
+    asvs:
+    - V12.2.2
+    owasp_top10:
+    - A04:2025
+    cheatsheet:
+    - Transport_Layer_Security_Cheat_Sheet
+    cwe:
+    - CWE-295
+    - CWE-296
+    - CWE-297
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/09-Weak_Cryptography/01-Weak_Transport_Layer_Security.md
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Transport_Layer_Security_Cheat_Sheet.md
+- id: WEB-TLS-004
+  sheet: WEB
+  category: TLS
+  title: Review certificate key strength, wildcard use and key protection
+  objective: Find weak certificate keys, wide wildcard certificates and unprotected private keys.
+  steps:
+  - Read the key type and size of each certificate.
+  - Make sure RSA keys are 3072 bits or more, or ECDSA uses P-256 or better.
+  - List the systems that share each wildcard certificate and check their trust levels.
+  - Check the file permissions and storage of the private key.
+  - Check certificate lifetime and automatic renewal, for example with ACME.
+  example: testssl.sh -S example.com; ls -l /etc/ssl/private/; nmap --script ssl-cert -p443 example.com
+  expected: Keys are strong and protected. Wildcard certificates are not shared between systems of different trust levels.
+  severity: Low
+  test_type:
+  - Automated
+  - Config Review
+  refs:
+    wstg:
+    - WSTG-CRYP-01
+    owasp_top10:
+    - A04:2025
+    cheatsheet:
+    - Transport_Layer_Security_Cheat_Sheet
+    cwe:
+    - CWE-326
+    - CWE-732
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/09-Weak_Cryptography/01-Weak_Transport_Layer_Security.md
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Transport_Layer_Security_Cheat_Sheet.md
+- id: WEB-TLS-005
+  sheet: WEB
+  category: TLS
+  title: Make sure all connections use TLS with no clear-text fallback
+  objective: Find cleartext HTTP, FTP or other services, and clients that fall back to clear text.
+  steps:
+  - Try each application host on port 80 and other plain ports with curl.
+  - Look at the page source and traffic for http:// resources and mixed content.
+  - 'Try a downgrade: strip the TLS upgrade and request the HTTP URL of login and API paths.'
+  - Make sure no sensitive request is accepted on HTTP, and cookies have the Secure flag.
+  - Check Basic authentication, login forms, password reset, change pages and payment pages.
+  example: curl -si http://example.com/login; nmap -p 21,23,80,8080 example.com; mitmproxy --mode regular
+  expected: The services accept sensitive data only over TLS. No cleartext fallback and no mixed active content exist.
+  severity: High
+  test_type:
+  - Manual
+  - Automated
+  level: ASVS L1
+  refs:
+    wstg:
+    - WSTG-CRYP-03
+    - WSTG-CRYP-01
+    asvs:
+    - V12.2.1
+    owasp_top10:
+    - A04:2025
+    cheatsheet:
+    - Transport_Layer_Security_Cheat_Sheet
+    cwe:
+    - CWE-319
+    - CWE-523
+    capec:
+    - CAPEC-157
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/09-Weak_Cryptography/03-Sensitive_Information_Sent_via_Unencrypted_Channels.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/09-Weak_Cryptography/01-Weak_Transport_Layer_Security.md
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Transport_Layer_Security_Cheat_Sheet.md
+- id: WEB-TLS-006
+  sheet: WEB
+  category: TLS
+  title: Make sure no channel sends sensitive data in clear text
+  objective: Find credentials, session IDs and personal data that travel unencrypted or are stored in source and logs.
+  steps:
+  - Capture traffic during login, password reset, profile edit and payment.
+  - Look for sensitive data in clear text in non-HTTP channels such as e-mail, FTP and SMTP.
+  - Search the source and log files for hard-coded passwords and personal data.
+  - Make sure the Secure flag is set on session cookies.
+  example: tcpdump -i eth0 -A port 80 | grep -iE 'password|session'; grep -rEi 'password|pwd|secret' ./src
+  expected: The application sends sensitive data only over encrypted channels. No clear-text secrets exist in source or logs.
+  severity: High
+  test_type:
+  - Manual
+  - Code Review
+  refs:
+    wstg:
+    - WSTG-CRYP-03
+    - WSTG-ATHN-01
+    owasp_top10:
+    - A04:2025
+    cwe:
+    - CWE-319
+    - CWE-532
+    - CWE-798
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/09-Weak_Cryptography/03-Sensitive_Information_Sent_via_Unencrypted_Channels.md
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+- id: WEB-TLS-007
+  sheet: WEB
+  category: TLS
+  title: Check Online Certificate Status Protocol stapling and revocation
+  objective: Find servers that do not support certificate revocation checks.
+  steps:
+  - Run openssl s_client with -status against the host.
+  - Look for an OCSP response in the output.
+  - Check that the certificate has OCSP or CRL information.
+  - Check that the server renews the staple.
+  example: echo | openssl s_client -connect example.com:443 -status 2>/dev/null | grep -A5 'OCSP Response'; testssl.sh -S example.com
+  expected: The server staples a current OCSP response, or another revocation method is documented.
+  severity: Low
+  test_type:
+  - Automated
+  - Config Review
+  level: ASVS L3
+  refs:
+    asvs:
+    - V12.1.4
+    cwe:
+    - CWE-299
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/09-Weak_Cryptography/01-Weak_Transport_Layer_Security.md
+- id: WEB-TLS-008
+  sheet: WEB
+  category: TLS
+  title: Check that Encrypted Client Hello is enabled
+  objective: Find TLS settings that expose the server name in clear text.
+  steps:
+  - Query the DNS HTTPS record for an ech parameter.
+  - Test a TLS connection with an ECH-capable client.
+  - Check the server and CDN settings for ECH.
+  example: dig +short HTTPS example.com; curl --ech true https://example.com/ -v
+  expected: ECH is enabled, or the owner has accepted the risk in writing.
+  severity: Info
+  test_type:
+  - Manual
+  - Config Review
+  level: ASVS L3
+  refs:
+    asvs:
+    - V12.1.5
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/09-Weak_Cryptography/01-Weak_Transport_Layer_Security.md
+- id: WEB-TLS-009
+  sheet: WEB
+  category: TLS
+  title: Make sure mTLS client certificates are validated before use
+  objective: Find servers that accept untrusted or unchecked client certificates for identity.
+  steps:
+  - Connect with no certificate and with a self-signed certificate.
+  - Connect with an expired certificate and a certificate from another CA.
+  - Connect with a revoked certificate if a test one exists.
+  - Check that the identity is taken only after chain validation.
+  example: openssl s_client -connect example.com:443 -cert selfsigned.pem -key selfsigned.key; curl --cert client.pem --key client.key https://example.com/
+  expected: The server rejects client certificates that are untrusted, expired, revoked or from another CA.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  level: ASVS L2
+  refs:
+    asvs:
+    - V12.1.3
+    cwe:
+    - CWE-295
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/09-Weak_Cryptography/01-Weak_Transport_Layer_Security.md
+- id: WEB-TLS-010
+  sheet: WEB
+  category: TLS
+  title: Make sure the application validates server certificates on outbound TLS
+  objective: Find backend clients that disable certificate validation or use clear text to monitoring, databases and partners.
+  steps:
+  - 'List all outbound connections: databases, queues, partner APIs, monitoring, SSH and management tools.'
+  - Search the code for switches that turn off certificate checks, such as InsecureSkipVerify and TrustAllCerts.
+  - Put a proxy with a self-signed certificate in front of one outbound call.
+  - Look at whether the call fails and the failure is logged.
+  - Make sure no outbound connection falls back to clear text.
+  example: grep -rEn 'verify\s*=\s*False|InsecureSkipVerify|rejectUnauthorized:\s*false|TrustAll' ./src; mitmproxy --mode reverse:https://partner.example
+  expected: All outbound connections use TLS and reject invalid certificates. The failure is logged and there is no fallback to clear text.
+  severity: High
+  test_type:
+  - Manual
+  - Code Review
+  level: ASVS L2
+  refs:
+    asvs:
+    - V12.3.1
+    - V12.3.2
+    owasp_top10:
+    - A04:2025
+    cheatsheet:
+    - Transport_Layer_Security_Cheat_Sheet
+    cwe:
+    - CWE-295
+    - CWE-297
+    - CWE-319
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Transport_Layer_Security_Cheat_Sheet.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/09-Weak_Cryptography/01-Weak_Transport_Layer_Security.md
+- id: WEB-TLS-011
+  sheet: WEB
+  category: TLS
+  title: Check TLS, trust and authentication between internal services
+  objective: Find internal HTTP services that use clear text, untrusted certificates or no service authentication.
+  steps:
+  - Map internal HTTP service calls in the architecture documents.
+  - Capture traffic between two internal services and look for clear text.
+  - Check which CA each service trusts. Self-signed use must be pinned to specific CAs.
+  - Call an internal service from another host without a client certificate.
+  example: tcpdump -i any -A 'port 8080 and host 10.0.0.5'; openssl s_client -connect svc.internal:8443 -showcerts
+  expected: Internal service traffic uses TLS with trusted certificates. Services use strong mutual authentication.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  level: ASVS L2
+  refs:
+    asvs:
+    - V12.3.3
+    - V12.3.4
+    - V12.3.5
+    owasp_top10:
+    - A04:2025
+    cwe:
+    - CWE-319
+    - CWE-295
+    - CWE-306
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Transport_Layer_Security_Cheat_Sheet.md

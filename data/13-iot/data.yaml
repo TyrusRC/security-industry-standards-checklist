@@ -1,0 +1,181 @@
+- id: IOT-DATA-001
+  sheet: IOT
+  category: DATA
+  title: Capture device traffic and find clear-text data
+  objective: Finds data sent without encryption on any link.
+  steps:
+  - Capture traffic of the device on Wi-Fi, Ethernet and any radio.
+  - List protocols and ports.
+  - Look for credentials, tokens and data in clear text.
+  - Check MQTT, CoAP and HTTP use.
+  example: Wireshark filter mqtt or coap or http; tshark -Y "http" -r cap.pcap.
+  expected: All data in transit uses TLS, DTLS or an equal secure protocol. No credential or user data appears in clear text.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    other:
+    - UK Code of Practice for Consumer IoT Security provision 5, as listed in iot_map.md
+    - GSMA CLP13_6.19
+    cwe:
+    - CWE-319
+    cheatsheet:
+    - Transport_Layer_Security_Cheat_Sheet
+    attack:
+    - T0842
+    - T0830
+    iot_top10:
+    - I7
+  see:
+  - WEB-TLS-006
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Transport_Layer_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+  - sources/attack/ics-attack.json
+- id: IOT-DATA-002
+  sheet: IOT
+  category: DATA
+  title: Test certificate validation and TLS settings of the device
+  objective: Finds devices that accept any certificate or old TLS versions.
+  steps:
+  - Route device traffic through a proxy with a lab CA.
+  - Check if the device connects.
+  - Use an expired certificate and a wrong host name.
+  - Scan the cloud endpoint for protocol versions.
+  example: mitmproxy with a lab CA; testssl.sh on the endpoint.
+  expected: The device refuses untrusted certificates. Only TLS 1.2 and TLS 1.3 with strong ciphers are used.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-295
+    - CWE-297
+    cheatsheet:
+    - Pinning_Cheat_Sheet
+    - Transport_Layer_Security_Cheat_Sheet
+    iot_top10:
+    - I7
+    - I3
+  see:
+  - WEB-TLS-010
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Pinning_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Transport_Layer_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: IOT-DATA-003
+  sheet: IOT
+  category: DATA
+  title: Check sensitive data and keys in flash storage
+  objective: Finds secrets and personal data stored in clear text on the device.
+  steps:
+  - Dump the flash of a lab unit.
+  - Unpack the file systems.
+  - Search for keys, tokens, Wi-Fi passwords and user data.
+  - Check if the storage is encrypted.
+  example: flashrom -r dump.bin; binwalk -e dump.bin; strings; grep -r "BEGIN" _dump.bin.extracted.
+  expected: Secrets and personal data are encrypted or kept in a secure element. No clear key is in the flash.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    other:
+    - GSMA CLP13_7.1
+    cwe:
+    - CWE-312
+    - CWE-922
+    - CWE-321
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    - Key_Management_Cheat_Sheet
+    - Drone_Security_Cheat_Sheet
+    attack:
+    - T0893
+    iot_top10:
+    - I7
+    - I10
+  see:
+  - WEB-DATA-013
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Drone_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+  - sources/attack/ics-attack.json
+  - sources/repos/www-project-internet-of-things/tab_validate_and_test.md
+- id: IOT-DATA-004
+  sheet: IOT
+  category: DATA
+  title: Check cryptographic algorithms, key size and random source
+  objective: Finds weak algorithms and poor random numbers.
+  steps:
+  - List the crypto libraries and calls in the firmware.
+  - Check the algorithms, modes and key sizes.
+  - Check the random source and its entropy at boot.
+  - Check key use per device.
+  example: strings and Ghidra search for rand(), MD5, DES, ECB; ent on random output from a lab unit.
+  expected: The device uses approved algorithms and a hardware or CSPRNG random source. Keys are unique per device.
+  severity: Medium
+  test_type:
+  - Manual
+  - Code Review
+  refs:
+    other:
+    - GSMA CLP13_6.10
+    - GSMA CLP12_6.2
+    cwe:
+    - CWE-327
+    - CWE-330
+    - CWE-338
+    cheatsheet:
+    - Key_Management_Cheat_Sheet
+    - Cryptographic_Storage_Cheat_Sheet
+    iot_top10:
+    - I7
+  see:
+  - WEB-CRYPTO-014
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: IOT-DATA-005
+  sheet: IOT
+  category: DATA
+  title: Check the logging of the device for sensitive data
+  objective: Finds logs and diagnostic output with credentials or user data.
+  steps:
+  - Turn on default logging.
+  - Use all main functions.
+  - Read the logs from the console, files and cloud.
+  - Search for secrets and personal data.
+  example: logread; dmesg; serial console capture; grep for token and password.
+  expected: Logs hold no credentials or personal data. Diagnostic output is off or protected in production.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-532
+    - CWE-215
+    cheatsheet:
+    - Logging_Cheat_Sheet
+    - Automotive_Security_Cheat_Sheet
+    iot_top10:
+    - I7
+    - I6
+  see:
+  - WEB-LOG-006
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Automotive_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip

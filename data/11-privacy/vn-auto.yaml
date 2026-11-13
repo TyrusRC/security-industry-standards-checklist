@@ -1,0 +1,58 @@
+- id: PRIV-VNAUTO-001
+  sheet: PRIV
+  category: VNAUTO
+  title: Check the notice and consent for automated profiling
+  objective: Finds profiling that the user does not know about.
+  steps:
+  - List the systems that score, rank or predict habits, behaviour, interests or position of a user.
+  - Look for the notice and consent for each system.
+  - Check that the user can object to the profiling.
+  - Check the effect on the user.
+  example: Review the model inventory and the notice text. Test the opt-out as a user.
+  expected: Users know about profiling and consent to it. An opt-out exists and the controller can show the purpose.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    privacy_top10:
+    - P5
+    - P4
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 2
+    - Vietnam Decree 13/2023/ND-CP Art. 9
+    - Vietnam Decree 13/2023/ND-CP Art. 11
+    - Vietnam Decree 13/2023/ND-CP Art. 13
+    - Vietnam PDP Law 91/2025/QH15 Art. 30
+  sources_read: &id001
+  - sources/vn_law/13nd.ocr.txt
+  - sources/vn_law/91qh.ocr.txt
+  see:
+  - PRIV-GOV-005
+  notes: Decree Art. 2(13) defines automated processing but has no special article; the general rules of Art. 9, 11 and 13 apply. Law Art. 30 sets rules for AI and big data.
+- id: PRIV-VNAUTO-002
+  sheet: PRIV
+  category: VNAUTO
+  title: Check AI risk classification and purpose limits for personal data
+  objective: Finds AI systems that use personal data beyond the stated purpose or with no risk class.
+  steps:
+  - List AI systems that process personal data.
+  - Find the risk class for each system.
+  - Check that the safeguards match the class.
+  - Check the training data sources and the purposes.
+  - Check that the system is not used to harm other people.
+  example: Review the AI inventory and the risk register. Compare training data fields with the purpose list.
+  expected: Each AI system that uses personal data has a risk class and safeguards that match it. It uses data only within the stated purpose.
+  severity: Medium
+  test_type:
+  - Config Review
+  refs:
+    privacy_top10:
+    - P10
+    - P2
+    other:
+    - Vietnam PDP Law 91/2025/QH15 Art. 30
+  sources_read: *id001
+  see:
+  - PRIV-MINIM-001
+  notes: Law Art. 30(1), 30(4), 30(5) are new. Decree 13/2023 has no matching article. The risk classes come from Government rules not in the sources read.

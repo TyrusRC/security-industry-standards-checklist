@@ -1,0 +1,396 @@
+- id: WEB-BIZ-001
+  sheet: WEB
+  category: BIZ
+  title: Test forged requests that skip the frontend workflow
+  objective: Finds backend endpoints that accept forged requests without the checks the frontend enforces.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Observe HTTP traffic for guessable or sequential values, such as an incrementing transaction ID.
+  - Observe for hidden fields or parameters indicating debug or development functionality.
+  - Submit a forged request directly to the backend endpoint, skipping the frontend screens.
+  - Guess or change a hidden field value, such as a discount flag, and resubmit.
+  example: Change a hidden field senior_discount=false to senior_discount=true and resubmit directly to the checkout endpoint
+  expected: The backend independently re-derives discounts, prices and flags and rejects requests that were not produced by the real workflow.
+  severity: High
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-BUSL-02
+    cheatsheet:
+    - Business_Logic_Security_Cheat_Sheet
+    cwe:
+    - CWE-472
+    - CWE-602
+    capec:
+    - CAPEC-137
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/10-Business_Logic/02-Ability_to_Forge_Requests.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Business_Logic_Security_Cheat_Sheet.md
+- id: WEB-BIZ-002
+  sheet: WEB
+  category: BIZ
+  title: Test non-editable and hidden fields for integrity bypass
+  objective: Finds hidden, read-only or dropdown-bound fields that the server trusts without re-validation.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Capture a request containing a hidden field, a disabled form control, or a value shown only in a dropdown.
+  - Submit the request with that field changed to a value not offered by the interface.
+  - Submit a value for a field that only an administrator should be able to set.
+  - Check whether application logs can be modified by submitting crafted log-bound input.
+  example: Change a hidden price=20.00 field to price=0.01, or a role dropdown value to a role never shown to this user
+  expected: The server treats hidden and non-editable fields as untrusted and revalidates every value against the business rule.
+  severity: High
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-BUSL-03
+    cheatsheet:
+    - Business_Logic_Security_Cheat_Sheet
+    cwe:
+    - CWE-472
+    capec:
+    - CAPEC-162
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/10-Business_Logic/03-Integrity_Checks.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Business_Logic_Security_Cheat_Sheet.md
+- id: WEB-BIZ-003
+  sheet: WEB
+  category: BIZ
+  title: Test time-dependent processes for information leakage and race windows
+  objective: Finds processing time differences that leak information or create a window to exploit a transaction.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify a process whose completion time might depend on a secret, such as login or password reset.
+  - Measure and compare response time for valid and invalid inputs across many requests.
+  - Identify a time-sensitive transaction, such as a price quote with an expiry, and test extending it past the expected window.
+  example: Automated timing script sending repeated login attempts with valid and invalid usernames, comparing mean response time
+  expected: Response time does not depend on whether input is valid, and time-sensitive transactions are strictly bound to their stated window server-side.
+  severity: Medium
+  test_type: Automated
+  refs:
+    wstg:
+    - WSTG-BUSL-04
+    cheatsheet:
+    - Business_Logic_Security_Cheat_Sheet
+    cwe:
+    - CWE-208
+    capec: []
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/10-Business_Logic/04-Process_Timing.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Business_Logic_Security_Cheat_Sheet.md
+- id: WEB-BIZ-004
+  sheet: WEB
+  category: BIZ
+  title: Test functions that should set a hard limit on repeated use
+  objective: Finds coupon, bonus or similar functions missing a server-side limit on how many times they can run.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify a function documented or expected to run only once or a limited number of times per user.
+  - Call the function repeatedly, for example reapplying a one-time discount code.
+  - Check whether the limit is enforced per account, per session or globally as required.
+  example: Reapply the same one-time discount code repeatedly in separate checkout requests
+  expected: The limit on the number of times a function can be used is enforced server-side and cannot be bypassed by repeating the request.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-BUSL-05
+    asvs:
+    - V2.3.2
+    cheatsheet:
+    - Business_Logic_Security_Cheat_Sheet
+    cwe:
+    - CWE-799
+    capec:
+    - CAPEC-166
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/10-Business_Logic/05-Number_of_Times_a_Function_Can_Be_Used_Limits.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Business_Logic_Security_Cheat_Sheet.md
+- id: WEB-BIZ-005
+  sheet: WEB
+  category: BIZ
+  title: Test multi-step workflows for step skipping and reordering
+  objective: Finds workflows that can be completed out of order or with required steps skipped entirely.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Map every step of a multi-step workflow and the request associated with each step.
+  - Call a later-stage endpoint directly without completing the earlier required steps.
+  - Replay or reorder captured requests to reach an unauthorized or unintended state.
+  - Submit a status or phase parameter with an invalid, future, or unauthorized value.
+  example: Call the order-fulfillment endpoint directly without a preceding confirmed-payment step; replay step 3 before step 2
+  expected: The server tracks workflow state itself and rejects a request for any step whose prerequisites were not completed in order.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A06:2025
+    wstg:
+    - WSTG-BUSL-06
+    asvs:
+    - V2.3.1
+    cheatsheet:
+    - Business_Logic_Security_Cheat_Sheet
+    cwe:
+    - CWE-841
+    capec:
+    - CAPEC-74
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/10-Business_Logic/06-Circumvention_of_Work_Flows.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Business_Logic_Security_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A06_2025-Insecure_Design.md
+- id: WEB-BIZ-006
+  sheet: WEB
+  category: BIZ
+  title: Test transactional operations for atomic all-or-nothing behavior
+  objective: Finds multi-step business transactions that can be left in a partially applied state.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify a business operation composed of multiple writes, such as a transfer that debits one account and credits another.
+  - Interrupt the operation partway, for example by closing the connection after the first write.
+  - Check whether the operation rolls back completely or leaves an inconsistent partial state.
+  example: Terminate the connection immediately after the debit step of a funds transfer and check both account balances afterward
+  expected: The business operation runs inside a transaction that either completes in full or rolls back to the prior correct state.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V2.3.3
+    cwe:
+    - CWE-696
+    capec: []
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-BIZ-007
+  sheet: WEB
+  category: BIZ
+  title: Test limited-quantity resources for double-booking
+  objective: Finds booking or allocation logic missing a locking mechanism for a limited resource.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify a limited-quantity resource, such as a seat, slot or inventory item.
+  - Send two or more concurrent requests to reserve the same resource.
+  - Check whether more reservations succeed than the resource actually has capacity for.
+  example: Fire 20 concurrent requests for the last available seat using a tool such as Turbo Intruder or ffuf with -c
+  expected: A business-logic-level lock or atomic conditional update prevents more reservations than the resource has capacity for.
+  severity: High
+  test_type: Automated
+  level: ASVS L2
+  refs:
+    asvs:
+    - V2.3.4
+    cheatsheet:
+    - Business_Logic_Security_Cheat_Sheet
+    cwe:
+    - CWE-362
+    - CWE-367
+    capec:
+    - CAPEC-26
+    - CAPEC-29
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Business_Logic_Security_Cheat_Sheet.md
+- id: WEB-BIZ-008
+  sheet: WEB
+  category: BIZ
+  title: Test high-value flows for required multi-user approval
+  objective: Finds high-value or safety-critical business actions that a single user can complete alone.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify high-value flows, such as a large monetary transfer or an access-level change.
+  - Try to complete the flow with a single compromised account and no second approver.
+  - Check whether the application requires a second, independent approval for the action.
+  example: Submit a large fund transfer as a single authenticated user with no second approval step triggered
+  expected: High-value business flows require a second, independent approval before the action takes effect.
+  severity: High
+  test_type: Manual
+  level: ASVS L3
+  refs:
+    asvs:
+    - V2.3.5
+    cwe:
+    - CWE-862
+    capec: []
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-BIZ-009
+  sheet: WEB
+  category: BIZ
+  title: Test functions for anti-automation and rate-limit controls
+  objective: Finds application functions reachable at excessive volume without a rate limit or anti-automation control.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify functions that could be abused by automation, such as a search, coupon check or export.
+  - Send a high volume of requests to the function using an automated tool.
+  - Check whether the application applies a rate limit, CAPTCHA or account lock after excessive use.
+  example: ffuf -u https://target/api/coupon?code=FUZZ -w codes.txt -t 50 and observe whether throttling begins
+  expected: The application enforces a rate limit or anti-automation control before quota exhaustion, data exfiltration or denial-of-service can occur.
+  severity: Medium
+  test_type: Automated
+  level: ASVS L2
+  refs:
+    asvs:
+    - V2.4.1
+    cwe:
+    - CWE-799
+    - CWE-770
+    capec:
+    - CAPEC-125
+    - CAPEC-112
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-BIZ-010
+  sheet: WEB
+  category: BIZ
+  title: Test transaction submission timing against expected human speed
+  objective: Finds workflows missing a check for unrealistically fast, automated transaction submission.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify a multi-step flow with a timing assumption, such as filling a form or confirming a purchase.
+  - Automate the flow to complete every step far faster than a human could.
+  - Check whether the application detects and blocks the unrealistic timing.
+  example: Automated script submitting a multi-field form in under 200 milliseconds, repeated across many sessions
+  expected: The application detects submissions faster than realistic human timing and blocks or challenges them.
+  severity: Medium
+  test_type: Automated
+  level: ASVS L3
+  refs:
+    asvs:
+    - V2.4.2
+    wstg:
+    - WSTG-BUSL-04
+    cwe:
+    - CWE-799
+    capec: []
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/10-Business_Logic/04-Process_Timing.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-BIZ-011
+  sheet: WEB
+  category: BIZ
+  title: Test active defenses against combined application misuse
+  objective: Finds applications that take no defensive action after a user sends many clearly malicious requests.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - 'Send a sequence of mild then increasingly malicious probes: an invalid ID, a tick character, a verb change.'
+  - Continue probing with a blatant SQL injection or XSS payload.
+  - Observe whether the application changes behavior, such as adding delays, extra authentication, or blocking the session.
+  example: 'Sequence: /file?id=999 -> /file?id='' -> change GET to POST -> duplicate a parameter -> submit '' OR 1=1-- and watch for a defensive response'
+  expected: The application detects the pattern of misuse and responds with increased scrutiny, delays, or a block rather than processing every request normally.
+  severity: Low
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-BUSL-07
+    cheatsheet:
+    - Business_Logic_Security_Cheat_Sheet
+    cwe:
+    - CWE-799
+    capec: []
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/10-Business_Logic/07-Defenses_Against_Application_Misuse.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Business_Logic_Security_Cheat_Sheet.md
+- id: WEB-BIZ-012
+  sheet: WEB
+  category: BIZ
+  title: Test payment quantity and price fields for business logic tampering
+  objective: Finds checkout logic that trusts client-supplied quantity, price or currency values.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Add an item to the basket and intercept the add-to-basket or checkout request.
+  - Change the quantity to a negative number and resubmit.
+  - If a price or currency field is present, change it to a lower value or another currency.
+  - If a secure hash or encrypted field protects the transaction, try submitting the request without it.
+  example: item_id=1&quantity=-5 ; item_id=1&quantity=5&price=0.01 ; currency=XXX where USD is expected ; strip the secure_hash parameter entirely
+  expected: The server re-derives price, quantity and currency from trusted data server-side and rejects a request without a valid integrity hash.
+  severity: Critical
+  test_type: Manual
+  refs:
+    owasp_top10:
+    - A06:2025
+    wstg:
+    - WSTG-BUSL-10
+    cheatsheet:
+    - Business_Logic_Security_Cheat_Sheet
+    - Transaction_Authorization_Cheat_Sheet
+    cwe:
+    - CWE-472
+    - CWE-345
+    capec:
+    - CAPEC-137
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/10-Business_Logic/10-Payment_Functionality.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Business_Logic_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Transaction_Authorization_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A06_2025-Insecure_Design.md
+- id: WEB-BIZ-013
+  sheet: WEB
+  category: BIZ
+  title: Test discount codes for guessability and stacking abuse
+  objective: Finds discount code systems with guessable codes, no brute-force protection, or unsafe stacking.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Try common discount code patterns such as TEST10 or the company name.
+  - Submit many sequential or incremented codes to check for brute-force protection.
+  - Apply more than one discount code to the same order and check whether they stack below cost.
+  example: code=TEST10 ; code=SORRY10 ; try sequential codes SAVE01..SAVE99 ; apply two valid codes to the same basket
+  expected: Discount codes are unpredictable, rate-limited against brute force, and cannot be stacked to push the price below cost.
+  severity: Medium
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-BUSL-10
+    cheatsheet:
+    - Business_Logic_Security_Cheat_Sheet
+    cwe:
+    - CWE-799
+    capec:
+    - CAPEC-112
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/10-Business_Logic/10-Payment_Functionality.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Business_Logic_Security_Cheat_Sheet.md
+- id: WEB-BIZ-014
+  sheet: WEB
+  category: BIZ
+  title: Test payment race conditions and double-spend windows
+  objective: Finds payment flows vulnerable to a race between a check and a write on a balance or stock value.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify a payment or balance operation with a check-then-act pattern, such as spending a gift card balance.
+  - Send multiple concurrent requests that use the same balance or the same one-time resource.
+  - Check whether more value or resource is consumed than the balance actually allows.
+  example: Fire 20 concurrent gift-card redemption requests against a balance that should cover only one redemption
+  expected: The balance check and debit run inside a single atomic transaction or a conditional update, so concurrent requests cannot overdraw it.
+  severity: Critical
+  test_type: Automated
+  refs:
+    wstg:
+    - WSTG-BUSL-10
+    cheatsheet:
+    - Business_Logic_Security_Cheat_Sheet
+    cwe:
+    - CWE-362
+    - CWE-367
+    capec:
+    - CAPEC-26
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/10-Business_Logic/10-Payment_Functionality.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Business_Logic_Security_Cheat_Sheet.md

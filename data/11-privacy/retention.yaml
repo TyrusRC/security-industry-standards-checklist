@@ -1,0 +1,118 @@
+- id: PRIV-RET-001
+  sheet: PRIV
+  category: RET
+  title: Review the retention and deletion policy for each data category
+  objective: Finds data categories that have no retention period or no deletion process.
+  steps:
+  - Ask for the retention schedule.
+  - Compare it with the data inventory.
+  - Mark each data category with no period.
+  - Check that the period is in the privacy notice.
+  example: 'Document review: retention schedule, deletion concept, privacy notice section on storage period.'
+  expected: Each data category has a retention period and a deletion process. The periods are in the privacy notice.
+  severity: Medium
+  test_type:
+  - Config Review
+  refs:
+    privacy_top10:
+    - P6
+    other:
+    - GDPR Art. 5
+    - GDPR Art. 13
+  see:
+  - WEB-DATA-008
+  sources_read: &id001
+  - sources/repos/www-project-top-10-privacy-risks/tab_topprivacy.md
+  - sources/repos/www-project-top-10-privacy-risks/OWASP_Top_10_Privacy_Risks_Countermeasures_v2.0.pdf
+  - sources/extra/gdpr.html
+- id: PRIV-RET-002
+  sheet: PRIV
+  category: RET
+  title: Make sure data is deleted when the retention period ends
+  objective: Finds data that stays after its period, such as inactive accounts and old logs.
+  steps:
+  - Find records older than the retention period in the database.
+  - Look at backups and archives for the same records.
+  - Run the deletion job on a test set.
+  - Check that the records are gone from all stores.
+  example: 'SQL count of rows older than the period; list of stores: database, search index, cache, object store, backup.'
+  expected: No record exists beyond its period in any active store. Backups have an expiry that follows the policy.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    privacy_top10:
+    - P6
+    other:
+    - GDPR Art. 5
+  see:
+  - WEB-DATA-008
+  sources_read: *id001
+- id: PRIV-RET-003
+  sheet: PRIV
+  category: RET
+  title: Make sure account deletion removes data in all systems and at processors
+  objective: Finds deleted accounts that stay in search indexes, caches, analytics or third-party systems.
+  steps:
+  - Create a test account with data in every feature.
+  - Request deletion of the account.
+  - Search for the test data in the database, indexes, logs and analytics after the deletion period.
+  - Ask each processor to confirm deletion.
+  example: Use a unique marker string in the test data and search for it everywhere.
+  expected: The marker string is not found in any active store or processor system after the stated deletion time.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    privacy_top10:
+    - P6
+    - P9
+    other:
+    - GDPR Art. 17
+  sources_read: *id001
+- id: PRIV-RET-004
+  sheet: PRIV
+  category: RET
+  title: Check that deletion also covers backups, copies and shared data
+  objective: Finds personal data that deletion leaves in backups, exports or third-party copies.
+  steps:
+  - Ask for the backup retention and restore procedure.
+  - Check that a restore applies earlier deletion requests.
+  - Look for exports and file shares that hold copies.
+  - Check the process to tell recipients about an erasure.
+  example: 'Document review: backup policy, restore runbook, list of recipients with erasure notice process.'
+  expected: Backups expire on a set schedule. A restore re-applies deletion requests. Recipients get erasure notices.
+  severity: Medium
+  test_type:
+  - Config Review
+  refs:
+    privacy_top10:
+    - P6
+    other:
+    - GDPR Art. 17
+    - GDPR Art. 19
+  sources_read: *id001
+- id: PRIV-RET-005
+  sheet: PRIV
+  category: RET
+  title: Check that the service keeps an erasure record without the deleted data
+  objective: Finds services that cannot prove a deletion.
+  steps:
+  - Request deletion of a test account.
+  - Ask for the deletion protocol of the request.
+  - Check that the protocol shows date, scope and result.
+  - Check that the protocol holds no more personal data than needed.
+  example: Deletion log row with request ID, time, systems cleaned, operator.
+  expected: A deletion record exists. It shows what was deleted and when, and it holds no deleted personal data.
+  severity: Low
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    privacy_top10:
+    - P6
+    other:
+    - GDPR Art. 5
+    - GDPR Art. 17
+  sources_read: *id001

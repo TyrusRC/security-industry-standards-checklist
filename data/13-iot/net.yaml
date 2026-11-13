@@ -1,0 +1,156 @@
+- id: IOT-NET-001
+  sheet: IOT
+  category: NET
+  title: Scan the device for open ports and unneeded services
+  objective: Finds services that the device does not need, such as Telnet, FTP and debug daemons.
+  steps:
+  - Power the device on a lab network.
+  - Scan all TCP and UDP ports.
+  - List each service and its version.
+  - Compare with the documented service list.
+  example: nmap -sS -sU -p- -sV --top-ports 1000 device; masscan on a lab range only.
+  expected: Only documented services listen. Telnet, FTP and debug services are off. Each service needs authentication.
+  severity: High
+  test_type:
+  - Automated
+  - Manual
+  refs:
+    other:
+    - UK Code of Practice for Consumer IoT Security provision 6, as listed in iot_map.md
+    cwe:
+    - CWE-306
+    - CWE-1188
+    attack:
+    - T0883
+    - T0866
+    iot_top10:
+    - I2
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/cwe/cwec_latest.xml.zip
+  - sources/attack/ics-attack.json
+  - sources/repos/www-project-internet-of-things/tab_validate_and_test.md
+- id: IOT-NET-002
+  sheet: IOT
+  category: NET
+  title: Check the services of the device for known vulnerable versions
+  objective: Finds old daemons with public vulnerabilities.
+  steps:
+  - Read the version banner of each service.
+  - Check each version in vulnerability databases.
+  - Check for unpatched web server and UPnP builds.
+  - Record the fixed version.
+  example: nmap -sV --script vulners device; compare with NVD.
+  expected: No service version has a known unpatched vulnerability.
+  severity: High
+  test_type:
+  - Automated
+  refs:
+    cwe:
+    - CWE-1395
+    cheatsheet:
+    - Vulnerable_Dependency_Management_Cheat_Sheet
+    attack:
+    - T0866
+    - T0819
+    iot_top10:
+    - I2
+    - I5
+  see:
+  - WEB-DEP-003
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Vulnerable_Dependency_Management_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+  - sources/attack/ics-attack.json
+- id: IOT-NET-003
+  sheet: IOT
+  category: NET
+  title: Test the device for exposure to the internet
+  objective: Finds devices that open ports to the internet through UPnP or default NAT rules.
+  steps:
+  - Check if the device asks the router to open ports.
+  - Scan the public address of the lab network from outside.
+  - Check for cloud relay use instead of inbound ports.
+  - Record each reachable service.
+  example: upnpc -l on the lab network; external nmap scan of the lab WAN address.
+  expected: The device opens no inbound port to the internet. Remote access uses an authenticated outbound cloud channel.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-306
+    attack:
+    - T0883
+    - T0822
+    iot_top10:
+    - I2
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/cwe/cwec_latest.xml.zip
+  - sources/attack/ics-attack.json
+- id: IOT-NET-004
+  sheet: IOT
+  category: NET
+  title: Test network services with malformed input and long input
+  objective: Finds crashes and memory errors in the parsers of the device.
+  steps:
+  - Pick one network service.
+  - Send over-long and malformed fields in a lab.
+  - Watch the device for crash, reboot or hang.
+  - Record the input that caused it.
+  example: Boofuzz or a protocol fuzzer on a lab device; serial console log for crash traces.
+  expected: The service rejects bad input with an error. The device does not crash or reboot.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-120
+    - CWE-787
+    - CWE-125
+    attack:
+    - T0814
+    iot_top10:
+    - I2
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/cwe/cwec_latest.xml.zip
+  - sources/attack/ics-attack.json
+- id: IOT-NET-005
+  sheet: IOT
+  category: NET
+  title: Check wireless interfaces for weak pairing and open access
+  objective: Finds Wi-Fi, Bluetooth and radio links with weak pairing or no encryption.
+  steps:
+  - List all radio interfaces of the device.
+  - Capture the pairing and the data with a sniffer.
+  - Check the encryption and the pairing method.
+  - Try to join without a user action.
+  example: Wireshark with a monitor mode adapter; Bluetooth sniffer; nRF Sniffer on a lab device.
+  expected: Radio links use encryption and authenticated pairing. The device does not join or pair without a user action.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-319
+    cheatsheet:
+    - Drone_Security_Cheat_Sheet
+    attack:
+    - T0887
+    - T0830
+    iot_top10:
+    - I2
+    - I7
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Drone_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+  - sources/attack/ics-attack.json

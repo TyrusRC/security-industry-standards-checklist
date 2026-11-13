@@ -1,0 +1,620 @@
+- id: NET-PAM-001
+  sheet: NET
+  category: PAM
+  title: Check that PAM locks accounts after repeated failed logins
+  objective: Finds hosts where online password guessing is not slowed or stopped by an account lockout.
+  preconditions: &id001
+  - Root or sudo read access to the host in scope.
+  - Do not change settings on a production host without a change window.
+  steps:
+  - Open the PAM files /etc/pam.d/system-auth and /etc/pam.d/password-auth, or the files that the distribution uses.
+  - Look for the pam_faillock module in the auth section, before and after pam_unix.
+  - Read /etc/security/faillock.conf for the deny, fail_interval and unlock_time values.
+  - Look at the lockout of the root account and at the directory that stores the failure records.
+  - Try wrong passwords on a test account until the limit. Make sure the account locks and the lockout is logged.
+  example: grep -rE "pam_faillock|pam_tally2|pam_faildelay" /etc/pam.d/ ; grep -vE "^#|^$" /etc/security/faillock.conf ; faillock --user testuser ; grep FAIL_DELAY /etc/login.defs
+  expected: The pam_faillock module is active in auth. The deny, interval and unlock values meet the organization standard. Lockouts are logged and persist after a restart.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:account_password_pam_faillock_password_auth
+    - cac:account_password_pam_faillock_system_auth
+    - cac:account_password_selinux_faillock_dir
+    - cac:account_passwords_pam_faillock_audit
+    - cac:account_passwords_pam_faillock_dir
+    - cac:accounts_logon_fail_delay
+    - cac:accounts_passwords_pam_faildelay_delay
+    - cac:accounts_passwords_pam_faillock_audit
+    - cac:accounts_passwords_pam_faillock_deny
+    - cac:accounts_passwords_pam_faillock_deny_root
+    - cac:accounts_passwords_pam_faillock_dir
+    - cac:accounts_passwords_pam_faillock_enabled
+    - cac:accounts_passwords_pam_faillock_enforce_local
+    - cac:accounts_passwords_pam_faillock_even_deny_root_or_root_unlock_time
+    - cac:accounts_passwords_pam_faillock_interval
+    - cac:accounts_passwords_pam_faillock_root_unlock_time
+    - cac:accounts_passwords_pam_faillock_silent
+    - cac:accounts_passwords_pam_faillock_unlock_time
+    - cac:accounts_passwords_pam_faillock_unlock_time_with_zero
+    - cac:accounts_passwords_pam_tally2
+    - cac:accounts_passwords_pam_tally2_deny_root
+    - cac:accounts_passwords_pam_tally2_file
+    - cac:accounts_passwords_pam_tally2_file_selinux
+    - cac:accounts_passwords_pam_tally2_unlock_time
+    - cac:display_login_attempts
+    nist_800_53:
+    - AC-7
+    - CM-6
+    - IA-5
+    - AC-9
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-pam/locking_out_password_attempts/account_password_pam_faillock_password_auth/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-pam/locking_out_password_attempts/accounts_passwords_pam_faildelay_delay/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-pam/locking_out_password_attempts/accounts_passwords_pam_faillock_enforce_local/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-pam/locking_out_password_attempts/accounts_passwords_pam_faillock_unlock_time_with_zero/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-pam/display_login_attempts/rule.yml
+- id: NET-PAM-002
+  sheet: NET
+  category: PAM
+  title: Check that PAM enforces password complexity rules
+  objective: Finds hosts that accept short, simple or dictionary passwords.
+  preconditions: *id001
+  steps:
+  - Make sure the pam_pwquality package is installed and the module is in the password stack.
+  - Read /etc/security/pwquality.conf and the options in /etc/pam.d/system-auth and password-auth.
+  - Look at minlen, minclass, the credit values, difok, maxrepeat, maxsequence and dictcheck.
+  - Look for enforce_for_root and the retry limit.
+  - Try to set a short or common password on a test account. Make sure the system refuses it.
+  example: rpm -q libpwquality || dpkg -l libpam-pwquality ; grep -vE "^#|^$" /etc/security/pwquality.conf ; grep -r pwquality /etc/pam.d/ ; grep PASS_MIN_LEN /etc/login.defs
+  expected: pam_pwquality is active for all password changes. Minimum length, character classes and dictionary checks meet the organization standard. The rules also apply to root.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:accounts_password_minlen_login_defs
+    - cac:accounts_password_pam_dcredit
+    - cac:accounts_password_pam_dictcheck
+    - cac:accounts_password_pam_difok
+    - cac:accounts_password_pam_enforce_root
+    - cac:accounts_password_pam_lcredit
+    - cac:accounts_password_pam_maxclassrepeat
+    - cac:accounts_password_pam_maxrepeat
+    - cac:accounts_password_pam_maxsequence
+    - cac:accounts_password_pam_minclass
+    - cac:accounts_password_pam_minlen
+    - cac:accounts_password_pam_ocredit
+    - cac:accounts_password_pam_pwquality_enabled
+    - cac:accounts_password_pam_pwquality_password_auth
+    - cac:accounts_password_pam_pwquality_retry
+    - cac:accounts_password_pam_pwquality_system_auth
+    - cac:accounts_password_pam_retry
+    - cac:accounts_password_pam_ucredit
+    - cac:cracklib_accounts_password_pam_dcredit
+    - cac:cracklib_accounts_password_pam_difok
+    - cac:cracklib_accounts_password_pam_lcredit
+    - cac:cracklib_accounts_password_pam_minlen
+    - cac:cracklib_accounts_password_pam_ocredit
+    - cac:cracklib_accounts_password_pam_retry
+    - cac:cracklib_accounts_password_pam_ucredit
+    - cac:package_pam_pwquality_installed
+    - cac:passwd_system-auth_substack
+    nist_800_53:
+    - IA-5
+    - CM-6
+    - AC-7
+    pci_dss:
+    - 8.2.3
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-restrictions/password_expiration/accounts_password_minlen_login_defs/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-pam/password_quality/password_quality_pwquality/accounts_password_pam_maxclassrepeat/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-pam/password_quality/password_quality_pwquality/accounts_password_pam_pwquality_password_auth/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-pam/password_quality/password_quality_pamcracklib/cracklib_accounts_password_pam_lcredit/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-pam/password_quality/passwd_system-auth_substack/rule.yml
+- id: NET-PAM-003
+  sheet: NET
+  category: PAM
+  title: Check password hashing, password history and PAM module order
+  objective: Finds weak stored hashes, password reuse and PAM stacks that skip the required modules.
+  preconditions: *id001
+  steps:
+  - Read the password lines in the PAM files and look for pam_unix options such as sha512, yescrypt, rounds and use_authtok.
+  - Look at ENCRYPT_METHOD and the rounds or cost values in /etc/login.defs and /etc/libuser.conf.
+  - Look for pam_pwhistory with the remember option, and for the same setting for root.
+  - Look at the authselect profile or the PAM files for pam_wheel on su and for pam_namespace.
+  - Make sure all password hashes in /etc/shadow use the approved algorithm.
+  example: 'grep -rE "pam_unix|pam_pwhistory|pam_wheel|pam_namespace" /etc/pam.d/ ; grep -E "ENCRYPT_METHOD|SHA_CRYPT|YESCRYPT" /etc/login.defs ; authselect current ; awk -F: ''$2 ~ /^\$/ {print $1, substr($2,1,3)}''
+    /etc/shadow'
+  expected: Passwords use the approved hash with enough rounds. The history keeps the number of old passwords that the standard sets, also for root. su is limited to a wheel group.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:accounts_password_all_shadowed_sha512
+    - cac:accounts_password_pam_enforce_local
+    - cac:accounts_password_pam_enforcing
+    - cac:accounts_password_pam_modules_in_authselect_profile
+    - cac:accounts_password_pam_pwhistory_enabled
+    - cac:accounts_password_pam_pwhistory_enforce_for_root
+    - cac:accounts_password_pam_pwhistory_enforce_root
+    - cac:accounts_password_pam_pwhistory_remember
+    - cac:accounts_password_pam_pwhistory_remember_password_auth
+    - cac:accounts_password_pam_pwhistory_remember_system_auth
+    - cac:accounts_password_pam_pwhistory_use_authtok
+    - cac:accounts_password_pam_unix_authtok
+    - cac:accounts_password_pam_unix_enabled
+    - cac:accounts_password_pam_unix_no_remember
+    - cac:accounts_password_pam_unix_remember
+    - cac:accounts_password_pam_unix_rounds_password_auth
+    - cac:accounts_password_pam_unix_rounds_system_auth
+    - cac:disallow_bypass_password_sudo
+    - cac:enable_pam_namespace
+    - cac:ensure_pam_wheel_group_empty
+    - cac:set_password_hashing_algorithm_auth_stig
+    - cac:set_password_hashing_algorithm_commonauth
+    - cac:set_password_hashing_algorithm_libuserconf
+    - cac:set_password_hashing_algorithm_logindefs
+    - cac:set_password_hashing_algorithm_passwordauth
+    - cac:set_password_hashing_algorithm_systemauth
+    - cac:set_password_hashing_min_rounds_logindefs
+    - cac:set_password_hashing_yescrypt_cost_factor_logindefs
+    - cac:use_pam_wheel_for_su
+    - cac:use_pam_wheel_group_for_su
+    nist_800_53:
+    - IA-5
+    - CM-6
+    - IA-7
+    - AC-2
+    pci_dss:
+    - 8.2.1
+    - 8.2.5
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-restrictions/password_storage/accounts_password_all_shadowed_sha512/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-pam/locking_out_password_attempts/accounts_password_pam_pwhistory_remember/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-restrictions/password_storage/accounts_password_pam_unix_rounds_password_auth/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-pam/set_password_hashing_algorithm/set_password_hashing_algorithm_libuserconf/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-restrictions/root_logins/use_pam_wheel_group_for_su/rule.yml
+- id: NET-PAM-004
+  sheet: NET
+  category: PAM
+  title: Check password aging and account expiration settings
+  objective: Finds accounts with passwords that never expire, never warn or stay active after long inactivity.
+  preconditions: *id001
+  steps:
+  - Read PASS_MAX_DAYS, PASS_MIN_DAYS and PASS_WARN_AGE in /etc/login.defs.
+  - Read the default inactivity period with useradd -D.
+  - List the aging values of the existing accounts with chage.
+  - Look at emergency and temporary accounts for an expiration date.
+  - Find accounts with a last change date in the future.
+  example: 'grep -E "^PASS_(MAX|MIN|WARN)" /etc/login.defs ; useradd -D | grep INACTIVE ; chage -l <user> ; awk -F: ''{print $1,$3,$4,$5,$7}'' /etc/shadow'
+  expected: New and existing accounts follow the aging limits of the organization standard. Temporary accounts have an end date. No last change date is in the future.
+  severity: Low
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:account_disable_inactivity_password_auth
+    - cac:account_disable_inactivity_system_auth
+    - cac:account_disable_post_pw_expiration
+    - cac:account_emergency_admin
+    - cac:account_emergency_expire_date
+    - cac:account_temp_expire_date
+    - cac:accounts_maximum_age_login_defs
+    - cac:accounts_minimum_age_login_defs
+    - cac:accounts_password_last_change_is_in_past
+    - cac:accounts_password_set_max_life_existing
+    - cac:accounts_password_set_max_life_root
+    - cac:accounts_password_set_min_life_existing
+    - cac:accounts_password_set_warn_age_existing
+    - cac:accounts_password_warn_age_login_defs
+    - cac:accounts_set_post_pw_existing
+    - cac:policy_temp_passwords_immediate_change
+    nist_800_53:
+    - IA-5
+    - CM-6
+    - AC-2
+    - IA-4
+    pci_dss:
+    - 8.2.4
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-restrictions/account_expiration/account_disable_inactivity_password_auth/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-restrictions/account_expiration/account_emergency_expire_date/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-restrictions/password_storage/accounts_password_last_change_is_in_past/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-restrictions/password_expiration/accounts_password_set_warn_age_existing/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-restrictions/account_expiration/policy_temp_passwords_immediate_change/rule.yml
+- id: NET-PAM-005
+  sheet: NET
+  category: PAM
+  title: Check local accounts for duplicates, empty passwords and root misuse
+  objective: Finds shared identifiers, empty passwords, extra UID 0 accounts and weak root controls.
+  preconditions: *id001
+  steps:
+  - List accounts with an empty password field in /etc/shadow.
+  - List accounts with UID 0 and groups with GID 0. Only root may appear.
+  - Look for duplicate user names, group names, UIDs and GIDs.
+  - Look for legacy "+" NIS entries in passwd, group and shadow.
+  - Look for .rhosts, .netrc and .forward files and for system accounts with a shell or an unlocked password.
+  example: 'awk -F: ''($2==""){print $1}'' /etc/shadow ; awk -F: ''($3==0){print $1}'' /etc/passwd ; getent passwd | cut -d: -f1 | sort | uniq -d ; grep "^+" /etc/passwd /etc/group /etc/shadow ; find /home
+    /root -name ".rhosts" -o -name ".netrc" -o -name ".forward"'
+  expected: No account has an empty password. Only root has UID 0 and GID 0. All names and IDs are unique. System accounts are locked and have no login shell.
+  severity: High
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:account_unique_id
+    - cac:account_unique_name
+    - cac:account_use_centralized_automated_auth
+    - cac:accounts_authorized_local_users
+    - cac:accounts_no_uid_except_zero
+    - cac:accounts_password_all_shadowed
+    - cac:accounts_root_gid_zero
+    - cac:ensure_root_access_controlled
+    - cac:ensure_root_password_configured
+    - cac:ensure_shadow_group_empty
+    - cac:ensure_sudo_group_restricted
+    - cac:gid_passwd_group_same
+    - cac:group_unique_id
+    - cac:group_unique_name
+    - cac:groups_no_zero_gid_except_root
+    - cac:no_direct_root_logins
+    - cac:no_duplicate_uids
+    - cac:no_empty_passwords
+    - cac:no_empty_passwords_etc_shadow
+    - cac:no_empty_passwords_unix
+    - cac:no_forward_files
+    - cac:no_invalid_shell_accounts_unlocked
+    - cac:no_legacy_plus_entries_etc_group
+    - cac:no_legacy_plus_entries_etc_passwd
+    - cac:no_legacy_plus_entries_etc_shadow
+    - cac:no_netrc_files
+    - cac:no_nologin_in_shells
+    - cac:no_password_auth_for_systemaccounts
+    - cac:no_rhost_files
+    - cac:no_root_webbrowsing
+    - cac:no_shelllogin_for_systemaccounts
+    - cac:prevent_direct_root_logins
+    - cac:restrict_serial_port_logins
+    - cac:root_path_default
+    - cac:securetty_root_login_console_only
+    nist_800_53:
+    - CM-6
+    - IA-5
+    - AC-6
+    - IA-2
+    pci_dss:
+    - 8.1.1
+    - '8.5'
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-restrictions/account_unique_id/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-restrictions/root_logins/ensure_root_password_configured/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-restrictions/password_storage/no_empty_passwords/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-restrictions/no_nologin_in_shells/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-restrictions/root_logins/securetty_root_login_console_only/rule.yml
+- id: NET-PAM-006
+  sheet: NET
+  category: PAM
+  title: Check user session limits, umask, home directories and root PATH
+  objective: Finds loose default file modes, open home directories, unsafe root paths and sessions that never end.
+  preconditions: *id001
+  steps:
+  - Read the umask value in /etc/login.defs, /etc/profile, /etc/bashrc and the PAM umask setting.
+  - Read the TMOUT value and the limits for concurrent logins in /etc/security/limits.conf.
+  - Look at the owner and mode of each interactive home directory and of the files in it.
+  - Look at the initialization files and the shell history for wrong owners and wide modes.
+  - Print the PATH of root. Look for a dot, an empty entry or a writable directory.
+  example: grep -rn umask /etc/login.defs /etc/profile /etc/profile.d /etc/bashrc ; grep -rn TMOUT /etc/profile.d /etc/profile ; grep maxlogins /etc/security/limits.conf /etc/security/limits.d/ ; stat -c
+    "%U %a %n" /home/* ; sudo -i sh -c 'echo $PATH'
+  expected: The umask blocks access by other users. Idle sessions end after the set time. Home directories have a mode of 0750 or stricter and the right owner. Root PATH has only safe directories.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:accounts_have_homedir_login_defs
+    - cac:accounts_max_concurrent_login_sessions
+    - cac:accounts_polyinstantiated_tmp
+    - cac:accounts_polyinstantiated_var_tmp
+    - cac:accounts_root_path_dirs_no_write
+    - cac:accounts_tmout
+    - cac:accounts_umask_etc_bashrc
+    - cac:accounts_umask_etc_csh_cshrc
+    - cac:accounts_umask_etc_login_defs
+    - cac:accounts_umask_etc_profile
+    - cac:accounts_umask_interactive_users
+    - cac:accounts_umask_pam_postlogin
+    - cac:accounts_umask_root
+    - cac:accounts_user_dot_group_ownership
+    - cac:accounts_user_dot_no_world_writable_programs
+    - cac:accounts_user_dot_user_ownership
+    - cac:accounts_user_home_paths_only
+    - cac:accounts_user_interactive_home_directory_defined
+    - cac:accounts_user_interactive_home_directory_exists
+    - cac:accounts_user_interactive_home_directory_on_separate_partition
+    - cac:accounts_users_home_files_groupownership
+    - cac:accounts_users_home_files_ownership
+    - cac:accounts_users_home_files_permissions
+    - cac:accounts_users_netrc_file_permissions
+    - cac:accounts_users_own_home_directories
+    - cac:file_groupownership_home_directories
+    - cac:file_groupownership_lastlog
+    - cac:file_ownership_home_directories
+    - cac:file_ownership_lastlog
+    - cac:file_permission_user_bash_history
+    - cac:file_permission_user_init_files
+    - cac:file_permission_user_init_files_root
+    - cac:file_permissions_home_directories
+    - cac:file_permissions_home_dirs
+    - cac:file_permissions_lastlog
+    - cac:no_dirs_unowned_by_root
+    - cac:root_path_all_dirs
+    - cac:root_path_no_dot
+    nist_800_53:
+    - CM-6
+    - SI-11
+    - AC-6
+    - AC-10
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-session/accounts_have_homedir_login_defs/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-session/user_umask/accounts_umask_etc_profile/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-session/accounts_user_interactive_home_directory_on_separate_partition/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-session/file_ownership_lastlog/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-session/root_paths/root_path_no_dot/rule.yml
+- id: NET-PAM-007
+  sheet: NET
+  category: PAM
+  title: Check the login warning banners and the files that hold them
+  objective: Finds hosts that show no legal notice or let ordinary users change the banner text.
+  preconditions: *id001
+  steps:
+  - Read /etc/issue, /etc/issue.net and /etc/motd.
+  - Compare the text with the banner text of the organization.
+  - Look at the owner, group and mode of the three files.
+  - Make sure the SSH daemon and the graphical login show the same banner.
+  example: cat /etc/issue /etc/issue.net /etc/motd ; stat -c "%U:%G %a %n" /etc/issue /etc/issue.net /etc/motd ; sshd -T | grep -i banner ; dconf read /org/gnome/login-screen/banner-message-text
+  expected: The banner files hold the approved text. Root owns the files and the mode is 0644 or stricter. Each remote and local login path shows the banner.
+  severity: Low
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:banner_etc_gdm_banner
+    - cac:banner_etc_issue
+    - cac:banner_etc_issue_cis
+    - cac:banner_etc_issue_net
+    - cac:banner_etc_issue_net_cis
+    - cac:banner_etc_motd
+    - cac:banner_etc_motd_cis
+    - cac:banner_etc_profiled_ssh_confirm
+    - cac:dconf_gnome_banner_enabled
+    - cac:dconf_gnome_login_banner_text
+    - cac:file_groupowner_etc_issue
+    - cac:file_groupowner_etc_issue_net
+    - cac:file_groupowner_etc_motd
+    - cac:file_owner_etc_issue
+    - cac:file_owner_etc_issue_net
+    - cac:file_owner_etc_motd
+    - cac:file_permissions_etc_issue
+    - cac:file_permissions_etc_issue_net
+    - cac:file_permissions_etc_motd
+    - cac:gui_login_dod_acknowledgement
+    nist_800_53:
+    - AC-8
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-banners/gui_login_banner/banner_etc_gdm_banner/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-banners/banner_etc_motd/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-banners/file_groupowner_etc_issue/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-banners/file_owner_etc_motd/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-banners/gui_login_banner/gui_login_dod_acknowledgement/rule.yml
+- id: NET-PAM-008
+  sheet: NET
+  category: PAM
+  title: Check console access controls, Ctrl-Alt-Del and session lock tools
+  objective: Finds hosts where a person at the console can reboot, skip authentication or avoid the screen lock.
+  preconditions: *id001
+  steps:
+  - Look at the systemd target for Ctrl-Alt-Del and its burst action.
+  - Read the rescue and emergency service files and make sure they need a password.
+  - Look for the debug-shell service and for interactive boot options.
+  - Look for tmux, screen or vlock settings that lock the session after inactivity.
+  - Read the idle session settings of logind.
+  example: systemctl status ctrl-alt-del.target ; grep -E "ExecStart" /usr/lib/systemd/system/rescue.service /usr/lib/systemd/system/emergency.service ; systemctl is-enabled debug-shell.service ; grep -r
+    "lock-" /etc/tmux.conf ; grep StopIdleSessionSec /etc/systemd/logind.conf
+  expected: Ctrl-Alt-Del does not reboot the host. Single user and emergency modes need a password. The debug shell is off and idle sessions lock or end.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:configure_bashrc_exec_tmux
+    - cac:configure_bashrc_tmux
+    - cac:configure_tmux_lock_after_time
+    - cac:configure_tmux_lock_command
+    - cac:configure_tmux_lock_keybinding
+    - cac:coreos_disable_interactive_boot
+    - cac:disable_ctrlaltdel_burstaction
+    - cac:disable_ctrlaltdel_reboot
+    - cac:grub2_disable_interactive_boot
+    - cac:logind_session_timeout
+    - cac:no_tmux_in_shells
+    - cac:package_screen_installed
+    - cac:package_tmux_installed
+    - cac:require_emergency_target_auth
+    - cac:require_singleuser_auth
+    - cac:service_debug-shell_disabled
+    - cac:vlock_installed
+    nist_800_53:
+    - CM-6
+    - AC-11
+    - SC-2
+    - AC-6
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-physical/screen_locking/console_screen_locking/configure_bashrc_exec_tmux/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-physical/screen_locking/console_screen_locking/configure_tmux_lock_keybinding/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-physical/grub2_disable_interactive_boot/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-physical/screen_locking/console_screen_locking/package_tmux_installed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-physical/screen_locking/console_screen_locking/vlock_installed/rule.yml
+- id: NET-PAM-009
+  sheet: NET
+  category: PAM
+  title: Check smart card login settings for PAM and SSSD
+  objective: Finds hosts that claim multifactor login but do not check the card certificate chain or revocation status.
+  preconditions: *id001
+  steps:
+  - Look for the opensc, pcsc-lite and pcscd packages and services.
+  - Read the PAM files and look for the smart card option in the auth stack.
+  - Read the card driver and CA settings of opensc and the NSS database.
+  - Look at the certificate status check and the CRL cache settings.
+  - Try a login with a card from an unknown CA. Make sure the login fails.
+  example: rpm -q opensc pcsc-lite ; systemctl is-enabled pcscd.socket ; grep -rE "pam_pkcs11|pam_sss.*cert|try_cert_auth|use_mappers" /etc/pam.d/ ; grep -E "card_drivers|cert_policy" /etc/pam_pkcs11/pam_pkcs11.conf
+  expected: Smart card login is on where the policy needs it. The login checks the CA chain and the revocation status, and unknown cards are refused.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    tool_check:
+    - cac:configure_opensc_card_drivers
+    - cac:configure_opensc_nss_db
+    - cac:force_opensc_card_drivers
+    - cac:install_smartcard_packages
+    - cac:package_opensc_installed
+    - cac:package_pcsc-lite-ccid_installed
+    - cac:package_pcsc-lite_installed
+    - cac:service_pcscd_enabled
+    - cac:smartcard_auth
+    - cac:smartcard_configure_ca
+    - cac:smartcard_configure_cert_checking
+    - cac:smartcard_configure_crl
+    - cac:smartcard_pam_enabled
+    - cac:socket_pcscd_enabled
+    - cac:verify_use_mappers
+    nist_800_53:
+    - IA-2
+    - CM-6
+    pci_dss:
+    - '8.3'
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-physical/screen_locking/smart_card_login/configure_opensc_card_drivers/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-physical/screen_locking/smart_card_login/install_smartcard_packages/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-physical/screen_locking/smart_card_login/service_pcscd_enabled/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-physical/screen_locking/smart_card_login/smartcard_configure_crl/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-physical/screen_locking/smart_card_login/verify_use_mappers/rule.yml
+- id: NET-PAM-010
+  sheet: NET
+  category: PAM
+  title: 'Check central authentication clients: SSSD, LDAP, Kerberos and authselect'
+  objective: Finds central login clients that use clear-text binds, skip certificate checks or let PAM files drift.
+  preconditions: *id001
+  steps:
+  - Look at the authselect profile or the PAM files and make sure they are not changed by hand.
+  - Read /etc/sssd/sssd.conf and look at the ldap_id_use_start_tls, ldap_tls_reqcert and CA settings.
+  - Read /etc/openldap/ldap.conf and the nss_ldap settings for TLS.
+  - Look at the offline credential and cache expiration values.
+  - Look for unused LDAP, Kerberos and 389-ds server packages.
+  example: authselect current ; grep -vE "^#|^$" /etc/sssd/sssd.conf ; grep -E "TLS|URI" /etc/openldap/ldap.conf ; ls -l /etc/krb5.keytab ; rpm -q openldap-servers krb5-server 389-ds-base
+  expected: Directory binds use TLS with a full certificate check. The SSSD service runs as the sssd user. Credential caches expire. Unneeded directory servers are not installed.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:authconfig_config_files_symlinks
+    - cac:enable_authselect
+    - cac:enable_ldap_client
+    - cac:kerberos_disable_no_keytab
+    - cac:ldap_client_start_tls
+    - cac:ldap_client_tls_cacertpath
+    - cac:package_389-ds-base_removed
+    - cac:package_authselect_installed
+    - cac:package_krb5-server_removed
+    - cac:package_nss_sss_installed
+    - cac:package_openldap-clients_removed
+    - cac:package_openldap-servers_removed
+    - cac:package_pam_installed
+    - cac:package_pam_modules_installed
+    - cac:package_pam_runtime_installed
+    - cac:package_pam_sss_installed
+    - cac:package_sssd-ipa_installed
+    - cac:package_sssd_installed
+    - cac:pam_disable_automatic_configuration
+    - cac:service_slapd_disabled
+    - cac:service_sssd_enabled
+    - cac:sssd_certificate_verification
+    - cac:sssd_certification_path_trust_anchor
+    - cac:sssd_enable_certmap
+    - cac:sssd_enable_pam_services
+    - cac:sssd_enable_smartcards
+    - cac:sssd_enable_user_cert
+    - cac:sssd_has_trust_anchor
+    - cac:sssd_ldap_configure_tls_ca
+    - cac:sssd_ldap_configure_tls_ca_dir
+    - cac:sssd_ldap_configure_tls_reqcert
+    - cac:sssd_ldap_start_tls
+    - cac:sssd_memcache_timeout
+    - cac:sssd_offline_cred_expiration
+    - cac:sssd_run_as_sssd_user
+    - cac:sssd_ssh_known_hosts_timeout
+    nist_800_53:
+    - CM-6
+    - CM-7
+    - SC-12
+    - IA-5
+    pci_dss:
+    - '8.3'
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/authconfig_config_files_symlinks/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-pam/package_nss_sss_installed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/accounts/accounts-pam/pam_disable_automatic_configuration/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/sssd/sssd_has_trust_anchor/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/sssd/sssd_ssh_known_hosts_timeout/rule.yml
+- id: NET-PAM-011
+  sheet: NET
+  category: PAM
+  title: Check sudo configuration, file permissions and privilege rules
+  objective: Finds sudo rules that give passwordless root, keep unsafe environments or allow users to avoid the log.
+  preconditions: *id001
+  steps:
+  - Read /etc/sudoers and all files under /etc/sudoers.d.
+  - Look for NOPASSWD, !authenticate and negated commands. Look for rules that target ALL or the root user.
+  - Look for the Defaults use_pty, env_reset, logfile, passwd_timeout and timestamp settings.
+  - Look at the owner and mode of the sudo binary, /etc/sudoers and /etc/sudoers.d.
+  - Make sure the include directory is only the default one and that visudo accepts the files.
+  example: grep -rnE "NOPASSWD|!authenticate|^Defaults" /etc/sudoers /etc/sudoers.d/ ; visudo -c ; stat -c "%U:%G %a %n" /etc/sudoers /etc/sudoers.d /usr/bin/sudo ; sudo -l -U <user>
+  expected: Sudo needs a password and a real terminal. The environment is reset. Rules name exact commands. Only root owns the sudo files and the log file records each command.
+  severity: High
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:directory_groupowner_etc_sudoersd
+    - cac:directory_owner_etc_sudoersd
+    - cac:directory_permissions_etc_sudoersd
+    - cac:file_groupowner_etc_sudoers
+    - cac:file_owner_etc_sudoers
+    - cac:file_permissions_etc_sudoers
+    - cac:file_permissions_sudo
+    - cac:package_sudo_installed
+    - cac:sudo_add_env_reset
+    - cac:sudo_add_ignore_dot
+    - cac:sudo_add_noexec
+    - cac:sudo_add_passwd_timeout
+    - cac:sudo_add_requiretty
+    - cac:sudo_add_umask
+    - cac:sudo_add_use_pty
+    - cac:sudo_custom_logfile
+    - cac:sudo_dedicated_group
+    - cac:sudo_remove_no_authenticate
+    - cac:sudo_remove_nopasswd
+    - cac:sudo_require_authentication
+    - cac:sudo_require_reauthentication
+    - cac:sudo_restrict_others_executable_permission
+    - cac:sudo_restrict_privilege_elevation_to_authorized
+    - cac:sudo_vdsm_nopasswd
+    - cac:sudoers_default_includedir
+    - cac:sudoers_explicit_command_args
+    - cac:sudoers_no_command_negation
+    - cac:sudoers_no_root_target
+    - cac:sudoers_validate_passwd
+    nist_800_53:
+    - CM-6
+    - IA-11
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/sudo/directory_groupowner_etc_sudoersd/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/sudo/package_sudo_installed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/sudo/sudo_add_use_pty/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/sudo/sudo_restrict_others_executable_permission/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/sudo/sudoers_validate_passwd/rule.yml

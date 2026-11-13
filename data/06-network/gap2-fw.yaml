@@ -1,0 +1,260 @@
+- id: NET-FW-001
+  sheet: NET
+  category: FW
+  title: Check that firewalld runs with a default deny zone
+  objective: Finds hosts where firewalld is off or the default zone accepts traffic that no rule allows.
+  preconditions: &id001
+  - Root or sudo read access to the host in scope.
+  - Do not change settings on a production host without a change window.
+  steps:
+  - Look at the firewalld package and service state. Make sure only one firewall service is active.
+  - Run firewall-cmd --get-default-zone and --list-all.
+  - Look at the target of the zone. Make sure it is DROP or REJECT (default).
+  - Look at the loopback rules and at the rate limit settings.
+  - Look at the backend setting in /etc/firewalld/firewalld.conf.
+  example: systemctl is-active firewalld ; firewall-cmd --get-default-zone ; firewall-cmd --list-all ; firewall-cmd --permanent --zone=public --get-target ; grep FirewallBackend /etc/firewalld/firewalld.conf
+  expected: firewalld is active and enabled. The default zone target is DROP or REJECT. Loopback traffic is allowed only on the loopback interface.
+  severity: High
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:configure_firewalld_rate_limiting
+    - cac:configured_firewalld_default_deny
+    - cac:firewalld-backend
+    - cac:firewalld_loopback_traffic_restricted
+    - cac:firewalld_loopback_traffic_trusted
+    - cac:package_firewalld_installed
+    - cac:package_firewalld_removed
+    - cac:service_firewalld_disabled
+    - cac:service_firewalld_enabled
+    - cac:set_firewalld_appropriate_zone
+    - cac:set_firewalld_default_zone
+    nist_800_53:
+    - SC-5
+    - CM-6
+    - CM-7
+    - CA-3
+    pci_dss:
+    - '1.4'
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/network/network-firewalld/ruleset_modifications/configure_firewalld_rate_limiting/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/network/network-firewalld/firewalld-backend/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/network/network-firewalld/firewalld_activation/package_firewalld_installed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/network/network-firewalld/firewalld_activation/service_firewalld_enabled/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/network/network-firewalld/ruleset_modifications/set_firewalld_default_zone/rule.yml
+- id: NET-FW-002
+  sheet: NET
+  category: FW
+  title: Check iptables and ip6tables default policies and rule persistence
+  objective: Finds hosts where the INPUT, FORWARD or OUTPUT policy is ACCEPT and rules are lost after a restart.
+  preconditions: *id001
+  steps:
+  - Run iptables -S and ip6tables -S.
+  - Look at the default policy of INPUT and FORWARD. Look at the OUTPUT rules for new and established connections.
+  - Look at the rules for the loopback interface and for loopback spoofing.
+  - Look at the persistence service and the owner and mode of /etc/iptables.
+  - Make sure the saved rules match the live rules.
+  example: iptables -S ; ip6tables -S ; iptables -L -v -n ; systemctl is-enabled iptables ip6tables netfilter-persistent ; stat -c "%U:%G %a %n" /etc/iptables /etc/sysconfig/iptables
+  expected: The INPUT and FORWARD policies are DROP. Only the needed outbound and established traffic is allowed. Rules for both IPv4 and IPv6 persist after a restart.
+  severity: High
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:directory_groupowner_etc_iptables
+    - cac:directory_owner_etc_iptables
+    - cac:directory_permissions_etc_iptables
+    - cac:ensure_iptables_are_flushed
+    - cac:package_iptables-nft_installed
+    - cac:package_iptables-persistent_installed
+    - cac:package_iptables-persistent_removed
+    - cac:package_iptables-services_installed
+    - cac:package_iptables-services_removed
+    - cac:package_iptables_installed
+    - cac:service_ip6tables_enabled
+    - cac:service_iptables_enabled
+    - cac:set_ip6tables_default_rule
+    - cac:set_iptables_default_rule
+    - cac:set_iptables_default_rule_forward
+    - cac:set_iptables_outbound_n_established
+    - cac:set_ipv6_loopback_traffic
+    - cac:set_loopback_traffic
+    nist_800_53:
+    - CM-6
+    - CM-7
+    - CA-3
+    - SC-7
+    pci_dss:
+    - '1.3'
+    - 1.4.1
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/network/network-iptables/directory_groupowner_etc_iptables/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/network/network-iptables/package_iptables-nft_installed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/network/network-iptables/package_iptables_installed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/network/network-iptables/iptables_ruleset_modifications/set_iptables_default_rule/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/network/network-iptables/iptables_activation/set_loopback_traffic/rule.yml
+- id: NET-FW-003
+  sheet: NET
+  category: FW
+  title: Check nftables tables, base chains and default deny policy
+  objective: Finds hosts where nftables has no base chains or accepts traffic by default.
+  preconditions: *id001
+  steps:
+  - Run nft list ruleset.
+  - Look for a table and base chains for input, forward and output.
+  - Look at the policy of each base chain. Look for the loopback and established rules.
+  - Read the saved ruleset in /etc/nftables and make sure the service loads it at boot.
+  - Look at the owner and mode of /etc/nftables.
+  example: nft list ruleset ; systemctl is-enabled nftables ; grep -rn "include" /etc/nftables.conf ; stat -c "%U:%G %a %n" /etc/nftables /etc/nftables.conf
+  expected: Base chains for input, forward and output exist. The input and forward policy is drop. The ruleset loads at boot and only root can change the files.
+  severity: High
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:directory_groupowner_etc_nftables
+    - cac:directory_owner_etc_nftables
+    - cac:directory_permissions_etc_nftables
+    - cac:nftables_ensure_default_deny_policy
+    - cac:nftables_rules_permanent
+    - cac:package_nftables_installed
+    - cac:package_nftables_removed
+    - cac:service_nftables_disabled
+    - cac:service_nftables_enabled
+    - cac:set_nftables_base_chain
+    - cac:set_nftables_loopback_traffic
+    - cac:set_nftables_new_connections
+    - cac:set_nftables_table
+    pci_dss:
+    - 1.4.1
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/network/network-nftables/directory_groupowner_etc_nftables/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/network/network-nftables/nftables_ensure_default_deny_policy/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/network/network-nftables/package_nftables_removed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/network/network-nftables/set_nftables_base_chain/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/network/network-nftables/set_nftables_table/rule.yml
+- id: NET-FW-004
+  sheet: NET
+  category: FW
+  title: Check UFW and SuSEfirewall2 state and default policy
+  objective: Finds hosts where the front-end firewall is installed but not active, or allows traffic by default.
+  preconditions: *id001
+  steps:
+  - Run ufw status verbose.
+  - Look at the default incoming, outgoing and routed policies.
+  - Look for the loopback rules and the rate limit rule for SSH.
+  - On SUSE hosts, look at the SuSEfirewall2 package, service and DoS protection settings.
+  - Make sure no second firewall service is active.
+  example: ufw status verbose ; grep -E "^DEFAULT" /etc/default/ufw ; systemctl is-enabled ufw SuSEfirewall2 ; grep FW_PROTECT_FROM_INT /etc/sysconfig/SuSEfirewall2
+  expected: The firewall service is active. Incoming and routed policy is deny. Outgoing policy follows the standard. Loopback rules exist.
+  severity: High
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:check_ufw_active
+    - cac:package_SuSEfirewall2_installed
+    - cac:package_ufw_installed
+    - cac:package_ufw_removed
+    - cac:service_SuSEfirewall2_enabled
+    - cac:service_ufw_enabled
+    - cac:set_ufw_default_rule
+    - cac:set_ufw_loopback_traffic
+    - cac:susefirewall2_ddos_protection
+    - cac:ufw_default_incoming_rule
+    - cac:ufw_default_outgoing_rule
+    - cac:ufw_disabled_routed
+    - cac:ufw_rate_limit
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/network/network-ufw/check_ufw_active/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/network/network-ufw/package_ufw_removed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/network/network-ufw/set_ufw_default_rule/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/network/network-ufw/ufw_default_incoming_rule/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/network/network-ufw/ufw_rate_limit/rule.yml
+- id: NET-FW-005
+  sheet: NET
+  category: FW
+  title: Check IPsec packages, tunnels and configuration file permissions
+  objective: Finds IPsec tunnels that no one approved or secret files that other users can read.
+  preconditions: *id001
+  steps:
+  - Look for the libreswan or strongswan package.
+  - List the active tunnels with ipsec status.
+  - Compare each tunnel with the approved tunnel list.
+  - List /etc/ipsec.conf, /etc/ipsec.secrets and /etc/ipsec.d with owner and mode.
+  example: rpm -q libreswan strongswan ; ipsec status ; ipsec trafficstatus ; stat -c "%U:%G %a %n" /etc/ipsec.conf /etc/ipsec.secrets /etc/ipsec.d
+  expected: Every tunnel is on the approved list. Root owns the IPsec files and the secrets file has a mode of 0600.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:directory_groupowner_etc_ipsecd
+    - cac:directory_owner_etc_ipsecd
+    - cac:directory_permissions_etc_ipsecd
+    - cac:file_groupowner_etc_ipsec_conf
+    - cac:file_groupowner_etc_ipsec_secrets
+    - cac:file_owner_etc_ipsec_conf
+    - cac:file_owner_etc_ipsec_secrets
+    - cac:file_permissions_etc_ipsec_conf
+    - cac:file_permissions_etc_ipsec_secrets
+    - cac:libreswan_approved_tunnels
+    - cac:package_libreswan_installed
+    - cac:package_strongswan_installed
+    nist_800_53:
+    - CM-6
+    - AC-17
+    - MA-4
+    - AC-4
+    pci_dss:
+    - '4.1'
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/network/network-ipsec/directory_groupowner_etc_ipsecd/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/network/network-ipsec/file_groupowner_etc_ipsec_conf/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/network/network-ipsec/file_owner_etc_ipsec_secrets/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/network/network-ipsec/libreswan_approved_tunnels/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/network/network-ipsec/package_strongswan_installed/rule.yml
+- id: NET-FW-006
+  sheet: NET
+  category: FW
+  title: 'Check host network settings: DHCP, DDNS, zeroconf, sniffing and DNS mode'
+  objective: Finds hosts with automatic network features that an attacker on the LAN can use.
+  preconditions: *id001
+  steps:
+  - List the interfaces and look for the promiscuous flag.
+  - Look at DHCP client options in /etc/dhcp/dhclient.conf and at the use of static addresses.
+  - Look for zeroconf, DDNS updates and wireless or Bluetooth interfaces that the role does not need.
+  - Read the name resolution and NetworkManager DNS mode settings.
+  - Look at the permissions to change network settings with nmcli.
+  example: ip -d link | grep -i promisc ; grep -vE "^#|^$" /etc/dhcp/dhclient.conf ; grep -r NOZEROCONF /etc/sysconfig/network ; nmcli radio ; grep dns /etc/NetworkManager/NetworkManager.conf ; nmcli general
+    permissions
+  expected: No interface is in promiscuous mode. Zeroconf and DDNS are off. Unused wireless and Bluetooth interfaces are off. Only approved users can change network settings.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:dhcp_client_restrict_options
+    - cac:firewall_single_service_active
+    - cac:network_configure_name_resolution
+    - cac:network_disable_ddns_interfaces
+    - cac:network_disable_zeroconf
+    - cac:network_implement_access_control
+    - cac:network_nmcli_permissions
+    - cac:network_sniffer_disabled
+    - cac:networkmanager_dns_mode
+    - cac:only_allow_dod_certs
+    - cac:only_allow_specific_certs
+    - cac:package_dhcp_client_removed
+    - cac:service_bluetooth_disabled
+    - cac:sysconfig_networking_bootproto_ifcfg
+    - cac:wireless_disable_in_bios
+    - cac:wireless_disable_interfaces
+    nist_800_53:
+    - CM-7
+    - CM-6
+    - AC-18
+    - MP-7
+    pci_dss:
+    - 1.3.3
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/dhcp/dhcp_client_configuration/dhcp_client_restrict_options/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/network/network_disable_zeroconf/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/network/networkmanager/networkmanager_dns_mode/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/network/network-wireless/wireless_software/service_bluetooth_disabled/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/network/network-wireless/wireless_software/wireless_disable_interfaces/rule.yml

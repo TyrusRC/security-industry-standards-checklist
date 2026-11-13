@@ -1,0 +1,1105 @@
+- id: CLD-CFG-007
+  sheet: CLD
+  category: CFG
+  title: 'Check organization guardrails: SCPs, policy enforcement, tags and delegated admins'
+  objective: Finds tenants where preventive guardrails are missing or in audit-only mode.
+  steps:
+  - List the organization policies, service control policies and policy assignments.
+  - Check that deny rules block unused regions and risky actions.
+  - Check that policy effects are enforced and not audit-only.
+  - Check that security services use a delegated admin account.
+  - Create a test resource that breaks a rule.
+  example: aws organizations list-policies --filter SERVICE_CONTROL_POLICY; aws organizations list-delegated-administrators; aws fms list-policies; az policy assignment list --query "[].[name,enforcementMode]"; gcloud resource-manager org-policies list --organization=<org>; prowler aws --services organizations fms
+  expected: Guardrails deny unused regions and risky actions at the root. Policies are enforced. Security services run from a delegated admin account, not the management account. The test resource is blocked.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    - CNAS-8
+    tool_check:
+    - prowler:aws:fms_policy_compliant
+    - prowler:aws:organizations_account_part_of_organizations
+    - prowler:aws:organizations_delegated_administrators
+    - prowler:aws:organizations_opt_out_ai_services_policy
+    - prowler:aws:organizations_scp_check_deny_regions
+    - prowler:aws:organizations_security_services_delegated_admin_not_management_account
+    - prowler:aws:organizations_tags_policies_enabled_and_attached
+    - prowler:azure:policy_ensure_asc_enforcement_enabled
+    cwe:
+    - CWE-693
+    attack:
+    - T1535
+    - T1578
+    nist_800_53:
+    - CM-6
+    - AC-3
+    other:
+    - Microsoft cloud security benchmark v1 GS-2
+    - Microsoft cloud security benchmark v1 PV-2
+    - Microsoft cloud security benchmark v1 AM-2
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/fms/fms_policy_compliant/fms_policy_compliant.metadata.json
+  - sources/repos/prowler/prowler/providers/azure/services/policy/policy_ensure_asc_enforcement_enabled/policy_ensure_asc_enforcement_enabled.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-CFG-008
+  sheet: CLD
+  category: CFG
+  title: Check that posture services run in every region
+  objective: Finds regions and accounts with no configuration recorder or security hub.
+  steps:
+  - List the regions and accounts in use.
+  - Check that the configuration recorder is on in each region.
+  - Check that findings aggregate to a central admin account.
+  - Open the open high findings and their age.
+  - Turn off the recorder in a test account and look for an alert.
+  example: aws configservice describe-configuration-recorders; aws configservice describe-configuration-aggregators; aws securityhub describe-hub; aws securityhub get-findings --filters '{"SeverityLabel":[{"Value":"HIGH","Comparison":"EQUALS"}]}'; az security assessment list; prowler aws --services config securityhub
+  expected: The recorder and the security hub run in all regions. Findings reach one central account. High findings have an owner and a due date.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    - CNAS-10
+    tool_check:
+    - prowler:aws:config_delegated_admin_and_org_aggregator_all_regions
+    - prowler:aws:config_recorder_all_regions_enabled
+    - prowler:aws:config_recorder_using_aws_service_role
+    - prowler:aws:securityhub_delegated_admin_enabled_all_regions
+    - prowler:aws:securityhub_enabled
+    - prowler:aws:wellarchitected_workload_no_high_or_medium_risks
+    cwe:
+    - CWE-778
+    attack:
+    - T1685.002
+    nist_800_53:
+    - CM-6
+    - CA-7
+    other:
+    - Microsoft cloud security benchmark v1 PV-2
+    - Microsoft cloud security benchmark v1 GS-5
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/config/config_delegated_admin_and_org_aggregator_all_regions/config_delegated_admin_and_org_aggregator_all_regions.metadata.json
+  - sources/repos/prowler/prowler/providers/aws/services/wellarchitected/wellarchitected_workload_no_high_or_medium_risks/wellarchitected_workload_no_high_or_medium_risks.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-CFG-009
+  sheet: CLD
+  category: CFG
+  title: Check storage ACLs, uniform access, access points and bucket names
+  objective: Finds object stores that mix ACLs with policies or use names another party can claim.
+  steps:
+  - List buckets, containers and file system access points.
+  - Check that ACLs are off and uniform access is on.
+  - Check that access points set a fixed root path and user identity.
+  - Search code and templates for bucket names that do not exist.
+  - Try to create a bucket with a name from a template.
+  example: aws s3api get-bucket-ownership-controls --bucket <b>; gcloud storage buckets describe gs://<b> --format="value(uniform_bucket_level_access)"; aws efs describe-access-points; aws s3api head-bucket --bucket <name-in-template>; prowler aws --services s3 efs
+  expected: ACLs are off and one policy model controls access. Access points set a root path and user identity. No code uses a bucket name that is free to claim.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    tool_check:
+    - prowler:aws:efs_access_point_enforce_root_directory
+    - prowler:aws:efs_access_point_enforce_user_identity
+    - prowler:aws:s3_bucket_acl_prohibited
+    - prowler:aws:s3_bucket_cross_region_replication
+    - prowler:aws:s3_bucket_shadow_resource_vulnerability
+    - prowler:gcp:cloudstorage_bucket_uniform_bucket_level_access
+    cwe:
+    - CWE-732
+    attack:
+    - T1530
+    - T1584
+    nist_800_53:
+    - AC-3
+    - AC-6
+    other:
+    - Microsoft cloud security benchmark v1 DP-8
+    - Microsoft cloud security benchmark v1 IM-1
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/efs/efs_access_point_enforce_root_directory/efs_access_point_enforce_root_directory.metadata.json
+  - sources/repos/prowler/prowler/providers/gcp/services/cloudstorage/cloudstorage_bucket_uniform_bucket_level_access/cloudstorage_bucket_uniform_bucket_level_access.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-CFG-010
+  sheet: CLD
+  category: CFG
+  title: Check that managed data and AI services use private endpoints
+  objective: Finds managed services that accept traffic from the public Internet or from all trusted services.
+  steps:
+  - List storage, key vault, search, database, AI and registry services.
+  - Check the public network access setting of each service.
+  - Check that private endpoints or service perimeters exist.
+  - Check that the default network rule is deny.
+  - Try to reach each service from a public network.
+  example: az storage account show -n <a> --query "[publicNetworkAccess,networkRuleSet.defaultAction]"; az keyvault show -n <v> --query properties.publicNetworkAccess; az cognitiveservices account show -n <a> -g <rg> --query properties.publicNetworkAccess; az search service show -n <s> -g <rg>; gcloud access-context-manager perimeters list; prowler azure --services storage keyvault aiservices aisearch
+  expected: Public network access is off or the default rule is deny. Services use private endpoints or a service perimeter. The public test connection fails.
+  severity: High
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    - CNAS-6
+    tool_check:
+    - prowler:azure:aisearch_service_not_publicly_accessible
+    - prowler:azure:aiservices_account_network_acls_default_action_deny
+    - prowler:azure:aiservices_account_outbound_network_restricted
+    - prowler:azure:aiservices_account_public_network_access_disabled
+    - prowler:azure:aiservices_account_uses_private_endpoint
+    - prowler:azure:containerregistry_uses_private_link
+    - prowler:azure:cosmosdb_account_use_private_endpoints
+    - prowler:azure:databricks_workspace_cmk_encryption_enabled
+    - prowler:azure:databricks_workspace_no_public_ip_enabled
+    - prowler:azure:databricks_workspace_public_network_access_disabled
+    - prowler:azure:databricks_workspace_vnet_injection_enabled
+    - prowler:azure:keyvault_access_only_through_private_endpoints
+    - prowler:azure:keyvault_private_endpoints
+    - prowler:azure:postgresql_flexible_server_allow_access_services_disabled
+    - prowler:azure:storage_cross_tenant_replication_disabled
+    - prowler:azure:storage_default_network_access_rule_is_denied
+    - prowler:azure:storage_ensure_azure_services_are_trusted_to_access_is_enabled
+    - prowler:azure:storage_ensure_private_endpoints_in_storage_accounts
+    - prowler:gcp:cloudstorage_uses_vpc_service_controls
+    cwe:
+    - CWE-284
+    attack:
+    - T1530
+    - T1190
+    nist_800_53:
+    - SC-7
+    - AC-4
+    other:
+    - Microsoft cloud security benchmark v1 NS-2
+    - Microsoft cloud security benchmark v1 NS-1
+  sources_read:
+  - sources/repos/prowler/prowler/providers/azure/services/aisearch/aisearch_service_not_publicly_accessible/aisearch_service_not_publicly_accessible.metadata.json
+  - sources/repos/prowler/prowler/providers/gcp/services/cloudstorage/cloudstorage_uses_vpc_service_controls/cloudstorage_uses_vpc_service_controls.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-CFG-011
+  sheet: CLD
+  category: CFG
+  title: Check network isolation of AI, notebook and virtual desktop workloads
+  objective: Finds ML jobs, notebooks and desktops that have direct Internet access or no VPC.
+  steps:
+  - List notebooks, training jobs, models, AI runtimes and desktop fleets.
+  - Check that each runs inside a private network.
+  - Check that direct Internet access is off.
+  - Check that model and job network isolation is on.
+  - Try an outbound connection from a test notebook.
+  example: aws sagemaker describe-notebook-instance --notebook-instance-name <n> --query "[DirectInternetAccess,SubnetId]"; aws sagemaker describe-training-job --training-job-name <t> --query "[EnableNetworkIsolation,VpcConfig]"; aws appstream describe-fleets; gcloud notebooks instances list; prowler aws --services sagemaker bedrock appstream
+  expected: All AI and notebook workloads run in a private network with no direct Internet access. Network isolation is on. The outbound test connection fails.
+  severity: High
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    - CNAS-6
+    tool_check:
+    - prowler:aws:appstream_fleet_default_internet_access_disabled
+    - prowler:aws:bedrock_vpc_endpoints_configured
+    - prowler:aws:bedrockagentcore_runtime_vpc_configured
+    - prowler:aws:sagemaker_models_network_isolation_enabled
+    - prowler:aws:sagemaker_models_vpc_settings_configured
+    - prowler:aws:sagemaker_notebook_instance_vpc_settings_configured
+    - prowler:aws:sagemaker_notebook_instance_without_direct_internet_access_configured
+    - prowler:aws:sagemaker_training_jobs_intercontainer_encryption_enabled
+    - prowler:aws:sagemaker_training_jobs_network_isolation_enabled
+    - prowler:aws:sagemaker_training_jobs_vpc_settings_configured
+    - prowler:gcp:vertexai_workbench_instance_public_ip_disabled
+    cwe:
+    - CWE-668
+    attack:
+    - T1048
+    - T1567
+    nist_800_53:
+    - SC-7
+    - AC-4
+    other:
+    - Microsoft cloud security benchmark v1 NS-2
+    - Microsoft cloud security benchmark v1 NS-1
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/appstream/appstream_fleet_default_internet_access_disabled/appstream_fleet_default_internet_access_disabled.metadata.json
+  - sources/repos/prowler/prowler/providers/gcp/services/vertexai/vertexai_workbench_instance_public_ip_disabled/vertexai_workbench_instance_public_ip_disabled.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-CFG-012
+  sheet: CLD
+  category: CFG
+  title: Check that managed Kubernetes API endpoints and nodes are private
+  objective: Finds managed clusters whose control plane or nodes are open to the Internet.
+  steps:
+  - List the managed clusters in each account.
+  - Check if the API endpoint is public and which source ranges can reach it.
+  - Check that nodes have private addresses only.
+  - Check that a network policy engine is on.
+  - Try to reach the API endpoint from a public network.
+  example: aws eks describe-cluster --name <c> --query "cluster.resourcesVpcConfig.[endpointPublicAccess,endpointPrivateAccess,publicAccessCidrs]"; az aks show -n <c> -g <rg> --query "[apiServerAccessProfile,networkProfile.networkPolicy]"; prowler aws --services eks; prowler azure --services aks
+  expected: The API endpoint is private or limited to listed ranges. Nodes have no public address. A network policy engine is on. The public test connection fails.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    - CNAS-6
+    tool_check:
+    - prowler:aws:eks_cluster_network_policy_enabled
+    - prowler:aws:eks_cluster_not_publicly_accessible
+    - prowler:aws:eks_cluster_private_nodes_enabled
+    - prowler:aws:eks_cluster_vpc_cni_network_policy_enforced
+    - prowler:azure:aks_clusters_created_with_private_nodes
+    - prowler:azure:aks_clusters_public_access_disabled
+    - prowler:azure:aks_network_policy_enabled
+    cwe:
+    - CWE-284
+    attack:
+    - T1190
+    - T1613
+    nist_800_53:
+    - SC-7
+    - AC-3
+    other:
+    - Microsoft cloud security benchmark v1 NS-2
+    - Microsoft cloud security benchmark v1 PV-3
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/eks/eks_cluster_network_policy_enabled/eks_cluster_network_policy_enabled.metadata.json
+  - sources/repos/prowler/prowler/providers/azure/services/aks/aks_network_policy_enabled/aks_network_policy_enabled.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-CFG-013
+  sheet: CLD
+  category: CFG
+  title: Check customer-managed keys for sensitive data stores
+  objective: Finds sensitive data stores that use only provider-owned keys with no own control.
+  steps:
+  - List the data stores with sensitive data.
+  - 'Find the key type of each: provider-owned or customer-managed.'
+  - Check that sensitive stores use customer-managed keys.
+  - Check who can use and disable each key.
+  - Disable a test key and check that the store denies access.
+  example: aws dynamodb describe-table --table-name <t> --query Table.SSEDescription; gcloud sql instances describe <i> --format="value(diskEncryptionConfiguration)"; bq show --format=prettyjson <ds>; az storage account show -n <a> --query encryption.keySource; az disk show -n <d> -g <rg> --query encryption; prowler gcp --services cloudsql bigquery
+  expected: Sensitive stores use customer-managed keys with a named owner. Key use is limited to the store service. Disabling the test key blocks access to the data.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    - CNAS-5
+    tool_check:
+    - prowler:aws:dynamodb_tables_kms_cmk_encryption_enabled
+    - prowler:aws:kafka_cluster_encryption_at_rest_uses_cmk
+    - prowler:aws:s3_bucket_kms_encryption
+    - prowler:azure:aiservices_account_encrypted_with_cmk
+    - prowler:azure:sqlserver_tde_encrypted_with_cmk
+    - prowler:azure:storage_ensure_encryption_with_customer_managed_keys
+    - prowler:azure:vm_ensure_attached_disks_encrypted_with_cmk
+    - prowler:azure:vm_ensure_unattached_disks_encrypted_with_cmk
+    - prowler:azure:vm_ensure_using_managed_disks
+    - prowler:gcp:bigquery_dataset_cmk_encryption
+    - prowler:gcp:bigquery_table_cmk_encryption
+    - prowler:gcp:cloudsql_instance_cmek_encryption_enabled
+    - prowler:gcp:dataproc_encrypted_with_cmks_disabled
+    cwe:
+    - CWE-311
+    attack:
+    - T1530
+    - T1486
+    nist_800_53:
+    - SC-28
+    - SC-12
+    other:
+    - Microsoft cloud security benchmark v1 DP-5
+    - Microsoft cloud security benchmark v1 DP-4
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/dynamodb/dynamodb_tables_kms_cmk_encryption_enabled/dynamodb_tables_kms_cmk_encryption_enabled.metadata.json
+  - sources/repos/prowler/prowler/providers/gcp/services/dataproc/dataproc_encrypted_with_cmks_disabled/dataproc_encrypted_with_cmks_disabled.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-CFG-014
+  sheet: CLD
+  category: CFG
+  title: Check encryption settings of analytics, workflow, AI and backup services
+  objective: Finds query results, job state, models and backups stored with default or no encryption.
+  steps:
+  - List analytics workgroups, ETL jobs, workflows, ML endpoints and backup vaults.
+  - Check the encryption setting for data, logs and job state in each.
+  - Check that function variables and cluster secrets use a managed key.
+  - Find outputs written to storage with no encryption.
+  - Run a test job and look at its output setting.
+  example: aws athena get-work-group --work-group <w>; aws glue get-security-configuration --name <n>; aws stepfunctions describe-state-machine --state-machine-arn <a>; aws backup describe-backup-vault --backup-vault-name <v>; aws eks describe-cluster --name <c> --query cluster.encryptionConfig; prowler aws --services glue athena backup
+  expected: Job output, logs, job state, backups and cluster secrets use encryption with a managed key. Settings are enforced by workgroup or security configuration.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    tool_check:
+    - prowler:aws:athena_workgroup_encryption
+    - prowler:aws:awslambda_function_env_vars_not_encrypted_with_cmk
+    - prowler:aws:backup_recovery_point_encrypted
+    - prowler:aws:backup_vaults_encrypted
+    - prowler:aws:backup_vaults_exist
+    - prowler:aws:bedrock_custom_model_encrypted_with_cmk
+    - prowler:aws:bedrock_knowledge_base_encrypted_with_cmk
+    - prowler:aws:bedrock_prompt_encrypted_with_cmk
+    - prowler:aws:ec2_ebs_snapshot_account_block_public_access
+    - prowler:aws:eks_cluster_kms_cmk_encryption_in_secrets_enabled
+    - prowler:aws:glue_data_catalogs_connection_passwords_encryption_enabled
+    - prowler:aws:glue_data_catalogs_metadata_encryption_enabled
+    - prowler:aws:glue_database_connections_ssl_enabled
+    - prowler:aws:glue_development_endpoints_cloudwatch_logs_encryption_enabled
+    - prowler:aws:glue_development_endpoints_job_bookmark_encryption_enabled
+    - prowler:aws:glue_development_endpoints_s3_encryption_enabled
+    - prowler:aws:glue_etl_jobs_amazon_s3_encryption_enabled
+    - prowler:aws:glue_etl_jobs_cloudwatch_logs_encryption_enabled
+    - prowler:aws:glue_etl_jobs_job_bookmark_encryption_enabled
+    - prowler:aws:glue_etl_jobs_logging_enabled
+    - prowler:aws:glue_ml_transform_encrypted_at_rest
+    - prowler:aws:sagemaker_endpoint_config_kms_encryption_enabled
+    - prowler:aws:sagemaker_notebook_instance_encryption_enabled
+    - prowler:aws:sagemaker_training_jobs_volume_and_output_encryption_enabled
+    - prowler:aws:stepfunctions_statemachine_encrypted_with_cmk
+    cwe:
+    - CWE-311
+    attack:
+    - T1530
+    nist_800_53:
+    - SC-28
+    - SC-12
+    other:
+    - Microsoft cloud security benchmark v1 DP-5
+    - Microsoft cloud security benchmark v1 DP-4
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/athena/athena_workgroup_encryption/athena_workgroup_encryption.metadata.json
+  - sources/repos/prowler/prowler/providers/aws/services/stepfunctions/stepfunctions_statemachine_encrypted_with_cmk/stepfunctions_statemachine_encrypted_with_cmk.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-CFG-015
+  sheet: CLD
+  category: CFG
+  title: Check TLS on database, cache, search, stream and replication connections
+  objective: Finds data service connections that allow plain text or old TLS versions.
+  steps:
+  - List databases, caches, search domains, brokers and replication endpoints.
+  - Check that TLS is required on each one.
+  - Check the minimum TLS version.
+  - Try a plain text connection to each service.
+  - Try a connection with TLS 1.0.
+  example: aws rds describe-db-parameters --db-parameter-group-name <g> --query "Parameters[?ParameterName=='rds.force_ssl']"; aws elasticache describe-replication-groups --query "ReplicationGroups[].TransitEncryptionEnabled"; gcloud sql instances describe <i> --format="value(settings.ipConfiguration.requireSsl)"; az postgres flexible-server parameter show -g <rg> -s <s> --name require_secure_transport; openssl s_client -tls1 -connect <h>:<p>; prowler aws --services rds elasticache opensearch
+  expected: Every data connection needs TLS 1.2 or higher. The plain text test and the TLS 1.0 test both fail.
+  severity: High
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    tool_check:
+    - prowler:aws:dms_endpoint_redis_in_transit_encryption_enabled
+    - prowler:aws:dms_endpoint_ssl_enabled
+    - prowler:aws:dynamodb_accelerator_cluster_in_transit_encryption_enabled
+    - prowler:aws:elasticache_redis_cluster_in_transit_encryption_enabled
+    - prowler:aws:kafka_cluster_in_transit_encryption_enabled
+    - prowler:aws:kafka_connector_in_transit_encryption_enabled
+    - prowler:aws:memorydb_cluster_in_transit_encryption_enabled
+    - prowler:aws:opensearch_service_domains_https_communications_enforced
+    - prowler:aws:opensearch_service_domains_node_to_node_encryption_enabled
+    - prowler:aws:rds_instance_transport_encrypted
+    - prowler:aws:redshift_cluster_in_transit_encryption_enabled
+    - prowler:aws:sns_subscription_not_using_http_endpoints
+    - prowler:azure:cosmosdb_account_minimum_tls_version
+    - prowler:azure:mysql_flexible_server_minimum_tls_version_12
+    - prowler:azure:mysql_flexible_server_ssl_connection_enabled
+    - prowler:azure:postgresql_flexible_server_enforce_ssl_enabled
+    - prowler:azure:sqlserver_recommended_minimal_tls_version
+    - prowler:gcp:cloudsql_instance_ssl_connections
+    cwe:
+    - CWE-319
+    attack:
+    - T1040
+    - T1557
+    nist_800_53:
+    - SC-8
+    - SC-13
+    other:
+    - Microsoft cloud security benchmark v1 DP-3
+    - Microsoft cloud security benchmark v1 NS-8
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/dms/dms_endpoint_redis_in_transit_encryption_enabled/dms_endpoint_redis_in_transit_encryption_enabled.metadata.json
+  - sources/repos/prowler/prowler/providers/gcp/services/cloudsql/cloudsql_instance_ssl_connections/cloudsql_instance_ssl_connections.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-CFG-016
+  sheet: CLD
+  category: CFG
+  title: Check secure transfer, TLS version and SMB settings of storage
+  objective: Finds storage endpoints that accept HTTP, old TLS or old SMB versions.
+  steps:
+  - List buckets, storage accounts, file shares and file transfer servers.
+  - Check that a policy denies requests without TLS.
+  - Check the minimum TLS version of each storage account.
+  - Check the SMB version and channel encryption.
+  - Send a plain HTTP request to a test object.
+  example: aws s3api get-bucket-policy --bucket <b>; az storage account show -n <a> --query "[enableHttpsTrafficOnly,minimumTlsVersion]"; az storage account file-service-properties show --account-name <a> --query protocolSettings; aws transfer describe-server --server-id <s>; curl -i http://<b>.s3.amazonaws.com/<o>; prowler azure --services storage
+  expected: Storage denies requests without TLS and requires TLS 1.2 or higher. File shares use the latest SMB with channel encryption. The HTTP test request is denied.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    tool_check:
+    - prowler:aws:s3_bucket_secure_transport_policy
+    - prowler:aws:transfer_server_in_transit_encryption_enabled
+    - prowler:azure:storage_ensure_minimum_tls_version_12
+    - prowler:azure:storage_secure_transfer_required_is_enabled
+    - prowler:azure:storage_smb_channel_encryption_with_secure_algorithm
+    - prowler:azure:storage_smb_protocol_version_is_latest
+    cwe:
+    - CWE-319
+    attack:
+    - T1040
+    - T1557
+    nist_800_53:
+    - SC-8
+    - SC-13
+    other:
+    - Microsoft cloud security benchmark v1 DP-3
+    - Microsoft cloud security benchmark v1 NS-8
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/s3/s3_bucket_secure_transport_policy/s3_bucket_secure_transport_policy.metadata.json
+  - sources/repos/prowler/prowler/providers/azure/services/storage/storage_smb_protocol_version_is_latest/storage_smb_protocol_version_is_latest.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-CFG-017
+  sheet: CLD
+  category: CFG
+  title: Check TLS listeners, ciphers and origin traffic on load balancers and CDNs
+  objective: Finds public endpoints with plain text listeners, weak ciphers or open CORS.
+  steps:
+  - List load balancers, CDN distributions and function URLs.
+  - Check that HTTP listeners redirect to HTTPS.
+  - Check the TLS policy for weak protocols and ciphers.
+  - Check that the CDN uses TLS to the origin.
+  - Scan each public endpoint for TLS settings.
+  example: aws elbv2 describe-listeners --load-balancer-arn <a>; aws elbv2 describe-ssl-policies; aws cloudfront get-distribution-config --id <i>; aws lambda get-function-url-config --function-name <f>; sslyze <host>; testssl.sh <host>; prowler aws --services elbv2 elb cloudfront
+  expected: Public endpoints use only HTTPS with TLS 1.2 or higher and strong ciphers. CDN origins use TLS. CORS lists named origins only.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    tool_check:
+    - prowler:aws:awslambda_function_url_cors_policy
+    - prowler:aws:cloudfront_distributions_custom_ssl_certificate
+    - prowler:aws:cloudfront_distributions_field_level_encryption_enabled
+    - prowler:aws:cloudfront_distributions_https_enabled
+    - prowler:aws:cloudfront_distributions_https_sni_enabled
+    - prowler:aws:cloudfront_distributions_origin_traffic_encrypted
+    - prowler:aws:cloudfront_distributions_using_deprecated_ssl_protocols
+    - prowler:aws:elb_desync_mitigation_mode
+    - prowler:aws:elb_insecure_ssl_ciphers
+    - prowler:aws:elb_ssl_listeners
+    - prowler:aws:elb_ssl_listeners_use_acm_certificate
+    - prowler:aws:elbv2_alb_drop_invalid_header_fields_enabled
+    - prowler:aws:elbv2_desync_mitigation_mode
+    - prowler:aws:elbv2_insecure_ssl_ciphers
+    - prowler:aws:elbv2_listener_fips_tls_enabled
+    - prowler:aws:elbv2_listeners_underneath
+    - prowler:aws:elbv2_nlb_tls_termination_enabled
+    - prowler:aws:elbv2_ssl_listeners
+    cwe:
+    - CWE-326
+    attack:
+    - T1040
+    - T1557
+    nist_800_53:
+    - SC-8
+    - SC-23
+    other:
+    - Microsoft cloud security benchmark v1 DP-3
+    - Microsoft cloud security benchmark v1 NS-8
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/awslambda/awslambda_function_url_cors_policy/awslambda_function_url_cors_policy.metadata.json
+  - sources/repos/prowler/prowler/providers/aws/services/elbv2/elbv2_ssl_listeners/elbv2_ssl_listeners.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-CFG-018
+  sheet: CLD
+  category: CFG
+  title: Check TLS, HTTPS redirect, client certificates and FTP on app services
+  objective: Finds web apps and functions that allow HTTP, old TLS or FTP deployment.
+  steps:
+  - List web apps and function apps.
+  - Check the HTTPS-only setting and the minimum TLS version.
+  - Check that FTP deployment is off or FTPS only.
+  - Check client certificate settings where needed.
+  - Send an HTTP request and an FTP login to a test app.
+  example: az webapp show -n <a> -g <rg> --query "[httpsOnly,siteConfig.minTlsVersion,siteConfig.ftpsState]"; az webapp config show -n <a> -g <rg>; az functionapp config show -n <f> -g <rg>; curl -i http://<app>.azurewebsites.net; prowler azure --services app network
+  expected: Apps accept HTTPS only with TLS 1.2 or higher. FTP is off or FTPS only. The HTTP request redirects. The FTP login fails.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    tool_check:
+    - prowler:azure:app_client_certificates_on
+    - prowler:azure:app_ensure_http_is_redirected_to_https
+    - prowler:azure:app_ensure_using_http20
+    - prowler:azure:app_ftp_deployment_disabled
+    - prowler:azure:app_function_ensure_http_is_redirected_to_https
+    - prowler:azure:app_function_ftps_deployment_disabled
+    - prowler:azure:app_minimum_tls_version_12
+    - prowler:azure:network_application_gateway_http2_enabled
+    cwe:
+    - CWE-319
+    attack:
+    - T1040
+    - T1557
+    nist_800_53:
+    - SC-8
+    - SC-23
+    other:
+    - Microsoft cloud security benchmark v1 DP-3
+    - Microsoft cloud security benchmark v1 NS-8
+  sources_read:
+  - sources/repos/prowler/prowler/providers/azure/services/app/app_client_certificates_on/app_client_certificates_on.metadata.json
+  - sources/repos/prowler/prowler/providers/azure/services/network/network_application_gateway_http2_enabled/network_application_gateway_http2_enabled.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-CFG-019
+  sheet: CLD
+  category: CFG
+  title: Check certificate expiry, key algorithms and removal of expired certificates
+  objective: Finds expired or weak certificates that cause outages or allow downgrade.
+  steps:
+  - List all certificates in the certificate manager, private CA, IAM and databases.
+  - Find certificates that expire in 30 days or less.
+  - Find certificates with weak key algorithms.
+  - Find expired certificates that are still stored.
+  - Check that renewal is automatic.
+  example: aws acm list-certificates; aws acm describe-certificate --certificate-arn <a>; aws iam list-server-certificates; aws rds describe-db-instances --query "DBInstances[].CACertificateIdentifier"; aws ds describe-ldaps-settings --directory-id <d>; prowler aws --services acm rds iam
+  expected: No certificate expires within 30 days without renewal. Keys use strong algorithms. No expired certificate stays in store. Renewal is automatic.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    tool_check:
+    - prowler:aws:acm_certificates_expiration_check
+    - prowler:aws:acm_certificates_transparency_logs_enabled
+    - prowler:aws:acm_certificates_with_secure_key_algorithms
+    - prowler:aws:acmpca_certificate_authority_pqc_key_algorithm
+    - prowler:aws:directoryservice_ldap_certificate_expiration
+    - prowler:aws:iam_no_expired_server_certificates_stored
+    - prowler:aws:rds_instance_certificate_expiration
+    cwe:
+    - CWE-295
+    attack:
+    - T1649
+    nist_800_53:
+    - SC-12
+    - SC-17
+    other:
+    - Microsoft cloud security benchmark v1 DP-7
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/acm/acm_certificates_expiration_check/acm_certificates_expiration_check.metadata.json
+  - sources/repos/prowler/prowler/providers/aws/services/rds/rds_instance_certificate_expiration/rds_instance_certificate_expiration.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-CFG-020
+  sheet: CLD
+  category: CFG
+  title: Check post-quantum and FIPS TLS policies on long-lived data paths
+  objective: Finds data paths that are open to later decryption because the TLS policy has no hybrid key exchange.
+  steps:
+  - List the endpoints that carry data with a long secrecy period.
+  - Check the TLS or SSH policy of each endpoint.
+  - Check if a hybrid post-quantum policy or FIPS policy is set where required.
+  - Record the endpoints that cannot change.
+  example: aws elbv2 describe-listeners --load-balancer-arn <a> --query "Listeners[].SslPolicy"; aws apigateway get-domain-name --domain-name <d>; aws transfer describe-server --server-id <s> --query Server.SecurityPolicyName; prowler aws --check elbv2_listener_pqc_tls_enabled transfer_server_pqc_ssh_kex_enabled
+  expected: Endpoints with long-term secrets use a hybrid post-quantum policy or a FIPS policy where the rules require it. Exceptions have an owner and a date.
+  severity: Info
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    tool_check:
+    - prowler:aws:apigateway_domain_name_pqc_tls_enabled
+    - prowler:aws:cloudfront_distributions_pqc_tls_enabled
+    - prowler:aws:elbv2_listener_pqc_tls_enabled
+    - prowler:aws:transfer_server_fips_security_policy_enabled
+    - prowler:aws:transfer_server_pqc_ssh_kex_enabled
+    cwe:
+    - CWE-327
+    attack:
+    - T1040
+    nist_800_53:
+    - SC-13
+    - SC-8
+    other:
+    - Microsoft cloud security benchmark v1 DP-3
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/apigateway/apigateway_domain_name_pqc_tls_enabled/apigateway_domain_name_pqc_tls_enabled.metadata.json
+  - sources/repos/prowler/prowler/providers/aws/services/transfer/transfer_server_pqc_ssh_kex_enabled/transfer_server_pqc_ssh_kex_enabled.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-CFG-021
+  sheet: CLD
+  category: CFG
+  title: Find snapshots, images and backups shared publicly or cross-account
+  objective: Finds disk, image and database snapshots that other accounts or the public can restore.
+  steps:
+  - List snapshots, machine images and database snapshots.
+  - Find items shared with all accounts or with unknown accounts.
+  - Check that the block-public-sharing setting is on.
+  - Try to list the snapshots from an unlisted account.
+  example: aws ec2 describe-snapshots --owner-ids self --restorable-by-user-ids all; aws ec2 describe-images --owners self --filters Name=is-public,Values=true; aws ec2 get-snapshot-block-public-access-state; aws rds describe-db-snapshot-attributes --db-snapshot-identifier <s>; gcloud compute images get-iam-policy <i>; prowler aws --services ec2 rds documentdb neptune
+  expected: No snapshot or image is public. Sharing goes to named accounts only. The block-public-sharing setting is on at account level.
+  severity: Critical
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    tool_check:
+    - prowler:aws:documentdb_cluster_public_snapshot
+    - prowler:aws:ec2_ami_account_block_public_access
+    - prowler:aws:ec2_ami_public
+    - prowler:aws:ec2_ebs_public_snapshot
+    - prowler:aws:neptune_cluster_public_snapshot
+    - prowler:aws:rds_snapshots_public_access
+    - prowler:gcp:compute_image_not_publicly_shared
+    cwe:
+    - CWE-200
+    attack:
+    - T1530
+    - T1537
+    nist_800_53:
+    - AC-3
+    - AC-21
+    other:
+    - Microsoft cloud security benchmark v1 DP-8
+    - Microsoft cloud security benchmark v1 BR-2
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/documentdb/documentdb_cluster_public_snapshot/documentdb_cluster_public_snapshot.metadata.json
+  - sources/repos/prowler/prowler/providers/gcp/services/compute/compute_image_not_publicly_shared/compute_image_not_publicly_shared.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-CFG-022
+  sheet: CLD
+  category: CFG
+  title: Check that backup plans cover all data stores and VMs
+  objective: Finds data stores and VMs that have no backup plan or short retention.
+  steps:
+  - List the data stores, volumes and VMs.
+  - Check that each one is in a backup plan.
+  - Check retention and the backup report plan.
+  - Check that a recovery job exists for critical systems.
+  - Restore one item to a test account.
+  example: aws backup list-backup-plans; aws backup list-protected-resources; aws backup list-report-plans; aws dlm get-lifecycle-policies; az backup item list -g <rg> -v <vault>; az backup policy list -g <rg> -v <vault>; prowler aws --services backup dlm drs
+  expected: Each critical resource is in a backup plan with retention that meets the recovery goal. A test restore works.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    tool_check:
+    - prowler:aws:backup_plans_exist
+    - prowler:aws:backup_reportplans_exist
+    - prowler:aws:dlm_ebs_snapshot_lifecycle_policy_exists
+    - prowler:aws:drs_job_exist
+    - prowler:aws:dynamodb_table_protected_by_backup_plan
+    - prowler:aws:ec2_ebs_volume_protected_by_backup_plan
+    - prowler:aws:ec2_ebs_volume_snapshots_exists
+    - prowler:aws:efs_have_backup_enabled
+    - prowler:aws:rds_cluster_protected_by_backup_plan
+    - prowler:aws:rds_instance_protected_by_backup_plan
+    - prowler:azure:recovery_vault_backup_policy_retention_adequate
+    - prowler:azure:recovery_vault_has_protected_items
+    - prowler:azure:vm_backup_enabled
+    - prowler:azure:vm_sufficient_daily_backup_retention_period
+    cwe:
+    - CWE-1188
+    attack:
+    - T1490
+    - T1485
+    nist_800_53:
+    - CP-9
+    - CP-10
+    other:
+    - Microsoft cloud security benchmark v1 BR-1
+    - Microsoft cloud security benchmark v1 BR-3
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/backup/backup_plans_exist/backup_plans_exist.metadata.json
+  - sources/repos/prowler/prowler/providers/azure/services/vm/vm_sufficient_daily_backup_retention_period/vm_sufficient_daily_backup_retention_period.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-CFG-023
+  sheet: CLD
+  category: CFG
+  title: Check automated backups and point-in-time recovery of databases
+  objective: Finds databases with no automated backup, no point-in-time recovery or old snapshots.
+  steps:
+  - List databases, caches and data warehouses.
+  - Check that automated backups and point-in-time recovery are on.
+  - Check the backup retention days.
+  - Find snapshots older than the retention rule.
+  - Restore one database to a test point in time.
+  example: aws rds describe-db-instances --query "DBInstances[].[DBInstanceIdentifier,BackupRetentionPeriod]"; aws dynamodb describe-continuous-backups --table-name <t>; gcloud sql instances describe <i> --format="value(settings.backupConfiguration)"; az cosmosdb show -n <a> -g <rg> --query backupPolicy; prowler aws --services rds dynamodb
+  expected: Every database has automated backup with enough retention and point-in-time recovery. Old snapshots are removed. The test restore works.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    tool_check:
+    - prowler:aws:documentdb_cluster_backup_enabled
+    - prowler:aws:dynamodb_tables_pitr_enabled
+    - prowler:aws:elasticache_redis_cluster_backup_enabled
+    - prowler:aws:fsx_file_system_copy_tags_to_backups_enabled
+    - prowler:aws:fsx_file_system_copy_tags_to_volumes_enabled
+    - prowler:aws:lightsail_instance_automated_snapshots
+    - prowler:aws:neptune_cluster_backup_enabled
+    - prowler:aws:neptune_cluster_copy_tags_to_snapshots
+    - prowler:aws:rds_cluster_copy_tags_to_snapshots
+    - prowler:aws:rds_instance_backup_enabled
+    - prowler:aws:rds_instance_copy_tags_to_snapshots
+    - prowler:aws:redshift_cluster_automated_snapshot
+    - prowler:azure:cosmosdb_account_backup_policy_continuous
+    - prowler:azure:mysql_flexible_server_geo_redundant_backup_enabled
+    - prowler:azure:postgresql_flexible_server_geo_redundant_backup_enabled
+    - prowler:azure:storage_geo_redundant_enabled
+    - prowler:gcp:cloudsql_instance_automated_backups
+    - prowler:gcp:compute_snapshot_not_outdated
+    cwe:
+    - CWE-1188
+    attack:
+    - T1490
+    - T1485
+    nist_800_53:
+    - CP-9
+    - CP-6
+    other:
+    - Microsoft cloud security benchmark v1 BR-1
+    - Microsoft cloud security benchmark v1 BR-4
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/documentdb/documentdb_cluster_backup_enabled/documentdb_cluster_backup_enabled.metadata.json
+  - sources/repos/prowler/prowler/providers/gcp/services/compute/compute_snapshot_not_outdated/compute_snapshot_not_outdated.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-CFG-024
+  sheet: CLD
+  category: CFG
+  title: Check deletion protection on databases, clusters and load balancers
+  objective: Finds critical resources that one wrong call or stolen key can delete.
+  steps:
+  - List databases, clusters, load balancers and VMs.
+  - Check that deletion protection is on for production resources.
+  - Check who can turn the protection off.
+  - Try to delete a test resource with protection on.
+  example: aws rds describe-db-instances --query "DBInstances[].[DBInstanceIdentifier,DeletionProtection]"; aws elbv2 describe-load-balancer-attributes --load-balancer-arn <a>; aws dynamodb describe-table --table-name <t> --query Table.DeletionProtectionEnabled; gcloud compute instances describe <i> --format="value(deletionProtection)"; prowler aws --services rds dynamodb elbv2
+  expected: Deletion protection is on for all production resources. Only a break-glass role can turn it off. The test delete fails.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    tool_check:
+    - prowler:aws:documentdb_cluster_deletion_protection
+    - prowler:aws:dynamodb_table_deletion_protection_enabled
+    - prowler:aws:eks_cluster_deletion_protection_enabled
+    - prowler:aws:elbv2_deletion_protection
+    - prowler:aws:neptune_cluster_deletion_protection
+    - prowler:aws:networkfirewall_deletion_protection
+    - prowler:aws:rds_cluster_backtrack_enabled
+    - prowler:aws:rds_cluster_deletion_protection
+    - prowler:aws:rds_instance_deletion_protection
+    - prowler:gcp:compute_instance_deletion_protection_enabled
+    cwe:
+    - CWE-1188
+    attack:
+    - T1485
+    - T1578
+    nist_800_53:
+    - CP-9
+    - AC-6
+    other:
+    - Microsoft cloud security benchmark v1 BR-2
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/documentdb/documentdb_cluster_deletion_protection/documentdb_cluster_deletion_protection.metadata.json
+  - sources/repos/prowler/prowler/providers/gcp/services/compute/compute_instance_deletion_protection_enabled/compute_instance_deletion_protection_enabled.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-CFG-025
+  sheet: CLD
+  category: CFG
+  title: Check versioning, soft delete, object lock and retention of stored data
+  objective: Finds object stores where a delete or overwrite cannot be undone.
+  steps:
+  - List buckets, containers, file shares and vaults.
+  - Check that versioning and soft delete are on.
+  - Check object lock or retention for audit data and backups.
+  - Check lifecycle rules for early deletion.
+  - Delete a test object and restore it.
+  example: aws s3api get-bucket-versioning --bucket <b>; aws s3api get-object-lock-configuration --bucket <b>; aws s3api get-bucket-lifecycle-configuration --bucket <b>; az storage account blob-service-properties show -n <a> --query "[deleteRetentionPolicy,isVersioningEnabled]"; az keyvault show -n <v> --query properties.enablePurgeProtection; gcloud storage buckets describe gs://<b>; prowler azure --services storage keyvault
+  expected: Versioning, soft delete and retention are on for important data. Key vaults have purge protection. The test object is restored after delete.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    tool_check:
+    - prowler:aws:kinesis_stream_data_retention_period
+    - prowler:aws:s3_bucket_lifecycle_enabled
+    - prowler:aws:s3_bucket_no_mfa_delete
+    - prowler:aws:s3_bucket_object_lock
+    - prowler:aws:s3_bucket_object_versioning
+    - prowler:azure:keyvault_recoverable
+    - prowler:azure:storage_blob_versioning_is_enabled
+    - prowler:azure:storage_ensure_file_shares_soft_delete_is_enabled
+    - prowler:azure:storage_ensure_soft_delete_is_enabled
+    - prowler:gcp:cloudstorage_bucket_lifecycle_management_enabled
+    - prowler:gcp:cloudstorage_bucket_soft_delete_enabled
+    - prowler:gcp:cloudstorage_bucket_sufficient_retention_period
+    - prowler:gcp:cloudstorage_bucket_versioning_enabled
+    - prowler:gcp:compute_instance_disk_auto_delete_disabled
+    cwe:
+    - CWE-1188
+    attack:
+    - T1485
+    - T1485.001
+    - T1486
+    nist_800_53:
+    - CP-9
+    - SI-12
+    other:
+    - Microsoft cloud security benchmark v1 BR-2
+    - Microsoft cloud security benchmark v1 BR-1
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/kinesis/kinesis_stream_data_retention_period/kinesis_stream_data_retention_period.metadata.json
+  - sources/repos/prowler/prowler/providers/gcp/services/compute/compute_instance_disk_auto_delete_disabled/compute_instance_disk_auto_delete_disabled.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-CFG-026
+  sheet: CLD
+  category: CFG
+  title: Check multi-zone and failover setup of managed data services
+  objective: Finds data services with a single zone and no failover.
+  steps:
+  - List databases, caches, file systems and brokers.
+  - Check the zone and replica setup of each one.
+  - Check that automatic failover is on.
+  - Start a failover in a test environment.
+  example: aws rds describe-db-instances --query "DBInstances[].[DBInstanceIdentifier,MultiAZ]"; aws elasticache describe-replication-groups --query "ReplicationGroups[].[ReplicationGroupId,AutomaticFailover,MultiAZ]"; aws efs describe-file-systems; gcloud sql instances describe <i> --format="value(settings.availabilityType)"; prowler aws --services rds elasticache efs
+  expected: Critical data services run in more than one zone with automatic failover. The test failover finishes within the recovery goal.
+  severity: Low
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    tool_check:
+    - prowler:aws:dms_instance_multi_az_enabled
+    - prowler:aws:documentdb_cluster_multi_az_enabled
+    - prowler:aws:dynamodb_accelerator_cluster_multi_az
+    - prowler:aws:efs_multi_az_enabled
+    - prowler:aws:elasticache_redis_cluster_automatic_failover_enabled
+    - prowler:aws:elasticache_redis_cluster_multi_az_enabled
+    - prowler:aws:fsx_windows_file_system_multi_az_enabled
+    - prowler:aws:mq_broker_active_deployment_mode
+    - prowler:aws:mq_broker_cluster_deployment_mode
+    - prowler:aws:neptune_cluster_multi_az
+    - prowler:aws:opensearch_service_domains_fault_tolerant_data_nodes
+    - prowler:aws:opensearch_service_domains_fault_tolerant_master_nodes
+    - prowler:aws:rds_cluster_multi_az
+    - prowler:aws:rds_instance_multi_az
+    - prowler:aws:redshift_cluster_multi_az_enabled
+    - prowler:aws:storagegateway_gateway_fault_tolerant
+    - prowler:azure:cosmosdb_account_automatic_failover_enabled
+    - prowler:azure:mysql_flexible_server_high_availability_enabled
+    - prowler:azure:postgresql_flexible_server_high_availability_enabled
+    - prowler:gcp:cloudsql_instance_high_availability_enabled
+    cwe:
+    - CWE-1188
+    attack:
+    - T1499
+    nist_800_53:
+    - CP-6
+    - CP-10
+    other:
+    - Microsoft cloud security benchmark v1 BR-1
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/dms/dms_instance_multi_az_enabled/dms_instance_multi_az_enabled.metadata.json
+  - sources/repos/prowler/prowler/providers/gcp/services/cloudsql/cloudsql_instance_high_availability_enabled/cloudsql_instance_high_availability_enabled.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-CFG-027
+  sheet: CLD
+  category: CFG
+  title: Check zone spread, health checks and autoscaling of compute and network paths
+  objective: Finds compute and network paths that fail with one zone or one instance.
+  steps:
+  - List scaling groups, load balancers, VPN and direct connections.
+  - Check that each one spans more than one zone.
+  - Check that health checks and automatic healing are on.
+  - Check that spot and preemptible instances do not run critical work.
+  - Stop one instance in a test group.
+  example: aws autoscaling describe-auto-scaling-groups --query "AutoScalingGroups[].[AutoScalingGroupName,AvailabilityZones]"; aws elbv2 describe-load-balancers --query "LoadBalancers[].AvailabilityZones"; aws directconnect describe-connections; gcloud compute instance-groups managed list; prowler aws --services autoscaling elbv2 directconnect
+  expected: Critical compute spans more than one zone with health checks and automatic healing. The test stop causes no outage.
+  severity: Info
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    - CNAS-9
+    tool_check:
+    - prowler:aws:autoscaling_group_capacity_rebalance_enabled
+    - prowler:aws:autoscaling_group_elb_health_check_enabled
+    - prowler:aws:autoscaling_group_multiple_az
+    - prowler:aws:autoscaling_group_multiple_instance_types
+    - prowler:aws:awslambda_function_vpc_multi_az
+    - prowler:aws:directconnect_connection_redundancy
+    - prowler:aws:directconnect_virtual_interface_redundancy
+    - prowler:aws:dynamodb_table_autoscaling_enabled
+    - prowler:aws:ecs_service_fargate_latest_platform_version
+    - prowler:aws:elb_connection_draining_enabled
+    - prowler:aws:elb_cross_zone_load_balancing_enabled
+    - prowler:aws:elb_is_in_multiple_az
+    - prowler:aws:elbv2_cross_zone_load_balancing_enabled
+    - prowler:aws:elbv2_is_in_multiple_az
+    - prowler:aws:networkfirewall_multi_az
+    - prowler:aws:vpc_different_regions
+    - prowler:aws:vpc_endpoint_multi_az_enabled
+    - prowler:aws:vpc_subnet_different_az
+    - prowler:aws:vpc_vpn_connection_tunnels_up
+    - prowler:azure:vm_desired_sku_size
+    - prowler:azure:vm_scaleset_associated_with_load_balancer
+    - prowler:gcp:compute_instance_automatic_restart_enabled
+    - prowler:gcp:compute_instance_group_autohealing_enabled
+    - prowler:gcp:compute_instance_group_load_balancer_attached
+    - prowler:gcp:compute_instance_group_multiple_zones
+    - prowler:gcp:compute_instance_on_host_maintenance_migrate
+    - prowler:gcp:compute_instance_preemptible_vm_disabled
+    cwe:
+    - CWE-1188
+    attack:
+    - T1499
+    nist_800_53:
+    - CP-6
+    - SC-5
+    other:
+    - Microsoft cloud security benchmark v1 BR-1
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/autoscaling/autoscaling_group_capacity_rebalance_enabled/autoscaling_group_capacity_rebalance_enabled.metadata.json
+  - sources/repos/prowler/prowler/providers/gcp/services/compute/compute_instance_preemptible_vm_disabled/compute_instance_preemptible_vm_disabled.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-CFG-028
+  sheet: CLD
+  category: CFG
+  title: 'Check database engine settings: ports, minor upgrades and event alerts'
+  objective: Finds database engines on default ports, with no auto upgrade and no event alerts.
+  steps:
+  - List database instances and clusters.
+  - Check the listener port and admin name.
+  - Check that automatic minor version upgrades are on.
+  - Check that event subscriptions exist for failure and security group changes.
+  - Check connection throttling settings.
+  example: aws rds describe-db-instances --query "DBInstances[].[DBInstanceIdentifier,DbInstancePort,AutoMinorVersionUpgrade]"; aws rds describe-event-subscriptions; az postgres flexible-server parameter show -g <rg> -s <s> --name connection_throttle.enable; prowler aws --services rds redshift
+  expected: Databases use non-default ports where the design allows. Minor upgrades are automatic. Event subscriptions send alerts to the response team.
+  severity: Low
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    tool_check:
+    - prowler:aws:dms_instance_minor_version_upgrade_enabled
+    - prowler:aws:elasticache_redis_cluster_auto_minor_version_upgrades
+    - prowler:aws:memorydb_cluster_auto_minor_version_upgrades
+    - prowler:aws:mq_broker_auto_minor_version_upgrades
+    - prowler:aws:rds_cluster_critical_event_subscription
+    - prowler:aws:rds_cluster_minor_version_upgrade_enabled
+    - prowler:aws:rds_cluster_non_default_port
+    - prowler:aws:rds_instance_critical_event_subscription
+    - prowler:aws:rds_instance_enhanced_monitoring_enabled
+    - prowler:aws:rds_instance_event_subscription_parameter_groups
+    - prowler:aws:rds_instance_event_subscription_security_groups
+    - prowler:aws:rds_instance_minor_version_upgrade_enabled
+    - prowler:aws:rds_instance_non_default_port
+    - prowler:aws:redshift_cluster_automatic_upgrades
+    - prowler:aws:redshift_cluster_enhanced_vpc_routing
+    - prowler:aws:redshift_cluster_non_default_database_name
+    - prowler:azure:postgresql_flexible_server_connection_throttling_on
+    cwe:
+    - CWE-1188
+    attack:
+    - T1190
+    nist_800_53:
+    - CM-6
+    - SI-2
+    other:
+    - Microsoft cloud security benchmark v1 PV-1
+    - Microsoft cloud security benchmark v1 PV-2
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/dms/dms_instance_minor_version_upgrade_enabled/dms_instance_minor_version_upgrade_enabled.metadata.json
+  - sources/repos/prowler/prowler/providers/azure/services/postgresql/postgresql_flexible_server_connection_throttling_on/postgresql_flexible_server_connection_throttling_on.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-CFG-029
+  sheet: CLD
+  category: CFG
+  title: Check risky database flags on managed MySQL and SQL Server instances
+  objective: Finds database flags that allow file reads, remote access or unsafe features.
+  steps:
+  - List managed MySQL and SQL Server instances.
+  - Read the flags of each instance.
+  - Find local_infile, remote access and external scripts set to on.
+  - Find cross-database ownership chaining set to on.
+  - Change one flag in a test instance and look at the result.
+  example: gcloud sql instances describe <i> --format="value(settings.databaseFlags)"; gcloud sql flags list --database-version=SQLSERVER_2019_STANDARD; prowler gcp --services cloudsql
+  expected: 'Risky flags are off: local_infile, remote access, external scripts, contained database authentication and cross-database ownership chaining.'
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    tool_check:
+    - prowler:gcp:cloudsql_instance_mysql_local_infile_flag
+    - prowler:gcp:cloudsql_instance_mysql_skip_show_database_flag
+    - prowler:gcp:cloudsql_instance_sqlserver_contained_database_authentication_flag
+    - prowler:gcp:cloudsql_instance_sqlserver_cross_db_ownership_chaining_flag
+    - prowler:gcp:cloudsql_instance_sqlserver_external_scripts_enabled_flag
+    - prowler:gcp:cloudsql_instance_sqlserver_remote_access_flag
+    - prowler:gcp:cloudsql_instance_sqlserver_trace_flag
+    - prowler:gcp:cloudsql_instance_sqlserver_user_connections_flag
+    - prowler:gcp:cloudsql_instance_sqlserver_user_options_flag
+    cwe:
+    - CWE-1188
+    attack:
+    - T1190
+    nist_800_53:
+    - CM-6
+    - CM-7
+    other:
+    - Microsoft cloud security benchmark v1 PV-1
+    - Microsoft cloud security benchmark v1 PV-2
+  sources_read:
+  - sources/repos/prowler/prowler/providers/gcp/services/cloudsql/cloudsql_instance_mysql_local_infile_flag/cloudsql_instance_mysql_local_infile_flag.metadata.json
+  - sources/repos/prowler/prowler/providers/gcp/services/cloudsql/cloudsql_instance_sqlserver_user_options_flag/cloudsql_instance_sqlserver_user_options_flag.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-CFG-030
+  sheet: CLD
+  category: CFG
+  title: Check session time limits of managed virtual desktops
+  objective: Finds desktop fleets with long sessions and no idle disconnect.
+  steps:
+  - List the desktop fleets.
+  - Read the maximum session time of each fleet.
+  - Read the idle and disconnect timeouts.
+  - Leave a test session idle.
+  example: aws appstream describe-fleets --query "Fleets[].[Name,MaxUserDurationInSeconds,DisconnectTimeoutInSeconds,IdleDisconnectTimeoutInSeconds]"; prowler aws --services appstream
+  expected: Session length, idle time and disconnect time are set to the company rule. The idle test session ends on time.
+  severity: Low
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    tool_check:
+    - prowler:aws:appstream_fleet_maximum_session_duration
+    - prowler:aws:appstream_fleet_session_disconnect_timeout
+    - prowler:aws:appstream_fleet_session_idle_disconnect_timeout
+    cwe:
+    - CWE-284
+    attack:
+    - T1563
+    nist_800_53:
+    - AC-12
+    other:
+    - Microsoft cloud security benchmark v1 PV-3
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/appstream/appstream_fleet_maximum_session_duration/appstream_fleet_maximum_session_duration.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx

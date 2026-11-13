@@ -1,0 +1,163 @@
+- id: WEB-ZTA-001
+  sheet: WEB
+  category: ZTA
+  title: Test that access is granted per session and re-evaluated during the session
+  objective: Finds access that carries over between resources or stays valid after policy changes.
+  steps:
+  - Log in and get access to resource A. Try to open resource B with the same session.
+  - Make sure resource B needs its own authorization decision with least privileges.
+  - Change a risk factor during an active session, such as device state or location.
+  - Make sure the system asks for reauthentication or ends the session when policy requires it.
+  example: Two resources with different roles; change device posture or source IP in a test session
+  expected: Each resource session gets its own authorization. A change in policy inputs triggers reauthentication or session end.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    cheatsheet:
+    - Zero_Trust_Architecture_Cheat_Sheet
+    cwe:
+    - CWE-863
+    nist_800_53:
+    - AC-3
+    - AC-12
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Zero_Trust_Architecture_Cheat_Sheet.md
+- id: WEB-ZTA-002
+  sheet: WEB
+  category: ZTA
+  title: Test that the access policy uses risk signals beyond valid credentials
+  objective: Finds policies that grant access to anyone with a valid password or token.
+  preconditions:
+  - Use test accounts only.
+  steps:
+  - Log in with valid credentials from an unmanaged device.
+  - Log in with valid credentials from an unusual location and time.
+  - Access a sensitive resource with a normal risk level, then with a high risk level.
+  - Make sure the policy denies, limits or asks for stronger authentication as the risk rises.
+  - Make sure the decision is logged with the signals used.
+  example: Conditional access test accounts; VPN or proxy for location change; second test device
+  expected: High-risk access is denied or needs stronger authentication even with valid credentials. Each decision is logged.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    cheatsheet:
+    - Zero_Trust_Architecture_Cheat_Sheet
+    cwe:
+    - CWE-287
+    nist_800_53:
+    - AC-2
+    - IA-2
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Zero_Trust_Architecture_Cheat_Sheet.md
+- id: WEB-ZTA-003
+  sheet: WEB
+  category: ZTA
+  title: Test device trust, health checks and revocation of access
+  objective: Finds unmanaged or compromised devices that keep access to resources.
+  preconditions:
+  - Use test devices only.
+  steps:
+  - Make sure all approved devices are registered with a certificate-based identity.
+  - Connect from a device that is not registered. Make sure access is blocked or limited to an isolated session.
+  - Make a test device fail a health check, such as an old OS patch level.
+  - Make sure access is limited or removed automatically.
+  - Mark a test device as compromised. Make sure its access ends at once.
+  example: MDM or EDR console; client certificate on a test device; test health policy
+  expected: Only registered healthy devices get full access. Failed or compromised devices lose access automatically.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    cheatsheet:
+    - Zero_Trust_Architecture_Cheat_Sheet
+    cwe:
+    - CWE-287
+    nist_800_53:
+    - CM-8
+    - AC-17
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Zero_Trust_Architecture_Cheat_Sheet.md
+- id: WEB-ZTA-004
+  sheet: WEB
+  category: ZTA
+  title: Check just-in-time administrator access and separate administrator accounts
+  objective: Finds permanent administrator rights that give an attacker standing access.
+  steps:
+  - List accounts with administrator rights.
+  - Make sure administrators use separate accounts for administration.
+  - Make sure no account has always-on administrator rights.
+  - Request elevated access on a test system. Make sure it is approved, time-limited and logged.
+  - Make sure access ends automatically at expiry.
+  example: PAM tool export; role assignment list; test elevation request
+  expected: No standing administrator rights exist. Elevated access is approved, expires on its own and is logged.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    cheatsheet:
+    - Zero_Trust_Architecture_Cheat_Sheet
+    cwe:
+    - CWE-250
+    - CWE-269
+    nist_800_53:
+    - AC-6
+    - AC-2
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Zero_Trust_Architecture_Cheat_Sheet.md
+- id: WEB-ZTA-005
+  sheet: WEB
+  category: ZTA
+  title: Test that an enforcement point cannot be bypassed to reach the resource
+  objective: Finds resources that accept direct requests that skip the identity-aware proxy or gateway.
+  steps:
+  - Find the identity-aware proxy, API gateway or ZTNA broker that protects the application.
+  - Find the backend address of the application.
+  - Send a request to the backend directly from a network the proxy does not control.
+  - Send an API call with no identity through the gateway.
+  - Make sure both requests are rejected.
+  example: curl -i https://BACKEND_HOST/ ; curl -i https://GATEWAY/api/resource
+  expected: The backend accepts requests only from the enforcement point. Requests without valid identity are rejected.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    cheatsheet:
+    - Zero_Trust_Architecture_Cheat_Sheet
+    cwe:
+    - CWE-306
+    - CWE-419
+    nist_800_53:
+    - AC-3
+    - SC-7
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Zero_Trust_Architecture_Cheat_Sheet.md
+- id: WEB-ZTA-006
+  sheet: WEB
+  category: ZTA
+  title: Test automated response when an account or device shows signs of compromise
+  objective: Finds environments that detect compromise but cannot isolate accounts or devices quickly.
+  preconditions:
+  - Use a test account only.
+  steps:
+  - Review the monitoring that feeds the policy engine, such as SIEM, behavior analysis and device health.
+  - Trigger a harmless test alert for a test account, such as logins from two distant locations.
+  - Make sure the account is isolated or must reauthenticate within the target time.
+  - Make sure the team tracks detection and response times and policy violations.
+  example: SIEM test rule; incident record with MTTD and MTTR
+  expected: A test alert isolates the account or device within the target time. The team tracks detection and response metrics.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    cheatsheet:
+    - Zero_Trust_Architecture_Cheat_Sheet
+    cwe:
+    - CWE-778
+    nist_800_53:
+    - SI-4
+    - IR-4
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Zero_Trust_Architecture_Cheat_Sheet.md

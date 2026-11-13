@@ -1,0 +1,192 @@
+- id: WEB-TENANT-001
+  sheet: WEB
+  category: TENANT
+  title: Test database tenant isolation with the request role and pooled connections
+  objective: Find shared-table tenant isolation that fails because of a privileged database role, missing policies or a reused connection.
+  preconditions:
+  - Two tenants with test data.
+  - Read access to the database role settings.
+  steps:
+  - List the tables that hold tenant data and the isolation method for each, such as row-level security.
+  - Read the database role of the request path. Make sure it is no superuser and has no BYPASSRLS attribute.
+  - Make sure every tenant table has a policy that is enforced.
+  - Send requests for tenant A and then tenant B over the same pooled connection.
+  - Send a request with no tenant context and look at the result.
+  example: 'psql: SELECT rolname,rolsuper,rolbypassrls FROM pg_roles WHERE rolname=''<app_role>''; SELECT relname,relrowsecurity,relforcerowsecurity FROM pg_class WHERE relname IN (<tables>)'
+  expected: The request role cannot bypass row security. Each tenant table has an enforced policy. Tenant context does not carry over between pooled requests, and a missing context denies access.
+  severity: Critical
+  test_type:
+  - Config Review
+  - Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A01:2025
+    cheatsheet:
+    - Multi_Tenant_Security_Cheat_Sheet
+    cwe:
+    - CWE-639
+    - CWE-284
+    asvs:
+    - V8.4.1
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Multi_Tenant_Security_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+- id: WEB-TENANT-002
+  sheet: WEB
+  category: TENANT
+  title: Test cache keys for tenant and user scope
+  objective: Find application caches that serve one tenant data to another tenant because the key has no tenant context.
+  steps:
+  - List the caches in use and the key format of each.
+  - Make sure each key of tenant data holds the tenant identifier and the other inputs that change the result.
+  - Fill the cache as user A of tenant A, then request the same object ID as tenant B.
+  - Use the same user ID in two tenants and compare the cached results.
+  - Make sure the request is authorized before a cached value is read.
+  example: redis-cli --scan --pattern "*" | head; compare keys such as prefs:42 and tenantA:prefs:42
+  expected: Keys of tenant data hold the tenant identifier. A cached value never goes to another tenant. Shared entries live in a documented global namespace.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A01:2025
+    cheatsheet:
+    - Multi_Tenant_Security_Cheat_Sheet
+    - Web_Cache_Security_Cheat_Sheet
+    cwe:
+    - CWE-524
+    - CWE-639
+    asvs:
+    - V8.4.1
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Multi_Tenant_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Web_Cache_Security_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+- id: WEB-TENANT-003
+  sheet: WEB
+  category: TENANT
+  title: Test background jobs and queue messages for tenant context
+  objective: Find asynchronous work that runs with a tenant identifier from the message that nobody authorized.
+  steps:
+  - List the queues and job types that process tenant data.
+  - Send a message to the queue with the tenant identifier of another tenant, in a test environment.
+  - Check if the consumer authenticates the producer and authorizes the action again.
+  - Look at idempotency keys and retry state and check that they are scoped by tenant.
+  - Flood the queue as one tenant and measure the delay for another tenant.
+  example: Publish a job JSON with a changed tenant_id to the test broker; compare the job result and the audit log
+  expected: The consumer trusts only authenticated producers and checks the action again. Idempotency keys and retries are per tenant. One tenant cannot starve the others.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A01:2025
+    cheatsheet:
+    - Multi_Tenant_Security_Cheat_Sheet
+    cwe:
+    - CWE-639
+    - CWE-400
+    asvs:
+    - V8.4.1
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Multi_Tenant_Security_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+- id: WEB-TENANT-004
+  sheet: WEB
+  category: TENANT
+  title: Test file storage and signed URLs for tenant isolation
+  objective: Find object storage where one tenant can read, change or delete the objects of another tenant.
+  steps:
+  - List how tenant files are named and which bucket, key prefix or policy keeps tenants apart.
+  - Request the object key of tenant A as a user of tenant B.
+  - Change the tenant part of a path with ../ and with a similar tenant name prefix.
+  - Make sure a signed URL covers one object, one action, and a short time.
+  - Check if the client tenant metadata is trusted for authorization.
+  example: curl -b "session=<tenantB>" https://target/files/tenants/acme/report.pdf ; try tenants/acme-corp/ and tenants/acme/../acme-corp/
+  expected: The server authorizes the exact tenant, object and action for each request. Prefixes are not a boundary. Signed URLs are narrow and expire.
+  severity: High
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A01:2025
+    cheatsheet:
+    - Multi_Tenant_Security_Cheat_Sheet
+    cwe:
+    - CWE-639
+    - CWE-22
+    asvs:
+    - V8.4.1
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Multi_Tenant_Security_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+- id: WEB-TENANT-005
+  sheet: WEB
+  category: TENANT
+  title: Test tenant offboarding, data deletion and backup restore
+  objective: Find tenant lifecycle gaps that leave access or data after offboarding, or that mix tenants in a restore.
+  preconditions:
+  - Two test tenants and a backup test plan.
+  steps:
+  - Offboard a test tenant.
+  - Make sure the sessions, API keys and tokens of the tenant stop working at once.
+  - Look for tenant data left in caches, object versions, exports and replicas.
+  - Check that deletion of the tenant prefix does not match other tenants, such as tenants/acme and tenants/acme-corp.
+  - Restore one tenant from a shared backup and look for the data of other tenants.
+  - Try a restore request as an unauthorized operator.
+  example: Use the tenant admin API to delete tenant "acme" in a test environment; then replay its API key and list the storage prefixes
+  expected: Offboarding stops all tenant access and removes data by the retention policy. Other tenants are not affected. A restore adds only data of the target tenant and needs authorization.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A01:2025
+    cheatsheet:
+    - Multi_Tenant_Security_Cheat_Sheet
+    cwe:
+    - CWE-284
+    - CWE-459
+    asvs:
+    - V8.4.1
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Multi_Tenant_Security_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+- id: WEB-TENANT-006
+  sheet: WEB
+  category: TENANT
+  title: Test tenant-aware rate limits and shared resource quotas
+  objective: Find shared services where one tenant can use all capacity and slow down the other tenants.
+  steps:
+  - 'Find the shared resources: API, queue, worker pool, connection pool and storage.'
+  - Check if the limits have the tenant identity as one dimension.
+  - Send a high request rate as tenant A and measure the response time for tenant B.
+  - Make sure the limit counters work across all application instances.
+  - Make sure throttled responses use HTTP 429 and Retry-After.
+  example: ab or k6 with tenant A token at the limit rate while tenant B runs a steady request every second; compare latency
+  expected: The tenant A load does not change the service for tenant B. Limits are per tenant and apply on every instance.
+  severity: Medium
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A06:2025
+    cheatsheet:
+    - Multi_Tenant_Security_Cheat_Sheet
+    cwe:
+    - CWE-400
+    - CWE-770
+    asvs:
+    - V8.4.1
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Multi_Tenant_Security_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json

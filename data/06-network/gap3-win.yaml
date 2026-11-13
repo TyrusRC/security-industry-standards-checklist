@@ -1,0 +1,473 @@
+- id: NET-WIN-001
+  sheet: NET
+  category: WIN
+  title: Make sure SMB signing is required on clients and servers
+  objective: Finds Windows hosts that accept unsigned SMB sessions, which an attacker can relay or change in transit.
+  preconditions: &id001
+  - Local administrator read access to the Windows host in scope.
+  - Read-only review. Do not change policy on a production host without a change window.
+  steps:
+  - Read the SMB server setting RequireSecuritySignature on the host.
+  - Read the SMB client setting RequireSecuritySignature on the host.
+  - 'Read the policies "Microsoft network client/server: Digitally sign communications (always)".'
+  - Look for third-party SMB servers that need signing off. Note each one.
+  - Look at the OS version. Windows 11 24H2 and Windows Server 2025 have different defaults.
+  example: Get-SmbServerConfiguration | fl RequireSecuritySignature,EnableSecuritySignature ; Get-SmbClientConfiguration | fl RequireSecuritySignature ; reg query HKLM\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters /v RequireSecuritySignature
+  expected: RequireSecuritySignature is True on the SMB client and server. The two "always" policies equal 1. No exception exists for guest access.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1557.001
+    capec:
+    - CAPEC-94
+    - CAPEC-644
+    cwe:
+    - CWE-300
+    nist_800_53:
+    - SC-8
+    - SC-23
+    other:
+    - https://learn.microsoft.com/windows-server/storage/file-server/smb-signing
+    - https://learn.microsoft.com/azure/governance/policy/samples/guest-configuration-baseline-windows
+  sources_read:
+  - sources/extra/gap3-B/smb-signing.md
+  - sources/extra/gap3-B/guest-configuration-baseline-windows.md
+  see:
+  - NET-SVC-001
+- id: NET-WIN-002
+  sheet: NET
+  category: WIN
+  title: Make sure domain controllers need LDAP signing and refuse clear-text binds
+  objective: Finds domain controllers that accept unsigned SASL binds or simple binds without TLS.
+  preconditions:
+  - Local administrator read access to the Windows host in scope.
+  - Read-only review. Do not change policy on a production host without a change window.
+  - Enable the LDAP diagnostic log level only for a short time. It has a performance cost.
+  steps:
+  - 'Read the policy "Domain controller: LDAP server signing requirements" on the domain controllers.'
+  - 'Read the policy "Network security: LDAP client signing requirements" on member hosts.'
+  - Look for Directory Service events 2886, 2887, 2888 and 2889.
+  - If event 2887 shows unsigned binds, set LDAP Interface Events to level 2. Read event 2889 for the client list.
+  - Try a simple bind on port 389 with ldp.exe. Do not use a privileged account.
+  - Look at the channel binding setting and events 3039 to 3041 for TLS connections.
+  example: 'gpresult /h gp.html ; Get-WinEvent -FilterHashtable @{LogName="Directory Service";Id=2886,2887,2888,2889} ; ldp.exe > Connection > Connect (port 389) > Bind > Simple bind ; expected error: Strong Authentication Required'
+  expected: The signing policy is Require signing. Event 2888 appears and 2887 does not. A simple bind on port 389 fails with Strong Authentication Required.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1557
+    capec:
+    - CAPEC-94
+    cwe:
+    - CWE-319
+    nist_800_53:
+    - SC-8
+    - IA-2
+    other:
+    - https://learn.microsoft.com/windows-server/identity/ad-ds/ldap-signing
+    - https://learn.microsoft.com/troubleshoot/windows-server/active-directory/enable-ldap-signing-in-windows-server
+    - https://learn.microsoft.com/azure/governance/policy/samples/guest-configuration-baseline-windows
+  sources_read:
+  - sources/extra/gap3-B/ldap-signing.md
+  - sources/extra/gap3-B/enable-ldap-signing-in-windows-server.md
+  - sources/extra/gap3-B/guest-configuration-baseline-windows.md
+  see:
+  - NET-SVC-004
+- id: NET-WIN-003
+  sheet: NET
+  category: WIN
+  title: Check that NTLMv1 and LM are off and NTLMv2 is the minimum
+  objective: Finds hosts that still send or accept LM or NTLMv1 responses that an attacker can crack or relay.
+  preconditions: *id001
+  steps:
+  - 'Read the policy "Network security: LAN Manager authentication level".'
+  - Read the policy "Do not store LAN Manager hash value on next password change".
+  - Read the NTLM SSP minimum session security for clients and servers.
+  - Read "Configure encryption types allowed for Kerberos".
+  - Look for NTLM audit or restriction policies and for NTLM events on the domain controllers.
+  example: reg query HKLM\SYSTEM\CurrentControlSet\Control\Lsa /v LmCompatibilityLevel ; reg query HKLM\SYSTEM\CurrentControlSet\Control\Lsa /v NoLMHash ; reg query HKLM\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0 /v NtlmMinClientSec /v NtlmMinServerSec
+  expected: LmCompatibilityLevel is 5 (NTLMv2 only, refuse LM and NTLM). NoLMHash is 1. NTLM minimum session security is 537395200 for clients and servers.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1557.001
+    - T1550.002
+    capec:
+    - CAPEC-644
+    cwe:
+    - CWE-327
+    - CWE-328
+    nist_800_53:
+    - IA-5
+    - SC-13
+    other:
+    - https://learn.microsoft.com/azure/governance/policy/samples/guest-configuration-baseline-windows
+    - 'Related: EPA on HTTP endpoints, see NET-ADCS-007'
+  sources_read:
+  - sources/extra/gap3-B/guest-configuration-baseline-windows.md
+  - sources/extra/gap3-B/smb-signing.md
+  see:
+  - NET-ADCS-007
+- id: NET-WIN-004
+  sheet: NET
+  category: WIN
+  title: Check that LSA protection runs LSASS as a protected process
+  objective: Finds hosts where a tool can inject code into LSASS to read credentials.
+  preconditions: *id001
+  steps:
+  - Read the RunAsPPL value in the Lsa registry key.
+  - Look at the CodeIntegrity operational log for events 3033, 3063, 3065 and 3066.
+  - Note each LSA plug-in or driver that fails to load as a protected process.
+  - Look at the AuditLevel value under the LSASS.exe image options key, if LSA protection is not yet on.
+  - Make sure Smart App Control does not hide the audit events.
+  example: reg query HKLM\SYSTEM\CurrentControlSet\Control\Lsa /v RunAsPPL ; reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\LSASS.exe" /v AuditLevel ; Get-WinEvent -LogName Microsoft-Windows-CodeIntegrity/Operational
+  expected: RunAsPPL is set (1 or 2) and the host runs LSASS as a protected process. No unsigned plug-in is in the failure events.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1003.001
+    - T1003.004
+    capec:
+    - CAPEC-645
+    cwe:
+    - CWE-522
+    nist_800_53:
+    - SC-39
+    - SI-7
+    other:
+    - https://learn.microsoft.com/windows-server/security/credentials-protection-and-management/configuring-additional-lsa-protection
+  sources_read:
+  - sources/extra/gap3-B/configuring-additional-lsa-protection.md
+- id: NET-WIN-005
+  sheet: NET
+  category: WIN
+  title: Check that Credential Guard is running
+  objective: Finds hosts that keep NTLM hashes and Kerberos secrets in LSASS memory.
+  preconditions: *id001
+  steps:
+  - Open System Information. Look at Virtualization-based Security Services Running.
+  - Read SecurityServicesRunning from Win32_DeviceGuard.
+  - Read the registry values EnableVirtualizationBasedSecurity and LsaCfgFlags.
+  - Look at the group policy "Turn On Virtualization Based Security" and the Credential Guard option.
+  - Note hosts where hardware or a legacy application blocks Credential Guard.
+  example: msinfo32.exe ; (Get-CimInstance -ClassName Win32_DeviceGuard -Namespace root\Microsoft\Windows\DeviceGuard).SecurityServicesRunning ; reg query HKLM\SYSTEM\CurrentControlSet\Control\Lsa /v LsaCfgFlags
+  expected: SecurityServicesRunning includes the value 1. LsaCfgFlags is 1 or 2. The host shows Credential Guard as running.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1003.001
+    - T1550.002
+    capec:
+    - CAPEC-644
+    - CAPEC-645
+    cwe:
+    - CWE-522
+    nist_800_53:
+    - SC-39
+    - SC-28
+    other:
+    - https://learn.microsoft.com/windows/security/identity-protection/credential-guard/configure
+  sources_read:
+  - sources/extra/gap3-B/configure.md
+- id: NET-WIN-006
+  sheet: NET
+  category: WIN
+  title: Check that WDigest does not keep clear-text passwords
+  objective: Finds hosts where WDigest stores clear-text credentials in memory.
+  preconditions: *id001
+  steps:
+  - Read the UseLogonCredential value under the WDigest key.
+  - Read the policy "WDigest Authentication" in the security baseline.
+  - Look at the OS version and the KB2871997 update level on older hosts.
+  example: reg query HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest /v UseLogonCredential
+  expected: WDigest Authentication is disabled (UseLogonCredential is 0 or missing on a patched host).
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1003.001
+    cwe:
+    - CWE-257
+    - CWE-522
+    nist_800_53:
+    - IA-5
+    - SC-28
+    other:
+    - https://learn.microsoft.com/azure/governance/policy/samples/guest-configuration-baseline-windows
+  sources_read:
+  - sources/extra/gap3-B/guest-configuration-baseline-windows.md
+- id: NET-WIN-007
+  sheet: NET
+  category: WIN
+  title: Check the number of cached domain logons
+  objective: Finds hosts that keep many cached domain logon verifiers that an attacker can crack offline.
+  preconditions: *id001
+  steps:
+  - 'Read the policy "Interactive logon: Number of previous logons to cache".'
+  - Compare the value with 1 to 4.
+  - Set a lower value for servers that always reach a domain controller.
+  example: reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v CachedLogonsCount
+  expected: The cached logon count is in the range 1 to 4 on laptops. It is 0 on servers that always reach a domain controller.
+  severity: Low
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1003.005
+    cwe:
+    - CWE-522
+    nist_800_53:
+    - IA-5
+    other:
+    - https://learn.microsoft.com/azure/governance/policy/samples/guest-configuration-baseline-windows
+  sources_read:
+  - sources/extra/gap3-B/guest-configuration-baseline-windows.md
+- id: NET-WIN-008
+  sheet: NET
+  category: WIN
+  title: Check that App Control or AppLocker enforces rules on servers
+  objective: Finds hosts where any program or script can run, so malware runs without a block.
+  preconditions: *id001
+  steps:
+  - List the active App Control policies and AppLocker rule collections on the host.
+  - Look at the policy mode. Note any policy in audit mode.
+  - Look for rules that allow user-writable paths.
+  - Look for App Control events 8028 and 8029 for audited and blocked scripts.
+  - Look at the process that updates the list of authorized software.
+  example: Get-CimInstance -Namespace root\Microsoft\Windows\DeviceGuard -ClassName Win32_DeviceGuard | fl CodeIntegrityPolicyEnforcementStatus,UsermodeCodeIntegrityPolicyEnforcementStatus ; Get-AppLockerPolicy -Effective -Xml ; Get-WinEvent -LogName "Microsoft-Windows-AppLocker/MSI and Script"
+  expected: An allow-by-exception policy runs in enforce mode on servers and admin hosts. No rule allows a user-writable path.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1059.001
+    cwe:
+    - CWE-250
+    nist_800_53:
+    - CM-7
+    - CM-7(2)
+    - CM-7(5)
+    other:
+    - https://learn.microsoft.com/windows/security/application-security/application-control/app-control-for-business/appcontrol
+    - https://learn.microsoft.com/windows/security/application-security/application-control/app-control-for-business/design/script-enforcement
+  sources_read:
+  - sources/extra/gap3-B/app-control-overview.md
+  - sources/extra/gap3-B/app-control-script-enforcement.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  see:
+  - NET-SVC-017
+- id: NET-WIN-009
+  sheet: NET
+  category: WIN
+  title: Check PowerShell logging and language mode on servers and admin hosts
+  objective: Finds hosts where PowerShell runs in full language mode without script logs.
+  preconditions: *id001
+  steps:
+  - Read the policy "Turn on PowerShell Script Block Logging".
+  - Look at the policy "Turn on PowerShell Transcription" and note its state.
+  - Open a PowerShell session as a normal user. Read the language mode.
+  - Look at the PowerShell event log for script block events.
+  - Look at whether the App Control policy puts untrusted scripts in ConstrainedLanguage mode.
+  example: reg query HKLM\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging /v EnableScriptBlockLogging ; $ExecutionContext.SessionState.LanguageMode ; Get-WinEvent -FilterHashtable @{LogName="Microsoft-Windows-PowerShell/Operational";Id=4104} -MaxEvents 5
+  expected: Script block logging is on. A normal user session runs in ConstrainedLanguage mode on hosts under an enforced App Control policy.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1059.001
+    nist_800_53:
+    - CM-7
+    - AU-12
+    other:
+    - https://learn.microsoft.com/azure/governance/policy/samples/guest-configuration-baseline-windows
+    - https://learn.microsoft.com/powershell/scripting/security/app-control/how-to-use-app-control
+  sources_read:
+  - sources/extra/gap3-B/guest-configuration-baseline-windows.md
+  - sources/extra/gap3-B/powershell-app-control.md
+  - sources/extra/gap3-B/app-control-script-enforcement.md
+- id: NET-WIN-010
+  sheet: NET
+  category: WIN
+  title: Check that AlwaysInstallElevated is off in both registry hives
+  objective: Finds hosts where a standard user can install any MSI package with SYSTEM rights.
+  preconditions: *id001
+  steps:
+  - Read AlwaysInstallElevated under HKLM Software Policies Microsoft Windows Installer.
+  - Read the same value under HKCU for a standard user.
+  - Note that the value 1 in both hives gives SYSTEM rights to every MSI.
+  - Read the policy "Always install with elevated privileges" in the computer and user policy.
+  example: reg query HKLM\Software\Policies\Microsoft\Windows\Installer /v AlwaysInstallElevated ; reg query HKCU\Software\Policies\Microsoft\Windows\Installer /v AlwaysInstallElevated
+  expected: AlwaysInstallElevated does not exist or equals 0 in both hives.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1068
+    capec:
+    - CAPEC-233
+    cwe:
+    - CWE-269
+    - CWE-250
+    nist_800_53:
+    - CM-6
+    - AC-6
+    other:
+    - https://learn.microsoft.com/windows/win32/msi/alwaysinstallelevated
+    - https://learn.microsoft.com/azure/governance/policy/samples/guest-configuration-baseline-windows
+    - CCE-37490-0
+  sources_read:
+  - sources/extra/gap3-B/alwaysinstallelevated.md
+  - sources/extra/gap3-B/guest-configuration-baseline-windows.md
+- id: NET-WIN-011
+  sheet: NET
+  category: WIN
+  title: Look for writable service binaries, service keys and unquoted service paths
+  objective: Finds services that a standard user can change to run code as SYSTEM.
+  preconditions: *id001
+  steps:
+  - List the services with their binary path and run-as account.
+  - Note each path that has spaces and no quotation marks.
+  - Read the ACL of each service binary and its folder. Look for write rights for Users or Everyone.
+  - Read the ACL of each service registry key. Look for write rights for non-admin groups.
+  - Note the services that run as LocalSystem.
+  example: Get-CimInstance Win32_Service | Select Name,StartName,PathName ; icacls "<service binary path>" ; (Get-Acl "HKLM:\SYSTEM\CurrentControlSet\Services\<name>").Access
+  expected: No service binary, its folder or its registry key allows write access to non-admin users. All paths with spaces use quotation marks.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1574.010
+    - T1574.011
+    - T1574.009
+    - T1543.003
+    cwe:
+    - CWE-732
+    - CWE-276
+    - CWE-428
+    nist_800_53:
+    - AC-6
+    - CM-6
+    other:
+    - 'CWE-732, CWE-276, CWE-428 definitions in sources/cwe/cwec_latest.xml.zip. Thin source: no Microsoft page for service ACL checks.'
+  sources_read:
+  - sources/cwe/cwec_latest.xml.zip
+  - sources/extra/gap3-B/alwaysinstallelevated.md
+- id: NET-WIN-012
+  sheet: NET
+  category: WIN
+  title: Look for writable autorun and scheduled task targets
+  objective: Finds startup items and tasks that run as a privileged user from a folder that standard users can write to.
+  preconditions: *id001
+  steps:
+  - List the Run and RunOnce keys for the machine and the startup folder for all users.
+  - List the scheduled tasks that run as SYSTEM or an admin.
+  - Read the ACL of each target file and folder.
+  - Note any target that standard users can write to or replace.
+  example: reg query HKLM\Software\Microsoft\Windows\CurrentVersion\Run ; Get-ScheduledTask | % { $_.Actions.Execute } ; icacls "<target path>"
+  expected: Every autorun and scheduled task target is in a folder that only administrators and SYSTEM can write to.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1547.001
+    - T1053.005
+    cwe:
+    - CWE-732
+    - CWE-276
+    nist_800_53:
+    - AC-6
+    - CM-6
+    other:
+    - CWE-732 and CWE-276 in sources/cwe/cwec_latest.xml.zip. Thin source.
+  sources_read:
+  - sources/cwe/cwec_latest.xml.zip
+- id: NET-WIN-013
+  sheet: NET
+  category: WIN
+  title: 'Check sensitive user rights: debug, impersonate and log on'
+  objective: Finds accounts that hold rights that allow token theft or privilege escalation.
+  preconditions: *id001
+  steps:
+  - Read the user right "Debug programs".
+  - Read the user right "Impersonate a client after authentication".
+  - Read "Access Credential Manager as a trusted caller" and "Allow log on locally".
+  - List the services that run as an account with the impersonate right and that a user can reach.
+  example: secedit /export /cfg sec.inf /areas USER_RIGHTS ; findstr "SeDebugPrivilege SeImpersonatePrivilege SeTrustedCredManAccessPrivilege SeInteractiveLogonRight" sec.inf
+  expected: Debug programs is limited to Administrators. Impersonate is limited to Administrators, Service, Local Service and Network Service. Credential Manager trust is held by no one.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1134
+    - T1134.001
+    capec:
+    - CAPEC-233
+    cwe:
+    - CWE-269
+    nist_800_53:
+    - AC-6
+    - AC-6(1)
+    other:
+    - https://learn.microsoft.com/azure/governance/policy/samples/guest-configuration-baseline-windows
+  sources_read:
+  - sources/extra/gap3-B/guest-configuration-baseline-windows.md
+- id: NET-WIN-014
+  sheet: NET
+  category: WIN
+  title: Check that User Account Control uses Admin Approval Mode for admins
+  objective: Finds hosts where admin tokens run without a prompt or on a non-secure desktop.
+  preconditions: *id001
+  steps:
+  - Read "Run all administrators in Admin Approval Mode".
+  - Read "Admin Approval Mode for the Built-in Administrator account".
+  - Read the elevation prompt behavior for administrators and standard users.
+  - Read "Switch to the secure desktop when prompting for elevation".
+  - Read "Only elevate UIAccess applications that are installed in secure locations".
+  example: reg query HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v EnableLUA /v FilterAdministratorToken /v ConsentPromptBehaviorAdmin /v ConsentPromptBehaviorUser /v PromptOnSecureDesktop
+  expected: Admin Approval Mode is on for all admins. The prompt for administrators is 2 and the prompt for standard users is 0. The secure desktop is on.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1068
+    cwe:
+    - CWE-250
+    nist_800_53:
+    - AC-6
+    - CM-6
+    other:
+    - https://learn.microsoft.com/azure/governance/policy/samples/guest-configuration-baseline-windows
+  sources_read:
+  - sources/extra/gap3-B/guest-configuration-baseline-windows.md

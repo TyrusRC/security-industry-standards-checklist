@@ -1,0 +1,484 @@
+- id: MOB-STORAGE-001
+  sheet: MOB
+  category: STORAGE
+  title: Check that Android private storage holds no plaintext sensitive data
+  objective: Finds sensitive data that the app writes unencrypted to its Android private data directory or to SharedPreferences.
+  preconditions:
+  - A list of the sensitive data the app handles is ready (tokens, passwords, personal data, keys). The app is installed on a test device or emulator.
+  - Run only on test devices. Use test accounts.
+  steps:
+  - Install the app and make a first copy of its private data directory.
+  - Hook the SharedPreferences write methods and the Cipher classes with Frida.
+  - Use every workflow of the app and enter sensitive data wherever possible.
+  - Make a second copy of the private data directory and find the files that are new or changed.
+  - Search the new files and the hook output for the sensitive values.
+  - Decode base64, hex, URL-encoded and compressed content, because these methods hide data but do not protect it.
+  - Look at the hook trace to see if each write of a sensitive value follows a Cipher operation.
+  example: adb install app.apk; objection -g <package> explore -> env (shows data paths); adb shell run-as <package> tar cf - . > data1.tar (debuggable builds) or adb pull /data/data/<package>; diff -r data1 data2; grep -rniE "token|passw|secret" data2/shared_prefs data2/databases; frida-trace -U -f <package> -j "android.content.SharedPreferences$Editor!putString" -j "javax.crypto.Cipher!*"; trufflehog filesystem data2/
+  expected: The app stores no sensitive data in plaintext or in trivially encoded form. Sensitive values are encrypted with keys that the Android Keystore protects.
+  severity: High
+  test_type:
+  - Manual
+  - Automated
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M9:2024
+    masvs:
+    - MASVS-STORAGE-1
+    - MASVS-STORAGE-2
+    mastg:
+    - MASTG-TEST-0207
+    - MASTG-TEST-0287
+    maswe:
+    - MASWE-0001
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    - Cryptographic_Storage_Cheat_Sheet
+    cwe:
+    - CWE-200
+    - CWE-284
+    - CWE-312
+    - CWE-313
+    - CWE-732
+    - CWE-922
+  see:
+  - WEB-SESS-029
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-STORAGE_MASWE-0001.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0002.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0005.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0008.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0043.md
+  - sources/repos/mastg/tests-beta/android/MASVS-STORAGE/MASTG-TEST-0207.md
+  - sources/repos/mastg/tests-beta/android/MASVS-STORAGE/MASTG-TEST-0287.md
+  - sources/repos/masvs/controls/MASVS-STORAGE-1.md
+  - sources/repos/masvs/controls/MASVS-STORAGE-2.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m9-insecure-data-storage.md
+- id: MOB-STORAGE-002
+  sheet: MOB
+  category: STORAGE
+  title: Check that iOS private storage and Keychain hold no plaintext secrets
+  objective: Finds sensitive data that the app writes unencrypted to the iOS sandbox, UserDefaults or the Keychain with weak settings.
+  preconditions:
+  - A list of the sensitive data the app handles is ready (tokens, passwords, personal data, keys). The app is installed on a test device or emulator.
+  - A jailbroken device or a simulator gives access to the sandbox. Use test accounts.
+  steps:
+  - Extract the app binaries from the IPA and search them for file, UserDefaults, Core Data, SQLite and Keychain APIs.
+  - List the Keychain calls with their access control and accessibility attributes.
+  - Install the app, list the files in the sandbox and take a first snapshot of the Keychain.
+  - Hook the file and Keychain APIs with Frida and use every workflow of the app with sensitive data.
+  - List the files and the Keychain again and compare both snapshots.
+  - Search new and changed files for sensitive values in plaintext, base64, hex and binary plist forms.
+  - Make sure each secret is in the Keychain or encrypted with a Keychain key before the app writes it.
+  example: unzip app.ipa; r2 -qc "aaa; afl~SecItem" Payload/App.app/App; objection -g <bundle> explore -> env; ios keychain dump; ios plist cat Library/Preferences/<bundle>.plist; frida-trace -U -f <bundle> -m "-[NSUserDefaults setObject:forKey:]" -m "-[NSFileManager createFileAtPath:*]" -i SecItemAdd -i SecItemUpdate; diff -r sandbox1 sandbox2
+  expected: The app stores no sensitive data in plaintext in the sandbox. Secrets are in the Keychain or encrypted with keys from the Keychain.
+  severity: High
+  test_type:
+  - Manual
+  - Automated
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M9:2024
+    masvs:
+    - MASVS-STORAGE-1
+    - MASVS-STORAGE-2
+    mastg:
+    - MASTG-TEST-0300
+    - MASTG-TEST-0301
+    - MASTG-TEST-0302
+    maswe:
+    - MASWE-0001
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    - Cryptographic_Storage_Cheat_Sheet
+    cwe:
+    - CWE-200
+    - CWE-284
+    - CWE-312
+    - CWE-313
+    - CWE-732
+    - CWE-922
+  see:
+  - WEB-SESS-029
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-STORAGE_MASWE-0001.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0056.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0059.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0061.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0095.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-STORAGE/MASTG-TEST-0300.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-STORAGE/MASTG-TEST-0301.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-STORAGE/MASTG-TEST-0302.md
+  - sources/repos/masvs/controls/MASVS-STORAGE-1.md
+  - sources/repos/masvs/controls/MASVS-STORAGE-2.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m9-insecure-data-storage.md
+- id: MOB-STORAGE-003
+  sheet: MOB
+  category: STORAGE
+  title: Check the data protection class of iOS files with sensitive data
+  objective: Finds files with sensitive data that have the data protection class NSFileProtectionNone.
+  preconditions:
+  - A list of the sensitive data the app handles is ready (tokens, passwords, personal data, keys). The app is installed on a test device or emulator.
+  steps:
+  - Start the test from a clean install and use every workflow of the app with sensitive data.
+  - List the files in the app sandbox with their data protection classes.
+  - List the files in the App Group shared containers that the app and its extensions use, with their classes.
+  - Mark the files that hold sensitive data.
+  - Find the marked files that have the class NSFileProtectionNone.
+  example: objection -g <bundle> explore -> env (shows the data and App Group paths); cd <path>; ls (the NSFileProtection column shows the class of each file); look for NSFileProtectionNone
+  expected: Files with sensitive data use a protection class that locks them when the device is locked. No such file has the class NSFileProtectionNone.
+  severity: Medium
+  test_type:
+  - Manual
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M9:2024
+    masvs:
+    - MASVS-STORAGE-1
+    mastg:
+    - MASTG-TEST-0299
+    maswe:
+    - MASWE-0001
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-200
+    - CWE-284
+    - CWE-312
+    - CWE-313
+    - CWE-732
+    - CWE-922
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-STORAGE_MASWE-0001.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0056.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0059.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-STORAGE/MASTG-TEST-0299.md
+  - sources/repos/masvs/controls/MASVS-STORAGE-1.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m9-insecure-data-storage.md
+- id: MOB-STORAGE-004
+  sheet: MOB
+  category: STORAGE
+  title: Check that iOS App Group containers hold no unprotected secrets
+  objective: Finds secrets in shared UserDefaults or shared files that the app and all its extensions can read.
+  preconditions:
+  - A list of the sensitive data the app handles is ready (tokens, passwords, personal data, keys). The app is installed on a test device or emulator.
+  steps:
+  - Extract the main binary and every extension binary in PlugIns/*.appex.
+  - Search them for UserDefaults(suiteName:), containerURL(forSecurityApplicationGroupIdentifier:) and shared Core Data stores.
+  - Look at the code at each location and find the values that the app writes to the shared container.
+  - Mark the values that are credentials, tokens or keys.
+  - Make sure the app keeps each secret in a shared Keychain and does not write it to the container.
+  - Look at the entitlements for keychain-access-groups and the protection class of the shared files.
+  example: unzip app.ipa; find Payload -name "*.appex"; r2 -qc "aaa; iz~suiteName" Payload/App.app/PlugIns/X.appex/X; codesign -d --entitlements :- Payload/App.app; grep -a "group\." on the entitlements output
+  expected: The shared container holds no secrets in plaintext. Secrets are in a shared Keychain or are encrypted and protected with a strong protection class.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M9:2024
+    masvs:
+    - MASVS-STORAGE-1
+    mastg:
+    - MASTG-TEST-0388
+    maswe:
+    - MASWE-0001
+    cwe:
+    - CWE-200
+    - CWE-284
+    - CWE-312
+    - CWE-313
+    - CWE-732
+    - CWE-922
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-STORAGE_MASWE-0001.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-STORAGE/MASTG-TEST-0388.md
+  - sources/repos/masvs/controls/MASVS-STORAGE-1.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m9-insecure-data-storage.md
+- id: MOB-STORAGE-005
+  sheet: MOB
+  category: STORAGE
+  title: Check that sensitive data is not written to shared storage
+  objective: Finds sensitive data that the app writes unencrypted to Android external storage or to iOS folders that the user can reach.
+  preconditions:
+  - A list of the sensitive data the app handles is ready (tokens, passwords, personal data, keys). The app is installed on a test device or emulator.
+  steps:
+  - 'Android: List the files in external storage before and after you use the app.'
+  - 'Android: Hook the external storage APIs and FileOutputStream with Frida and use every workflow of the app.'
+  - 'Android: Reverse engineer the app and look for these APIs and for the WRITE_EXTERNAL_STORAGE and MANAGE_EXTERNAL_STORAGE permissions.'
+  - 'iOS: Read Info.plist and look at UIFileSharingEnabled and LSSupportsOpeningDocumentsInPlace.'
+  - 'iOS: Search the binary for writes to the Documents directory and look at the data that the code writes.'
+  - Look at each new file or code location to see if it holds sensitive data without encryption.
+  example: adb shell ls -R /sdcard/Android/data/<package> /sdcard/Download > before.txt (repeat after use, then diff); frida-trace -U -f <package> -j "android.os.Environment!getExternalStorageDirectory" -j "android.content.Context!getExternalFilesDir"; apktool d app.apk; grep -R "getExternalStorage\|MediaStore" smali*/; aapt d permissions app.apk; plutil -p Payload/App.app/Info.plist | grep -E "UIFileSharing|LSSupportsOpening"
+  expected: The app writes no sensitive data unencrypted to shared storage. The iOS app does not expose a Documents folder that holds sensitive data.
+  severity: Medium
+  test_type:
+  - Manual
+  - Automated
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M9:2024
+    masvs:
+    - MASVS-STORAGE-1
+    - MASVS-STORAGE-2
+    mastg:
+    - MASTG-TEST-0200
+    - MASTG-TEST-0201
+    - MASTG-TEST-0202
+    - MASTG-TEST-0303
+    maswe:
+    - MASWE-0002
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-200
+    - CWE-284
+    - CWE-312
+    - CWE-313
+    - CWE-732
+    - CWE-921
+    - CWE-922
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-STORAGE_MASWE-0002.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0002.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0005.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0043.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0117.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0126.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0153.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0154.md
+  - sources/repos/mastg/tests-beta/android/MASVS-STORAGE/MASTG-TEST-0200.md
+  - sources/repos/mastg/tests-beta/android/MASVS-STORAGE/MASTG-TEST-0201.md
+  - sources/repos/mastg/tests-beta/android/MASVS-STORAGE/MASTG-TEST-0202.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-STORAGE/MASTG-TEST-0303.md
+  - sources/repos/masvs/controls/MASVS-STORAGE-1.md
+  - sources/repos/masvs/controls/MASVS-STORAGE-2.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m9-insecure-data-storage.md
+- id: MOB-STORAGE-006
+  sheet: MOB
+  category: STORAGE
+  title: Check that the app does not write sensitive data to logs
+  objective: Finds sensitive data in Android logcat output or in iOS device logs.
+  preconditions:
+  - A list of the sensitive data the app handles is ready (tokens, passwords, personal data, keys). The app is installed on a test device or emulator.
+  steps:
+  - Reverse engineer the app and list the uses of logging APIs.
+  - 'Android: Look for Log, Logger, System.out.print, System.err.print and printStackTrace.'
+  - 'iOS: Look for NSLog, NSAssert, NSCAssert, print and printf in the binary.'
+  - Monitor the device log while you use every workflow of the app with sensitive data.
+  - Close the app and search the log for the sensitive values.
+  - Look at the code of each match to find which log call writes the data.
+  example: adb logcat --pid=$(adb shell pidof -s <package>) > app.log; grep -iE "token|passw|secret|card" app.log; frida-trace -U -f <package> -j "android.util.Log!*"; apktool d app.apk; grep -R "Landroid/util/Log;" smali*/; xcrun simctl spawn booted log stream --style compact --predicate 'process CONTAINS[c] "App"'; frida-trace -U -f <bundle> -i NSLog
+  expected: Logs contain no passwords, tokens, personal data or other sensitive values. Release builds remove or disable such log calls.
+  severity: Low
+  test_type:
+  - Manual
+  - Automated
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M9:2024
+    masvs:
+    - MASVS-STORAGE-2
+    mastg:
+    - MASTG-TEST-0203
+    - MASTG-TEST-0231
+    - MASTG-TEST-0296
+    - MASTG-TEST-0297
+    maswe:
+    - MASWE-0005
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    - Logging_Cheat_Sheet
+    cwe:
+    - CWE-209
+    - CWE-359
+    - CWE-497
+    - CWE-532
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-STORAGE_MASWE-0005.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0009.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0043.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0060.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0095.md
+  - sources/repos/mastg/tests-beta/android/MASVS-STORAGE/MASTG-TEST-0203.md
+  - sources/repos/mastg/tests-beta/android/MASVS-STORAGE/MASTG-TEST-0231.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-STORAGE/MASTG-TEST-0296.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-STORAGE/MASTG-TEST-0297.md
+  - sources/repos/masvs/controls/MASVS-STORAGE-2.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m9-insecure-data-storage.md
+- id: MOB-STORAGE-007
+  sheet: MOB
+  category: STORAGE
+  title: Check that sensitive files are excluded from backups
+  objective: Finds sensitive data that the system copies to a cloud backup, a device transfer or a local backup.
+  preconditions:
+  - A list of the sensitive data the app handles is ready (tokens, passwords, personal data, keys). The app is installed on a test device or emulator.
+  - 'Android: A rooted or debuggable test device is needed for the backup step.'
+  steps:
+  - 'Android: Read AndroidManifest.xml and note the values of allowBackup, fullBackupContent and dataExtractionRules.'
+  - 'Android: Read backup_rules.xml or data_extraction_rules.xml and see if all sensitive files are excluded.'
+  - 'Android: Use the app with sensitive data, then back up and restore its data with the backup daemon.'
+  - 'Android: Reinstall the app, restore the data and list the restored files.'
+  - 'iOS: Search the binary for isExcludedFromBackup and list the files that the code marks.'
+  - 'iOS: Hook the file APIs and list the files that the app creates outside tmp and Library/Caches.'
+  - Find the sensitive files in these lists.
+  example: apktool d -s -f app.apk; grep -E "allowBackup|fullBackupContent|dataExtractionRules" AndroidManifest.xml; cat res/xml/data_extraction_rules.xml; adb root; adb shell bmgr backupnow <package>; adb pull /data/data/com.android.localtransport/files/1/_full/<package> app.ab; tar xvf app.ab; r2 -qc "aaa; iz~isExcludedFromBackup" Payload/App.app/App; frida-trace -U -f <bundle> -m "-[NSFileManager createFileAtPath:*]"
+  expected: Sensitive files are not in the backup or the restored set. iOS files that need exclusion are also encrypted, because isExcludedFromBackup gives no guarantee.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M9:2024
+    masvs:
+    - MASVS-STORAGE-2
+    mastg:
+    - MASTG-TEST-0216
+    - MASTG-TEST-0262
+    - MASTG-TEST-0215
+    - MASTG-TEST-0298
+    maswe:
+    - MASWE-0006
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-212
+    - CWE-313
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-STORAGE_MASWE-0006.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0005.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0007.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0117.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0128.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0150.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0056.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0095.md
+  - sources/repos/mastg/tests-beta/android/MASVS-STORAGE/MASTG-TEST-0216.md
+  - sources/repos/mastg/tests-beta/android/MASVS-STORAGE/MASTG-TEST-0262.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-STORAGE/MASTG-TEST-0215.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-STORAGE/MASTG-TEST-0298.md
+  - sources/repos/masvs/controls/MASVS-STORAGE-2.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m9-insecure-data-storage.md
+- id: MOB-STORAGE-008
+  sheet: MOB
+  category: STORAGE
+  title: Check that iOS text fields with sensitive input disable keyboard caching
+  objective: Finds iOS input fields that let the keyboard cache or suggest sensitive text.
+  preconditions:
+  - A list of the sensitive data the app handles is ready (tokens, passwords, personal data, keys). The app is installed on a test device or emulator.
+  steps:
+  - Search the binary for UITextField, UITextView and UISearchBar and the input trait settings.
+  - Look at isSecureTextEntry, autocorrectionType and spellCheckingType at each location, and in storyboards.
+  - Hook the text field classes with Frida and use every input screen with sensitive data.
+  - Note the trait values and the entered value of each field.
+  - Find the fields with sensitive data where isSecureTextEntry is off or autocorrection or spell checking is on or default.
+  example: r2 -qc "aaa; iz~autocorrectionType" Payload/App.app/App; plutil -p Payload/App.app/Base.lproj/*.storyboardc/*.nib; frida-trace -U -f <bundle> -m "-[UITextField setSecureTextEntry:]" -m "-[UITextField setAutocorrectionType:]" -m "-[UITextField setSpellCheckingType:]"
+  expected: Each field for sensitive input has isSecureTextEntry on, or autocorrection and spell checking off. The keyboard does not cache the entered text.
+  severity: Low
+  test_type:
+  - Manual
+  - Code Review
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M9:2024
+    masvs:
+    - MASVS-STORAGE-2
+    mastg:
+    - MASTG-TEST-0313
+    - MASTG-TEST-0314
+    maswe:
+    - MASWE-0036
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-200
+    - CWE-359
+  notes: MASWE-0036 sits in the PLATFORM group of the MASWE catalog. MASTG places both iOS tests under MASVS-STORAGE. The Android counterpart is deprecated in MASTG v1 and is out of scope.
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0036.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0056.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0095.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-STORAGE/MASTG-TEST-0313.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-STORAGE/MASTG-TEST-0314.md
+  - sources/repos/masvs/controls/MASVS-STORAGE-2.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m9-insecure-data-storage.md
+- id: MOB-STORAGE-009
+  sheet: MOB
+  category: STORAGE
+  title: Check that the app package holds no hardcoded secrets
+  objective: Finds API keys, passwords, tokens and private keys that ship inside the APK or IPA.
+  steps:
+  - Unpack the APK or IPA and decompile the code.
+  - Search code, resources, plists, JSON files, native libraries and bundled frameworks for secrets.
+  - Run a secret scanner over the unpacked package.
+  - Look at each hit to see if it is a live API key, credential or private key.
+  - Check the scope and the permissions of each secret that you find.
+  - Make sure the app gets static secrets from a backend at run time or uses scoped tokens that expire.
+  example: apktool d app.apk -o out; jadx -d src app.apk; unzip app.ipa -d ipa; strings -n 8 ipa/Payload/App.app/App | grep -iE "api[_-]?key|secret|passw|BEGIN (RSA|EC|PRIVATE)"; grep -riE "api[_-]?key|secret|token" out/res src/; gitleaks detect --no-git -s out; trufflehog filesystem out ipa
+  expected: The package holds no live secrets, credentials or private keys. Unavoidable static keys have the least permissions and can be rotated.
+  severity: High
+  test_type:
+  - Automated
+  - Code Review
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M1:2024
+    masvs:
+    - MASVS-STORAGE-1
+    maswe:
+    - MASWE-0004
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-312
+    - CWE-321
+    - CWE-540
+    - CWE-798
+  see:
+  - WEB-CRYPTO-018
+  - WEB-OAUTH-032
+  notes: No MASTG v2 test exists for MASWE-0004. Hardcoded cryptographic keys are in MOB-CRYPTO-005.
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-STORAGE_MASWE-0004.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0019.md
+  - sources/repos/mastg/techniques/generic/MASTG-TECH-0071.md
+  - sources/repos/masvs/controls/MASVS-STORAGE-1.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m1-improper-credential-usage.md

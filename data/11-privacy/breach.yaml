@@ -1,0 +1,122 @@
+- id: PRIV-BREACH-001
+  sheet: PRIV
+  category: BREACH
+  title: Review the incident response plan for personal data breaches
+  objective: Finds response plans that skip privacy incidents.
+  steps:
+  - Ask for the incident response plan.
+  - Look for privacy incident steps, owners and contacts.
+  - Look for the 72 hour notice step to the authority.
+  - Ask for the last test record of the plan.
+  example: 'Document review: plan, test protocol, contact list; check for a tabletop exercise in the last two years.'
+  expected: The plan names owners and steps for privacy incidents. It is tested and records of tests exist.
+  severity: High
+  test_type:
+  - Config Review
+  refs:
+    privacy_top10:
+    - P3
+    other:
+    - GDPR Art. 33
+    - GDPR Art. 34
+  sources_read: &id001
+  - sources/repos/www-project-top-10-privacy-risks/tab_topprivacy.md
+  - sources/repos/www-project-top-10-privacy-risks/OWASP_Top_10_Privacy_Risks_Countermeasures_v2.0.pdf
+  - sources/extra/gdpr.html
+- id: PRIV-BREACH-002
+  sheet: PRIV
+  category: BREACH
+  title: Check that the breach register holds the required facts
+  objective: Finds breaches that are not documented.
+  steps:
+  - Ask for the breach register.
+  - Check each entry for facts, effects and remedial action.
+  - Check entries that were not reported and the reason.
+  - Compare with the incident tickets.
+  example: Compare register entries with the security incident tracker of the last year.
+  expected: Every breach has an entry with facts, effects and action. The register allows the authority to check compliance.
+  severity: Medium
+  test_type:
+  - Config Review
+  refs:
+    privacy_top10:
+    - P3
+    other:
+    - GDPR Art. 33
+  sources_read: *id001
+- id: PRIV-BREACH-003
+  sheet: PRIV
+  category: BREACH
+  title: Check the draft user notice for a breach
+  objective: Finds notices that are late, unclear or incomplete.
+  steps:
+  - Ask for the notice template.
+  - Check for nature of the breach, contact point, likely effects and measures.
+  - Check that the language is clear and plain.
+  - Check the channel for fast delivery to all affected users.
+  example: Template review; send a test notice to a test group and measure the time.
+  expected: The template has all required parts in plain language. The service can reach affected users without undue delay.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    privacy_top10:
+    - P3
+    other:
+    - GDPR Art. 34
+  sources_read: *id001
+- id: PRIV-BREACH-004
+  sheet: PRIV
+  category: BREACH
+  title: Check that monitoring detects personal data leaks
+  objective: Finds leaks that stay unseen because no monitoring covers them.
+  steps:
+  - List the monitoring rules for bulk data access and data export.
+  - Create a test export of many records.
+  - Check that an alert starts.
+  - Check the response time of the team.
+  example: Run a bulk export in a test environment; check SIEM alert and ticket.
+  expected: A bulk read or export raises an alert. The team starts triage within the agreed time.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    privacy_top10:
+    - P3
+    - P2
+    other:
+    - GDPR Art. 32
+    - GDPR Art. 33
+    cheatsheet:
+    - Logging_Cheat_Sheet
+  see:
+  - WEB-LOG-014
+  sources_read:
+  - sources/repos/www-project-top-10-privacy-risks/tab_topprivacy.md
+  - sources/repos/www-project-top-10-privacy-risks/OWASP_Top_10_Privacy_Risks_Countermeasures_v2.0.pdf
+  - sources/extra/gdpr.html
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+- id: PRIV-BREACH-005
+  sheet: PRIV
+  category: BREACH
+  title: Check that processors tell the controller about a breach without delay
+  objective: Finds contracts and channels that delay the breach message.
+  steps:
+  - Ask for the processor contracts.
+  - Look for the breach notice clause and the contact.
+  - Check the contact channel with a test message.
+  - Check that the processor has a response plan.
+  example: Send a test alert to the processor breach contact and note the reply time.
+  expected: Each processor must tell the controller without undue delay. The test message reaches a staffed contact.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    privacy_top10:
+    - P3
+    other:
+    - GDPR Art. 28
+    - GDPR Art. 33
+  sources_read: *id001

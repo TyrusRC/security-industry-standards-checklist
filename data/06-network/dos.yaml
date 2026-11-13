@@ -1,0 +1,176 @@
+- id: NET-DOS-001
+  sheet: NET
+  category: DOS
+  title: Review the DoS inventory for single points of failure and scaling options
+  objective: Finds components whose failure or overload stops the service, with no redundancy.
+  steps:
+  - Get the list of network and service components and their capacity.
+  - Mark each component that has no second instance or no fail-over.
+  - Look for the scaling options of each marked component.
+  - Look for a plan for graceful degradation if a part fails.
+  - Write down each single point of failure that has no plan.
+  example: 'Review of the architecture diagram and the load balancer and firewall fail-over configuration: show failover ; haproxy -c -f haproxy.cfg'
+  expected: No single point of failure stops the service without a plan. Each critical component has a fail-over or a scaling option.
+  severity: Medium
+  test_type: Manual
+  refs:
+    cheatsheet:
+    - Denial_of_Service_Cheat_Sheet
+    cwe:
+    - CWE-400
+    nist_800_53:
+    - SC-5
+    - SC-22
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Denial_of_Service_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-DOS-002
+  sheet: NET
+  category: DOS
+  title: Test slow connection attacks against network edge services
+  objective: Finds servers and load balancers that hold connections open for slow clients until they run out of slots.
+  preconditions:
+  - Written approval and a test window. Use a test system with the same settings.
+  - Do not run on production.
+  steps:
+  - Read the minimum data rate, read timeout and connection timeout settings of the service.
+  - Open many connections and send the request very slowly.
+  - Look at the number of connections that the server keeps open.
+  - Send a normal request from another host and look at the answer time.
+  example: 'slowhttptest -c 1000 -H -g -o slow -i 10 -r 200 -t GET -u https://<test-host>/ ; nmap --script http-slowloris-check <test-host>'
+  expected: The server closes slow connections after the set timeout. Normal requests still get an answer during the test.
+  severity: Medium
+  test_type: Automated
+  refs:
+    cheatsheet:
+    - Denial_of_Service_Cheat_Sheet
+    attack:
+    - T1499.002
+    - T1499.003
+    capec:
+    - CAPEC-227
+    - CAPEC-469
+    cwe:
+    - CWE-400
+    - CWE-770
+    nist_800_53:
+    - SC-5
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Denial_of_Service_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-DOS-003
+  sheet: NET
+  category: DOS
+  title: Check rate limits, connection limits and timeouts on edge devices
+  objective: Finds edge devices that accept unlimited traffic, connections or sessions from one source.
+  steps:
+  - Read the configuration of firewalls, load balancers and proxies.
+  - Look for a minimum ingress data rate with a read timeout.
+  - Look for an absolute connection timeout and a maximum data rate.
+  - Look for a total bandwidth limit and a load limit per resource.
+  - Look at the session timeout for inactive sessions.
+  example: 'show running-config | include rate|limit|timeout ; nginx -T | grep -E "limit_req|limit_conn|timeout" ; httpd -M | grep reqtimeout'
+  expected: The edge devices set a minimum data rate, connection timeouts, rate limits and a load limit. Inactive sessions end after a set time.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cheatsheet:
+    - Denial_of_Service_Cheat_Sheet
+    cwe:
+    - CWE-770
+    - CWE-400
+    nist_800_53:
+    - SC-5
+    - CM-6
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Denial_of_Service_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-DOS-004
+  sheet: NET
+  category: DOS
+  title: Test the connection limits of edge devices with a low-rate flood
+  objective: Finds devices that fail when many half-open or new connections arrive.
+  preconditions:
+  - Written approval and a test window with the network owner and the ISP, if needed.
+  - Use a test target behind the same device type and a rate that stays far below the link capacity.
+  - Do not run on production.
+  steps:
+  - Read the connection table limit and the flood protection settings of the device.
+  - Send TCP SYN packets to the test target at a low, agreed rate.
+  - Raise the rate in small steps and stop at the agreed limit.
+  - Look at the connection table, the CPU of the device and the answer time of normal requests.
+  example: 'hping3 -S -p 443 -i u1000 <test-target> ; show conn count ; Wireshark and the device monitoring'
+  expected: The device uses flood protection and keeps its connection table below the limit. Normal requests still work at the agreed test rate.
+  severity: Medium
+  test_type: Manual
+  refs:
+    cheatsheet:
+    - Denial_of_Service_Cheat_Sheet
+    attack:
+    - T1499.001
+    - T1498.001
+    capec:
+    - CAPEC-482
+    - CAPEC-125
+    cwe:
+    - CWE-770
+    nist_800_53:
+    - SC-5
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Denial_of_Service_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-DOS-005
+  sheet: NET
+  category: DOS
+  title: Check the ISP and DDoS filtering service for coverage and capacity
+  objective: Finds services that depend on one link and have no plan against volumetric attacks.
+  steps:
+  - Get the contract or service description of the ISP and of the DDoS filtering provider.
+  - Look for more than one internet access point and for the bandwidth of each.
+  - Look at the mitigation capacity and the layers that the provider covers.
+  - Look at the contact and the escalation process for an attack.
+  - Look at where the provider routes and inspects the traffic, and compare it with the privacy rules.
+  example: 'Review of contracts and runbooks. Check routes with: traceroute -n <service-ip> ; dig +short <service-name> to see if DNS points to the filter'
+  expected: The service has more than one access point and enough capacity. A filtering service covers the large attacks, and the escalation process is known.
+  severity: Medium
+  test_type: Manual
+  refs:
+    cheatsheet:
+    - Denial_of_Service_Cheat_Sheet
+    attack:
+    - T1498
+    nist_800_53:
+    - SC-5
+    - SC-5(2)
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Denial_of_Service_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-DOS-006
+  sheet: NET
+  category: DOS
+  title: Check that DoS indicators are monitored and create alerts
+  objective: Finds networks where a flood or resource drain goes unseen until the service fails.
+  preconditions:
+  - Written approval and a test window.
+  - Do not run on production at high rates.
+  steps:
+  - Look at the monitoring of bandwidth, connection counts, CPU and memory on edge systems.
+  - Look at the alert thresholds and the persons who get the alerts.
+  - Send a small, safe burst of test traffic that crosses a threshold.
+  - Look at the alert and the time until a responder sees it.
+  example: 'iperf3 -c <test-host> -t 30 -P 8 (test link only) ; check the monitoring dashboard and the alert mail'
+  expected: The monitoring shows the flood or drain and raises an alert to the responders in the agreed time.
+  severity: Low
+  test_type: Manual
+  refs:
+    cheatsheet:
+    - Denial_of_Service_Cheat_Sheet
+    nist_800_53:
+    - SC-5
+    - SI-4
+    pci_dss:
+    - '11.5.1'
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Denial_of_Service_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md

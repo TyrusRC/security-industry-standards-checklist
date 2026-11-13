@@ -1,0 +1,265 @@
+- id: PCI-SWDEV-001
+  sheet: PCI
+  category: SWDEV
+  title: Check that bespoke software follows a secure development process
+  objective: Find development processes that ignore industry standards, PCI DSS needs or security in the life cycle phases.
+  preconditions:
+  - Access to development records
+  steps:
+  - Ask for the secure development procedures for bespoke and custom software.
+  - Make sure they follow an industry standard or best practice for secure development.
+  - Make sure they cover PCI DSS needs such as secure authentication and logging.
+  - Make sure each phase of the life cycle has a security task.
+  - Pick one recent release and find the records of each security task.
+  example: Compare the procedure with OWASP SAMM or NIST SSDF; examine tickets, design reviews and test reports of one release
+  expected: The procedures follow an industry standard and PCI DSS. Each life cycle phase has a security task and the last release has the records.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    pci_dss:
+    - 6.2.1
+    nist_800_53:
+    - SA-3
+    - SA-8
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-SWDEV-002
+  sheet: PCI
+  category: SWDEV
+  title: Check that code is reviewed before release and findings are fixed
+  objective: Find releases of bespoke software that reach production without a code review for vulnerabilities.
+  preconditions:
+  - Access to the code review records
+  steps:
+  - Ask for the code review procedure for bespoke and custom software.
+  - Make sure it requires review against secure coding guidelines before each release.
+  - Make sure the review looks for both existing and new types of software vulnerabilities.
+  - Pick five recent releases. Find the review record for each one.
+  - Make sure each finding was corrected before the release.
+  example: Pull request history; SAST reports; ticket links between the findings and the fix commits
+  expected: Every release has a completed code review against the secure coding guidelines. Findings are corrected before release.
+  severity: High
+  test_type:
+  - Manual
+  - Code Review
+  refs:
+    pci_dss:
+    - 6.2.3
+    nist_800_53:
+    - SA-11
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-SWDEV-003
+  sheet: PCI
+  category: SWDEV
+  title: Check that manual code reviews use independent reviewers and approval
+  objective: Find manual code reviews done by the author or released without management approval.
+  preconditions:
+  - Access to the repository settings
+  steps:
+  - Ask who does manual code reviews and what skills they have.
+  - Pick five reviews. Make sure the reviewer is not the author.
+  - Make sure the reviewers know code review methods and secure coding practices.
+  - Make sure management reviewed and approved the results before release.
+  - Try to merge a change with no approval on a test copy.
+  example: Branch protection settings; pull request approval rules; review checklist
+  expected: Reviewers know the methods, are not the author, and management approves the results before each release.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 6.2.3.1
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-SWDEV-004
+  sheet: PCI
+  category: SWDEV
+  title: Check the documented methods that prevent each common software attack
+  objective: Find attack classes that have no defined technique for prevention in the development procedure.
+  preconditions:
+  - Access to development procedures and developers
+  steps:
+  - Ask for the documented techniques for bespoke software developers.
+  - Make sure they cover injection attacks, attacks on data and data structures, and attacks on cryptography use.
+  - Make sure they cover attacks on business logic, attacks on access control and other high-risk vulnerabilities.
+  - Interview two developers. Ask how they prevent an injection attack and a broken access control.
+  - Run the existing tests for each attack class and record the result.
+  example: Compare the procedure to the sheet tests WEB-INJ, WEB-XSS, WEB-CRYPTO, WEB-BIZ and WEB-AUTHZ
+  expected: Defined methods cover each attack class. Developers can name and use them, and the test results show they work.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    pci_dss:
+    - 6.2.4
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-SWDEV-005
+  sheet: PCI
+  category: SWDEV
+  title: Check that security vulnerabilities are found and ranked by risk
+  objective: Find missing sources of vulnerability data or missing risk ranking for high-risk vulnerabilities.
+  preconditions:
+  - Access to vulnerability management records
+  steps:
+  - Ask for the process that finds new security vulnerabilities.
+  - Make sure it uses industry-recognized sources, including alerts from national and international CERTs.
+  - Make sure each vulnerability gets a risk rank by industry practice and potential impact.
+  - Make sure the ranks identify at least all high-risk and critical vulnerabilities.
+  - Make sure the process covers bespoke software and third-party software such as operating systems and databases.
+  example: Examine the vulnerability tracker; look at the CVSS and local risk fields; examine the subscription list of advisory feeds
+  expected: New vulnerabilities come from recognized sources. Each one gets a risk rank, and high-risk and critical items are identified for bespoke and third-party software.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    pci_dss:
+    - 6.3.1
+    nist_800_53:
+    - RA-5
+    - RA-3
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-SWDEV-006
+  sheet: PCI
+  category: SWDEV
+  title: Check the inventory of bespoke software and third-party components
+  objective: Find software and components that are not in the inventory, so no one patches them.
+  preconditions:
+  - Access to the build files of two applications
+  steps:
+  - Ask for the inventory of bespoke and custom software and the third-party components in it.
+  - Compare the inventory with the build files, lock files and deployed packages of two applications.
+  - Make sure each entry shows version and owner.
+  - Pick one recent advisory. Find the affected component in the inventory within one hour.
+  - Make sure the inventory is updated when components change.
+  example: SBOM in CycloneDX or SPDX format; npm ls, pip freeze, mvn dependency:tree compared to the inventory
+  expected: A current inventory lists all bespoke software and third-party components with versions. The team uses it to find and fix vulnerabilities.
+  severity: Medium
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    pci_dss:
+    - 6.3.2
+    nist_800_53:
+    - CM-8
+    - SA-15
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-SWDEV-007
+  sheet: PCI
+  category: SWDEV
+  title: Check the method that addresses new threats on public web applications
+  objective: Find public web applications with no ongoing review for new threats and vulnerabilities.
+  preconditions:
+  - List of public web applications
+  steps:
+  - List the public-facing web applications.
+  - 'Find out which method is used: a vulnerability assessment or an automated technical solution.'
+  - For an assessment, make sure it runs at least every 12 months and after significant changes.
+  - Make sure the assessment uses tools or manual methods that find the current attacks, and that fixes are made.
+  - For an automated solution, make sure the test of the web application firewall settings is on file.
+  example: Application assessment reports and dates; DAST scan schedule; manual penetration test report
+  expected: Every public web application has a defined method for new threats. Assessments are recent, cover current attacks and lead to fixes.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 6.4.1
+    nist_800_53:
+    - RA-5
+    - SI-4
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-SWDEV-008
+  sheet: PCI
+  category: SWDEV
+  title: Check that an automated solution detects and blocks web attacks
+  objective: Find public web applications with no web application firewall or one that is in log-only mode with no review.
+  preconditions:
+  - Test window agreed with the owner
+  steps:
+  - List the public-facing web applications and the web attack solution in front of each.
+  - Make sure the solution is in front of the application and in block mode, or alerts are reviewed at once.
+  - Make sure the rule sets and signatures are up to date.
+  - Send a test SQL injection and a test XSS string. Make sure the solution blocks or alerts.
+  - Make sure the solution writes audit logs and personnel review the alerts.
+  example: curl 'https://app.example/?q=<script>alert(1)</script>' ; curl "https://app.example/?id=1' OR '1'='1" ; review WAF logs
+  expected: A maintained solution sits in front of each public web application and writes audit logs. It blocks attacks, or an alert is investigated at once.
+  severity: High
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    pci_dss:
+    - 6.4.2
+    nist_800_53:
+    - SI-4
+    - SC-7
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-SWDEV-009
+  sheet: PCI
+  category: SWDEV
+  title: Check that payment page scripts are authorized and protected from tampering
+  objective: Find scripts on the payment page that are not authorized, not checked for integrity or not in the inventory.
+  preconditions:
+  - Test copy of the payment page
+  - Access to the script inventory
+  steps:
+  - Open the payment page in a browser. List all scripts that load, including third-party and fourth-party scripts.
+  - Compare the list with the inventory of payment page scripts.
+  - Make sure each script has a written business or technical reason and an authorization record.
+  - Make sure each script has an integrity control such as Subresource Integrity or a Content-Security-Policy with hashes or nonces.
+  - Change a script on a test copy. Make sure the page blocks or reports the change.
+  example: Browser developer tools network tab; Content-Security-Policy header review; integrity attribute check; compare the script list with the inventory
+  expected: Every payment page script is in the inventory with a reason and an authorization. An integrity control blocks or reports a changed script.
+  severity: High
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    pci_dss:
+    - 6.4.3
+    cwe:
+    - CWE-829
+    - CWE-494
+    nist_800_53:
+    - SI-7
+    - CM-8
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-SWDEV-010
+  sheet: PCI
+  category: SWDEV
+  title: Check that tamper detection watches payment page headers and scripts
+  objective: Find payment pages where a change to the HTTP headers or scripts raises no alert.
+  preconditions:
+  - Test copy of the payment page
+  steps:
+  - Find the change- and tamper-detection mechanism for the payment pages.
+  - Make sure it evaluates the headers and the scripts as the consumer browser receives them.
+  - Make sure it runs at least weekly, or at the frequency in the targeted risk analysis.
+  - Change a security header and a script on a test copy. Make sure the mechanism alerts personnel.
+  - Look at the alert record. Make sure personnel investigated the alert.
+  example: Monitor that fetches the page with a headless browser and compares header and script hashes; review the alert log
+  expected: A mechanism checks the received headers and scripts at least weekly. It alerts personnel to unauthorized changes, additions and deletions.
+  severity: High
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    pci_dss:
+    - 11.6.1
+    cwe:
+    - CWE-829
+    nist_800_53:
+    - SI-7
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md

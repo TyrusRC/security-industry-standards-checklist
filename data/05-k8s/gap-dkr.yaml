@@ -1,0 +1,71 @@
+- id: K8S-DKR-007
+  sheet: K8S
+  category: DKR
+  title: Check that Node.js images hold only production dependencies and set NODE_ENV
+  objective: Finds Node.js images with development packages and with non-production framework settings.
+  steps:
+  - Read the Dockerfile of each Node.js image.
+  - Make sure the install step uses npm ci with the omit=dev option.
+  - Make sure the final image sets NODE_ENV to production.
+  - List the packages in the final image and look for development packages.
+  example: grep -nE "npm (ci|install)|NODE_ENV" Dockerfile; docker run --rm IMAGE npm ls --omit=prod --depth=0
+  expected: The final image has no devDependencies. NODE_ENV is production.
+  severity: Low
+  test_type:
+  - Config Review
+  refs:
+    cheatsheet:
+    - NodeJS_Docker_Cheat_Sheet
+    - NPM_Security_Cheat_Sheet
+    cwe:
+    - CWE-1104
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/NodeJS_Docker_Cheat_Sheet.md
+- id: K8S-DKR-008
+  sheet: K8S
+  category: DKR
+  title: Check .dockerignore for secrets and local node_modules
+  objective: Finds Docker builds that copy credentials or modified local packages into the image.
+  steps:
+  - Find the .dockerignore file next to each Dockerfile.
+  - Make sure it lists node_modules, .env files, credential files, .npmrc and logs.
+  - Build the image and list the files in the application folder.
+  - Make sure no ignored file is in the image.
+  example: cat .dockerignore; docker build -t test . && docker run --rm test ls -la /usr/src/app
+  expected: The .dockerignore file excludes secrets and local dependencies. The built image holds none of them.
+  severity: High
+  test_type:
+  - Config Review
+  refs:
+    cheatsheet:
+    - NodeJS_Docker_Cheat_Sheet
+    cwe:
+    - CWE-538
+    - CWE-200
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/NodeJS_Docker_Cheat_Sheet.md
+- id: K8S-DKR-009
+  sheet: K8S
+  category: DKR
+  title: Check signal handling and graceful shutdown of the container process
+  objective: Finds containers where the application misses stop signals and ends in an abrupt kill.
+  preconditions:
+  - Use a test container.
+  steps:
+  - Read the CMD instruction. Make sure it uses the exec form and starts node directly, not npm or a shell.
+  - Make sure an init process such as dumb-init runs as PID 1.
+  - Start a test container and send SIGTERM with docker kill.
+  - Start a slow request and send the signal. Make sure the application finishes it and closes connections before it ends.
+  example: docker kill --signal=SIGTERM CONTAINER; curl -m 90 http://localhost:3000/slow
+  expected: The application receives SIGTERM and SIGINT, finishes active requests and then ends.
+  severity: Low
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    cheatsheet:
+    - NodeJS_Docker_Cheat_Sheet
+    cwe:
+    - CWE-404
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/NodeJS_Docker_Cheat_Sheet.md

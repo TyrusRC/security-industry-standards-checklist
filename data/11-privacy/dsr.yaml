@@ -1,0 +1,146 @@
+- id: PRIV-DSR-001
+  sheet: PRIV
+  category: DSR
+  title: Test the access request process and the content of the answer
+  objective: Finds access requests that fail, come late or leave out data.
+  steps:
+  - Submit an access request as a test user.
+  - Note the identity checks that the service asks for.
+  - Compare the answer with the data in the database.
+  - Check the answer for purposes, recipients, retention and source.
+  example: Measure days from request to answer. Compare export with a database dump for the test user.
+  expected: The answer arrives within one month and holds a copy of all data plus purposes, recipients, storage period and rights.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    privacy_top10:
+    - P9
+    other:
+    - GDPR Art. 12
+    - GDPR Art. 15
+  sources_read: &id001
+  - sources/repos/www-project-top-10-privacy-risks/tab_topprivacy.md
+  - sources/repos/www-project-top-10-privacy-risks/OWASP_Top_10_Privacy_Risks_Countermeasures_v2.0.pdf
+  - sources/extra/gdpr.html
+- id: PRIV-DSR-002
+  sheet: PRIV
+  category: DSR
+  title: Make sure access requests do not expose data to another person
+  objective: Finds access processes that give data to the wrong person.
+  steps:
+  - Submit an access request for user A while you use a different e-mail address.
+  - Try to change the user identifier in the request.
+  - Check that the service checks identity before it sends data.
+  - Check the channel that carries the export.
+  example: Burp Repeater on the export request; change the user ID parameter.
+  expected: The service refuses requests that it cannot link to the data subject. The export goes only to the verified owner on a protected channel.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    privacy_top10:
+    - P9
+    - P2
+    other:
+    - GDPR Art. 12
+    - GDPR Art. 15
+    cwe:
+    - CWE-359
+    - CWE-863
+  sources_read:
+  - sources/repos/www-project-top-10-privacy-risks/tab_topprivacy.md
+  - sources/repos/www-project-top-10-privacy-risks/OWASP_Top_10_Privacy_Risks_Countermeasures_v2.0.pdf
+  - sources/extra/gdpr.html
+  - sources/cwe/cwec_latest.xml.zip
+- id: PRIV-DSR-003
+  sheet: PRIV
+  category: DSR
+  title: Test the rectification of personal data and its spread to recipients
+  objective: Finds data that users cannot correct or that stays wrong at third parties.
+  steps:
+  - Change a data field in the account.
+  - Check that the new value shows in all features.
+  - Check recipients and sub-systems for the old value.
+  - Check the update process for critical actions.
+  example: Change a name or address; search downstream systems and exports for the old value.
+  expected: Users can correct their data. The change reaches all systems and recipients.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    privacy_top10:
+    - P7
+    - P9
+    other:
+    - GDPR Art. 5
+    - GDPR Art. 16
+    - GDPR Art. 19
+  sources_read: *id001
+- id: PRIV-DSR-004
+  sheet: PRIV
+  category: DSR
+  title: Test the portability export format
+  objective: Finds exports that are incomplete or that use a format that others cannot read.
+  steps:
+  - Request an export of data that you provided.
+  - Open the file.
+  - Compare the content with the data in the account.
+  - Check the format for structure and machine readability.
+  example: Check for JSON or CSV with a documented schema; compare field counts with the profile.
+  expected: The export holds all data that the user provided in a structured, common, machine-readable format.
+  severity: Low
+  test_type:
+  - Manual
+  refs:
+    privacy_top10:
+    - P9
+    other:
+    - GDPR Art. 20
+  see:
+  - MOB-PRIV-014
+  sources_read: *id001
+- id: PRIV-DSR-005
+  sheet: PRIV
+  category: DSR
+  title: Test the objection and the marketing opt-out
+  objective: Finds marketing that continues after an objection.
+  steps:
+  - Subscribe a test user to marketing.
+  - Use the opt-out link and the account setting.
+  - Look for the stop of messages and profiling.
+  - Check that the record shows the objection.
+  example: Check mail headers for a working unsubscribe link; check the marketing list for the user after 48 hours.
+  expected: Marketing and related profiling stop after the objection. The objection stays on record.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    privacy_top10:
+    - P4
+    - P9
+    other:
+    - GDPR Art. 21
+  sources_read: *id001
+- id: PRIV-DSR-006
+  sheet: PRIV
+  category: DSR
+  title: Check that rights requests have an owner, a tracker and a deadline
+  objective: Finds missing process for the data subject requests.
+  steps:
+  - Ask for the request procedure.
+  - Look at the request log of the last year.
+  - Calculate the time to answer for each request.
+  - Check for refusal records with reasons.
+  example: 'Document review: request tracker export; deadline of one month with a documented extension rule.'
+  expected: All requests are tracked. Answers or reasons for refusal go out within one month, or the extension is told to the user.
+  severity: Medium
+  test_type:
+  - Config Review
+  refs:
+    privacy_top10:
+    - P9
+    - P3
+    other:
+    - GDPR Art. 12
+  sources_read: *id001

@@ -1,0 +1,28 @@
+- id: CICD-IAM-009
+  sheet: CICD
+  category: IAM
+  title: Check that federated deployment roles are separate and cannot change federation
+  objective: Finds deployment roles with administrative rights that let a compromised job change its own trust.
+  steps:
+  - List the federated identities and their permissions policies.
+  - Make sure production and non-production use different identities and trust rules.
+  - Make sure each role has only the cloud operations and resources that the deployment needs.
+  - Make sure deployment roles cannot change federation settings or permissions.
+  example: aws iam list-attached-role-policies --role-name ROLE; aws iam simulate-principal-policy --policy-source-arn ARN --action-names iam:UpdateAssumeRolePolicy iam:AttachRolePolicy
+  expected: Each federated role has least privilege and separate production and test identities. Deployment roles cannot change trust or permissions.
+  severity: High
+  test_type:
+  - Config Review
+  refs:
+    cicd_top10:
+    - CICD-SEC-5
+    - CICD-SEC-2
+    cheatsheet:
+    - Workload_Identity_Federation_Cheat_Sheet
+    cwe:
+    - CWE-250
+    - CWE-732
+    nist_800_53:
+    - AC-6
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Workload_Identity_Federation_Cheat_Sheet.md

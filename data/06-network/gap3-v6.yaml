@@ -1,0 +1,99 @@
+- id: NET-V6-001
+  sheet: NET
+  category: V6
+  title: Test that RA Guard blocks rogue router advertisements, also with extension headers
+  objective: Finds access networks where a rogue router advertisement lets an attacker become the default gateway.
+  preconditions:
+  - Written permission and an isolated test VLAN. Do not run on production.
+  - Test hosts with scapy or the THC-IPv6 tools.
+  steps:
+  - List the access ports. Make sure RA Guard is on for the host-facing ports.
+  - From a test host, send a router advertisement with a different prefix. Do not set a valid router role.
+  - On a second host, look at the routes and the addresses. Make sure the rogue prefix is not there.
+  - Repeat the test with a Destination Options extension header before the ICMPv6 header.
+  - Repeat the test with the packet split into fragments. Make sure the switch logs each drop.
+  example: 'show ipv6 nd raguard policy ; scapy: Ether()/IPv6(src=fe80::bad)/IPv6ExtHdrDestOpt()/ICMPv6ND_RA()/ICMPv6NDOptPrefixInfo(prefix="2001:db8:bad::",prefixlen=64) ; ip -6 route on the victim'
+  expected: The switch drops the rogue router advertisements in all three forms. Hosts show no rogue prefix or router. The drops are logged.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    nist_800_53:
+    - SC-7
+    - SI-4
+    attack:
+    - T1557
+    cwe:
+    - CWE-290
+    other: RFC 6105; RFC 7113 section 3; RFC 9099 section 2.3.2.1; https://www.rfc-editor.org/rfc/rfc7113
+  sources_read:
+  - sources/extra/gap3-C/rfc6105.txt
+  - sources/extra/gap3-C/rfc7113.txt
+  - sources/extra/gap3-C/rfc9099.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  see:
+  - NET-MITM-003
+- id: NET-V6-002
+  sheet: NET
+  category: V6
+  title: Test that DHCPv6 Shield blocks rogue DHCPv6 servers on access ports
+  objective: Finds access networks where a rogue DHCPv6 server can set DNS servers or addresses for hosts.
+  preconditions:
+  - Written permission and an isolated test VLAN. Do not run on production.
+  steps:
+  - Look at the switch configuration. Make sure DHCPv6 server messages are allowed only on trusted ports.
+  - Start a test DHCPv6 server on an access port. Give it a different DNS server address.
+  - Ask for a DHCPv6 lease from a second test host.
+  - Make sure the host does not get an answer from the rogue server.
+  - Look at the switch log. Make sure it shows the dropped server messages.
+  example: show ipv6 dhcp guard policy ; dnsmasq --dhcp-range=::100,::200,constructor:eth0,ra-stateless (lab only) ; dhclient -6 -v eth0
+  expected: DHCPv6 server messages from access ports are dropped. Hosts use only the approved server. The switch logs the drops.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    nist_800_53:
+    - SC-7
+    - SI-4
+    attack:
+    - T1557
+    cwe:
+    - CWE-290
+    other: RFC 7610; RFC 9099 section 2.3.3; https://www.rfc-editor.org/rfc/rfc7610
+  sources_read:
+  - sources/extra/gap3-C/rfc7610.txt
+  - sources/extra/gap3-C/rfc9099.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  see:
+  - NET-MITM-003
+- id: NET-V6-003
+  sheet: NET
+  category: V6
+  title: Check that IPv6 firewall rules match the IPv4 policy
+  objective: Finds networks where IPv6 gives access that the IPv4 firewall blocks.
+  steps:
+  - Find all hosts and edge devices that have IPv6 enabled. Get the IPv4 and IPv6 rulesets.
+  - Compare each IPv4 allow rule with its IPv6 rule. Make sure the IPv6 rules are not wider.
+  - Scan the same hosts from outside over IPv4 and over IPv6. Compare the open ports.
+  - Send IPv6 first fragments that do not hold the full header chain. Make sure the firewall drops them.
+  - Make sure the host firewalls also have IPv6 rules.
+  example: nmap -6 -Pn -p- host6 ; nmap -4 -Pn -p- host4 ; ip6tables -S ; nft list ruleset ; show ipv6 access-list
+  expected: IPv6 rules are as strict as IPv4 rules. Open ports are the same on both. The firewall drops incomplete first fragments.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    nist_800_53:
+    - SC-7
+    - CM-7
+    pci_dss:
+    - 1.4.1
+    cwe:
+    - CWE-1188
+    attack:
+    - T1046
+    other: RFC 9099 sections 2.2.3 and 3.1; https://www.rfc-editor.org/rfc/rfc9099
+  sources_read:
+  - sources/extra/gap3-C/rfc9099.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json

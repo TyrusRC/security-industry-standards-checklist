@@ -1,0 +1,277 @@
+- id: WEB-WEBRTC-001
+  sheet: WEB
+  category: WEBRTC
+  title: Make sure the TURN service blocks reserved and internal addresses
+  objective: Find TURN relays that forward traffic to internal, loopback or broadcast addresses.
+  preconditions:
+  - Only use test credentials.
+  steps:
+  - Get TURN credentials from the application.
+  - Ask the TURN server to relay to loopback, link-local, private and broadcast IPv4 and IPv6 addresses.
+  - Look at whether the allocation or permission is refused.
+  - Review the TURN configuration for denied peer address ranges.
+  example: turnutils_uclient -u user -w pass -p 3478 -e 127.0.0.1 turn.example.com; nmap -sU -p3478 --script stun-info turn.example.com
+  expected: The TURN server refuses relay to reserved address ranges for IPv4 and IPv6.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  level: ASVS L2
+  refs:
+    asvs:
+    - V17.1.1
+    cwe:
+    - CWE-918
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+- id: WEB-WEBRTC-002
+  sheet: WEB
+  category: WEBRTC
+  title: Make sure the TURN service resists resource exhaustion
+  objective: Find TURN servers where one user can open very many ports and exhaust the server.
+  preconditions: &id001
+  - Do not run flood tests on production.
+  steps:
+  - Open allocations with one account until the server refuses.
+  - Check per-user quotas and total port limits in the configuration.
+  - Check that normal users still get allocations during the test.
+  example: turnutils_uclient -u user -w pass -m 500 -n 1000 turn.example.com
+  expected: Per-user allocation limits exist and normal users keep service.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  level: ASVS L3
+  refs:
+    asvs:
+    - V17.1.2
+    cwe:
+    - CWE-770
+    capec:
+    - CAPEC-125
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+- id: WEB-WEBRTC-003
+  sheet: WEB
+  category: WEBRTC
+  title: Make sure the DTLS certificate key is managed by the key policy
+  objective: Find DTLS keys that are unmanaged, shared or never rotated.
+  steps:
+  - Find the DTLS certificate and key of the media server.
+  - Check where the key is stored and who can read it.
+  - Compare handling and rotation with the key management policy.
+  example: openssl x509 -in dtls-cert.pem -noout -dates -fingerprint; ls -l /etc/media/dtls/
+  expected: The DTLS key follows the documented key management policy, with protected storage and rotation.
+  severity: Medium
+  test_type:
+  - Config Review
+  level: ASVS L2
+  refs:
+    asvs:
+    - V17.2.1
+    cheatsheet:
+    - Key_Management_Cheat_Sheet
+    cwe:
+    - CWE-321
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+- id: WEB-WEBRTC-004
+  sheet: WEB
+  category: WEBRTC
+  title: Check DTLS cipher suites and the SRTP protection profile
+  objective: Find weak DTLS cipher suites or SRTP profiles at the media server.
+  steps:
+  - Start a call and capture the DTLS handshake.
+  - Read the negotiated cipher suite and the DTLS-SRTP protection profile.
+  - Try a handshake with weak suites and null profiles.
+  - Compare with the approved list.
+  example: Wireshark filter 'dtls.handshake'; sslyze or openssl s_client -dtls1_2 -connect media.example.com:5004 -use_srtp SRTP_AES128_CM_SHA1_80
+  expected: Only approved DTLS cipher suites and strong SRTP protection profiles are accepted.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  level: ASVS L2
+  refs:
+    asvs:
+    - V17.2.2
+    cwe:
+    - CWE-327
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+- id: WEB-WEBRTC-005
+  sheet: WEB
+  category: WEBRTC
+  title: Make sure the media server checks SRTP authentication
+  objective: Find media servers that accept injected RTP packets.
+  preconditions: *id001
+  steps:
+  - Join a call as a test client.
+  - Send forged RTP and SRTP packets with a wrong auth tag into the stream.
+  - Check whether the server drops them and the media stays clean.
+  example: scapy script that sends RTP to the media port; compare audio output
+  expected: The server drops packets that fail SRTP authentication. No media is inserted and no denial of service occurs.
+  severity: High
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V17.2.3
+    cwe:
+    - CWE-345
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+- id: WEB-WEBRTC-006
+  sheet: WEB
+  category: WEBRTC
+  title: Make sure the media server survives malformed SRTP packets
+  objective: Find media servers that crash or stall on malformed SRTP packets.
+  preconditions: *id001
+  steps:
+  - Fuzz SRTP and RTP packets towards the media port with test tools.
+  - Watch the server process, CPU and memory.
+  - Check that other calls continue.
+  example: boofuzz SRTP template against media.example.com; monitor with top
+  expected: The server ignores malformed packets and keeps processing legitimate media.
+  severity: High
+  test_type:
+  - Manual
+  - Automated
+  level: ASVS L2
+  refs:
+    asvs:
+    - V17.2.4
+    cwe:
+    - CWE-20
+    - CWE-248
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+- id: WEB-WEBRTC-007
+  sheet: WEB
+  category: WEBRTC
+  title: Make sure the media server and recording survive SRTP floods
+  objective: Find media servers and recording services that fail under floods from legitimate users.
+  preconditions: *id001
+  steps:
+  - Create a flood of valid SRTP traffic from many test clients.
+  - Check that existing calls and the recording process keep working.
+  - Check limits per client.
+  example: WebRTC load test tool that opens 200 test clients
+  expected: Media processing and recording continue during floods from legitimate users.
+  severity: Medium
+  test_type:
+  - Manual
+  level: ASVS L3
+  refs:
+    asvs:
+    - V17.2.5
+    - V17.2.7
+    cwe:
+    - CWE-400
+    capec:
+    - CAPEC-125
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+- id: WEB-WEBRTC-008
+  sheet: WEB
+  category: WEBRTC
+  title: Check the media server for the DTLS ClientHello race condition
+  objective: Find media servers that are vulnerable to the DTLS ClientHello race condition.
+  preconditions: *id001
+  steps:
+  - Find the media server product and version.
+  - Check vendor advisories for the DTLS ClientHello race condition.
+  - If no advisory clears it, run the race test with two parallel ClientHello messages in a test system.
+  example: Review the CVE list for the media stack; custom script that sends two ClientHello messages in parallel
+  expected: The server is patched for the known issue or the race test shows no failure.
+  severity: High
+  test_type:
+  - Manual
+  level: ASVS L3
+  refs:
+    asvs:
+    - V17.2.6
+    owasp_top10:
+    - A03:2025
+    cwe:
+    - CWE-362
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+- id: WEB-WEBRTC-009
+  sheet: WEB
+  category: WEBRTC
+  title: Make sure the DTLS certificate matches the SDP fingerprint
+  objective: Find clients and servers that accept DTLS certificates that do not match the SDP fingerprint.
+  steps:
+  - Intercept the signaling and change the a=fingerprint line in the SDP.
+  - Start the call.
+  - Check that the media stream ends.
+  example: Intercept the SDP in the signaling WebSocket with Burp and change the a=fingerprint value
+  expected: The media stream ends when the DTLS certificate does not match the SDP fingerprint.
+  severity: High
+  test_type:
+  - Manual
+  level: ASVS L3
+  refs:
+    asvs:
+    - V17.2.8
+    cwe:
+    - CWE-295
+    - CWE-345
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+- id: WEB-WEBRTC-010
+  sheet: WEB
+  category: WEBRTC
+  title: Check signaling server rate limits against floods
+  objective: Find signaling servers that fail during message floods.
+  preconditions: *id001
+  steps:
+  - Send a flood of signaling messages from one test client.
+  - Check that the server limits the client and keeps serving others.
+  - Check the rate limit setting at the signaling level.
+  example: wscat loop or k6 websocket script sending 10000 messages per second to wss://example.com/signal
+  expected: Signaling rate limits stop the flood, and legitimate messages continue.
+  severity: Medium
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V17.3.1
+    cwe:
+    - CWE-770
+    - CWE-799
+    capec:
+    - CAPEC-125
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+- id: WEB-WEBRTC-011
+  sheet: WEB
+  category: WEBRTC
+  title: Make sure the signaling server handles malformed messages safely
+  objective: Find signaling servers that crash on malformed messages, integer overflows or large fields.
+  preconditions: *id001
+  steps:
+  - Send malformed JSON or SDP, very long fields, and extreme numbers to the signaling endpoint.
+  - Watch the server process and logs.
+  - Check that other sessions are not affected.
+  example: boofuzz or a custom fuzzer for the signaling protocol; Burp WebSocket Repeater with oversized fields
+  expected: The server rejects malformed messages with input validation. It does not crash or stall.
+  severity: High
+  test_type:
+  - Manual
+  - Automated
+  level: ASVS L2
+  refs:
+    asvs:
+    - V17.3.2
+    cwe:
+    - CWE-20
+    - CWE-190
+    - CWE-248
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json

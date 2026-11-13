@@ -1,0 +1,97 @@
+- id: NET-WRMT-001
+  sheet: NET
+  category: WRMT
+  title: Check WinRM for Basic authentication, clear-text traffic and stored credentials
+  objective: Finds WinRM settings that allow weak or clear-text authentication.
+  preconditions: &id001
+  - Local administrator read access to the Windows host in scope.
+  - Read-only review. Do not change policy on a production host without a change window.
+  steps:
+  - Read the WinRM client and service setting "Allow Basic authentication".
+  - Read the setting "Allow unencrypted traffic" for the client and the service.
+  - Read the setting "Disallow Digest authentication".
+  - Read the setting "Disallow WinRM from storing RunAs credentials".
+  - List the WinRM listeners. Make sure each listener uses HTTPS or an encrypted transport.
+  example: winrm get winrm/config ; winrm enumerate winrm/config/listener ; reg query HKLM\SOFTWARE\Policies\Microsoft\Windows\WinRM\Service /v AllowBasic /v AllowUnencryptedTraffic
+  expected: Basic authentication is off, unencrypted traffic is off, Digest is off and RunAs credentials are not stored. No listener sends clear text.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1021.006
+    cwe:
+    - CWE-319
+    nist_800_53:
+    - AC-17
+    - SC-8
+    - IA-2
+    other:
+    - https://learn.microsoft.com/azure/governance/policy/samples/guest-configuration-baseline-windows
+  sources_read:
+  - sources/extra/gap3-B/guest-configuration-baseline-windows.md
+- id: NET-WRMT-002
+  sheet: NET
+  category: WRMT
+  title: 'Check RDP settings: NLA, encryption level, saved passwords, log on rights'
+  objective: Finds RDP hosts that skip Network Level Authentication or allow broad access.
+  preconditions: *id001
+  steps:
+  - Read the setting "Require user authentication for remote connections by using Network Level Authentication".
+  - Read "Set client connection encryption level" and "Always prompt for password upon connection".
+  - Read "Do not allow passwords to be saved" and "Do not allow drive redirection".
+  - Read the user right "Allow log on through Remote Desktop Services". List the members.
+  - Look for the policy "Remote host allows delegation of non-exportable credentials" for Remote Credential Guard.
+  example: reg query "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" /v UserAuthentication /v MinEncryptionLevel ; reg query "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services"
+  expected: NLA is on. The encryption level is High. A password prompt is required. Only Administrators and Remote Desktop Users can log on. Passwords are not saved.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1021.001
+    cwe:
+    - CWE-287
+    nist_800_53:
+    - AC-17
+    - IA-2
+    other:
+    - https://learn.microsoft.com/azure/governance/policy/samples/guest-configuration-baseline-windows
+  sources_read:
+  - sources/extra/gap3-B/guest-configuration-baseline-windows.md
+  see:
+  - NET-SVC-002
+- id: NET-WRMT-003
+  sheet: NET
+  category: WRMT
+  title: Check that local and guest accounts cannot log on from the network
+  objective: Finds hosts where guest and local accounts can sign in over SMB or RPC.
+  preconditions: *id001
+  steps:
+  - Read the user right "Deny access to this computer from the network".
+  - Make sure the right includes Guests. Note any other denied group.
+  - Read the user rights "Deny log on as a batch job", "as a service" and "locally".
+  - Read the setting "Sharing and security model for local accounts".
+  - Read "Limit local account use of blank passwords to console logon only".
+  example: secedit /export /cfg sec.inf /areas USER_RIGHTS ; findstr "SeDenyNetworkLogonRight SeDenyBatchLogonRight SeDenyServiceLogonRight SeDenyInteractiveLogonRight" sec.inf
+  expected: The deny network logon right includes Guests. The sharing model for local accounts is Classic. Blank passwords work at the console only.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1078.003
+    cwe:
+    - CWE-287
+    nist_800_53:
+    - AC-17
+    - AC-6
+    - AC-2
+    other:
+    - https://learn.microsoft.com/azure/governance/policy/samples/guest-configuration-baseline-windows
+    - Remote UAC token filtering is not in the sources read. See notes-gap3B.md.
+  sources_read:
+  - sources/extra/gap3-B/guest-configuration-baseline-windows.md

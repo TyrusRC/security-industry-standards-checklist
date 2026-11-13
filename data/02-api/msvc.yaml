@@ -1,0 +1,173 @@
+- id: API-MSVC-001
+  sheet: API
+  category: MSVC
+  title: Call back-end services directly and skip the API gateway
+  objective: Finds services that trust the gateway and have no checks of their own.
+  preconditions:
+  - Network access to the internal segment from a test client.
+  steps:
+  - List the internal services and their addresses from the architecture document.
+  - From a test client in the network, call a service directly without a gateway.
+  - Send requests without the headers that the gateway adds.
+  - Check the network rules that restrict direct access.
+  example: curl http://orders.internal:8080/v1/orders/1 from a test pod; kubectl get networkpolicy; nmap of the service ports.
+  expected: Services accept calls only from the gateway or from authenticated services. Direct calls without checks fail.
+  severity: High
+  test_type: Manual
+  refs:
+    api_top10:
+    - API2:2023
+    cheatsheet:
+    - Microservices_Security_Cheat_Sheet
+    cwe:
+    - CWE-306
+    - CWE-284
+  see:
+  - WEB-TLS-011
+  - WEB-CONF-015
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa2-broken-authentication.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Microservices_Security_Cheat_Sheet.md
+- id: API-MSVC-002
+  sheet: API
+  category: MSVC
+  title: Test object and tenant rules at each service behind the gateway
+  objective: Finds services that rely on the edge for object and tenant checks.
+  steps:
+  - Send calls to an internal service with the identity of user A and an object of user B.
+  - Change the tenant in the call.
+  - Check each internal hop for its own checks.
+  - Check that denials are logged.
+  example: 'curl -H ''X-User-Id: <idA>'' http://orders.internal/v1/orders/<idB> from a test pod; Postman against the service address.'
+  expected: Each service enforces object, tenant and business rules itself. Edge checks are not the only protection.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    api_top10:
+    - API1:2023
+    - API5:2023
+    asvs:
+    - V8.2.2
+    cheatsheet:
+    - Microservices_Security_Cheat_Sheet
+    cwe:
+    - CWE-639
+    - CWE-285
+  see:
+  - WEB-AUTHZ-011
+  - WEB-AUTHZ-012
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa1-broken-object-level-authorization.md
+  - sources/repos/API-Security/editions/2023/en/0xa5-broken-function-level-authorization.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Microservices_Security_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: API-MSVC-003
+  sheet: API
+  category: MSVC
+  title: Test identity propagation between services
+  objective: Finds forged or reused user context headers and tokens between services.
+  steps:
+  - 'Find how the user context moves between services: header, signed token or mTLS identity.'
+  - Change the user ID or role in the context.
+  - Send a call with a context for a user without the caller service identity.
+  - Replay a context after the token has expired.
+  example: curl with a changed X-User header; jwt_tool on the internal token; Burp between two test services.
+  expected: Services check the integrity of the user context. They authenticate the service that makes the call separately from the user.
+  severity: High
+  test_type: Manual
+  refs:
+    api_top10:
+    - API2:2023
+    cheatsheet:
+    - Microservices_Security_Cheat_Sheet
+    cwe:
+    - CWE-290
+    - CWE-345
+  see:
+  - WEB-AUTHZ-011
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa2-broken-authentication.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Microservices_Security_Cheat_Sheet.md
+- id: API-MSVC-004
+  sheet: API
+  category: MSVC
+  title: Check service-to-service authentication and token validation
+  objective: Finds internal calls with no authentication, weak tokens or slow revoke.
+  steps:
+  - 'List the authentication method for each service call: mTLS or tokens.'
+  - Call a service without a client certificate or token.
+  - Use a token meant for another service.
+  - Revoke a token. Measure how long it still works. Check that a failed validation rejects the call.
+  example: openssl s_client -cert; curl with a token for another audience; introspection endpoint checks.
+  expected: Internal calls need mTLS or a validated token. Revoke takes effect in a known time. Failed validation rejects the request.
+  severity: High
+  test_type: Manual
+  level: ASVS L3
+  refs:
+    api_top10:
+    - API2:2023
+    asvs:
+    - V12.3.5
+    cheatsheet:
+    - Microservices_Security_Cheat_Sheet
+    cwe:
+    - CWE-306
+    - CWE-287
+  see:
+  - WEB-TLS-011
+  - WEB-ARCH-003
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa2-broken-authentication.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Microservices_Security_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: API-MSVC-005
+  sheet: API
+  category: MSVC
+  title: Review the architecture document for services, data flows and API definitions
+  objective: Finds absent records of services, relations, data assets and API definitions.
+  steps:
+  - Read the list of services, stores and queues with their API definitions.
+  - Read the list of service-to-service and service-to-store relations.
+  - Compare with the real traffic and the cluster objects.
+  - Mark services that have no entry or that have broad scopes.
+  example: kubectl get svc -A; service mesh traffic graph; comparison with the architecture document.
+  expected: The document lists all services, relations, data assets and API definitions. Each service has least privilege scopes.
+  severity: Low
+  test_type: Config Review
+  refs:
+    api_top10:
+    - API9:2023
+    cheatsheet:
+    - Microservices_based_Security_Arch_Doc_Cheat_Sheet
+    cwe:
+    - CWE-1059
+  see:
+  - WEB-ARCH-001
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa9-improper-inventory-management.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Microservices_based_Security_Arch_Doc_Cheat_Sheet.md
+- id: API-MSVC-006
+  sheet: API
+  category: MSVC
+  title: Check the logs of a service architecture
+  objective: Finds services that log secrets or cannot be traced across calls.
+  steps:
+  - Make one call that passes through several services.
+  - Find the correlation ID in the log entries of each service.
+  - Look for secrets and tokens in the logs.
+  - Check that the log agent and broker use mutual authentication.
+  example: Search in the central log system for the request ID; review of the agent and broker configuration.
+  expected: Each service logs a correlation ID and no secrets. Log transport is authenticated and encrypted.
+  severity: Low
+  test_type: Config Review
+  refs:
+    cheatsheet:
+    - Microservices_Security_Cheat_Sheet
+    cwe:
+    - CWE-532
+    - CWE-778
+  see:
+  - WEB-LOG-013
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Microservices_Security_Cheat_Sheet.md

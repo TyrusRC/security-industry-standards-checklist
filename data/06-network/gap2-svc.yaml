@@ -1,0 +1,701 @@
+- id: NET-SVC-008
+  sheet: NET
+  category: SVC
+  title: 'Check time synchronization client settings: chrony, ntpd and timesyncd'
+  objective: Finds hosts with no time source, one weak time source or a time service that runs as root.
+  preconditions: &id001
+  - Root or sudo read access to the host in scope.
+  - Do not change settings on a production host without a change window.
+  steps:
+  - Look at which time service is active. Make sure only one is active.
+  - Read /etc/chrony.conf, /etc/ntp.conf or /etc/systemd/timesyncd.conf.
+  - Look for at least two remote servers or a pool, and for NTS if the server supports it.
+  - Look at the maxpoll value and the user that runs the daemon.
+  - Run chronyc tracking or timedatectl and look at the offset and the synchronized flag.
+  example: systemctl is-active chronyd ntpd systemd-timesyncd ; grep -vE "^#|^$" /etc/chrony.conf ; chronyc tracking ; chronyc sources -v ; timedatectl status ; stat -c "%U:%G %a" /etc/chrony.keys
+  expected: One time service runs with at least two remote sources. The clock is synchronized with a small offset. The daemon runs as an unprivileged user and key files are root-only.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:chrony_set_nts
+    - cac:chronyd_configure_local_socket
+    - cac:chronyd_configure_pool_and_server
+    - cac:chronyd_or_ntpd_set_maxpoll
+    - cac:chronyd_or_ntpd_specify_multiple_servers
+    - cac:chronyd_or_ntpd_specify_remote_server
+    - cac:chronyd_run_as_chrony_user
+    - cac:chronyd_server_directive
+    - cac:chronyd_specify_remote_server
+    - cac:chronyd_sync_clock
+    - cac:file_groupowner_etc_chrony_keys
+    - cac:file_owner_etc_chrony_keys
+    - cac:file_permissions_etc_chrony_keys
+    - cac:ntp_single_service_active
+    - cac:ntpd_run_as_ntp_user
+    - cac:ntpd_specify_multiple_servers
+    - cac:ntpd_specify_remote_server
+    - cac:package_chrony_installed
+    - cac:package_ntp_installed
+    - cac:package_ntp_removed
+    - cac:package_timesyncd_installed
+    - cac:package_timesyncd_removed
+    - cac:service_chronyd_disabled
+    - cac:service_chronyd_enabled
+    - cac:service_chronyd_or_ntpd_enabled
+    - cac:service_ntp_enabled
+    - cac:service_ntpd_enabled
+    - cac:service_timesyncd_configured
+    - cac:service_timesyncd_disabled
+    - cac:service_timesyncd_enabled
+    - cac:service_timesyncd_root_distance_configured
+    nist_800_53:
+    - AU-8
+    - CM-6
+    - AU-12
+    - CM-7
+    pci_dss:
+    - 10.4.3
+    - '10.4'
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ntp/chrony_set_nts/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ntp/chronyd_server_directive/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ntp/ntpd_specify_multiple_servers/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ntp/service_chronyd_enabled/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ntp/service_timesyncd_root_distance_configured/rule.yml
+- id: NET-SVC-009
+  sheet: NET
+  category: SVC
+  title: 'Check cron and at: service state, user lists and file permissions'
+  objective: Finds hosts where any user can schedule jobs or where job files can be changed by others.
+  preconditions: *id001
+  steps:
+  - Look at the cron and atd service state.
+  - List /etc/crontab, /etc/cron.d, /etc/cron.hourly, /etc/cron.daily, /etc/cron.weekly, /etc/cron.monthly and /etc/cron.yearly with owner and mode.
+  - Look for /etc/cron.allow and /etc/at.allow. Make sure cron.deny and at.deny do not exist.
+  - List the owner and mode of the allow files.
+  - Look at anacron if the host is not always on.
+  example: systemctl is-enabled crond cron atd ; stat -c "%U:%G %a %n" /etc/crontab /etc/cron.* /etc/at.allow ; ls -l /etc/cron.deny /etc/at.deny
+  expected: Root owns all cron files and none is writable by group or others. Only listed users can use cron and at. The at service is off if no one needs it.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:disable_anacron
+    - cac:file_at_allow_exists
+    - cac:file_at_deny_not_exist
+    - cac:file_cron_allow_exists
+    - cac:file_cron_deny_not_exist
+    - cac:file_groupowner_at_allow
+    - cac:file_groupowner_at_deny
+    - cac:file_groupowner_cron_allow
+    - cac:file_groupowner_cron_d
+    - cac:file_groupowner_cron_daily
+    - cac:file_groupowner_cron_deny
+    - cac:file_groupowner_cron_hourly
+    - cac:file_groupowner_cron_monthly
+    - cac:file_groupowner_cron_weekly
+    - cac:file_groupowner_cron_yearly
+    - cac:file_groupowner_crontab
+    - cac:file_owner_at_allow
+    - cac:file_owner_at_deny
+    - cac:file_owner_cron_allow
+    - cac:file_owner_cron_d
+    - cac:file_owner_cron_daily
+    - cac:file_owner_cron_deny
+    - cac:file_owner_cron_hourly
+    - cac:file_owner_cron_monthly
+    - cac:file_owner_cron_weekly
+    - cac:file_owner_cron_yearly
+    - cac:file_owner_crontab
+    - cac:file_permissions_at_allow
+    - cac:file_permissions_at_deny
+    - cac:file_permissions_cron_allow
+    - cac:file_permissions_cron_d
+    - cac:file_permissions_cron_daily
+    - cac:file_permissions_cron_hourly
+    - cac:file_permissions_cron_monthly
+    - cac:file_permissions_cron_not_modified
+    - cac:file_permissions_cron_weekly
+    - cac:file_permissions_cron_yearly
+    - cac:file_permissions_crontab
+    - cac:package_cron_installed
+    - cac:service_atd_disabled
+    - cac:service_cron_enabled
+    - cac:service_crond_enabled
+    nist_800_53:
+    - CM-6
+    - AC-6
+    - CM-7
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/cron_and_at/disable_anacron/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/cron_and_at/file_groupowner_cron_deny/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/cron_and_at/file_owner_cron_deny/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/cron_and_at/file_permissions_cron_daily/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/cron_and_at/service_crond_enabled/rule.yml
+- id: NET-SVC-010
+  sheet: NET
+  category: SVC
+  title: 'Check for obsolete clear-text services: telnet, rsh, tftp, NIS, talk, rsync, xinetd'
+  objective: Finds old remote access and file transfer services that send passwords in clear text or trust host names.
+  preconditions: *id001
+  steps:
+  - Look for the packages telnet, rsh, rlogin, rexec, talk, tftp, ypbind, ypserv, rsync and xinetd.
+  - Look at the state of the matching services and sockets.
+  - Look for .rhosts, hosts.equiv and other host trust files.
+  - Look at nsswitch.conf for NIS entries.
+  - Read /etc/hosts.allow and /etc/hosts.deny where TCP wrappers are in use.
+  example: rpm -qa | grep -E "telnet|rsh|talk|tftp|ypbind|ypserv|xinetd|rsync" ; systemctl list-unit-files | grep -E "telnet|rsh|rlogin|rexec|tftp|rsyncd|xinetd|ypbind" ; find / -name ".rhosts" -o -name
+    hosts.equiv 2>/dev/null ; grep nis /etc/nsswitch.conf
+  expected: None of the obsolete packages or services is present. No host trust file exists. If TFTP must stay, it runs in secure mode.
+  severity: High
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:configure_etc_hosts_deny
+    - cac:file_groupowner_etc_hosts_allow
+    - cac:file_groupowner_etc_hosts_deny
+    - cac:file_owner_etc_hosts_allow
+    - cac:file_owner_etc_hosts_deny
+    - cac:file_permissions_etc_hosts_allow
+    - cac:file_permissions_etc_hosts_deny
+    - cac:no_host_based_files
+    - cac:no_nis_in_nsswitch
+    - cac:no_rsh_trust_files
+    - cac:no_user_host_based_files
+    - cac:package_inetutils-telnet_removed
+    - cac:package_inetutils-telnetd_removed
+    - cac:package_nis_removed
+    - cac:package_ntpdate_removed
+    - cac:package_rsh-server_removed
+    - cac:package_rsh_removed
+    - cac:package_rsync_removed
+    - cac:package_talk-server_removed
+    - cac:package_talk_removed
+    - cac:package_tcp_wrappers_installed
+    - cac:package_tcp_wrappers_removed
+    - cac:package_telnet-server_removed
+    - cac:package_telnet_removed
+    - cac:package_telnetd-ssl_removed
+    - cac:package_telnetd_removed
+    - cac:package_tftp-server_removed
+    - cac:package_tftp_removed
+    - cac:package_xinetd_removed
+    - cac:package_ypbind_removed
+    - cac:package_ypserv_removed
+    - cac:service_rexec_disabled
+    - cac:service_rlogin_disabled
+    - cac:service_rsh_disabled
+    - cac:service_rsyncd_disabled
+    - cac:service_telnet_disabled
+    - cac:service_tftp_disabled
+    - cac:service_xinetd_disabled
+    - cac:service_ypbind_disabled
+    - cac:service_ypserv_disabled
+    - cac:tftp_uses_secure_mode_systemd
+    - cac:tftpd_uses_secure_mode
+    nist_800_53:
+    - CM-7
+    - CM-6
+    - IA-5
+    - AC-6
+    pci_dss:
+    - 2.2.2
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/obsolete/inetd_and_xinetd/configure_etc_hosts_deny/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/obsolete/r_services/no_user_host_based_files/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/obsolete/inetd_and_xinetd/package_tcp_wrappers_removed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/obsolete/r_services/service_rexec_disabled/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/obsolete/tftp/tftpd_uses_secure_mode/rule.yml
+- id: NET-SVC-011
+  sheet: NET
+  category: SVC
+  title: Check NFS and RPC services, exports and client mounts
+  objective: Finds NFS servers that export to all hosts or trust remote root, and hosts that run RPC with no need.
+  preconditions: *id001
+  steps:
+  - Look at the NFS, rpcbind and rpc services and the packages.
+  - Read /etc/exports.
+  - Look for no_root_squash, all_squash, insecure_locks, wildcard clients and missing Kerberos security flavors.
+  - Look at the fixed ports of lockd, mountd and statd.
+  - Look at the client mount options for sec=krb5, nosuid, nodev and noexec.
+  example: systemctl is-enabled nfs-server rpcbind ; cat /etc/exports ; exportfs -v ; rpcinfo -p ; findmnt -t nfs,nfs4
+  expected: The NFS and RPC services run only on hosts that serve or use NFS. Exports name hosts, use root squash and Kerberos, and clients mount with nosuid, nodev and noexec.
+  severity: High
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:nfs_fixed_lockd_tcp_port
+    - cac:nfs_fixed_lockd_udp_port
+    - cac:nfs_fixed_mountd_port
+    - cac:nfs_fixed_statd_port
+    - cac:nfs_no_anonymous
+    - cac:no_all_squash_exports
+    - cac:no_insecure_locks_exports
+    - cac:package_nfs-common_removed
+    - cac:package_nfs-kernel-server_removed
+    - cac:package_nfs-utils_removed
+    - cac:package_rpcbind_removed
+    - cac:restrict_nfs_clients_to_privileged_ports
+    - cac:service_netfs_disabled
+    - cac:service_nfs_disabled
+    - cac:service_nfslock_disabled
+    - cac:service_rpcbind_disabled
+    - cac:service_rpcgssd_disabled
+    - cac:service_rpcidmapd_disabled
+    - cac:service_rpcsvcgssd_disabled
+    - cac:use_kerberos_security_all_exports
+    - cac:use_root_squashing_all_exports
+    nist_800_53:
+    - CM-7
+    - CM-6
+    - IA-2
+    - AC-17
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/nfs_and_rpc/nfs_configuring_all_machines/nfs_configure_fixed_ports/nfs_fixed_lockd_tcp_port/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/nfs_and_rpc/nfs_configuring_servers/no_all_squash_exports/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/nfs_and_rpc/disabling_nfs/disabling_nfs_services/package_rpcbind_removed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/nfs_and_rpc/disabling_nfs/disabling_nfs_services/service_rpcbind_disabled/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/nfs_and_rpc/nfs_configuring_servers/use_root_squashing_all_exports/rule.yml
+- id: NET-SVC-012
+  sheet: NET
+  category: SVC
+  title: Check Samba and FTP services for signing, uploads and anonymous access
+  objective: Finds file transfer services that allow anonymous login, uploads or unsigned SMB sessions.
+  preconditions: *id001
+  steps:
+  - Look at the samba and vsftpd packages and services.
+  - Read /etc/samba/smb.conf and look at client signing, server signing and root login.
+  - Read /etc/vsftpd/vsftpd.conf and look at anonymous_enable, write_enable, xferlog_enable and banner settings.
+  - Look at the firewall rule for FTP and at the file system of the FTP home.
+  example: rpm -q samba vsftpd ; testparm -s | grep -iE "signing|root|guest" ; grep -vE "^#|^$" /etc/vsftpd/vsftpd.conf ; systemctl is-enabled smb vsftpd
+  expected: Samba and FTP are off unless the host role needs them. Where in use, SMB signing is required, anonymous login is off, uploads are off and transfers are logged.
+  severity: High
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:ftp_configure_firewall
+    - cac:ftp_disable_uploads
+    - cac:ftp_home_partition
+    - cac:ftp_limit_users
+    - cac:ftp_log_transactions
+    - cac:ftp_present_banner
+    - cac:ftp_restrict_to_anon
+    - cac:package_ftp_removed
+    - cac:package_samba-common_installed
+    - cac:package_samba_removed
+    - cac:package_tnftp_removed
+    - cac:package_vsftpd_installed
+    - cac:package_vsftpd_removed
+    - cac:require_smb_client_signing
+    - cac:service_smb_disabled
+    - cac:service_vsftpd_disabled
+    - cac:smb_server_disable_root
+    nist_800_53:
+    - CM-7
+    - CM-6
+    - IA-5
+    - AC-3
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ftp/ftp_configure_vsftpd/ftp_configure_firewall/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ftp/ftp_configure_vsftpd/ftp_log_transactions/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/smb/configuring_samba/package_samba-common_installed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ftp/disabling_vsftpd/package_vsftpd_removed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/smb/configuring_samba/smb_server_disable_root/rule.yml
+- id: NET-SVC-013
+  sheet: NET
+  category: SVC
+  title: Check DHCP, DNS, proxy, RADIUS and routing daemons on the host
+  objective: Finds servers with network infrastructure daemons that the host role does not need or that are not hardened.
+  preconditions: *id001
+  steps:
+  - Look for the packages and services dhcpd, kea, named, dnsmasq, unbound, squid, freeradius and quagga.
+  - For each one found, compare it with the role of the host.
+  - For a DHCP server, read dhcpd.conf for logging, bootp and DDNS settings.
+  - For a DNS server, look at dynamic updates in named.conf.
+  example: rpm -qa | grep -E "dhcp|kea|bind|dnsmasq|unbound|squid|freeradius|quagga" ; systemctl is-enabled dhcpd named dnsmasq squid zebra ; grep -E "ddns-update-style|deny bootp|log-facility" /etc/dhcp/dhcpd.conf
+    ; grep allow-update /etc/named.conf
+  expected: No unneeded daemon is installed or enabled. A server that must run has logging on, bootp and dynamic updates off, and serves only the data that it needs.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:dhcp_server_configure_logging
+    - cac:dhcp_server_deny_bootp
+    - cac:dhcp_server_deny_decline
+    - cac:dhcp_server_disable_ddns
+    - cac:dhcp_server_minimize_served_info
+    - cac:dns_server_disable_dynamic_updates
+    - cac:package_bind_removed
+    - cac:package_dhcp_removed
+    - cac:package_dnsmasq_removed
+    - cac:package_freeradius_removed
+    - cac:package_kea_removed
+    - cac:package_quagga_removed
+    - cac:package_squid_removed
+    - cac:package_unbound_removed
+    - cac:service_dhcpd6_disabled
+    - cac:service_dhcpd_disabled
+    - cac:service_dnsmasq_disabled
+    - cac:service_kea_dhcp4_server_disabled
+    - cac:service_kea_dhcp6_server_disabled
+    - cac:service_kea_dhcp_ddns_server_disabled
+    - cac:service_named_disabled
+    - cac:service_squid_disabled
+    - cac:service_zebra_disabled
+    nist_800_53:
+    - CM-7
+    - CM-6
+    - AU-12
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/dhcp/dhcp_server_configuration/dhcp_server_configure_logging/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/dns/dns_server_protection/dns_server_disable_dynamic_updates/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/routing/disabling_quagga/package_quagga_removed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/dhcp/disabling_dhcp_server/service_kea_dhcp4_server_disabled/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/routing/disabling_quagga/service_zebra_disabled/rule.yml
+- id: NET-SVC-014
+  sheet: NET
+  category: SVC
+  title: 'Check Postfix and Dovecot: network listening, relay and TLS'
+  objective: Finds mail services that relay for anyone, listen on all interfaces or accept clear-text passwords.
+  preconditions: *id001
+  steps:
+  - Look at which MTA is installed. Make sure sendmail is not.
+  - Read /etc/postfix/main.cf and look at inet_interfaces, smtpd_banner and the relay restrictions.
+  - Look at the relayhost and the root and postmaster aliases.
+  - Read the Dovecot settings for ssl, ssl_cert, ssl_key and disable_plaintext_auth.
+  - Try an open relay test from another host.
+  example: postconf -n | grep -E "inet_interfaces|smtpd_banner|smtpd_relay_restrictions|mynetworks|relayhost" ; doveconf -n | grep -E "^ssl|disable_plaintext_auth" ; ss -tlnp | grep -E ":25|:143|:993"
+  expected: A local-only MTA listens on the loopback address. A mail server relays only for approved networks. IMAP and POP need TLS and refuse clear-text passwords.
+  severity: High
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:dovecot_configure_ssl_cert
+    - cac:dovecot_configure_ssl_key
+    - cac:dovecot_disable_plaintext_auth
+    - cac:dovecot_enable_ssl
+    - cac:has_nonlocal_mta
+    - cac:package_cyrus-imapd_removed
+    - cac:package_dovecot_removed
+    - cac:package_mailx_installed
+    - cac:package_postfix_installed
+    - cac:package_s-nail_installed
+    - cac:package_sendmail_removed
+    - cac:postfix_client_configure_mail_alias
+    - cac:postfix_client_configure_mail_alias_postmaster
+    - cac:postfix_client_configure_relayhost
+    - cac:postfix_network_listening_disabled
+    - cac:postfix_prevent_unrestricted_relay
+    - cac:postfix_server_banner
+    - cac:service_dovecot_disabled
+    - cac:service_postfix_enabled
+    nist_800_53:
+    - CM-7
+    - CM-6
+    - CM-3
+    - AC-8
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/imap/configure_dovecot/dovecot_enabling_ssl/dovecot_configure_ssl_cert/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/mail/has_nonlocal_mta/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/mail/package_s-nail_installed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/mail/postfix_client/postfix_network_listening_disabled/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/mail/service_postfix_enabled/rule.yml
+  see:
+  - NET-MAIL-001
+- id: NET-SVC-015
+  sheet: NET
+  category: SVC
+  title: 'Check the SNMP agent: installation, service state and protocol version'
+  objective: Finds hosts with an SNMP agent that is not needed or that uses SNMP version 1 or 2c.
+  preconditions: *id001
+  steps:
+  - Look for the net-snmp package and the snmpd service.
+  - Read /etc/snmp/snmpd.conf and look at the version, the users and the access control entries.
+  - Make sure SNMP version 3 with authentication and privacy is in use.
+  example: rpm -q net-snmp ; systemctl is-enabled snmpd ; grep -vE "^#|^$" /etc/snmp/snmpd.conf ; ss -ulnp | grep :161
+  expected: The SNMP agent is removed if not needed. Where in use, only SNMP version 3 with authentication and encryption is on.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:package_net-snmp_removed
+    - cac:service_snmpd_disabled
+    - cac:snmpd_use_newer_protocol
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/snmp/disabling_snmp_service/package_net-snmp_removed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/snmp/disabling_snmp_service/service_snmpd_disabled/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/snmp/snmp_configure_server/snmpd_use_newer_protocol/rule.yml
+- id: NET-SVC-016
+  sheet: NET
+  category: SVC
+  title: Check that unneeded services and daemons are off
+  objective: Finds services that add attack surface or leak information and that the host role does not need.
+  preconditions: *id001
+  steps:
+  - List the enabled unit files and the listening sockets.
+  - Look for avahi, cups, abrt, apport, cockpit, kdump, netconsole, rdisc, saslauthd, sysstat and rhnsd.
+  - Look for the services acpid, certmonger, oddjobd, portreserve, qpidd and quota_nld.
+  - Look at the list of masked units. Compare the rest with the role of the host.
+  - Look at the avahi and cups settings if they must stay.
+  example: systemctl list-unit-files --state=enabled ; ss -tulnp ; systemctl is-enabled avahi-daemon cups abrtd apport cockpit.socket kdump rdisc ; grep -vE "^#|^$" /etc/avahi/avahi-daemon.conf
+  expected: Only the services that the host role needs are enabled. Print, discovery, crash report and remote management services are off.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:avahi_check_ttl
+    - cac:avahi_disable_publishing
+    - cac:avahi_ip_only
+    - cac:avahi_prevent_port_sharing
+    - cac:avahi_restrict_published_information
+    - cac:cups_disable_browsing
+    - cac:cups_disable_printserver
+    - cac:mask_nonessential_services
+    - cac:package_abrt_removed
+    - cac:package_avahi-autoipd_removed
+    - cac:package_avahi_removed
+    - cac:package_cups_removed
+    - cac:package_psacct_installed
+    - cac:service_abrtd_disabled
+    - cac:service_acpid_disabled
+    - cac:service_apport_disabled
+    - cac:service_avahi-daemon_disabled
+    - cac:service_certmonger_disabled
+    - cac:service_cockpit_disabled
+    - cac:service_cpupower_disabled
+    - cac:service_cups_disabled
+    - cac:service_kdump_disabled
+    - cac:service_mdmonitor_disabled
+    - cac:service_netconsole_disabled
+    - cac:service_ntpdate_disabled
+    - cac:service_oddjobd_disabled
+    - cac:service_portreserve_disabled
+    - cac:service_psacct_enabled
+    - cac:service_qpidd_disabled
+    - cac:service_quota_nld_disabled
+    - cac:service_rdisc_disabled
+    - cac:service_rhnsd_disabled
+    - cac:service_rhsmcertd_disabled
+    - cac:service_rngd_enabled
+    - cac:service_saslauthd_disabled
+    - cac:service_sysstat_disabled
+    nist_800_53:
+    - CM-7
+    - CM-6
+    - AU-12
+    - AC-4
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/avahi/avahi_configuration/avahi_check_ttl/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/avahi/disable_avahi_group/package_avahi-autoipd_removed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/base/service_cockpit_disabled/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/base/service_psacct_enabled/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/base/service_sysstat_disabled/rule.yml
+- id: NET-SVC-017
+  sheet: NET
+  category: SVC
+  title: Check USBGuard and fapolicyd allow-list controls
+  objective: Finds hosts that accept any USB device or run any program without a policy.
+  preconditions: *id001
+  steps:
+  - Look at the usbguard and fapolicyd packages and services.
+  - Run usbguard list-rules and look at the HID, hub and default policy.
+  - Read the usbguard audit backend setting.
+  - Read the fapolicyd rules and look for a final deny rule and the home folder rule.
+  - Try to run a program from a home folder or plug a test device.
+  example: systemctl is-active usbguard fapolicyd ; usbguard list-rules ; grep -E "AuditBackend|ImplicitPolicyTarget" /etc/usbguard/usbguard-daemon.conf ; fapolicyd-cli --list | tail -5
+  expected: USBGuard blocks devices that no rule allows and logs its decisions. fapolicyd uses a deny-all policy with exceptions for approved software.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:configure_usbguard_auditbackend
+    - cac:fapolicy_default_deny
+    - cac:fapolicyd_prevent_home_folder_access
+    - cac:package_fapolicyd_installed
+    - cac:package_usbguard_installed
+    - cac:service_fapolicyd_enabled
+    - cac:service_usbguard_enabled
+    - cac:usbguard_allow_hid
+    - cac:usbguard_allow_hid_and_hub
+    - cac:usbguard_allow_hub
+    - cac:usbguard_generate_policy
+    nist_800_53:
+    - CM-8
+    - IA-3
+    - CM-6
+    - SI-4
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/usbguard/configure_usbguard_auditbackend/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/fapolicyd/fapolicyd_prevent_home_folder_access/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/fapolicyd/service_fapolicyd_enabled/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/usbguard/usbguard_allow_hid_and_hub/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/usbguard/usbguard_generate_policy/rule.yml
+- id: NET-SVC-018
+  sheet: NET
+  category: SVC
+  title: Check Apache httpd TLS, authentication and banner settings
+  objective: Finds web servers that offer old TLS versions, accept clear-text logins or show internal notices.
+  preconditions: *id001
+  steps:
+  - Read /etc/httpd/conf.modules.d/ssl.conf and the ssl.conf in /etc/httpd/conf.d.
+  - Look at the SSLProtocol, SSLCipherSuite and certificate settings.
+  - 'Look at the authentication method for protected paths: digest, LDAP or client certificate.'
+  - Look for the use of TLS for logins, sessions and uploads.
+  - Scan the TLS port to list the protocols.
+  example: grep -rnE "SSLProtocol|SSLCipherSuite|SSLCertificateFile|SSLVerifyClient|AuthType" /etc/httpd/ ; httpd -M | grep -E "ssl|auth" ; nmap -p443 --script ssl-enum-ciphers <host>
+  expected: Only TLS 1.2 and newer are on, with a valid server certificate. Logins, sessions and uploads use TLS. Protected paths need strong authentication.
+  severity: High
+  test_type:
+  - Config Review
+  - Automated
+  refs:
+    tool_check:
+    - cac:httpd_configure_banner_page
+    - cac:httpd_configure_remote_session_encryption
+    - cac:httpd_configure_tls
+    - cac:httpd_configure_valid_server_cert
+    - cac:httpd_digest_authentication
+    - cac:httpd_encrypt_file_uploads
+    - cac:httpd_entrust_passwords
+    - cac:httpd_install_mod_ssl
+    - cac:httpd_ldap_support
+    - cac:httpd_nipr_accredited_dmz
+    - cac:httpd_require_client_certs
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/http/securing_httpd/httpd_secure_content/httpd_configure_banner_page/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/http/securing_httpd/httpd_modules_improve_security/httpd_deploy_mod_ssl/httpd_configure_tls/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/http/securing_httpd/httpd_secure_content/httpd_encrypt_file_uploads/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/http/securing_httpd/httpd_minimize_loadable_modules/httpd_core_modules/httpd_ldap_support/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/http/securing_httpd/httpd_modules_improve_security/httpd_deploy_mod_ssl/httpd_require_client_certs/rule.yml
+- id: NET-SVC-019
+  sheet: NET
+  category: SVC
+  title: Check Apache httpd directory access, methods and file permissions
+  objective: Finds web servers that allow overrides, symlinks, dangerous methods or loose rights on content and logs.
+  preconditions: *id001
+  steps:
+  - Read the Directory blocks for the root, the document root and the critical directories.
+  - Look at AllowOverride, Options (FollowSymLinks, Indexes) and the LimitExcept rules.
+  - List the owner and mode of the configuration, module and log directories.
+  - Look for backup files, sample CGI scripts and anonymous content in the document root.
+  - Look at the partition of the web content.
+  example: grep -rnE "AllowOverride|Options|LimitExcept|TraceEnable" /etc/httpd/ ; stat -c "%U:%G %a %n" /etc/httpd/conf /etc/httpd/conf.d /etc/httpd/conf.modules.d /var/log/httpd ; find /var/www -name
+    "*.bak" -o -name "*~" ; findmnt /var/www
+  expected: The root directory denies access by default. Overrides and symlinks are off. Only needed methods are allowed. Only root can change the configuration and logs.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:dir_perms_etc_httpd_conf
+    - cac:dir_perms_var_log_httpd
+    - cac:file_permissions_httpd_server_conf_d_files
+    - cac:file_permissions_httpd_server_conf_files
+    - cac:file_permissions_httpd_server_modules_files
+    - cac:http_configure_log_file_ownership
+    - cac:httpd_anonymous_content_sharing
+    - cac:httpd_cgi_support
+    - cac:httpd_configure_documentroot
+    - cac:httpd_configure_script_permissions
+    - cac:httpd_disable_anonymous_ftp_access
+    - cac:httpd_disable_content_symlinks
+    - cac:httpd_ignore_htaccess_files
+    - cac:httpd_limit_available_methods
+    - cac:httpd_remove_backups
+    - cac:httpd_restrict_critical_directories
+    - cac:httpd_restrict_root_directory
+    - cac:httpd_restrict_web_directory
+    - cac:partition_for_web_content
+    nist_800_53:
+    - CM-7
+    - CM-6
+    - AC-6
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/http/securing_httpd/httpd_configure_os_protect_web_server/httpd_restrict_file_dir_access/dir_perms_etc_httpd_conf/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/http/securing_httpd/httpd_configure_os_protect_web_server/httpd_restrict_file_dir_access/file_permissions_httpd_server_modules_files/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/http/securing_httpd/httpd_directory_restrictions/httpd_configure_script_permissions/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/http/securing_httpd/httpd_remove_backups/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/http/securing_httpd/httpd_secure_content/partition_for_web_content/rule.yml
+- id: NET-SVC-020
+  sheet: NET
+  category: SVC
+  title: Check Apache httpd and nginx modules, logging, tokens and role
+  objective: Finds web servers with unneeded modules, little logging, version leaks or a wrong placement.
+  preconditions: *id001
+  steps:
+  - Look at the httpd and nginx packages and services. Compare them with the role of the host.
+  - List the loaded modules with httpd -M. Look for status, info, proxy, cache, webdav, rewrite, include and cgi.
+  - Look at ServerTokens, ServerSignature, LogLevel, LogFormat and KeepAliveRequests.
+  - Look for mod_security and for compilers and sample files on the host.
+  - Look at the firewall rule and the network zone of the server.
+  example: httpd -M ; grep -rnE "ServerTokens|ServerSignature|LogLevel|LogFormat|MaxKeepAliveRequests|ErrorLog|CustomLog" /etc/httpd/ ; rpm -q mod_security gcc ; curl -sI http://<host> | grep -i server
+  expected: Only needed modules load. ServerTokens is Prod and ServerSignature is Off. Errors and access are logged. The web server is off when the host does not serve web content.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:httpd_antivirus_scan_uploads
+    - cac:httpd_cache_support
+    - cac:httpd_configure_firewall
+    - cac:httpd_configure_log_format
+    - cac:httpd_configure_max_keepalive_requests
+    - cac:httpd_configure_perl_taint
+    - cac:httpd_disable_mime_types
+    - cac:httpd_enable_error_logging
+    - cac:httpd_enable_log_config
+    - cac:httpd_enable_loglevel
+    - cac:httpd_enable_system_logging
+    - cac:httpd_install_mod_security
+    - cac:httpd_limit_java_files
+    - cac:httpd_mime_magic
+    - cac:httpd_mod_rewrite
+    - cac:httpd_no_compilers_in_prod
+    - cac:httpd_private_server_on_separate_subnet
+    - cac:httpd_proxy_support
+    - cac:httpd_public_resources_not_shared
+    - cac:httpd_remove_robots_file
+    - cac:httpd_server_activity_status
+    - cac:httpd_server_configuration_display
+    - cac:httpd_server_side_includes
+    - cac:httpd_serversignature_off
+    - cac:httpd_servertokens_prod
+    - cac:httpd_url_correction
+    - cac:httpd_webdav
+    - cac:package_httpd_removed
+    - cac:package_nginx_removed
+    - cac:service_httpd_disabled
+    - cac:service_nginx_disabled
+    nist_800_53:
+    - CM-7
+    - CM-6
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/http/securing_httpd/httpd_configure_os_protect_web_server/httpd_antivirus_scan_uploads/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/http/securing_httpd/httpd_enable_error_logging/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/http/securing_httpd/httpd_no_compilers_in_prod/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/http/securing_httpd/httpd_restrict_info_leakage/httpd_serversignature_off/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/http/disabling_nginx/service_nginx_disabled/rule.yml
+- id: NET-SVC-021
+  sheet: NET
+  category: SVC
+  title: 'Check Docker host settings: storage driver, SELinux and daemon state'
+  objective: Finds container hosts that use loopback storage or run containers without SELinux support.
+  preconditions: *id001
+  steps:
+  - Look at the docker package and service.
+  - Run docker info and look at the storage driver and the SELinux flag.
+  - Read /etc/docker/daemon.json for storage-opts and selinux-enabled.
+  example: docker info | grep -iE "storage driver|security options|selinux" ; cat /etc/docker/daemon.json ; systemctl is-enabled docker
+  expected: Docker uses a supported production storage driver, not loopback devices. SELinux support is on in the daemon where the host uses SELinux.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:docker_selinux_enabled
+    - cac:docker_storage_configured
+    - cac:package_docker_installed
+    - cac:service_docker_enabled
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/docker/docker_selinux_enabled/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/docker/docker_storage_configured/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/docker/package_docker_installed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/docker/service_docker_enabled/rule.yml

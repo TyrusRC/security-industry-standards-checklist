@@ -1,0 +1,122 @@
+- id: WEB-DBSC-001
+  sheet: WEB
+  category: DBSC
+  title: Replay a session cookie from another device and network
+  objective: Find sessions that stay valid when a stolen cookie is used from a different device, network or region.
+  preconditions:
+  - A test account with a session in browser A.
+  - A second device or a clean client in a different network, and written permission for the test.
+  steps:
+  - Log in with browser A. Copy the session cookie value.
+  - Send a request with the cookie from a client with a different IP address, region and User-Agent.
+  - Repeat with a changed Accept-Language header and with removed Client Hint headers.
+  - Send the request to a read endpoint. Send it also to a sensitive endpoint, such as a delete action.
+  - Look for a block, a step-up challenge or an alert. Look in the security log for an event.
+  - Make sure the original session is still usable only after the legitimate user passes re-authentication.
+  example: 'curl -s https://target/account -H "Cookie: session=<value>" -H "User-Agent: Mozilla/5.0 (X11; Linux) Firefox/130" -H "Accept-Language: ja" --proxy socks5h://other-region-proxy:1080'
+  expected: A large change of the session environment on a sensitive request gives a block or a re-authentication step. The server saves the first IP, User-Agent and Accept-Language and logs the event.
+  severity: High
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-SESS-09
+    cheatsheet:
+    - Cookie_Theft_Mitigation_Cheat_Sheet
+    cwe:
+    - CWE-294
+    - CWE-1462
+    capec:
+    - CAPEC-60
+    - CAPEC-593
+  see:
+  - WEB-SESS-018
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Cookie_Theft_Mitigation_Cheat_Sheet.md
+- id: WEB-DBSC-002
+  sheet: WEB
+  category: DBSC
+  title: Check the response to a suspected cookie theft
+  objective: Find a detection flow that leaves the stolen session active, accepts a CAPTCHA as proof or blocks real users too often.
+  preconditions:
+  - The test from WEB-DBSC-001 triggers a detection event on a test account.
+  - Access to the detection rules and the session code.
+  steps:
+  - Trigger a detection event with a replayed cookie.
+  - Make sure the application ends or limits the suspect session on the server.
+  - Make sure the user must authenticate again with an account-bound authenticator.
+  - Make sure a solved CAPTCHA alone does not restore access.
+  - Make sure a new session cookie is issued after re-authentication and the old cookie fails.
+  - Review the rules for false positives, such as a changed Wi-Fi network or a browser update. Make sure the user is not locked out each time.
+  - Make sure the checks cover the endpoints that read or change important data.
+  example: 'curl -i https://target/users/delete -X POST -H "Cookie: session=<stolen>"; then reuse the old cookie after re-authentication and look for 401 or 403'
+  expected: The suspect session ends or is restricted on the server. Only account-bound re-authentication restores access, and the old cookie fails. Rules do not block normal changes.
+  severity: High
+  test_type:
+  - Manual
+  - Code Review
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-SESS-09
+    asvs:
+    - V7.5.3
+    cheatsheet:
+    - Cookie_Theft_Mitigation_Cheat_Sheet
+    cwe:
+    - CWE-1464
+    - CWE-294
+    capec:
+    - CAPEC-593
+    other:
+    - 'NIST SP 800-63B-4: https://pages.nist.gov/800-63-4/sp800-63b.html'
+  see:
+  - WEB-SESS-026
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Cookie_Theft_Mitigation_Cheat_Sheet.md
+- id: WEB-DBSC-003
+  sheet: WEB
+  category: DBSC
+  title: Check the DBSC registration and refresh endpoints
+  objective: Find a Device Bound Session Credentials server that accepts old challenges, unsigned refreshes or keys that do not belong to the session.
+  preconditions:
+  - The site supports Device Bound Session Credentials. If it does not, record the test as not applicable.
+  - A browser with DBSC support and a proxy to capture the registration and refresh requests.
+  steps:
+  - Log in and look for the Secure-Session-Registration header in the login response.
+  - Capture the registration request. Make sure the server saves the public key with the new session identifier.
+  - Wait for the short-lived bound cookie to expire. Capture the refresh request and the Secure-Session-Challenge header.
+  - Send a refresh request with no Secure-Session-Response header. Make sure the server issues no new bound cookie.
+  - Send a refresh request that signs an old challenge. Make sure the server rejects the stale challenge.
+  - Send a refresh request that is signed with a different key. Make sure the server rejects it.
+  - Make sure the refresh endpoint needs the Sec-Secure-Session-Id header and has a narrow CORS policy.
+  - Make sure the refresh endpoint refuses to be embedded with X-Frame-Options or Cross-Origin-Resource-Policy.
+  - Make sure the bound cookie lifetime is short.
+  example: 'Burp Repeater on POST /refresh: remove the Secure-Session-Response header; replay a signed response from a previous challenge; sign with a new ES256 key'
+  expected: The server issues a bound cookie only for a fresh challenge signed with the registered key. A stolen cookie stops working after its short lifetime on another device.
+  severity: Medium
+  test_type:
+  - Manual
+  level: ASVS L3
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-SESS-09
+    cheatsheet:
+    - Cookie_Theft_Mitigation_Cheat_Sheet
+    cwe:
+    - CWE-294
+    - CWE-1472
+    capec:
+    - CAPEC-60
+    other:
+    - 'W3C Device Bound Session Credentials: https://w3c.github.io/webappsec-dbsc/'
+  sources_read:
+  - sources/extra/gap3-A/webappsec-dbsc.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cookie_Theft_Mitigation_Cheat_Sheet.md

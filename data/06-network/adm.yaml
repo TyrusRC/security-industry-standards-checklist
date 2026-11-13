@@ -1,0 +1,229 @@
+- id: NET-ADM-001
+  sheet: NET
+  category: ADM
+  title: Make sure remote administration uses a managed access point with MFA
+  objective: Finds administration paths that are open to the internet or that need only a password.
+  preconditions:
+  - Written approval for scans and logins on the hosts in scope.
+  steps:
+  - Make a list of all remote administration methods, such as SSH, RDP, web consoles and VPN.
+  - Scan the public ranges and the user networks for the ports of these methods.
+  - Read the rules and the documentation of each method and its rationale.
+  - Try to log in with a password only, with no second factor.
+  - Make sure the administration traffic goes through a dedicated, managed interface.
+  example: 'nmap -Pn -sV -p 22,23,80,443,3389,5985,5986,8443,8080 <range> ; ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no <user>@<host>'
+  expected: Remote administration is not reachable from the internet. Each method goes through a managed access point and needs multi-factor authentication.
+  severity: Critical
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-CONF-05
+    attack:
+    - T1133
+    - T1021
+    cwe:
+    - CWE-287
+    - CWE-1390
+    nist_800_53:
+    - AC-17
+    - AC-17(3)
+    - SC-7(15)
+    pci_dss:
+    - '8.4.2'
+    - '8.4.3'
+  see:
+  - WEB-CONF-007
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/05-Enumerate_Infrastructure_and_Application_Admin_Interfaces.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-ADM-002
+  sheet: NET
+  category: ADM
+  title: Check that all non-console administration uses strong cryptography
+  objective: Finds Telnet, HTTP and other clear-text administration paths on servers and devices.
+  preconditions:
+  - Written approval for scans and traffic capture in scope.
+  steps:
+  - Scan the devices for administration ports and list the protocol of each.
+  - Log in as an administrator and capture the traffic.
+  - Look for passwords and commands in clear text in the capture.
+  - Scan the encrypted administration services for protocol versions and algorithms.
+  - Compare the result with the cryptography standard of the organization.
+  example: 'nmap -Pn -sV -p 22,23,80,443,8443 --script ssh2-enum-algos,ssl-enum-ciphers <host> ; ssh-audit <host> ; tshark -i eth0 -Y "telnet || http.authorization"'
+  expected: All non-console administration uses encrypted protocols with strong algorithms. No clear-text administration port answers.
+  severity: High
+  test_type: Automated
+  refs:
+    attack:
+    - T1021.004
+    - T1040
+    cwe:
+    - CWE-319
+    - CWE-327
+    nist_800_53:
+    - AC-17(2)
+    - SC-8
+    - SC-13
+    pci_dss:
+    - '2.2.7'
+    - '2.2.5'
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Transport_Layer_Security_Cheat_Sheet.md
+- id: NET-ADM-003
+  sheet: NET
+  category: ADM
+  title: Check SSH keys, host keys and key storage on managed systems
+  objective: Finds shared, unprotected or never-changed SSH keys that give access to many systems.
+  preconditions:
+  - Read access to the systems in scope.
+  steps:
+  - List the authorized keys on a sample of servers and devices.
+  - Match each key to an owner and a current need.
+  - Look for private keys in home folders, scripts, repositories and backups.
+  - Look at the permissions of the private key files.
+  - Make sure keys of former staff and old systems are removed.
+  example: 'find / -name authorized_keys 2>/dev/null ; find / -name "id_*" -not -name "*.pub" 2>/dev/null ; ls -l ~/.ssh ; ssh-keygen -lf <key.pub>'
+  expected: Each authorized key has a current owner and need. No private key is in scripts, repositories or backups, and key files are not readable by other users.
+  severity: High
+  test_type: Config Review
+  refs:
+    attack:
+    - T1552.004
+    - T1021.004
+    cheatsheet:
+    - Secrets_Management_Cheat_Sheet
+    cwe:
+    - CWE-522
+    - CWE-798
+    nist_800_53:
+    - SC-12
+    - IA-5
+    - AC-6
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-ADM-004
+  sheet: NET
+  category: ADM
+  title: Review the VPN gateway for strong authentication and limited network access
+  objective: Finds VPN services that give too much network access or accept weak login.
+  preconditions:
+  - Written approval for tests of the VPN gateway in scope.
+  steps:
+  - Scan the VPN gateway for open ports and look at the product and version.
+  - Scan the gateway for protocol versions and algorithms.
+  - Log in with a test account without the second factor.
+  - Connect with a test account and scan the internal ranges.
+  - Compare the reachable ranges with the access rights of that account.
+  example: 'nmap -sU -sT -p 500,4500,443,1194 -sV <vpn-ip> ; ike-scan <vpn-ip> ; testssl.sh <vpn-ip>:443 ; nmap -Pn -p- <internal-range> from the VPN client'
+  expected: The VPN uses current software and strong cryptography. It needs multi-factor authentication, and a user can reach only the ranges that the rights allow.
+  severity: High
+  test_type: Manual
+  refs:
+    attack:
+    - T1133
+    cwe:
+    - CWE-287
+    - CWE-1395
+    nist_800_53:
+    - AC-17
+    - AC-17(2)
+    - SC-7
+    pci_dss:
+    - '8.4.3'
+    - '2.2.7'
+    other:
+    - NIST SP 800-115 appendix lists IKE-Scan for remote access testing
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-ADM-005
+  sheet: NET
+  category: ADM
+  title: Check session timeout and the way to disable remote access fast
+  objective: Finds administration sessions that stay open and remote access that cannot be stopped fast in an incident.
+  steps:
+  - Open an administration session and leave it idle.
+  - Measure the time until the system ends the session.
+  - Read the procedure to disable remote access for an account or a method.
+  - Test the procedure on a test account and measure the time.
+  example: 'show line | include timeout ; grep -E "ClientAliveInterval|TMOUT" /etc/ssh/sshd_config /etc/profile ; time <disable-account-command>'
+  expected: Idle sessions end after the set time. The team can disable remote access within the time that the policy sets.
+  severity: Low
+  test_type: Manual
+  refs:
+    nist_800_53:
+    - AC-12
+    - SC-10
+    - AC-17(9)
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-ADM-006
+  sheet: NET
+  category: ADM
+  title: Review the management plane of network devices for exposure and role limits
+  objective: Finds routers, switches and appliances whose management interface is open to user networks.
+  preconditions:
+  - Written approval for scans of the devices in scope.
+  steps:
+  - Find the management addresses of routers, switches, firewalls and load balancers.
+  - Scan those addresses from the user network, the server network and the internet.
+  - Read the access lists on the management interfaces.
+  - Look at the roles and accounts on each device.
+  - Make sure each administrator has only the rights that the role needs.
+  example: 'nmap -Pn -sV -p 22,23,80,443,161,830,8443 <mgmt-range> ; show running-config | section line|aaa|snmp|http ; show users'
+  expected: The management interfaces answer only from a dedicated management network. Each account has only the rights that its role needs.
+  severity: High
+  test_type: Config Review
+  refs:
+    wstg:
+    - WSTG-CONF-05
+    attack:
+    - T1602.002
+    cwe:
+    - CWE-284
+    - CWE-668
+    nist_800_53:
+    - AC-6
+    - AC-6(1)
+    - SC-7(15)
+    - CM-5
+    pci_dss:
+    - '1.2.8'
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/05-Enumerate_Infrastructure_and_Application_Admin_Interfaces.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-ADM-007
+  sheet: NET
+  category: ADM
+  title: Check that network configurations are controlled, backed up and checked for change
+  objective: Finds device and infrastructure configurations that change without approval or record.
+  steps:
+  - Get the stored configuration of a sample of devices.
+  - Compare it with the running configuration.
+  - Look for the change tickets of the differences.
+  - Make sure the infrastructure code or the configuration store has access control and version history.
+  - Make sure secrets are not stored in the infrastructure code.
+  example: 'diff <(ssh <device> show running-config) stored/<device>.cfg ; git log --stat -- network/ ; tfsec . or checkov -d .'
+  expected: Running configurations match the stored and approved ones. Each change has a ticket and a version record, and the code holds no secrets.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cheatsheet:
+    - Infrastructure_as_Code_Security_Cheat_Sheet
+    nist_800_53:
+    - CM-3
+    - CM-5
+    - CM-6
+    pci_dss:
+    - '1.2.2'
+    - '1.2.8'
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Infrastructure_as_Code_Security_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md

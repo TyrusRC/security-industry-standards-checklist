@@ -1,0 +1,103 @@
+- id: NET-PLAN-001
+  sheet: NET
+  category: PLAN
+  title: Check that the assessment plan defines scope, exclusions and authorization
+  objective: Finds network tests that start without written approval or with unclear target lists.
+  steps:
+  - Get the assessment plan or the rules of engagement.
+  - Look at the list of authorized systems, IP ranges and test types.
+  - Look at the list of systems that the test must not touch.
+  - Look for the written consent of third-party network owners and shared hosting providers.
+  - Compare the target list with the asset inventory.
+  example: 'Compare the plan with the inventory: nmap -sL -n 10.10.0.0/24 (list targets only, no packets sent to the hosts)'
+  expected: The signed plan names every authorized system and test type. It lists excluded systems by IP address. Third-party owners have given written consent.
+  severity: Medium
+  test_type: Manual
+  refs:
+    nist_800_53:
+    - CA-2
+    - CA-8
+    pci_dss:
+    - '12.5.2'
+    other:
+    - NIST SP 800-115 sections 5.2 and 6.5 (assessment plan and rules of engagement)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-PLAN-002
+  sheet: NET
+  category: PLAN
+  title: Check that the plan defines incident handling and tester source addresses
+  objective: Finds plans that leave testers and staff without rules for real intruders and test alerts.
+  steps:
+  - Look in the plan for the primary and alternate contacts of the testers and the security group.
+  - Look for the rule that says what happens if the tester finds a real intruder.
+  - Look for the list of IP addresses that the testers use.
+  - Look for the rule that prevents test alerts from going to external parties.
+  example: 'Check the tester source address list against the firewall and IDS logs after the test: grep <tester-ip> /var/log/firewall.log'
+  expected: The plan names contacts, source IP addresses and the stop rule for real incidents. The plan also says who may restart the test.
+  severity: Low
+  test_type: Manual
+  refs:
+    nist_800_53:
+    - CA-2
+    pci_dss:
+    - '12.10.5'
+    other:
+    - NIST SP 800-115 section 6.5 (incident handling in the plan)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-PLAN-003
+  sheet: NET
+  category: PLAN
+  title: Check that test data is stored, sent and removed safely
+  objective: Finds scan results, captures and cracked passwords that testers keep without protection.
+  steps:
+  - Look in the plan for the rules on storage of test data on the tester systems.
+  - Look for the rules on the transmission of reports and captures over networks.
+  - Look for the rules on the removal of data at the end of the test.
+  - Look at one tester system and one report to see if the rules are in use.
+  example: 'Look for unencrypted captures and hash files: find /data/assessment -name "*.pcap" -o -name "*.hash" ; lsblk -f'
+  expected: Test data is stored on encrypted media, sent only over encrypted channels, and removed at the end of the test as the plan says.
+  severity: Medium
+  test_type: Manual
+  refs:
+    nist_800_53:
+    - SC-28
+    other:
+    - NIST SP 800-115 sections 6.5 and 7.4 (data handling)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-PLAN-004
+  sheet: NET
+  category: PLAN
+  title: Check that the assessment policy sets roles and a test schedule
+  objective: Finds organizations that do not scan or test their networks on a fixed schedule.
+  steps:
+  - Get the security assessment policy.
+  - Look for the roles that approve and run the assessments.
+  - Look for the frequency of internal and external vulnerability scans and penetration tests.
+  - Look for the date of the last review of the policy.
+  - Look at the reports of the last scans and tests to see if the dates follow the policy.
+  example: 'Compare report dates with the policy, for example: ls -l --time-style=long-iso reports/*.nessus reports/*.xml'
+  expected: The policy names roles and a fixed schedule. It was reviewed in the last 12 months. Scan and test reports exist for each scheduled period.
+  severity: Medium
+  test_type: Manual
+  refs:
+    nist_800_53:
+    - CA-8
+    - RA-5
+    pci_dss:
+    - '11.3.1'
+    - '11.3.2'
+    - '11.4.1'
+    other:
+    - NIST SP 800-115 sections 6.1 and 6.2 (assessment policy and scheduling)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md

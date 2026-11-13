@@ -1,0 +1,105 @@
+- id: PCI-ACC-001
+  sheet: PCI
+  category: ACC
+  title: Check that privileges are approved by authorized personnel
+  objective: Find access rights that no authorized person approved.
+  preconditions:
+  - Access to access request records
+  steps:
+  - Pick ten users with access to systems or data in scope, including three privileged users.
+  - Find the access request and the approval for each user.
+  - Make sure the approver is authorized and is not the requester.
+  - Compare the approved privileges with the privileges that are set on the system.
+  - Look for privileges that were not approved.
+  example: Compare identity governance requests with the group memberships in the directory
+  expected: Each user privilege has an approval from an authorized person. The privileges on the system match the approval.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    pci_dss:
+    - 7.2.3
+    nist_800_53:
+    - AC-2
+    - AC-6
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-ACC-002
+  sheet: PCI
+  category: ACC
+  title: Check the six-month review of user accounts and access rights
+  objective: Find accounts and rights that stay after the role changed or the person left.
+  preconditions:
+  - Access to review records and directory exports
+  steps:
+  - Ask for the account review procedure.
+  - Find the records of the last two reviews. Make sure they are less than six months apart.
+  - Make sure the review covers all user accounts, third-party and vendor accounts and their rights.
+  - Make sure management confirmed that access is still right and removed access is closed.
+  - Compare a sample of accounts with the HR and contract records.
+  example: User access review reports; directory export compared to the HR list
+  expected: A review of all user accounts and rights runs at least every six months. Management confirms access and inappropriate access is removed.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    pci_dss:
+    - 7.2.4
+    nist_800_53:
+    - AC-2
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-ACC-003
+  sheet: PCI
+  category: ACC
+  title: Check the periodic review of application and system account access
+  objective: Find application and system accounts with rights that no one reviews.
+  preconditions:
+  - Access to review records
+  steps:
+  - Ask for the review process for application and system accounts.
+  - Make sure the review frequency comes from the targeted risk analysis.
+  - Find the records of the last review.
+  - Make sure the rights follow least privilege.
+  - Make sure management confirmed the access and that removed rights are closed.
+  example: Service account lists; database grants; cloud role assignments; review records
+  expected: Application and system accounts are reviewed at a risk-based frequency. Rights follow least privilege and management confirms them.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    pci_dss:
+    - 7.2.5.1
+    - 7.2.5
+    nist_800_53:
+    - AC-2
+    - AC-6
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-ACC-004
+  sheet: PCI
+  category: ACC
+  title: Check that users query cardholder data only through controlled applications
+  objective: Find direct access to data stores with cardholder data that bypasses application controls.
+  preconditions:
+  - Test user account without administrator rights
+  steps:
+  - List the repositories of stored cardholder data, such as databases and files.
+  - List the users and groups with direct query access.
+  - Make sure only the responsible administrators can query the repository directly.
+  - Make sure all other access goes through applications with role-based, least-privilege actions.
+  - Try a direct database login with an ordinary user account.
+  example: SELECT grantee, privilege_type FROM information_schema.table_privileges; psql -h db -U appuser
+  expected: Only the responsible administrators can query repositories directly. Other users reach cardholder data through applications with role limits.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 7.2.6
+    nist_800_53:
+    - AC-3
+    - AC-6
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md

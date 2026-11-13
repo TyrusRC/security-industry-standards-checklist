@@ -1,0 +1,93 @@
+- id: WEB-EXT-001
+  sheet: WEB
+  category: EXT
+  title: Review browser extension permissions, manifest and update path
+  objective: Find extensions that ask for too many permissions, run weak policies or load code that nobody reviewed.
+  preconditions:
+  - The extension package.
+  steps:
+  - Read manifest.json and list the permissions, host permissions and content script matches.
+  - Remove each permission that no feature needs.
+  - Look for optional permissions where full access is not always needed.
+  - Look at content_security_policy.extension_pages and make sure scripts load from the package only.
+  - Search the code for remote scripts and eval-like calls.
+  - Make sure updates come from the extension store and that the dependencies are audited.
+  example: unzip ext.crx -d ext; jq .permissions,.host_permissions,.content_security_policy ext/manifest.json; npm audit
+  expected: The manifest asks only for needed permissions and a strict policy. The extension loads no remote code, and the dependencies have no known vulnerabilities.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Code Review
+  refs:
+    owasp_top10:
+    - A02:2025
+    - A03:2025
+    cheatsheet:
+    - Browser_Extension_Vulnerabilities_Cheat_Sheet
+    cwe:
+    - CWE-250
+    - CWE-829
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Browser_Extension_Vulnerabilities_Cheat_Sheet.md
+- id: WEB-EXT-002
+  sheet: WEB
+  category: EXT
+  title: Test extension message handlers for sender validation
+  objective: Find extension code that accepts messages from web pages or other extensions and runs privileged actions.
+  preconditions:
+  - The extension package and a test browser profile.
+  steps:
+  - List the runtime.onMessage and onMessageExternal handlers, and the externally_connectable settings.
+  - Send a message from a web page through the content script with a new action name.
+  - Send a message from another extension or a different frame.
+  - Check that the handler tests sender.id and sender.origin and allows only known actions and fields.
+  - Check that the handler does not use message data in innerHTML or eval.
+  example: 'DevTools console on a test page: chrome.runtime.sendMessage("<ext-id>",{action:"getToken"}); grep -R "onMessage" ext/'
+  expected: The handlers check the sender and allow only listed actions with validated fields. A web page cannot start a privileged action or run script.
+  severity: High
+  test_type:
+  - Manual
+  - Code Review
+  refs:
+    owasp_top10:
+    - A01:2025
+    - A05:2025
+    cheatsheet:
+    - Browser_Extension_Vulnerabilities_Cheat_Sheet
+    cwe:
+    - CWE-346
+    - CWE-79
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Browser_Extension_Vulnerabilities_Cheat_Sheet.md
+- id: WEB-EXT-003
+  sheet: WEB
+  category: EXT
+  title: Test extension storage, data transfer and display of sensitive data
+  objective: Find extensions that keep secrets in storage, send data in clear text or show data where a web page can read it.
+  preconditions:
+  - The extension package and a test browser profile.
+  steps:
+  - Look at chrome.storage and localStorage content after use and look for tokens and personal data.
+  - Search the code for hard-coded keys.
+  - Record the network traffic of the extension and make sure it uses HTTPS only.
+  - Check if the extension adds sensitive data to the DOM of web pages.
+  - Check if the extension shows data in a popup, options page or side panel instead.
+  - Check the privacy notice and the opt-out for data collection.
+  example: DevTools Application tab; mitmproxy with the browser profile; grep -R "apiKey\|secret" ext/
+  expected: The extension keeps no secrets in storage or code. All traffic uses HTTPS. Sensitive data shows only in extension UI that page scripts cannot read.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    owasp_top10:
+    - A04:2025
+    - A02:2025
+    cheatsheet:
+    - Browser_Extension_Vulnerabilities_Cheat_Sheet
+    cwe:
+    - CWE-312
+    - CWE-319
+    - CWE-200
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Browser_Extension_Vulnerabilities_Cheat_Sheet.md

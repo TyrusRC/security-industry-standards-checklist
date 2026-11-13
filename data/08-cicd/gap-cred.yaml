@@ -1,0 +1,162 @@
+- id: CICD-CRED-012
+  sheet: CICD
+  category: CRED
+  title: Check that reusable workflows do not use secrets inherit
+  objective: Finds called workflows that receive secrets they do not need.
+  steps:
+  - 'Search the workflows for secrets: inherit on jobs that call reusable workflows.'
+  - Make sure the caller passes only the secrets that the called workflow needs.
+  - Look at the environment that the called workflow selects. Note that its secrets can override passed secrets.
+  - Make sure secrets are set at step level or in an environment, not at job level.
+  example: 'grep -rn ''secrets: inherit'' .github/workflows; zizmor .github/workflows/'
+  expected: 'No workflow uses secrets: inherit. Each secret is passed by name and limited to the step or environment that needs it.'
+  severity: Medium
+  test_type:
+  - Config Review
+  refs:
+    cicd_top10:
+    - CICD-SEC-6
+    - CICD-SEC-5
+    cheatsheet:
+    - GitHub_Actions_Security_Cheat_Sheet
+    - Secrets_Management_Cheat_Sheet
+    cwe:
+    - CWE-522
+    - CWE-250
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/GitHub_Actions_Security_Cheat_Sheet.md
+- id: CICD-CRED-013
+  sheet: CICD
+  category: CRED
+  title: Check that actions/checkout does not persist credentials
+  objective: Finds workflows that leave Git credentials in the workspace for later steps to steal.
+  steps:
+  - Search the workflows for each use of actions/checkout.
+  - Make sure persist-credentials is false unless a later step needs Git write access.
+  - For each exception, make sure a later step really uses the stored credential.
+  example: 'grep -rn -A4 ''actions/checkout'' .github/workflows | grep persist-credentials; zizmor .github/workflows/  # artipacked rule'
+  expected: Each checkout step sets persist-credentials to false. Exceptions have a documented Git operation that needs the credential.
+  severity: Medium
+  test_type:
+  - Config Review
+  refs:
+    cicd_top10:
+    - CICD-SEC-6
+    cheatsheet:
+    - GitHub_Actions_Security_Cheat_Sheet
+    cwe:
+    - CWE-522
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/GitHub_Actions_Security_Cheat_Sheet.md
+- id: CICD-CRED-014
+  sheet: CICD
+  category: CRED
+  title: Check the trust policy of workload identity federation
+  objective: Finds trust policies that admit other tenants, repositories or branches.
+  steps:
+  - Read the trust policy of each federated cloud role or identity.
+  - Make sure the policy names the exact issuer, the expected audience and the allowed subject.
+  - Make sure the policy limits the organization, repository and deployment context. Prefer immutable identifiers over names.
+  - Make sure the policy has no wildcard that admits all repositories or all job contexts.
+  - Make sure the cloud provider can enforce each claim that the policy uses.
+  example: aws iam get-role --role-name ROLE --query Role.AssumeRolePolicyDocument; gcloud iam workload-identity-pools providers describe PROVIDER --workload-identity-pool=POOL --location=global
+  expected: Trust policies name the exact issuer, audience and subject. They limit repository, branch or environment and have no broad wildcard.
+  severity: High
+  test_type:
+  - Config Review
+  refs:
+    cicd_top10:
+    - CICD-SEC-5
+    - CICD-SEC-2
+    cheatsheet:
+    - Workload_Identity_Federation_Cheat_Sheet
+    - GitHub_Actions_Security_Cheat_Sheet
+    cwe:
+    - CWE-863
+    - CWE-284
+    attack:
+    - T1078.004
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Workload_Identity_Federation_Cheat_Sheet.md
+- id: CICD-CRED-015
+  sheet: CICD
+  category: CRED
+  title: Test that unauthorized jobs cannot get federated credentials
+  objective: Finds trust policies that look strict but admit repositories, branches or jobs that must not deploy.
+  preconditions:
+  - Use test repositories and test cloud resources only.
+  steps:
+  - Run a job from an unauthorized test repository. Try to exchange the OIDC token for cloud credentials.
+  - Run a job from an unauthorized branch of the trusted repository. Try the same exchange.
+  - Run the authorized job. Try to read a resource outside its assigned permissions.
+  - Repeat these tests after each change to the trust policy.
+  example: 'aws sts assume-role-with-web-identity --role-arn ROLE --role-session-name t --web-identity-token "$OIDC_TOKEN"  # test jobs only'
+  expected: Unauthorized repositories, branches and job contexts get no credentials. The authorized job cannot reach resources outside its permissions.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    cicd_top10:
+    - CICD-SEC-5
+    - CICD-SEC-2
+    cheatsheet:
+    - Workload_Identity_Federation_Cheat_Sheet
+    cwe:
+    - CWE-863
+    attack:
+    - T1078.004
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Workload_Identity_Federation_Cheat_Sheet.md
+- id: CICD-CRED-016
+  sheet: CICD
+  category: CRED
+  title: Check OIDC token permission, credential lifetime and removal of old keys
+  objective: Finds jobs that can request tokens without need, long credential lifetimes and static keys that still work.
+  steps:
+  - 'Search the workflows for id-token: write.'
+  - Make sure only the jobs that need cloud access have the permission, at job level.
+  - Read the lifetime of the issued credentials. Make sure it is the shortest the job needs.
+  - Make sure logs, artifacts and caches do not hold the OIDC token or issued credentials.
+  - Make sure the static keys that federation replaced are revoked and removed from the pipelines.
+  example: grep -rn 'id-token' .github/workflows; aws iam get-role --role-name ROLE --query Role.MaxSessionDuration; aws iam list-access-keys --user-name USER
+  expected: Only jobs with cloud access can request tokens. Credential lifetime is short. Replaced static keys no longer work.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    cicd_top10:
+    - CICD-SEC-6
+    cheatsheet:
+    - Workload_Identity_Federation_Cheat_Sheet
+    cwe:
+    - CWE-522
+    - CWE-532
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Workload_Identity_Federation_Cheat_Sheet.md
+- id: CICD-CRED-017
+  sheet: CICD
+  category: CRED
+  title: Check that a compromised job stops getting credentials quickly
+  objective: Finds missing procedures to stop credential issuance and to end sessions that exist already.
+  preconditions:
+  - Use a test role only.
+  steps:
+  - Read the incident procedure for a compromised pipeline job.
+  - Make sure the procedure lists how to stop new credential issuance.
+  - Make sure the procedure lists how to revoke or restrict sessions that exist already.
+  - Note that removal of the trust relationship alone does not end existing sessions.
+  - Run the procedure on a test role and make sure the old session stops.
+  example: 'aws iam put-role-policy --role-name TESTROLE --policy-name RevokeOlderSessions --policy-document file://deny-before-time.json  # test role only'
+  expected: The team can stop new credentials and end existing sessions of a federated identity within the target time.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    cicd_top10:
+    - CICD-SEC-6
+    cheatsheet:
+    - Workload_Identity_Federation_Cheat_Sheet
+    - GitHub_Actions_Security_Cheat_Sheet
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Workload_Identity_Federation_Cheat_Sheet.md

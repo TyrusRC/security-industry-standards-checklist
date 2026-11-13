@@ -1,0 +1,1034 @@
+{
+ "source": "MITRE ATLAS",
+ "version": "5.6.0",
+ "url": "https://github.com/mitre-atlas/atlas-data",
+ "retrieved": "2026-11-12",
+ "note": "source file marked deprecated upstream; newer data may exist",
+ "items": [
+  {
+   "id": "AML.T0000",
+   "title": "Search Open Technical Databases",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0000.000",
+   "title": "Journals and Conference Proceedings",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0000.001",
+   "title": "Pre-Print Repositories",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0000.002",
+   "title": "Technical Blogs",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0001",
+   "title": "Search Open AI Vulnerability Analysis",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0003",
+   "title": "Search Victim-Owned Websites",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0004",
+   "title": "Search Application Repositories",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0006",
+   "title": "Active Scanning",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0002",
+   "title": "Acquire Public AI Artifacts",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0002.000",
+   "title": "Datasets",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0002.001",
+   "title": "Models",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0016",
+   "title": "Obtain Capabilities",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0016.000",
+   "title": "Adversarial AI Attack Implementations",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0016.001",
+   "title": "Software Tools",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0017",
+   "title": "Develop Capabilities",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0017.000",
+   "title": "Adversarial AI Attacks",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0008",
+   "title": "Acquire Infrastructure",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0008.000",
+   "title": "AI Development Workspaces",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0008.001",
+   "title": "Consumer Hardware",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0019",
+   "title": "Publish Poisoned Datasets",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0010",
+   "title": "AI Supply Chain Compromise",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0010.000",
+   "title": "Hardware",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0010.001",
+   "title": "AI Software",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0010.002",
+   "title": "Data",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0010.003",
+   "title": "Model",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0040",
+   "title": "AI Model Inference API Access",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0047",
+   "title": "AI-Enabled Product or Service",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0041",
+   "title": "Physical Environment Access",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0044",
+   "title": "Full AI Model Access",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0013",
+   "title": "Discover AI Model Ontology",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0014",
+   "title": "Discover AI Model Family",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0020",
+   "title": "Poison Training Data",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0021",
+   "title": "Establish Accounts",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0005",
+   "title": "Create Proxy AI Model",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0005.000",
+   "title": "Train Proxy via Gathered AI Artifacts",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0005.001",
+   "title": "Train Proxy via Replication",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0005.002",
+   "title": "Use Pre-Trained Model",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0007",
+   "title": "Discover AI Artifacts",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0011",
+   "title": "User Execution",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0011.000",
+   "title": "Unsafe AI Artifacts",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0012",
+   "title": "Valid Accounts",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0015",
+   "title": "Evade AI Model",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0018",
+   "title": "Manipulate AI Model",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0018.000",
+   "title": "Poison AI Model",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0018.001",
+   "title": "Modify AI Model Architecture",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0024",
+   "title": "Exfiltration via AI Inference API",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0024.000",
+   "title": "Infer Training Data Membership",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0024.001",
+   "title": "Invert AI Model",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0024.002",
+   "title": "Extract AI Model",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0025",
+   "title": "Exfiltration via Cyber Means",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0029",
+   "title": "Denial of AI Service",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0046",
+   "title": "Spamming AI System with Chaff Data",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0031",
+   "title": "Erode AI Model Integrity",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0034",
+   "title": "Cost Harvesting",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0035",
+   "title": "AI Artifact Collection",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0036",
+   "title": "Data from Information Repositories",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0037",
+   "title": "Data from Local System",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0042",
+   "title": "Verify Attack",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0043",
+   "title": "Craft Adversarial Data",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0043.000",
+   "title": "White-Box Optimization",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0043.001",
+   "title": "Black-Box Optimization",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0043.002",
+   "title": "Black-Box Transfer",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0043.003",
+   "title": "Manual Modification",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0043.004",
+   "title": "Insert Backdoor Trigger",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0048",
+   "title": "External Harms",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0048.000",
+   "title": "Financial Harm",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0048.001",
+   "title": "Reputational Harm",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0048.002",
+   "title": "Societal Harm",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0048.003",
+   "title": "User Harm",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0048.004",
+   "title": "AI Intellectual Property Theft",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0049",
+   "title": "Exploit Public-Facing Application",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0050",
+   "title": "Command and Scripting Interpreter",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0051",
+   "title": "LLM Prompt Injection",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0051.000",
+   "title": "Direct",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0051.001",
+   "title": "Indirect",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0052",
+   "title": "Phishing",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0052.000",
+   "title": "Spearphishing via Social Engineering LLM",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0053",
+   "title": "AI Agent Tool Invocation",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0054",
+   "title": "LLM Jailbreak",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0055",
+   "title": "Unsecured Credentials",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0056",
+   "title": "Extract LLM System Prompt",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0057",
+   "title": "LLM Data Leakage",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0058",
+   "title": "Publish Poisoned Models",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0059",
+   "title": "Erode Dataset Integrity",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0011.001",
+   "title": "Malicious Package",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0060",
+   "title": "Publish Hallucinated Entities",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0061",
+   "title": "LLM Prompt Self-Replication",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0062",
+   "title": "Discover LLM Hallucinations",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0008.002",
+   "title": "Domains",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0008.003",
+   "title": "Physical Countermeasures",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0063",
+   "title": "Discover AI Model Outputs",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0016.002",
+   "title": "Generative AI",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0064",
+   "title": "Gather RAG-Indexed Targets",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0065",
+   "title": "LLM Prompt Crafting",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0066",
+   "title": "Retrieval Content Crafting",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0067",
+   "title": "LLM Trusted Output Components Manipulation",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0068",
+   "title": "LLM Prompt Obfuscation",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0069",
+   "title": "Discover LLM System Information",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0069.000",
+   "title": "Special Character Sets",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0069.001",
+   "title": "System Instruction Keywords",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0069.002",
+   "title": "System Prompt",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0070",
+   "title": "RAG Poisoning",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0071",
+   "title": "False RAG Entry Injection",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0067.000",
+   "title": "Citations",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0018.002",
+   "title": "Embed Malware",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0010.004",
+   "title": "Container Registry",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0072",
+   "title": "Reverse Shell",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0073",
+   "title": "Impersonation",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0074",
+   "title": "Masquerading",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0075",
+   "title": "Cloud Service Discovery",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0076",
+   "title": "Corrupt AI Model",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0077",
+   "title": "LLM Response Rendering",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0008.004",
+   "title": "Serverless",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0078",
+   "title": "Drive-by Compromise",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0079",
+   "title": "Stage Capabilities",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0080",
+   "title": "AI Agent Context Poisoning",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0080.000",
+   "title": "Memory",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0080.001",
+   "title": "Thread",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0081",
+   "title": "Modify AI Agent Configuration",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0082",
+   "title": "RAG Credential Harvesting",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0083",
+   "title": "Credentials from AI Agent Configuration",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0084",
+   "title": "Discover AI Agent Configuration",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0084.000",
+   "title": "Embedded Knowledge",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0084.001",
+   "title": "Tool Definitions",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0084.002",
+   "title": "Activation Triggers",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0085",
+   "title": "Data from AI Services",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0085.000",
+   "title": "RAG Databases",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0085.001",
+   "title": "AI Agent Tools",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0086",
+   "title": "Exfiltration via AI Agent Tool Invocation",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0087",
+   "title": "Gather Victim Identity Information",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0088",
+   "title": "Generate Deepfakes",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0089",
+   "title": "Process Discovery",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0090",
+   "title": "OS Credential Dumping",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0091",
+   "title": "Use Alternate Authentication Material",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0092",
+   "title": "Manipulate User LLM Chat History",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0091.000",
+   "title": "Application Access Token",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0093",
+   "title": "Prompt Infiltration via Public-Facing Application",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0094",
+   "title": "Delay Execution of LLM Instructions",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0051.002",
+   "title": "Triggered",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0095",
+   "title": "Search Open Websites/Domains",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0096",
+   "title": "AI Service API",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0097",
+   "title": "Virtualization/Sandbox Evasion",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0098",
+   "title": "AI Agent Tool Credential Harvesting",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0099",
+   "title": "AI Agent Tool Data Poisoning",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0100",
+   "title": "AI Agent Clickbait",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0101",
+   "title": "Data Destruction via AI Agent Tool Invocation",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0102",
+   "title": "Generate Malicious Commands",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0103",
+   "title": "Deploy AI Agent",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0104",
+   "title": "Publish Poisoned AI Agent Tool",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0011.002",
+   "title": "Poisoned AI Agent Tool",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0011.003",
+   "title": "Malicious Link",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0105",
+   "title": "Escape to Host",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0106",
+   "title": "Exploitation for Credential Access",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0107",
+   "title": "Exploitation for Defense Evasion",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0108",
+   "title": "AI Agent",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0109",
+   "title": "AI Supply Chain Rug Pull",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0110",
+   "title": "AI Agent Tool Poisoning",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0010.005",
+   "title": "AI Agent Tool",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0034.000",
+   "title": "Excessive Queries",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0034.001",
+   "title": "Resource-Intensive Queries",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0034.002",
+   "title": "Agentic Resource Consumption",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0084.003",
+   "title": "Call Chains",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0111",
+   "title": "AI Supply Chain Reputation Inflation",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0112",
+   "title": "Machine Compromise",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0008.005",
+   "title": "AI Service Proxies",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0112.000",
+   "title": "Local AI Agent",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0112.001",
+   "title": "AI Artifacts",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0052.001",
+   "title": "Deepfake-Assisted Phishing",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0002.002",
+   "title": "AI Agent Configuration",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.T0095.000",
+   "title": "Code Repositories",
+   "chapter": "technique"
+  },
+  {
+   "id": "AML.M0000",
+   "title": "Limit Public Release of Information",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0001",
+   "title": "Limit Model Artifact Release",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0002",
+   "title": "Passive AI Output Obfuscation",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0003",
+   "title": "Model Hardening",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0004",
+   "title": "Restrict Number of AI Model Queries",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0005",
+   "title": "Control Access to AI Models and Data at Rest",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0006",
+   "title": "Use Ensemble Methods",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0007",
+   "title": "Sanitize Training Data",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0008",
+   "title": "Validate AI Model",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0009",
+   "title": "Use Multi-Modal Sensors",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0010",
+   "title": "Input Restoration",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0011",
+   "title": "Restrict Library Loading",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0012",
+   "title": "Encrypt Sensitive Information",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0013",
+   "title": "Code Signing",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0014",
+   "title": "Verify AI Artifacts",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0015",
+   "title": "Adversarial Input Detection",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0016",
+   "title": "Vulnerability Scanning",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0017",
+   "title": "AI Model Distribution Methods",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0018",
+   "title": "User Training",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0019",
+   "title": "Control Access to AI Models and Data in Production",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0020",
+   "title": "Generative AI Guardrails",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0021",
+   "title": "Generative AI Guidelines",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0022",
+   "title": "Generative AI Model Alignment",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0023",
+   "title": "AI Bill of Materials",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0024",
+   "title": "AI Telemetry Logging",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0025",
+   "title": "Maintain AI Dataset Provenance",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0026",
+   "title": "Privileged AI Agent Permissions Configuration",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0027",
+   "title": "Single-User AI Agent Permissions Configuration",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0028",
+   "title": "AI Agent Tools Permissions Configuration",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0029",
+   "title": "Human In-the-Loop for AI Agent Actions",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0030",
+   "title": "Restrict AI Agent Tool Invocation on Untrusted Data",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0031",
+   "title": "Memory Hardening",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0032",
+   "title": "Segmentation of AI Agent Components",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0033",
+   "title": "Input and Output Validation for AI Agent Components",
+   "chapter": "mitigation"
+  },
+  {
+   "id": "AML.M0034",
+   "title": "Deepfake Detection",
+   "chapter": "mitigation"
+  }
+ ]
+}

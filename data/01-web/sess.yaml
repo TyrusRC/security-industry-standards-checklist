@@ -1,0 +1,857 @@
+- id: WEB-SESS-001
+  sheet: WEB
+  category: SESS
+  title: Read the documentation of timeouts and re-authentication
+  objective: Finds missing or unjustified session timeout rules.
+  preconditions:
+  - Access to documentation and configuration.
+  steps:
+  - Get the session documentation.
+  - Find the idle timeout and the absolute session lifetime.
+  - Make sure the document explains why the values fit the risk.
+  - Make sure it explains any difference from NIST SP 800-63B re-authentication rules.
+  example: Compare the documented values with the framework setting, for example server.servlet.session.timeout or SESSION_COOKIE_AGE.
+  expected: The idle timeout and the absolute lifetime are documented with a reason that fits the risk and with any deviation explained.
+  severity: Low
+  test_type: Config Review
+  level: ASVS L2
+  refs:
+    asvs:
+    - V7.1.1
+    cheatsheet:
+    - Session_Management_Cheat_Sheet
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+- id: WEB-SESS-002
+  sheet: WEB
+  category: SESS
+  title: Read the documentation of concurrent sessions
+  objective: Finds missing rules for the number of parallel sessions.
+  preconditions:
+  - Access to documentation.
+  steps:
+  - Get the session documentation.
+  - Find the maximum number of sessions for one account.
+  - Find what happens when the maximum is reached.
+  - Compare with the real behavior.
+  example: Log in 10 times with curl -c jar<N>.txt and compare to the documented limit.
+  expected: The maximum number of sessions and the action at the limit are documented and match the behavior.
+  severity: Low
+  test_type: Config Review
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-SESS-11
+    asvs:
+    - V7.1.2
+    cheatsheet:
+    - Session_Management_Cheat_Sheet
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/11-Concurrent_Sessions.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+- id: WEB-SESS-003
+  sheet: WEB
+  category: SESS
+  title: Read the documentation of federated session control
+  objective: Finds missing rules for session lifetime and logout between SSO systems.
+  preconditions:
+  - Access to documentation.
+  steps:
+  - List all systems that create sessions in the SSO setup.
+  - Get the documentation of how lifetimes and logout are linked.
+  - Make sure it names the events that need re-authentication.
+  example: 'Review IdP and SP configuration: session lifetime, SLO endpoints and back-channel logout URLs.'
+  expected: All session-creating systems are documented with the way they coordinate lifetime, logout and re-authentication.
+  severity: Low
+  test_type: Config Review
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-SESS-06
+    asvs:
+    - V7.1.3
+    cheatsheet:
+    - Session_Management_Cheat_Sheet
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/06-Logout_Functionality.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+- id: WEB-SESS-004
+  sheet: WEB
+  category: SESS
+  title: Check that a trusted back end validates session tokens
+  objective: Finds session checks done only in the client.
+  steps:
+  - Find where the application checks the session token.
+  - Change or remove client-side checks with a proxy.
+  - Send a request with a forged or empty token to a protected endpoint.
+  example: 'curl -i -H ''Authorization: Bearer forged'' https://target/api/me ; curl -i https://target/api/me'
+  expected: A trusted back-end service validates every session token. Client-side checks are not relied upon.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    asvs:
+    - V7.2.1
+    cheatsheet:
+    - Session_Management_Cheat_Sheet
+    cwe:
+    - CWE-602
+    - CWE-603
+    - CWE-287
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+- id: WEB-SESS-005
+  sheet: WEB
+  category: SESS
+  title: Check that sessions use generated tokens and not static keys
+  objective: Finds static API keys or shared secrets used as session identifiers.
+  steps:
+  - Log in twice with the same account.
+  - Compare the session tokens.
+  - Look for long-lived values in the requests that never change.
+  - Check that the token changes at each login.
+  example: Burp Comparer on two login responses; grep -i 'api[_-]key' in the page source.
+  expected: Each session has a new dynamically generated token. No static secret acts as a session token.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    asvs:
+    - V7.2.2
+    cheatsheet:
+    - Session_Management_Cheat_Sheet
+    cwe:
+    - CWE-798
+    - CWE-330
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+- id: WEB-SESS-006
+  sheet: WEB
+  category: SESS
+  title: Check session ID strength and randomness
+  objective: Finds predictable or short session IDs.
+  steps:
+  - Collect 5000 session IDs with new sessions.
+  - Decode the IDs and look for user data, time or counters.
+  - Run an entropy analysis.
+  - 'Check the length: at least 128 bits of entropy for reference tokens.'
+  - Change a few characters of a valid ID and test it.
+  example: 'Burp Sequencer: live capture of Set-Cookie JSESSIONID, 5000 samples, then FIPS tests.'
+  expected: Session IDs are unique, come from a CSPRNG, have at least 128 bits of entropy, and hold no meaning.
+  severity: High
+  test_type: Automated
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-SESS-01
+    - WSTG-ATHN-04
+    asvs:
+    - V7.2.3
+    cheatsheet:
+    - Session_Management_Cheat_Sheet
+    cwe:
+    - CWE-330
+    - CWE-331
+    - CWE-338
+    - CWE-340
+    capec:
+    - CAPEC-59
+    - CAPEC-60
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/01-Session_Management_Schema.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/04-Bypassing_Authentication_Schema.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-SESS-007
+  sheet: WEB
+  category: SESS
+  title: Check the cookie structure and manipulation of session data
+  objective: Finds cookies that hold readable or editable data such as roles and user names.
+  steps:
+  - Collect all cookies and map each to its function.
+  - 'Decode each value: Base64, hex, URL and hash forms.'
+  - Change non-signed values, such as IsAdmin=No, and send the request.
+  - Send unusual characters and a very long cookie.
+  - Make sure the cookie name does not show the framework.
+  example: 'echo ''<cookie>'' | base64 -d ; Burp Repeater: Cookie: IsAdmin=Yes'
+  expected: Cookies hold no sensitive data in clear text. Changed values are rejected. Cookie names do not reveal the technology.
+  severity: Medium
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-SESS-01
+    cheatsheet:
+    - Session_Management_Cheat_Sheet
+    cwe:
+    - CWE-565
+    - CWE-472
+    capec:
+    - CAPEC-39
+    - CAPEC-31
+    - CAPEC-226
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/01-Session_Management_Schema.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+- id: WEB-SESS-008
+  sheet: WEB
+  category: SESS
+  title: Check the Secure and HttpOnly cookie attributes
+  objective: Finds session cookies that travel over HTTP or that scripts can read.
+  steps:
+  - List all Set-Cookie headers after login.
+  - Make sure each session cookie has Secure and HttpOnly.
+  - Request the HTTP version of the site and look for the cookie.
+  - Read document.cookie in the console.
+  example: 'curl -skI https://target/login -d ''u=t&p=t'' | grep -i set-cookie ; ZAP passive scan: Cookie without Secure/HttpOnly'
+  expected: Session cookies have Secure and HttpOnly. They are never sent over HTTP and are not in document.cookie.
+  severity: Medium
+  test_type: Automated
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-SESS-02
+    cheatsheet:
+    - Session_Management_Cheat_Sheet
+    cwe:
+    - CWE-614
+    - CWE-1004
+    capec:
+    - CAPEC-31
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/02-Cookies_Attributes.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-SESS-009
+  sheet: WEB
+  category: SESS
+  title: Check the SameSite attribute and cookie prefixes
+  objective: Finds missing SameSite and __Host- protection on session cookies.
+  steps:
+  - Look at the SameSite value of each session cookie.
+  - 'Check the prefix: __Host- is best, __Secure- if subdomains share cookies.'
+  - Try to set a cookie with the same name from a subdomain.
+  - Check the browser behavior with the attribute missing.
+  example: 'Expected header: Set-Cookie: __Host-SID=<token>; Path=/; Secure; HttpOnly; SameSite=Strict'
+  expected: Session cookies use SameSite=Lax or Strict and the __Host- prefix when possible. A subdomain cannot overwrite them.
+  severity: Medium
+  test_type: Manual
+  refs:
+    owasp_top10:
+    - A01:2025
+    wstg:
+    - WSTG-SESS-02
+    cheatsheet:
+    - Session_Management_Cheat_Sheet
+    cwe:
+    - CWE-1275
+    - CWE-565
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/02-Cookies_Attributes.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A01_2025-Broken_Access_Control.md
+- id: WEB-SESS-010
+  sheet: WEB
+  category: SESS
+  title: Check the Domain, Path and Expires scope of session cookies
+  objective: Finds cookies shared with other apps or subdomains, and persistent session cookies.
+  steps:
+  - Read the Domain and Path attributes of the session cookie.
+  - Check that Domain is not set, or is as narrow as possible.
+  - List other apps on the same domain that can read the cookie.
+  - Check Expires and Max-Age. A session cookie must not be persistent.
+  - Close the browser and open it again.
+  example: curl -sI https://target/login -d 'u=t&p=t' | grep -i 'domain=\|expires\|max-age'
+  expected: Session cookies have a narrow scope and no persistent expiry. Other apps and subdomains do not get them.
+  severity: Medium
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-SESS-02
+    - WSTG-SESS-01
+    cheatsheet:
+    - Session_Management_Cheat_Sheet
+    cwe:
+    - CWE-1004
+    - CWE-614
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/02-Cookies_Attributes.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/01-Session_Management_Schema.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+- id: WEB-SESS-011
+  sheet: WEB
+  category: SESS
+  title: Check that the session ID changes at login and privilege change
+  objective: Finds session fixation, where an attacker sets the session ID before login.
+  steps:
+  - Open the login page and save the session cookie.
+  - Log in and look at the cookie after login.
+  - Send the old cookie value after login.
+  - Set a chosen cookie value with a proxy and log in.
+  - Repeat after re-authentication and after a role change.
+  example: curl -sc a.txt https://target/login >/dev/null; curl -b a.txt -c b.txt -d 'u=t&p=t' https://target/login; diff a.txt b.txt
+  expected: The application issues a new token at each login and re-authentication. The old token ends. It does not accept a session ID that the client chose.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-SESS-03
+    asvs:
+    - V7.2.4
+    cheatsheet:
+    - Session_Management_Cheat_Sheet
+    cwe:
+    - CWE-384
+    capec:
+    - CAPEC-61
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/03-Session_Fixation.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-SESS-012
+  sheet: WEB
+  category: SESS
+  title: Check that session IDs are not in URLs
+  objective: Finds session IDs in URLs, hidden fields or accepted from unplanned places.
+  steps:
+  - Examine all links and forms for session IDs in the URL.
+  - Send the session ID in a URL parameter instead of the cookie.
+  - Send a POST login as a GET request.
+  - Look at the Referer header sent to other sites.
+  example: curl -i 'https://target/account?JSESSIONID=<valid-id>' ; curl -i 'https://target/login?user=t&password=t'
+  expected: Session IDs travel only in cookies over HTTPS. The application ignores IDs from URLs and does not accept POST data in GET.
+  severity: High
+  test_type: Manual
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-SESS-04
+    cheatsheet:
+    - Session_Management_Cheat_Sheet
+    cwe:
+    - CWE-598
+    - CWE-200
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/04-Exposed_Session_Variables.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-SESS-013
+  sheet: WEB
+  category: SESS
+  title: Check session cookie exposure to network attackers and HSTS
+  objective: Finds session cookies that leak in clear text, also to subdomains.
+  steps:
+  - Log in as the victim. Remove the cookies that have Secure from the jar.
+  - Send the secure function again with the remaining cookies.
+  - Check Strict-Transport-Security with includeSubDomains.
+  - Check if a subdomain can read cookies with a Domain attribute.
+  example: curl -sI https://target | grep -i strict-transport ; mitmproxy listen on :80 and redirect victim browser to http://sub.target
+  expected: Session cookies are not sent over HTTP. HSTS covers the apex domain and all subdomains.
+  severity: High
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-SESS-09
+    - WSTG-SESS-04
+    cheatsheet:
+    - Session_Management_Cheat_Sheet
+    cwe:
+    - CWE-319
+    - CWE-614
+    capec:
+    - CAPEC-102
+    - CAPEC-593
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/09-Session_Hijacking.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/04-Exposed_Session_Variables.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+- id: WEB-SESS-014
+  sheet: WEB
+  category: SESS
+  title: Check cache headers on responses with session data
+  objective: Finds responses with session IDs that proxies or the browser may store.
+  steps:
+  - Collect responses that set or carry session IDs.
+  - Look at the Cache-Control header.
+  - Look for the same headers in HTTP/1.0 clients.
+  - Check that Clear-Site-Data is sent at logout.
+  example: curl -sI -b 'session=<id>' https://target/account | grep -i 'cache-control\|pragma\|clear-site-data'
+  expected: 'Responses with session data have Cache-Control: no-store. Logout can clear stored data.'
+  severity: Low
+  test_type: Automated
+  refs:
+    wstg:
+    - WSTG-SESS-04
+    cheatsheet:
+    - Session_Management_Cheat_Sheet
+    cwe:
+    - CWE-525
+    - CWE-524
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/04-Exposed_Session_Variables.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+- id: WEB-SESS-015
+  sheet: WEB
+  category: SESS
+  title: Test session puzzling and session variable overload
+  objective: Finds session variables used for more than one purpose, which skips steps in a flow.
+  steps:
+  - Map the session variables set by public pages such as password recovery.
+  - Call a recovery entry point that sets a user name in the session.
+  - Request a protected page directly.
+  - Skip steps of multi-step flows.
+  example: 'Burp: GET /forgot?user=admin (do not finish), then GET /admin/dashboard with the same cookie.'
+  expected: Each session variable has one purpose. Pages cannot be reached by setting variables in another flow.
+  severity: High
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-SESS-08
+    cheatsheet:
+    - Session_Management_Cheat_Sheet
+    cwe:
+    - CWE-841
+    - CWE-288
+    - CWE-304
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/08-Session_Puzzling.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+- id: WEB-SESS-016
+  sheet: WEB
+  category: SESS
+  title: Check the logout button on all pages
+  objective: Finds pages without a visible logout function.
+  steps:
+  - Open every authenticated page type.
+  - Look for the logout button without scrolling.
+  - Check that it is in the same place on all pages.
+  example: 'Crawl with ZAP spider and compare each page for a /logout link: grep -L logout *.html'
+  expected: A logout function is visible and easy to find on all authenticated pages.
+  severity: Low
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-SESS-06
+    asvs:
+    - V7.4.4
+    cheatsheet:
+    - Session_Management_Cheat_Sheet
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/06-Logout_Functionality.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+- id: WEB-SESS-017
+  sheet: WEB
+  category: SESS
+  title: Check server-side session termination at logout
+  objective: Finds sessions that stay valid after logout.
+  steps:
+  - Save the session cookie. Log out.
+  - Send a request with the old cookie to a protected page.
+  - Use the Back button and look for private data.
+  - For self-contained tokens, send the old token after logout.
+  example: curl -i -b 'session=<old>' https://target/account after GET /logout.
+  expected: After logout the session is ended on the server. Old reference tokens and self-contained tokens are rejected.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A07:2025
+    - A01:2025
+    wstg:
+    - WSTG-SESS-06
+    asvs:
+    - V7.4.1
+    cheatsheet:
+    - Session_Management_Cheat_Sheet
+    cwe:
+    - CWE-287
+    - CWE-384
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/06-Logout_Functionality.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+  - sources/repos/Top10/2025/docs/en/A01_2025-Broken_Access_Control.md
+- id: WEB-SESS-018
+  sheet: WEB
+  category: SESS
+  title: Check single sign-off and reuse of the auth cookie across devices
+  objective: Finds SSO setups where logout does not end all sessions or one stolen value works anywhere.
+  steps:
+  - Log in on device 1 with MFA. Save all auth values.
+  - Remove each value in turn and find the one that keeps the session alive.
+  - Insert that value on device 2.
+  - Log out on device 1. Use the value on device 2 and on other SSO apps.
+  example: 'Browser DevTools: copy auth-cookie from device 1, paste on device 2, then call GET /api/me on each SSO app.'
+  expected: Logout ends the session on all apps. The auth value works only for the device and cannot be copied to skip MFA.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-SESS-06
+    asvs:
+    - V7.6.1
+    cheatsheet:
+    - Session_Management_Cheat_Sheet
+    cwe:
+    - CWE-384
+    - CWE-294
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/06-Logout_Functionality.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-SESS-019
+  sheet: WEB
+  category: SESS
+  title: Test the idle timeout
+  objective: Finds missing or client-only idle timeouts.
+  steps:
+  - Log in and note the time.
+  - 'Send requests with longer waits: 5, 15 and 30 minutes.'
+  - Find the time when the server rejects the session.
+  - Change client-side timestamps and cookie expiry values.
+  - Replay the old session ID after the timeout.
+  example: while sleep 300; do curl -s -o /dev/null -w '%{http_code}\n' -b 'session=<id>' https://target/account; done
+  expected: The server ends the session after the documented inactivity time and rejects the old ID. Client values do not extend it.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-SESS-07
+    asvs:
+    - V7.3.1
+    cheatsheet:
+    - Session_Management_Cheat_Sheet
+    cwe:
+    - CWE-287
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/07-Session_Timeout.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+  notes: CWE-613 (Insufficient Session Expiration) is not in the local CWE catalog.
+- id: WEB-SESS-020
+  sheet: WEB
+  category: SESS
+  title: Test the absolute session lifetime
+  objective: Finds sessions that live forever when the user stays active.
+  steps:
+  - Log in and note the time.
+  - Send a request every minute for the test window.
+  - Check that the application asks for login at the documented limit.
+  - Replay the old session ID.
+  example: while sleep 60; do curl -s -o /dev/null -w '%{http_code} ' -b 'session=<id>' https://target/account; done
+  expected: The session ends at the absolute limit even with activity. Renewing the ID does not reset the limit.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-SESS-07
+    asvs:
+    - V7.3.2
+    cheatsheet:
+    - Session_Management_Cheat_Sheet
+    cwe:
+    - CWE-287
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/07-Session_Timeout.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-SESS-021
+  sheet: WEB
+  category: SESS
+  title: Check that disabling an account ends its sessions
+  objective: Finds active sessions that survive when an account is disabled or deleted.
+  steps:
+  - Log in as a test user and keep the session cookie.
+  - As administrator, disable the user, then delete another test user the same way.
+  - Send requests with the saved cookies.
+  - Test API tokens and refresh tokens too.
+  example: curl -i -b 'session=<user>' https://target/api/me after PATCH /admin/users/42 {"active":false}
+  expected: All sessions and tokens of a disabled or deleted account stop working at once.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A01:2025
+    asvs:
+    - V7.4.2
+    cheatsheet:
+    - Session_Management_Cheat_Sheet
+    cwe:
+    - CWE-287
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A01_2025-Broken_Access_Control.md
+- id: WEB-SESS-022
+  sheet: WEB
+  category: SESS
+  title: Check the option to end other sessions after a factor change
+  objective: Finds password or MFA changes that leave other sessions open.
+  steps:
+  - Log in on two browsers.
+  - Change the password or MFA setting on browser 1.
+  - Look for an option to end other sessions.
+  - Test the session of browser 2.
+  example: 'Browser 2: curl -b ''session=<old>'' https://target/account after the change in browser 1.'
+  expected: After a change of any authentication factor the user can end all other sessions. Reset and recovery do the same.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V7.4.3
+    cheatsheet:
+    - Session_Management_Cheat_Sheet
+    - Forgot_Password_Cheat_Sheet
+    cwe:
+    - CWE-384
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Forgot_Password_Cheat_Sheet.md
+- id: WEB-SESS-023
+  sheet: WEB
+  category: SESS
+  title: Check that administrators can end user sessions
+  objective: Finds missing admin control to end sessions of one or all users.
+  steps:
+  - Log in as administrator.
+  - End the sessions of one user. Test that user's cookie.
+  - End all sessions. Test several cookies.
+  - Check that a normal user cannot call these functions.
+  example: curl -X POST https://target/admin/sessions/revoke -b 'session=<admin>' -d 'user=42'
+  expected: Administrators can end the sessions of one user or all users, and the effect is immediate. Other roles cannot.
+  severity: Low
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V7.4.5
+    cheatsheet:
+    - Session_Management_Cheat_Sheet
+    cwe:
+    - CWE-862
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+- id: WEB-SESS-024
+  sheet: WEB
+  category: SESS
+  title: Check that users can see and end their active sessions
+  objective: Finds no session list, or ending sessions without re-authentication.
+  steps:
+  - Log in on two browsers.
+  - Open the active session list.
+  - End one session and check it stops.
+  - Check that the action asks for a factor again.
+  example: GET /account/sessions then DELETE /account/sessions/<id> with and without a fresh login.
+  expected: Users can see all active sessions and end any of them after they authenticate again with at least one factor.
+  severity: Low
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-SESS-11
+    asvs:
+    - V7.5.2
+    cheatsheet:
+    - Session_Management_Cheat_Sheet
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/11-Concurrent_Sessions.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+- id: WEB-SESS-025
+  sheet: WEB
+  category: SESS
+  title: Check re-authentication before changes to account recovery data
+  objective: Finds changes of email, phone or MFA that need only the session cookie.
+  steps:
+  - Log in. Change the email address.
+  - Check if the password or MFA is asked.
+  - Repeat for phone number, MFA settings and recovery data.
+  - Send the change request from a stolen cookie in another browser.
+  example: curl -i -b 'session=<stolen>' -d 'email=attacker@evil.example' https://target/account/email
+  expected: Changes to email, phone, MFA and recovery data need full re-authentication. Notices go to the old address.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-ATHN-09
+    asvs:
+    - V7.5.1
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    - Session_Management_Cheat_Sheet
+    cwe:
+    - CWE-620
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/09-Weak_Password_Change_or_Reset_Functionalities.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-SESS-026
+  sheet: WEB
+  category: SESS
+  title: Check step-up authentication for highly sensitive operations
+  objective: Finds high-value operations that need no extra proof.
+  steps:
+  - 'List the most sensitive actions: payments, admin changes, key export.'
+  - Run each action with a normal session.
+  - Check for a second factor or secondary check.
+  - 'Replay the confirmed request: it must not work a second time.'
+  example: 'Burp Repeater: replay POST /transfer confirm=<otp> twice and change the amount between steps.'
+  expected: Highly sensitive actions need a second check each time. The approval is bound to the shown data and works once.
+  severity: High
+  test_type: Manual
+  level: ASVS L3
+  refs:
+    asvs:
+    - V7.5.3
+    cheatsheet:
+    - Transaction_Authorization_Cheat_Sheet
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-308
+    - CWE-294
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Transaction_Authorization_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+- id: WEB-SESS-027
+  sheet: WEB
+  category: SESS
+  title: Check that a session needs user consent or action
+  objective: Finds sessions that start with no user action.
+  steps:
+  - Open a link to the application while the IdP session is active.
+  - Check if the application creates a session without a click.
+  - Open the application from a cross-site link and look at the result.
+  example: Open https://target/sso/start in a fresh tab from a cross-site page and watch for Set-Cookie without a click.
+  expected: Sessions start only after a user action or consent. No silent session creation exists.
+  severity: Low
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V7.6.2
+    cheatsheet:
+    - Session_Management_Cheat_Sheet
+    cwe:
+    - CWE-352
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+- id: WEB-SESS-028
+  sheet: WEB
+  category: SESS
+  title: Test concurrent sessions and session limits
+  objective: Finds unlimited parallel sessions or old sessions that stay valid.
+  steps:
+  - Log in 100 times with one account and save each cookie.
+  - Test the first cookie.
+  - Log in from different IP addresses and places.
+  - Compare the result with the documented limit.
+  example: for i in $(seq 100); do curl -s -c j$i.txt -d 'u=t&p=t' https://target/login -o /dev/null; done; curl -b j1.txt https://target/account -i
+  expected: The application limits active sessions as documented and ends older sessions at the limit. Unusual logins cause a notice.
+  severity: Low
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-SESS-11
+    asvs:
+    - V7.1.2
+    cheatsheet:
+    - Session_Management_Cheat_Sheet
+    cwe:
+    - CWE-770
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/11-Concurrent_Sessions.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+- id: WEB-SESS-029
+  sheet: WEB
+  category: SESS
+  title: Check where the client stores session tokens
+  objective: Finds tokens in localStorage or sessionStorage, which scripts can read.
+  steps:
+  - Log in and open DevTools > Application.
+  - Look in localStorage, sessionStorage and IndexedDB for tokens.
+  - Check for tokens in the page source.
+  - Check if XSS could read them.
+  example: 'DevTools console: Object.entries(localStorage).concat(Object.entries(sessionStorage))'
+  expected: Session tokens are not stored in localStorage or sessionStorage. They are in cookies with HttpOnly.
+  severity: Medium
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-SESS-10
+    cheatsheet:
+    - Session_Management_Cheat_Sheet
+    cwe:
+    - CWE-922
+    - CWE-1004
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/10-JSON_Web_Tokens.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+- id: WEB-SESS-030
+  sheet: WEB
+  category: SESS
+  title: Test state-changing requests for cross-site request forgery
+  objective: Finds actions that a third-party page can trigger with the victim session cookie.
+  preconditions:
+  - Test environment.
+  steps:
+  - List the state-changing requests that rely only on cookies.
+  - Check the SameSite attribute of the session cookie.
+  - Replay a request without the anti-CSRF token and with a token of another user.
+  - Build a test page that sends the request from another site, in a test environment.
+  - Test JSON endpoints with a form content type.
+  example: 'ZAP: Generate Anti-CSRF Test Form on the request, host it on a second origin and open it in the victim session.'
+  expected: State-changing requests fail without a valid anti-CSRF token. The request origin and cookie attributes add defense.
+  severity: High
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-SESS-05
+    cwe:
+    - CWE-352
+    capec:
+    - CAPEC-62
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/05-Cross_Site_Request_Forgery.md
+  notes: CSRF prevention has its own cheat sheet that is outside slice WEB-B. Remove this test if another slice already covers WSTG-SESS-05.

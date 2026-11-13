@@ -1,0 +1,133 @@
+- id: IOT-COMP-001
+  sheet: IOT
+  category: COMP
+  title: Make a component list from the firmware and find known vulnerabilities
+  objective: Finds old kernels, libraries and daemons in the image.
+  steps:
+  - Unpack the firmware.
+  - List the kernel, libc, web server, TLS library and other packages with versions.
+  - Compare each version with vulnerability databases.
+  - Record the fix status.
+  example: binwalk -e fw.bin; syft dir:_fw.bin.extracted; grype dir:_fw.bin.extracted; uname banner in the kernel.
+  expected: No component has a known unpatched critical or high vulnerability. The vendor keeps a component list for each release.
+  severity: High
+  test_type:
+  - Automated
+  - Manual
+  refs:
+    other:
+    - GSMA CLP13_7.11
+    cwe:
+    - CWE-1395
+    - CWE-1104
+    cheatsheet:
+    - Vulnerable_Dependency_Management_Cheat_Sheet
+    - Dependency_Graph_SBOM_Cheat_Sheet
+    iot_top10:
+    - I5
+  see:
+  - WEB-DEP-002
+  - WEB-DEP-003
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Vulnerable_Dependency_Management_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Dependency_Graph_SBOM_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+  - sources/repos/www-project-internet-of-things/tab_validate_and_test.md
+- id: IOT-COMP-002
+  sheet: IOT
+  category: COMP
+  title: Check for unmaintained or unsupported components
+  objective: Finds parts that no longer get fixes.
+  steps:
+  - List the end-of-life dates of the OS, kernel and libraries.
+  - Mark unsupported items.
+  - Check the replacement plan.
+  - Check which items cannot be updated.
+  example: Document review plus version dates; compare with the vendor support policy.
+  expected: No unsupported component is in use, or the vendor limits its exposure and plans its replacement.
+  severity: Medium
+  test_type:
+  - Config Review
+  refs:
+    cwe:
+    - CWE-1104
+    - CWE-1329
+    cheatsheet:
+    - Automotive_Security_Cheat_Sheet
+    - Vulnerable_Dependency_Management_Cheat_Sheet
+    iot_top10:
+    - I5
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Automotive_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Vulnerable_Dependency_Management_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: IOT-COMP-003
+  sheet: IOT
+  category: COMP
+  title: Review the supply chain of hardware and software parts
+  objective: Finds untrusted suppliers and changed parts.
+  steps:
+  - List the chips, modules and third-party software.
+  - Ask for the supplier security terms and patch ownership.
+  - Compare the delivered part with the specification.
+  - Check the code and hardware signing of the supplier.
+  example: Document review; hash compare of supplier firmware blobs with the vendor list.
+  expected: Suppliers are assessed. Patch ownership and support periods are set in contracts. Delivered parts match the specification.
+  severity: Medium
+  test_type:
+  - Config Review
+  refs:
+    other:
+    - GSMA CLP13_9.7
+    cheatsheet:
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    - Drone_Security_Cheat_Sheet
+    attack:
+    - T0862
+    iot_top10:
+    - I5
+    - I10
+  see:
+  - WEB-DEP-005
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Drone_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+  - sources/attack/ics-attack.json
+- id: IOT-COMP-004
+  sheet: IOT
+  category: COMP
+  title: Check OS hardening and process privileges on the device
+  objective: Finds root-only designs, missing sandbox and weak file rights.
+  steps:
+  - Get a shell on a lab unit.
+  - List the running processes and users.
+  - Check file rights and writable system paths.
+  - Check the kernel and OS hardening options.
+  example: ps; ls -l; find / -perm -4000; checksec --kernel; mount output for read-only flags.
+  expected: Services run as non-root users with the least rights. System partitions are read-only where possible.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    other:
+    - GSMA CLP13_8.1
+    cwe:
+    - CWE-250
+    - CWE-732
+    cheatsheet:
+    - Secure_Product_Design_Cheat_Sheet
+    iot_top10:
+    - I5
+    - I9
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Product_Design_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip

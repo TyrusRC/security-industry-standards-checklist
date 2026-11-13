@@ -1,0 +1,136 @@
+- id: NIST-SI-001
+  sheet: NIST
+  category: SI
+  title: Check that old software versions are removed after an update
+  objective: Finds old vulnerable versions that stay on the system and can be started after an update.
+  preconditions:
+  - A test host and an update package.
+  steps:
+  - Update a test component to the new version with the normal process.
+  - List the installed versions of the component, images and packages.
+  - Look for old binaries, libraries, containers and rollback copies.
+  - Try to start the old version.
+  - Read the rule that sets how long a rollback copy may stay.
+  example: dpkg -l | grep PKG; docker images; find / -name 'libssl*' 2>/dev/null; kubectl get rs -A
+  expected: After the update only the new version stays active. Old copies are removed or locked after the set rollback time.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    nist_800_53:
+    - SI-2(6)
+    - SI-2
+    - SA-22
+    cwe:
+    - CWE-1104
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NIST-SI-002
+  sheet: NIST
+  category: SI
+  title: Check that integrity violations create an audit record and a response
+  objective: Finds changed files or software that raise no alert and start no action.
+  preconditions:
+  - A test system. Do not change production files.
+  steps:
+  - List the files, packages and settings that the integrity tool watches.
+  - Change one watched test file on a test system.
+  - Look for an audit record with the actor, the time and the file.
+  - Look for the alert and the automatic action that the policy sets.
+  - Restore the file and make sure the tool reports the clean state.
+  example: aide --check; tripwire --check; auditctl -w /etc/TESTFILE -p wa; sigcheck -h FILE
+  expected: The tool detects the change and records it. It sends an alert, and the set response, such as restore or isolate, starts.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    nist_800_53:
+    - SI-7(8)
+    - SI-7(5)
+    - SI-7
+    - AU-2
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NIST-SI-003
+  sheet: NIST
+  category: SI
+  title: Check the manual override of input validation
+  objective: Finds override functions that let a user skip validation without a limit or a record.
+  preconditions:
+  - Two test accounts and source or admin access.
+  steps:
+  - Search the system for functions that skip or relax input validation.
+  - List the roles that can use each override.
+  - Use an override with a test account that has the right.
+  - Try the same override with an ordinary account.
+  - Look for an audit record of each use.
+  example: Search the code and settings for validate=false, skip_validation, force and import-without-check options
+  expected: Only named roles can use an override. Each use is limited to defined inputs and creates an audit record.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    nist_800_53:
+    - SI-10(1)
+    - SI-10
+    - AU-12
+    cwe:
+    - CWE-20
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NIST-SI-004
+  sheet: NIST
+  category: SI
+  title: Check the self-test of security functions at start-up and on a schedule
+  objective: Finds security functions that fail silently, such as a broken filter or a stopped log agent.
+  preconditions:
+  - A test system. Do not run on production.
+  steps:
+  - List the security functions that need a regular test, such as logging, filtering and encryption.
+  - Read when the system tests them and who gets the result.
+  - Break one function on a test system.
+  - Wait for the next test run and look for the alert.
+  - Make sure the result is stored and reported.
+  example: Stop the antivirus service; remove a firewall rule; look at the health check and the alert in the monitoring tool
+  expected: The system finds a failed security function in the set time. It alerts the named receiver and keeps the test result.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    nist_800_53:
+    - SI-6
+    - SI-4(5)
+    - SA-11
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NIST-SI-005
+  sheet: NIST
+  category: SI
+  title: Check malicious code protection at the entry and exit points
+  objective: Finds paths where files or messages enter or leave with no malware scan.
+  preconditions:
+  - The EICAR test file. Get approval from the security team.
+  steps:
+  - 'List the entry and exit points: upload, email, API, download and removable media.'
+  - Send the EICAR test file through each entry point.
+  - Look for the block, the quarantine and the alert.
+  - Check the date of the last signature or rule update of each scanner.
+  - Make sure the update runs by itself.
+  example: curl -F file=@eicar.com https://HOST/upload; clamscan eicar.com; check the scanner update log
+  expected: Every entry and exit point blocks or quarantines the test file and raises an alert. Scanners update by themselves.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    nist_800_53:
+    - SI-3
+    - SI-4(5)
+    cwe:
+    - CWE-434
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json

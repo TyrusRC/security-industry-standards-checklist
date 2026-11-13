@@ -1,0 +1,123 @@
+- id: IOT-PHYS-001
+  sheet: IOT
+  category: PHYS
+  title: Review the casing, ports and tamper protection of the device
+  objective: Finds exposed ports and a casing that gives easy access to the board.
+  steps:
+  - List all external ports and buttons.
+  - Open the casing.
+  - Check for tamper switches and seals.
+  - Check for labeled debug pads.
+  example: Visual inspection with a camera and a multimeter.
+  expected: Unused ports are closed. The casing shows tamper evidence. Debug pads are removed or locked.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    other:
+    - GSMA CLP13_7.3
+    cheatsheet:
+    - Drone_Security_Cheat_Sheet
+    iot_top10:
+    - I10
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Drone_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: IOT-PHYS-002
+  sheet: IOT
+  category: PHYS
+  title: Test flash and memory extraction
+  objective: Finds devices where an attacker can read the firmware and secrets from the chip.
+  steps:
+  - Identify the flash chip.
+  - Try an in-circuit read in a lab.
+  - Check the dump for clear data.
+  - Check read-out protection fuses.
+  example: flashrom with a clip programmer; binwalk on the dump.
+  expected: Read-out protection or storage encryption stops the use of a dump. Secrets are not in clear text.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    other:
+    - GSMA CLP13_7.1
+    - GSMA CLP13_9.4
+    cwe:
+    - CWE-312
+    - CWE-1191
+    cheatsheet:
+    - Drone_Security_Cheat_Sheet
+    - Cryptographic_Storage_Cheat_Sheet
+    attack:
+    - T0893
+    iot_top10:
+    - I10
+    - I7
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Drone_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+  - sources/attack/ics-attack.json
+- id: IOT-PHYS-003
+  sheet: IOT
+  category: PHYS
+  title: Test the physical access of lost or captured devices to cloud accounts
+  objective: Finds devices that give a finder access to the account or network.
+  steps:
+  - Take a lab device with a paired account.
+  - Read stored tokens and Wi-Fi settings.
+  - Use them from another host.
+  - Check the revocation steps for the owner.
+  example: Extract the tokens from the lab dump; replay them against the lab cloud.
+  expected: A stolen device does not give lasting access. The owner can revoke the device and its tokens.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-922
+    - CWE-522
+    cheatsheet:
+    - Drone_Security_Cheat_Sheet
+    - Automotive_Security_Cheat_Sheet
+    attack:
+    - T0859
+    iot_top10:
+    - I10
+    - I8
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Drone_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Automotive_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+  - sources/attack/ics-attack.json
+- id: IOT-PHYS-004
+  sheet: IOT
+  category: PHYS
+  title: Check side channels and fault injection protection for high-risk devices
+  objective: Finds secrets that leak through power analysis or glitches.
+  steps:
+  - Decide if the threat model includes lab attackers.
+  - Check the secure element or crypto chip data sheet.
+  - Check for glitch and temperature monitors.
+  - Review any lab test report.
+  example: 'Document review: certification reports, chip data sheets.'
+  expected: Devices with high risk use certified secure elements. The vendor holds a test report.
+  severity: Info
+  test_type:
+  - Config Review
+  refs:
+    other:
+    - GSMA CLP13_9.6
+    - GSMA CLP13_9.3
+    iot_top10:
+    - I10
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/cwe/cwec_latest.xml.zip

@@ -1,0 +1,363 @@
+- id: NET-DISC-001
+  sheet: NET
+  category: DISC
+  title: Find live hosts in scope and compare them with the inventory
+  objective: Finds hosts that are on the network but not in the inventory.
+  preconditions:
+  - Written approval for scans of the address ranges in scope.
+  - Do not run on production without a scan window and the approval of the network owner.
+  steps:
+  - Get the list of address ranges in scope and the asset inventory.
+  - Run a host discovery scan from the external viewpoint.
+  - Run a host discovery scan from the internal viewpoint.
+  - Compare the live hosts with the inventory.
+  - Write down each live host that has no owner or is not in the inventory.
+  example: 'nmap -sn -PE -PS22,80,443 -PA3389 -oA disc-ext <range> ; masscan <range> -p80,443,22 --rate 1000 -oL masscan.txt'
+  expected: Every live host is in the inventory and has an owner. No unknown host answers in the ranges in scope.
+  severity: Medium
+  test_type: Automated
+  refs:
+    wstg:
+    - WSTG-INFO-04
+    attack:
+    - T1018
+    - T1595.001
+    capec:
+    - CAPEC-292
+    nist_800_53:
+    - CM-8
+    - CA-7
+    other:
+    - NIST SP 800-115 section 4.1 (network discovery)
+  see:
+  - WEB-INFO-004
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/01-Information_Gathering/04-Attack_Surface_Identification.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-DISC-002
+  sheet: NET
+  category: DISC
+  title: Use passive discovery to find hosts, protocols and traffic relations
+  objective: Finds hosts and flows that active scans miss, such as hosts that are off or filtered.
+  preconditions:
+  - Written approval for traffic capture on the segment.
+  steps:
+  - Connect the sniffer to a tap or a mirror port on the segment.
+  - Capture traffic for a full business cycle.
+  - List the IP and MAC addresses, the protocols and the talk pairs in the capture.
+  - Compare the list with the inventory and the active scan results.
+  - Write down each host, protocol or flow that is not in the inventory or the diagram.
+  example: 'tshark -i eth1 -a duration:3600 -w seg.pcap ; tshark -r seg.pcap -q -z conv,ip ; Wireshark: Statistics > Conversations'
+  expected: Every host, protocol and flow in the capture is in the inventory and the data-flow diagram. No unapproved protocol is in use.
+  severity: Low
+  test_type: Manual
+  refs:
+    attack:
+    - T1040
+    capec:
+    - CAPEC-313
+    nist_800_53:
+    - CM-8
+    - SI-4
+    other:
+    - NIST SP 800-115 sections 3.5 and 4.1 (passive discovery)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-DISC-003
+  sheet: NET
+  category: DISC
+  title: Detect rogue wired devices and trace them to the switch port
+  objective: Finds unauthorized devices that connect to the wired network.
+  preconditions:
+  - Written approval from the network owner.
+  steps:
+  - Get the list of approved devices, vendors and operating systems.
+  - Scan the network and list the MAC address vendor and the operating system of each host.
+  - Mark each host that does not match the approved list.
+  - Find the switch and the port of each marked host in the switch MAC table.
+  - Make sure the network has a control that alerts on new devices.
+  example: 'nmap -O -sV --osscan-guess <range> -oX os.xml ; show mac address-table | include <mac> (on the switch)'
+  expected: Only approved devices are on the network. The network raises an alert when an unknown device connects.
+  severity: Medium
+  test_type: Manual
+  refs:
+    attack:
+    - T1200
+    nist_800_53:
+    - CM-8
+    - SC-7
+    other:
+    - NIST SP 800-115 section 4.1 (rogue device detection)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-DISC-004
+  sheet: NET
+  category: DISC
+  title: Scan all TCP ports and compare open ports with the approved list
+  objective: Finds open ports that are not approved or that have no business need.
+  preconditions:
+  - Written approval for port scans of the hosts in scope.
+  - Do not run on production without a scan window. Use a slow scan rate on old systems.
+  steps:
+  - Get the list of approved services, protocols and ports for each host.
+  - Run a TCP scan of all 65535 ports from the external viewpoint.
+  - Run the same scan from the internal viewpoint.
+  - Compare the open ports with the approved list.
+  - Write down each open port that is not approved.
+  example: 'nmap -Pn -sS -p- --min-rate 500 -T3 -oA tcp-all <host> ; masscan <range> -p0-65535 --rate 1000 -oL masscan.txt'
+  expected: Only approved ports are open. Each open port has a business reason, an owner and an approval.
+  severity: High
+  test_type: Automated
+  refs:
+    wstg:
+    - WSTG-CONF-01
+    - WSTG-INFO-04
+    attack:
+    - T1046
+    capec:
+    - CAPEC-300
+    - CAPEC-287
+    cwe:
+    - CWE-1327
+    nist_800_53:
+    - CM-7
+    - SC-7
+    pci_dss:
+    - '1.2.5'
+    - '2.2.4'
+    other:
+    - NIST SP 800-115 section 4.2 (port and service identification)
+  see:
+  - WEB-INFO-004
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/01-Network_Infrastructure_Configuration.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/01-Information_Gathering/04-Attack_Surface_Identification.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-DISC-005
+  sheet: NET
+  category: DISC
+  title: Scan UDP ports and look for unapproved UDP services
+  objective: Finds UDP services, such as SNMP, TFTP and NTP, that are open without approval.
+  preconditions:
+  - Written approval for port scans of the hosts in scope.
+  - Do not run on production without a scan window. UDP scans are slow and can load old devices.
+  steps:
+  - Run a UDP scan of the common service ports on each host in scope.
+  - Run a version scan on the open and open-filtered ports.
+  - Compare the result with the approved list of services.
+  - Write down each UDP service that is not approved.
+  example: 'nmap -Pn -sU --top-ports 200 -sV --version-intensity 0 -oA udp-top <host>'
+  expected: Only approved UDP services answer. Services that need no external access do not answer from untrusted networks.
+  severity: Medium
+  test_type: Automated
+  refs:
+    attack:
+    - T1046
+    capec:
+    - CAPEC-308
+    nist_800_53:
+    - CM-7
+    - SC-7
+    pci_dss:
+    - '1.2.5'
+    - '2.2.4'
+    other:
+    - NIST SP 800-115 section 4.2 (port and service identification)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-DISC-006
+  sheet: NET
+  category: DISC
+  title: Identify services and versions and compare them with the approved list
+  objective: Finds services that run another product or version than the inventory lists.
+  preconditions:
+  - Written approval for scans of the hosts in scope.
+  steps:
+  - Run a service and version scan on each open port.
+  - Look at the banner of each service.
+  - Compare the product and version with the inventory.
+  - Do not trust the port number. Confirm the real service on each port.
+  - Write down each service that is unknown, old or not supported.
+  example: 'nmap -Pn -sV --version-all -p <ports> -oX svc.xml <host> ; nc -nv <host> <port> (banner grab)'
+  expected: Each port runs the approved service and a supported version. Banners do not give more detail than needed.
+  severity: Low
+  test_type: Automated
+  refs:
+    wstg:
+    - WSTG-CONF-01
+    - WSTG-INFO-04
+    attack:
+    - T1046
+    capec:
+    - CAPEC-312
+    - CAPEC-310
+    cwe:
+    - CWE-200
+    nist_800_53:
+    - CM-7
+    - RA-5
+    other:
+    - NIST SP 800-115 section 4.2 (service identification and banner grabbing)
+  see:
+  - WEB-INFO-002
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/01-Information_Gathering/04-Attack_Surface_Identification.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-DISC-007
+  sheet: NET
+  category: DISC
+  title: Compare the scan result with the firewall ruleset
+  objective: Finds rules that do not work as the ruleset says, and paths that go around the firewall.
+  preconditions:
+  - Written approval for scans from the viewpoint of an untrusted network.
+  - Do not run on production without a scan window.
+  steps:
+  - Get the firewall rules that apply to the hosts in scope.
+  - Scan the hosts from an untrusted network with the normal scan type.
+  - Scan again with other scan types, for example ACK, FIN and Xmas scans.
+  - Compare the result with the rules.
+  - Write down each port that answers and is not allowed by a rule.
+  example: 'nmap -Pn -sS -sA -p- <host> ; nmap -Pn -sF -sX -p 1-1024 <host> ; Wireshark capture behind the firewall'
+  expected: The scan shows only the ports that the ruleset allows. Other scan types do not find more open ports.
+  severity: High
+  test_type: Automated
+  refs:
+    wstg:
+    - WSTG-CONF-01
+    capec:
+    - CAPEC-305
+    - CAPEC-302
+    - CAPEC-303
+    nist_800_53:
+    - SC-7
+    pci_dss:
+    - '1.3.1'
+    - '1.4.2'
+    other:
+    - NIST SP 800-115 sections 3.3 and 4.2 (ruleset review and alternate scan types)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/01-Network_Infrastructure_Configuration.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-DISC-008
+  sheet: NET
+  category: DISC
+  title: Make sure no insecure or clear-text service listens on the network
+  objective: Finds Telnet, FTP, TFTP and similar services that send data or passwords in clear text.
+  preconditions:
+  - Written approval for scans of the hosts in scope.
+  steps:
+  - Use the open-port results of the TCP and UDP scans.
+  - Look for Telnet, FTP, TFTP, rlogin, rsh and other clear-text services.
+  - Look for clear-text management ports on routers, switches and servers.
+  - Check if each insecure service has a documented business reason and extra controls.
+  example: 'nmap -Pn -p 21,23,69,79,512-514,5900 -sV <range> ; nmap -sU -p 69 --script tftp-enum <host>'
+  expected: No insecure service listens. A service that must stay has a written reason and extra controls, and it is not reachable from untrusted networks.
+  severity: High
+  test_type: Automated
+  refs:
+    attack:
+    - T1046
+    cwe:
+    - CWE-319
+    nist_800_53:
+    - CM-7
+    - SC-8
+    pci_dss:
+    - '2.2.5'
+    - '2.2.7'
+    other:
+    - NIST SP 800-115 section 4.2 (insecure protocols such as TFTP and telnet)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-DISC-009
+  sheet: NET
+  category: DISC
+  title: Make sure the origin server is not reachable without the CDN
+  objective: Finds origin servers that accept traffic from the internet and not only from the CDN.
+  preconditions:
+  - Written approval for tests on the origin address.
+  steps:
+  - Find origin IP addresses from DNS history, certificate transparency logs and leaked headers.
+  - Send a request directly to each origin IP address.
+  - Send the request with the Host header of the public site.
+  - Read the rules that restrict the origin to the CDN or load balancer.
+  example: 'curl -sk --resolve www.example.com:443:<origin-ip> https://www.example.com/ -o /dev/null -w "%{http_code}\n"'
+  expected: The origin does not answer to the internet. It answers only to the CDN or load balancer address ranges.
+  severity: Medium
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-CONF-01
+    nist_800_53:
+    - SC-7
+    other:
+    - WSTG-CONF-01 table row on load balancer and CDN configuration
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/01-Network_Infrastructure_Configuration.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-DISC-010
+  sheet: NET
+  category: DISC
+  title: Check that discovery scans run on a schedule and find new devices
+  objective: Finds networks where new devices and services appear and nobody sees them.
+  steps:
+  - Look at the schedule of discovery and port scans.
+  - Make sure the scan covers all address ranges, including new ranges.
+  - Add a test host and a test listener in a scan window.
+  - Make sure the scan or the monitoring tool reports the new host and the new service.
+  example: 'cron: nmap -sS -p- -oX scan-$(date +%F).xml <range> ; ndiff scan-old.xml scan-new.xml'
+  expected: Scans run on a fixed schedule. New hosts and new open ports create an alert and a ticket.
+  severity: Low
+  test_type: Manual
+  refs:
+    nist_800_53:
+    - CM-8
+    - SI-4
+    - CA-7
+    other:
+    - NIST SP 800-115 section 4.1 (continuous discovery)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-DISC-011
+  sheet: NET
+  category: DISC
+  title: Search internet scan databases for exposed assets of the organization
+  objective: Finds services, devices and certificates that outsiders can already see.
+  steps:
+  - List the domains, address ranges and organization names in scope.
+  - Search internet scan databases for these names and ranges.
+  - Compare the hosts and open services found with the inventory and the approved port list.
+  - Write down each host or service that is not in the inventory.
+  example: 'shodan search net:<range> ; shodan host <ip> ; censys search "ip: <range>" ; compare with nmap -sV results'
+  expected: The databases show only approved hosts and services. Each exposed service is in the inventory and has an owner.
+  severity: Medium
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-INFO-01
+    attack:
+    - T1590.005
+    - T1595.001
+    capec:
+    - CAPEC-169
+    nist_800_53:
+    - CM-8
+    - RA-5(4)
+  see:
+  - WEB-INFO-001
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/01-Information_Gathering/01-Conduct_Search_Engine_Reconnaissance_for_Information_Leakage.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json

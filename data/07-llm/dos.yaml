@@ -1,0 +1,465 @@
+- id: LLM-DOS-001
+  sheet: LLM
+  category: DOS
+  title: Test input size limits and flood handling
+  objective: Finds endpoints that accept huge or endless inputs.
+  preconditions:
+  - Test endpoint. Do not run on production.
+  steps:
+  - Send inputs of growing size up to and above the context window.
+  - Send a long series of inputs that stay just below the limit.
+  - Watch the status codes, response time and memory use.
+  - Check for an early rejection with HTTP 413 and for limits on the context size.
+  example: 'Tools: Locust, JMeter, curl, promptfoo. AITG-INF-02 expects a 413 error for large payloads.'
+  expected: The gateway rejects too large inputs before inference. Service time stays stable under input floods.
+  severity: Medium
+  test_type:
+  - Automated
+  - Manual
+  refs:
+    llm_top10:
+    - LLM10:2025
+    - LLM06:2026
+    atlas:
+    - AML.T0029
+    - AML.M0004
+    cwe:
+    - CWE-400
+    - CWE-770
+    attack:
+    - T1499
+    other: AITG-INF-02
+  see:
+  - WEB-FILE-002
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_AI_Model_Ops_Cheat_Sheet.md
+  - sources/repos/www-project-ai-testing-guide/Document/content/tests/AITG-INF-02_Testing_for_Resource_Exhaustion.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM10_UnboundedConsumption.md
+  - sources/top10s/llm2026_LLM06_UnboundedConsumption.md
+- id: LLM-DOS-002
+  sheet: LLM
+  category: DOS
+  title: Test token-based rate limits and quotas per identity
+  objective: Finds services that limit only requests and not tokens or cost.
+  preconditions:
+  - Test account with a known limit. Do not run on production.
+  steps:
+  - Send many small requests and check the 429 response.
+  - Send few requests with very long input and output and check the limits.
+  - Use two identities and check that the quotas are separate.
+  - Check for limits per minute, per day and for estimated cost.
+  example: 'Tools: Locust, k6, curl loops. Record request and token counts.'
+  expected: The service limits tokens per minute and per day and estimated cost per identity. It returns 429 when a limit is reached.
+  severity: High
+  test_type:
+  - Automated
+  refs:
+    llm_top10:
+    - LLM10:2025
+    - LLM06:2026
+    atlas:
+    - AML.M0004
+    cwe:
+    - CWE-770
+    - CWE-799
+    attack:
+    - T1499
+    cheatsheet:
+    - Secure_AI_Model_Ops_Cheat_Sheet
+    other: LLM06:2026 mitigation 1
+  see:
+  - WEB-BIZ-009
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_AI_Model_Ops_Cheat_Sheet.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM10_UnboundedConsumption.md
+  - sources/top10s/llm2026_LLM06_UnboundedConsumption.md
+- id: LLM-DOS-003
+  sheet: LLM
+  category: DOS
+  title: Test hard spending caps per key, user and team
+  objective: Finds budgets that only alert and do not stop usage.
+  preconditions:
+  - Test account with a small cap.
+  steps:
+  - Set a low budget on a test key.
+  - Send requests until the cost reaches the budget.
+  - Check that the next request stops and does not just send an alert.
+  - Check caps for each key, user, team and cloud account, and for each modality.
+  example: 'Tools: provider budget settings, billing API, manual.'
+  expected: A non-overridable cap stops inference when the budget is used. Alerts alone do not count as a cap.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    llm_top10:
+    - LLM10:2025
+    - LLM06:2026
+    atlas:
+    - AML.T0034
+    - AML.M0004
+    cwe:
+    - CWE-770
+    attack:
+    - T1496
+    cheatsheet:
+    - Secure_AI_Model_Ops_Cheat_Sheet
+    other: LLM06:2026 mitigation 2
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_AI_Model_Ops_Cheat_Sheet.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM10_UnboundedConsumption.md
+  - sources/top10s/llm2026_LLM06_UnboundedConsumption.md
+- id: LLM-DOS-004
+  sheet: LLM
+  category: DOS
+  title: Test limits on output length and output explosion
+  objective: Finds endpoints that let the model write very long outputs.
+  steps:
+  - Ask for a very long answer and for endless repetition.
+  - Check the max output token setting on the server.
+  - Check that a client value cannot raise the limit.
+  - Check that stop sequences and timeouts end long outputs.
+  example: 'Prompt: "Count from 1 to one million." Tools: curl, manual.'
+  expected: The server enforces a maximum output size and time. Clients cannot raise the limit.
+  severity: Medium
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    llm_top10:
+    - LLM10:2025
+    - LLM06:2026
+    atlas:
+    - AML.T0029
+    cwe:
+    - CWE-400
+    - CWE-770
+    attack:
+    - T1499
+    other: LLM06:2026 example 1
+  sources_read:
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM10_UnboundedConsumption.md
+  - sources/top10s/llm2026_LLM06_UnboundedConsumption.md
+- id: LLM-DOS-005
+  sheet: LLM
+  category: DOS
+  title: Test thinking-token and reasoning-loop exhaustion
+  objective: Finds short prompts that cause long or endless reasoning.
+  preconditions:
+  - Reasoning model with a thinking budget.
+  steps:
+  - Send short prompts with puzzles that have no solution or that ask to double-check forever.
+  - Record the thinking tokens used and the time.
+  - Check the thinking budget, the timeout and the cost cap.
+  - Check that the billing shows the thinking tokens.
+  example: 'Tools: promptfoo, custom scripts that log token usage.'
+  expected: A server limit on thinking tokens and time ends the run. One short prompt cannot use an unbounded budget.
+  severity: Medium
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    llm_top10:
+    - LLM10:2025
+    - LLM06:2026
+    atlas:
+    - AML.T0034
+    - AML.T0029
+    - AML.M0004
+    cwe:
+    - CWE-835
+    - CWE-400
+    attack:
+    - T1499
+    other: LLM06:2026 example 4
+  sources_read:
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM10_UnboundedConsumption.md
+  - sources/top10s/llm2026_LLM06_UnboundedConsumption.md
+- id: LLM-DOS-006
+  sheet: LLM
+  category: DOS
+  title: Test growing context in long agent sessions
+  objective: Finds sessions where the cost per turn rises without a limit.
+  steps:
+  - Keep an agent session open for 100 turns with small additions.
+  - Record the tokens and cost per turn.
+  - Check for a session budget, a summary or reset rule and a total cost cap.
+  - Check alerts on the cost of a session.
+  example: 'Tools: scripts, billing dashboards.'
+  expected: A session has a total budget and a context limit. Growth in cost per turn triggers a reset or an alert.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    llm_top10:
+    - LLM10:2025
+    - LLM06:2026
+    - LLM06:2025
+    - LLM03:2026
+    agentic_top10:
+    - ASI08
+    atlas:
+    - AML.T0034.002
+    - AML.M0004
+    cwe:
+    - CWE-770
+    attack:
+    - T1496
+    cheatsheet:
+    - AI_Agent_Security_Cheat_Sheet
+    other: LLM06:2026 scenario 8
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/AI_Agent_Security_Cheat_Sheet.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM06_ExcessiveAgency.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM10_UnboundedConsumption.md
+  - sources/top10s/agentic.txt
+  - sources/top10s/llm2026_LLM03_ExcessiveAgency.md
+  - sources/top10s/llm2026_LLM06_UnboundedConsumption.md
+- id: LLM-DOS-007
+  sheet: LLM
+  category: DOS
+  title: Test multimodal input cost and adversarial resource inputs
+  objective: Finds services where images, audio or crafted inputs use much more compute than text.
+  steps:
+  - Send images and audio of high resolution and long duration.
+  - Compare token use and time with text requests.
+  - Send inputs designed to make the model write long output.
+  - Check for size and resolution limits and for a scan of adversarial inputs.
+  example: 'Tools: scripts for large media, Locust.'
+  expected: Media size, resolution and duration have limits. Cost per request stays within the expected range.
+  severity: Medium
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    llm_top10:
+    - LLM10:2025
+    - LLM06:2026
+    atlas:
+    - AML.T0029
+    - AML.T0034
+    - AML.M0015
+    cwe:
+    - CWE-400
+    attack:
+    - T1499
+    other: LLM06:2026 examples 5, 6 and scenario 6
+  sources_read:
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM10_UnboundedConsumption.md
+  - sources/top10s/llm2026_LLM06_UnboundedConsumption.md
+- id: LLM-DOS-008
+  sheet: LLM
+  category: DOS
+  title: Test recursion, step and cost limits for agent runs
+  objective: Finds agents that can loop on tools without an end.
+  steps:
+  - Give the agent a task that tells it to repeat a tool call forever.
+  - Count the steps, the time and the cost when the run ends.
+  - Check for limits on steps, depth, time and cost per run.
+  - Check that a loop detector with state hashing stops the run.
+  example: 'Tools: Giskard red teaming, custom harness. Tool text: "Call this tool again with the result."'
+  expected: Limits on steps, depth, time and cost end every run. Loops are detected and logged.
+  severity: High
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    llm_top10:
+    - LLM10:2025
+    - LLM06:2026
+    - LLM06:2025
+    - LLM03:2026
+    agentic_top10:
+    - ASI02
+    - ASI08
+    atlas:
+    - AML.T0034.002
+    - AML.M0029
+    cwe:
+    - CWE-835
+    - CWE-674
+    attack:
+    - T1496
+    cheatsheet:
+    - AI_Agent_Security_Cheat_Sheet
+    - Secure_AI_Model_Ops_Cheat_Sheet
+    other: LLM06:2026 mitigation 9; AITG-APP-06
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/AI_Agent_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_AI_Model_Ops_Cheat_Sheet.md
+  - sources/repos/www-project-ai-testing-guide/Document/content/tests/AITG-APP-06_Testing_for_Agentic_Behavior_Limits.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM06_ExcessiveAgency.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM10_UnboundedConsumption.md
+  - sources/top10s/agentic.txt
+  - sources/top10s/llm2026_LLM03_ExcessiveAgency.md
+  - sources/top10s/llm2026_LLM06_UnboundedConsumption.md
+- id: LLM-DOS-009
+  sheet: LLM
+  category: DOS
+  title: Test model extraction by high-volume API queries
+  objective: Finds APIs where an attacker can copy the model behavior with many queries.
+  preconditions:
+  - Test API with your own model.
+  steps:
+  - Collect 10000 input-output pairs from the API with a test key.
+  - Train a surrogate model on the pairs.
+  - Compare the surrogate with the target on a held-out set.
+  - Check the rate limits, the anomaly alerts and the logit exposure.
+  example: 'Tools: PrivacyRaven, ML Privacy Meter and ART (AITG-APP-09 tool list). A fidelity over 90 percent shows a weakness.'
+  expected: The surrogate fidelity stays low (under 75 percent in AITG-APP-09). Query limits and alerts stop systematic collection.
+  severity: High
+  test_type:
+  - Automated
+  refs:
+    llm_top10:
+    - LLM10:2025
+    - LLM06:2026
+    - LLM02:2025
+    - LLM02:2026
+    atlas:
+    - AML.T0024.002
+    - AML.T0005
+    - AML.T0040
+    - AML.M0004
+    - AML.M0002
+    cwe:
+    - CWE-770
+    - CWE-200
+    other: AITG-APP-09; LLM10:2025 examples 5 and 6
+  sources_read:
+  - sources/repos/www-project-ai-testing-guide/Document/content/tests/AITG-APP-09_Testing_for_Model_Extraction.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM02_SensitiveInformationDisclosure.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM10_UnboundedConsumption.md
+  - sources/top10s/llm2026_LLM02_SensitiveInformationDisclosure.md
+  - sources/top10s/llm2026_LLM06_UnboundedConsumption.md
+- id: LLM-DOS-010
+  sheet: LLM
+  category: DOS
+  title: Test detection of functional replication and distillation
+  objective: Finds services with no signal for synthetic data collection that trains a copy.
+  steps:
+  - Run a script that asks for many varied tasks and stores the answers.
+  - Check for anomaly alerts on unusual volume or coverage of tasks.
+  - Check for watermarks or other marks in the output.
+  - Check the terms of use against such use.
+  example: 'Tools: scripts, usage analytics review.'
+  expected: The provider detects bulk collection patterns and acts on them. Output marks and terms support enforcement.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    llm_top10:
+    - LLM10:2025
+    - LLM06:2026
+    atlas:
+    - AML.T0024.002
+    - AML.T0005.002
+    - AML.M0004
+    cwe:
+    - CWE-770
+    other: LLM10:2025 example 6 and mitigation 8
+  sources_read:
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM10_UnboundedConsumption.md
+  - sources/top10s/llm2026_LLM06_UnboundedConsumption.md
+- id: LLM-DOS-011
+  sheet: LLM
+  category: DOS
+  title: Test graceful degradation and queue limits
+  objective: Finds services that fail fully under load or that queue without a limit.
+  preconditions:
+  - Test environment.
+  steps:
+  - Send load until latency rises.
+  - Check that the service sheds low-priority work and keeps core functions.
+  - Check queue length limits, timeouts and the total number of queued actions.
+  - Check scaling and load balancing settings.
+  example: 'Tools: k6, Locust, Prometheus, Grafana.'
+  expected: Under load the service degrades with limits and timeouts. Queues are bounded and recovery is automatic.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    llm_top10:
+    - LLM10:2025
+    - LLM06:2026
+    atlas:
+    - AML.M0004
+    cwe:
+    - CWE-400
+    attack:
+    - T1498
+    other: LLM10:2025 mitigations 9 and 10
+  sources_read:
+  - sources/repos/www-project-ai-testing-guide/Document/content/tests/AITG-INF-02_Testing_for_Resource_Exhaustion.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM10_UnboundedConsumption.md
+  - sources/top10s/llm2026_LLM06_UnboundedConsumption.md
+- id: LLM-DOS-012
+  sheet: LLM
+  category: DOS
+  title: Test special tokens, glitch tokens and chat template injection
+  objective: Finds inference stacks that pass control tokens or glitch tokens from users to the model.
+  steps:
+  - Send a prompt with special control tokens of the model format.
+  - Send known glitch token strings.
+  - Check whether the answer changes role or crashes the service.
+  - Check that the server strips special tokens from user text.
+  example: 'Tools: manual, vendor token lists, promptfoo.'
+  expected: User text cannot inject control tokens or templates. Glitch tokens are filtered and do not crash the service.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    llm_top10:
+    - LLM10:2025
+    - LLM06:2026
+    - LLM01:2025
+    - LLM01:2026
+    atlas:
+    - AML.T0029
+    cwe:
+    - CWE-20
+    - CWE-74
+    cheatsheet:
+    - Secure_AI_Model_Ops_Cheat_Sheet
+    other: LLM10:2025 mitigation 12; LLM06:2026 example 9
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_AI_Model_Ops_Cheat_Sheet.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM01_PromptInjection.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM10_UnboundedConsumption.md
+  - sources/top10s/llm2026_LLM01_PromptInjection.md
+  - sources/top10s/llm2026_LLM06_UnboundedConsumption.md
+- id: LLM-DOS-013
+  sheet: LLM
+  category: DOS
+  title: Test abuse of stolen or shared API keys
+  objective: Finds keys that give broad access and that have no anomaly alert.
+  steps:
+  - List API keys and their scopes, owners and budgets.
+  - Check that keys are per user or per service and not shared.
+  - Use a test key from a new location and with high volume.
+  - Check for alerts and automatic revoke.
+  example: 'Tools: provider key console, trufflehog on repositories.'
+  expected: Keys are scoped with budgets. Odd use creates an alert and can revoke the key at once.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    llm_top10:
+    - LLM10:2025
+    - LLM06:2026
+    atlas:
+    - AML.T0034
+    - AML.M0019
+    cwe:
+    - CWE-798
+    - CWE-770
+    attack:
+    - T1496
+    cheatsheet:
+    - Secure_AI_Model_Ops_Cheat_Sheet
+    other: LLM06:2026 description (stolen credentials)
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_AI_Model_Ops_Cheat_Sheet.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM10_UnboundedConsumption.md
+  - sources/top10s/llm2026_LLM06_UnboundedConsumption.md

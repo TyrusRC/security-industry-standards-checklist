@@ -1,0 +1,94 @@
+- id: NET-BKP-001
+  sheet: NET
+  category: BKP
+  title: Look for backups, dumps and state files on exposed hosts and shares
+  objective: Finds backup archives, database dumps and configuration copies that anyone on the network can read.
+  preconditions:
+  - Written approval for logins and file listing on the hosts in scope.
+  steps:
+  - List the file shares, FTP and TFTP services, and storage services found by the port scan.
+  - List the files that anonymous or low-rights users can read.
+  - Look for archives, database dumps, configuration backups, state files and environment files.
+  - Open a small sample of the files and look for secrets and personal data.
+  - Write down each file, its location and the data that it holds.
+  example: 'smbmap -H <host> -u guest ; ftp -n <host> (anonymous) ; nmap --script ftp-anon,nfs-ls -p 21,2049 <host> ; find /srv /mnt \( -name "*.bak" -o -name "*.sql" -o -name "*.tar.gz" -o -name "*.tfstate" -o -name ".env" \) -perm -o+r'
+  expected: Low-rights users and outside users cannot read backups, dumps, state files or configuration copies. No such file sits on a public or shared location.
+  severity: High
+  test_type: Automated
+  refs:
+    wstg:
+    - WSTG-CONF-04
+    - WSTG-CONF-11
+    attack:
+    - T1135
+    - T1602
+    cwe:
+    - CWE-200
+    - CWE-548
+    nist_800_53:
+    - AC-3
+    - CM-7
+  see:
+  - WEB-CONF-004
+  - WEB-CONF-012
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/04-Review_Old_Backup_and_Unreferenced_Files_for_Sensitive_Information.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-BKP-002
+  sheet: NET
+  category: BKP
+  title: Check that backups are encrypted, kept apart and reachable by few
+  objective: Finds backups that an attacker on the production network can read or delete.
+  steps:
+  - Find the storage systems and the network paths that carry backups.
+  - Make sure the backup data is encrypted in transit and at rest.
+  - Make sure a copy is in a separate facility that is not with the operational system.
+  - Look at which hosts and accounts can reach the backup storage on the network.
+  - Try to read a backup from a normal server account.
+  example: 'nmap -Pn -sV -p- <backup-server> ; showmount -e <backup-server> ; smbclient -L //<backup-server> -U <server-account> ; check rules for the backup zone'
+  expected: Backups are encrypted and a copy is stored in a separate place. Only the backup system and backup admins can reach the backup storage.
+  severity: High
+  test_type: Config Review
+  refs:
+    nist_800_53:
+    - CP-9
+    - CP-9(3)
+    - CP-9(8)
+    - SC-28(1)
+    - SC-8
+    pci_dss:
+    - '1.4.4'
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-BKP-003
+  sheet: NET
+  category: BKP
+  title: Check who can read the configuration backups of network devices
+  objective: Finds configuration copies with passwords and community strings that many hosts can read.
+  steps:
+  - Find the systems that store configuration backups of routers, switches and firewalls.
+  - Look at the protocol the devices use to send their backups.
+  - Look at the permissions of the backup folder and the network services that serve it.
+  - Search the backup files for clear-text secrets.
+  example: 'nmap -sU -p 69 --script tftp-enum <host> ; ls -l /srv/tftp /var/backups/network ; grep -rniE "password|secret|community" /srv/tftp'
+  expected: Device backups are stored on a protected system and sent over an encrypted channel. Only network administrators can read them and they hold no clear-text secrets.
+  severity: High
+  test_type: Manual
+  refs:
+    attack:
+    - T1602.002
+    cwe:
+    - CWE-200
+    - CWE-256
+    - CWE-319
+    nist_800_53:
+    - CM-2
+    - CM-2(3)
+    - AC-3
+    pci_dss:
+    - '1.2.8'
+    - '8.6.2'
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md

@@ -1,0 +1,339 @@
+- id: API-GQL-001
+  sheet: API
+  category: GQL
+  title: Bypass login and OTP limits with batched requests
+  objective: Finds GraphQL APIs where many login or OTP tries fit in one HTTP request.
+  preconditions:
+  - Use a test account.
+  steps:
+  - Send a JSON array of several login mutations in one request.
+  - Send one query that holds many aliased login mutations.
+  - Check if the rate limit and the lock out count each operation or each request.
+  - Check if batched requests work for sensitive operations.
+  example: 'InQL batch attack; graphql-cop (test for batching and alias overloading); Burp request: [{"query":"mutation{login(...)}"},{...}].'
+  expected: Rate limits and lock outs count each operation. Sensitive operations cannot run in batches, and the batch size has a limit.
+  severity: High
+  test_type: Manual
+  refs:
+    api_top10:
+    - API2:2023
+    - API4:2023
+    wstg:
+    - WSTG-APIT-99
+    cheatsheet:
+    - GraphQL_Cheat_Sheet
+    cwe:
+    - CWE-307
+    - CWE-799
+    capec:
+    - CAPEC-112
+    attack:
+    - T1110
+  see:
+  - WEB-HTTP-007
+  - WEB-AUTHN-002
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa2-broken-authentication.md
+  - sources/repos/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/99-GraphQL.md
+  - sources/repos/CheatSheetSeries/cheatsheets/GraphQL_Cheat_Sheet.md
+- id: API-GQL-002
+  sheet: API
+  category: GQL
+  title: Bypass resource limits with batched expensive mutations
+  objective: Finds GraphQL endpoints where batched requests skip request limits and size checks.
+  preconditions:
+  - Test environment only.
+  steps:
+  - Find a costly mutation, such as an image upload or an export.
+  - Send the mutation many times in one array or with many aliases.
+  - Watch the CPU, memory and time of the server.
+  - Check the limit for the number of operations in a request.
+  example: graphql-cop; Burp request with 100 aliases of uploadPic; load graph of the test host.
+  expected: The server limits the number of operations per request and the cost of a request. Total work per client is bounded.
+  severity: High
+  test_type: Manual
+  refs:
+    api_top10:
+    - API4:2023
+    wstg:
+    - WSTG-APIT-99
+    cheatsheet:
+    - GraphQL_Cheat_Sheet
+    cwe:
+    - CWE-770
+    - CWE-400
+    capec:
+    - CAPEC-130
+  see:
+  - WEB-HTTP-007
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/99-GraphQL.md
+  - sources/repos/CheatSheetSeries/cheatsheets/GraphQL_Cheat_Sheet.md
+- id: API-GQL-003
+  sheet: API
+  category: GQL
+  title: Bypass a query denylist with aliases
+  objective: Finds access rules that block field names by text match and so miss aliased fields.
+  steps:
+  - Send a query for a blocked field and confirm the block.
+  - Send the same field with an alias.
+  - Send it with changed space characters, fragments and variables.
+  - 'Check where the access rule runs: at the text level or at the resolver.'
+  example: 'InQL; Burp GraphQL Raider; query { a: adminUsers { id } } compared with query { adminUsers { id } }.'
+  expected: Access is enforced in the resolvers by role. Aliases, fragments and space characters do not change the result.
+  severity: High
+  test_type: Manual
+  refs:
+    api_top10:
+    - API5:2023
+    wstg:
+    - WSTG-APIT-99
+    - WSTG-APIT-04
+    cheatsheet:
+    - GraphQL_Cheat_Sheet
+    cwe:
+    - CWE-863
+    - CWE-285
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa5-broken-function-level-authorization.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/99-GraphQL.md
+  - sources/repos/CheatSheetSeries/cheatsheets/GraphQL_Cheat_Sheet.md
+- id: API-GQL-004
+  sheet: API
+  category: GQL
+  title: Test object access by ID, node fields and edges in GraphQL
+  objective: Finds queries that return objects of other users by ID or through relations.
+  steps:
+  - Run a query for an object ID of user B as user A.
+  - Use the node and nodes fields with IDs of user B.
+  - Reach the same object through a relation from an object of user A.
+  - Repeat with mutations that delete or change an object of user B.
+  example: 'InQL scan; graphql-path-enum; query { user(id: "<idB>") { name email } }; mutation deleteReports with an ID of user B.'
+  expected: Every resolver, edge and node checks that the caller may access the object. Another user's ID returns an error or null.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    api_top10:
+    - API1:2023
+    wstg:
+    - WSTG-APIT-02
+    - WSTG-APIT-99
+    asvs:
+    - V8.2.2
+    cheatsheet:
+    - GraphQL_Cheat_Sheet
+    cwe:
+    - CWE-639
+    - CWE-285
+    capec:
+    - CAPEC-1
+  see:
+  - WEB-IDOR-001
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa1-broken-object-level-authorization.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/02-API_Broken_Object_Level_Authorization.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/99-GraphQL.md
+  - sources/repos/CheatSheetSeries/cheatsheets/GraphQL_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: API-GQL-005
+  sheet: API
+  category: GQL
+  title: Call privileged mutations and queries as a lower role
+  objective: Finds GraphQL operations for admins that other roles can call.
+  steps:
+  - Get the schema from a test environment. List all mutations and queries.
+  - Mark the ones that need a role, such as deleteUser and promoteUser.
+  - Call each marked operation with a lower role and without a token.
+  - Check mutations and subscriptions too.
+  example: 'InQL; mutation { deleteUser(id: "12345") { success } } with a token of a normal user.'
+  expected: Operations for higher roles return an authorization error for lower roles and for anonymous clients.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    api_top10:
+    - API5:2023
+    wstg:
+    - WSTG-APIT-04
+    - WSTG-APIT-99
+    asvs:
+    - V8.2.1
+    cheatsheet:
+    - GraphQL_Cheat_Sheet
+    cwe:
+    - CWE-285
+    - CWE-862
+  see:
+  - WEB-AUTHZ-004
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa5-broken-function-level-authorization.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/04-API_Broken_Function_Level_Authorization.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/99-GraphQL.md
+  - sources/repos/CheatSheetSeries/cheatsheets/GraphQL_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: API-GQL-006
+  sheet: API
+  category: GQL
+  title: Look for sensitive fields in the schema and in mutation results
+  objective: Finds types and mutation results that expose private fields of other objects.
+  steps:
+  - Read the schema for fields such as passwordHash, apiKey, ssn, role and recentLocation.
+  - Query these fields as a normal user.
+  - Call mutations that return objects, such as reportUser. Read the returned fields.
+  - Compare the fields with the fields that the client needs.
+  example: 'InQL; query { __type(name: "User") { fields { name } } }; GraphQL Voyager to view types.'
+  expected: Types expose only fields the caller may read. Mutation results hold no private fields of other users.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    api_top10:
+    - API3:2023
+    wstg:
+    - WSTG-APIT-03
+    - WSTG-APIT-99
+    asvs:
+    - V8.2.3
+    cheatsheet:
+    - GraphQL_Cheat_Sheet
+    cwe:
+    - CWE-213
+    - CWE-200
+  see:
+  - WEB-HTTP-008
+  - WEB-AUTHZ-007
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa3-broken-object-property-level-authorization.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/03-Excessive_Data_Exposure.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/99-GraphQL.md
+  - sources/repos/CheatSheetSeries/cheatsheets/GraphQL_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: API-GQL-007
+  sheet: API
+  category: GQL
+  title: Check query timeouts, pagination and amount limits
+  objective: Finds GraphQL APIs without a time limit or a cap on list sizes.
+  preconditions:
+  - Test environment only.
+  steps:
+  - Send a query that asks for a very large list size.
+  - Send a costly query and measure the time before the server stops it.
+  - Check that list fields use pagination with a maximum.
+  - Check the timeout in the resolver and in the HTTP server.
+  example: 'graphql-cop; Burp request with first: 99999999; timing in Burp Logger.'
+  expected: List sizes have a server-side maximum. Queries stop after a set time at the application and at the HTTP layer.
+  severity: Medium
+  test_type: Manual
+  refs:
+    api_top10:
+    - API4:2023
+    wstg:
+    - WSTG-APIT-99
+    cheatsheet:
+    - GraphQL_Cheat_Sheet
+    cwe:
+    - CWE-770
+    - CWE-400
+    capec:
+    - CAPEC-130
+  see:
+  - WEB-HTTP-007
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/99-GraphQL.md
+  - sources/repos/CheatSheetSeries/cheatsheets/GraphQL_Cheat_Sheet.md
+- id: API-GQL-008
+  sheet: API
+  category: GQL
+  title: Test GraphQL arguments and custom scalars for injection
+  objective: Finds resolvers that pass arguments to SQL, OS or other interpreters without checks.
+  steps:
+  - List arguments of type String and custom scalars such as DateTime.
+  - Send injection test strings for SQL, NoSQL, OS command and XSS in each argument.
+  - Read errors and response data for changes.
+  - Check that the schema uses enums, input types and length limits.
+  example: 'InQL; sqlmap with a GraphQL request file (-r); query { dogs(namePrefix: "a''") { name } }.'
+  expected: Arguments are checked against strict types and allowlists. Resolvers use safe query methods. Test strings do not change the result.
+  severity: High
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-APIT-99
+    cheatsheet:
+    - GraphQL_Cheat_Sheet
+    - Input_Validation_Cheat_Sheet
+    cwe:
+    - CWE-89
+    - CWE-20
+    - CWE-79
+  see:
+  - WEB-INJ-001
+  - WEB-INJ-003
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/99-GraphQL.md
+  - sources/repos/CheatSheetSeries/cheatsheets/GraphQL_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Input_Validation_Cheat_Sheet.md
+- id: API-GQL-009
+  sheet: API
+  category: GQL
+  title: Test if GraphQL arguments reach an older REST API unchecked
+  objective: Finds GraphQL layers that forward arguments to old APIs and use the rights of the GraphQL node.
+  steps:
+  - Find GraphQL fields that call an older REST or internal API.
+  - Send an ID argument with path parts, for example 1/delete.
+  - Check if the call reaches another route or object of the old API.
+  - Check if the old API sees the user rights or the rights of the GraphQL node.
+  example: Burp Repeater with id variable values such as "1/delete" and "1?admin=true" on a test system.
+  expected: The GraphQL layer validates arguments and passes them in a safe way. The old API gets the rights of the caller.
+  severity: High
+  test_type: Manual
+  refs:
+    api_top10:
+    - API5:2023
+    wstg:
+    - WSTG-APIT-99
+    cheatsheet:
+    - GraphQL_Cheat_Sheet
+    cwe:
+    - CWE-20
+    - CWE-285
+  see:
+  - WEB-AUTHZ-011
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa5-broken-function-level-authorization.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/99-GraphQL.md
+  - sources/repos/CheatSheetSeries/cheatsheets/GraphQL_Cheat_Sheet.md
+- id: API-GQL-010
+  sheet: API
+  category: GQL
+  title: Check GraphQL errors, debug mode and schema tools in production
+  objective: Finds GraphQL servers that return stack traces, debug data or schema tools.
+  steps:
+  - Send invalid queries, wrong types and a query that fails in a resolver.
+  - Read the error body for traces, paths and SQL text.
+  - Look for debug flags, GraphiQL and Playground on the host.
+  - Check the error format against the documentation.
+  example: graphql-cop; InQL; curl -d '{"query":"{ x }"}' https://api.example/graphql.
+  expected: Errors are generic. Stack traces and debug mode are off in production, and schema tools are not reachable.
+  severity: Medium
+  test_type: Manual
+  refs:
+    api_top10:
+    - API8:2023
+    wstg:
+    - WSTG-APIT-99
+    cheatsheet:
+    - GraphQL_Cheat_Sheet
+    cwe:
+    - CWE-209
+    - CWE-489
+  see:
+  - WEB-HTTP-008
+  - WEB-ERR-001
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa8-security-misconfiguration.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/99-GraphQL.md
+  - sources/repos/CheatSheetSeries/cheatsheets/GraphQL_Cheat_Sheet.md

@@ -1,0 +1,136 @@
+- id: CLD-IAC-001
+  sheet: CLD
+  category: IAC
+  title: Review who can run and change infrastructure code
+  objective: Finds identities with wide rights to deploy or edit infrastructure.
+  steps:
+  - List the people and automation roles that can apply infrastructure changes.
+  - Check that each role has only the rights its stack needs.
+  - Check that changes need review and a protected branch.
+  - Check that the rights granted to created resources are limited.
+  example: aws iam list-attached-role-policies --role-name <deploy-role>; git log --merges <iac-repo>; checkov -d <iac-dir>
+  expected: Deploy roles have limited rights per stack. Changes need review. The resources that the code creates get minimal permissions.
+  severity: High
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    - CNAS-3
+    cheatsheet:
+    - Infrastructure_as_Code_Security_Cheat_Sheet
+    cwe:
+    - CWE-272
+    attack:
+    - T1578
+    - T1578.005
+    nist_800_53:
+    - CM-3
+    - CM-5
+    - AC-6
+  see:
+  - CICD-IAM-001
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x03_improper_auth.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Infrastructure_as_Code_Security_Cheat_Sheet.md
+- id: CLD-IAC-002
+  sheet: CLD
+  category: IAC
+  title: Scan infrastructure code for misconfigurations before deploy
+  objective: Finds insecure settings in templates before they reach a cloud account.
+  steps:
+  - Run an IaC scanner on all templates and modules.
+  - Review high findings such as public access, open ports and missing encryption.
+  - Check that failed checks block the merge.
+  - Compare the scan result to the posture scan of the account.
+  example: checkov -d <iac-dir>; trivy config <iac-dir>; tfsec <iac-dir>
+  expected: Templates have no high findings without a written exception. The scan gates the deploy and matches the live posture.
+  severity: Medium
+  test_type: Automated
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    cheatsheet:
+    - Infrastructure_as_Code_Security_Cheat_Sheet
+    cwe:
+    - CWE-1188
+    attack:
+    - T1578
+    nist_800_53:
+    - CM-6
+    - SA-11
+  see:
+  - CICD-VULN-005
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Infrastructure_as_Code_Security_Cheat_Sheet.md
+- id: CLD-IAC-003
+  sheet: CLD
+  category: IAC
+  title: Check for configuration drift and immutable infrastructure
+  objective: Finds live resources that differ from the code, so manual changes escape review.
+  steps:
+  - Run a drift check of the live account against the code.
+  - List resources that someone changed by hand.
+  - Check who can change resources outside the pipeline.
+  - Check that changes replace the resource and do not patch it in place.
+  example: terraform plan -detailed-exitcode; aws cloudformation detect-stack-drift --stack-name <s>; az deployment group what-if -g <rg> --template-file <t>
+  expected: The live state matches the code. Manual changes are blocked or raise an alert. Changes are made by new versions of the resource.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    - CNAS-8
+    cheatsheet:
+    - Infrastructure_as_Code_Security_Cheat_Sheet
+    cwe:
+    - CWE-1188
+    attack:
+    - T1578
+    nist_800_53:
+    - CM-2
+    - CM-3
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x08_asset_mgmt.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Infrastructure_as_Code_Security_Cheat_Sheet.md
+- id: CLD-IAC-004
+  sheet: CLD
+  category: IAC
+  title: Check deploy-time tags, inventory and secrets handling in infrastructure code
+  objective: Finds templates that create untagged resources or place secrets in code and state.
+  steps:
+  - Check that templates set owner and purpose tags on every resource.
+  - Search templates, variables and state for secret values.
+  - Check that secrets come from a secret store at deploy.
+  - Check access to state files.
+  example: checkov -d <iac-dir>; gitleaks detect --source <iac-repo>; grep -rIiE "password|secret|key" <iac-dir>
+  expected: Every created resource has tags and an inventory entry. Templates and state hold no secrets, and state files have limited access.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-8
+    - CNAS-5
+    cheatsheet:
+    - Infrastructure_as_Code_Security_Cheat_Sheet
+    - Secrets_Management_Cheat_Sheet
+    cwe:
+    - CWE-798
+    attack:
+    - T1552.001
+    nist_800_53:
+    - CM-8
+    - IA-5
+  see:
+  - CICD-CRED-003
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x08_asset_mgmt.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x05_insecure_secrets.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Infrastructure_as_Code_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md

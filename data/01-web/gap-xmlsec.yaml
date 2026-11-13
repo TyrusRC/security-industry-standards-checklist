@@ -1,0 +1,106 @@
+- id: WEB-XMLSEC-001
+  sheet: WEB
+  category: XMLSEC
+  title: Test XML processing for schema poisoning and external schema loading
+  objective: Find XML endpoints that load a schema or DTD from the document or from a remote location that an attacker controls.
+  steps:
+  - Find the XML endpoints and the schema that each one uses.
+  - Send a document with an embedded DOCTYPE or an inline schema that removes all limits.
+  - Send a document with an xsi:schemaLocation that points to a collector host, in a test environment.
+  - Watch for a callback to the collector.
+  - 'Review the parser configuration for the schema source: local, read-only and fixed.'
+  example: 'curl -X POST https://target/xml -H "Content-Type: application/xml" -d ''<!DOCTYPE note [<!ELEMENT note ANY>]><note>x</note>''; xsi:schemaLocation="urn:x http://collector.test/x.xsd"'
+  expected: The server ignores a schema or DTD in the document and does not fetch a remote schema. It validates against a local schema that only administrators can change.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A05:2025
+    - A02:2025
+    cheatsheet:
+    - XML_Security_Cheat_Sheet
+    wstg:
+    - WSTG-INJT-07
+    asvs:
+    - V1.5.1
+    cwe:
+    - CWE-611
+    - CWE-829
+    other:
+    - 'OWASP DevGuide web app checklist: 02-frameworks-libraries.md'
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/XML_Security_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/07-XML_Injection.md
+  - sources/repos/DevGuide/docs/en/04-design/02-web-app-checklist/02-frameworks-libraries.md
+- id: WEB-XMLSEC-002
+  sheet: WEB
+  category: XMLSEC
+  title: Test XML schema limits for data types, lengths and payload size
+  objective: Find XML schemas that accept values with no length, range or type limits, which leads to errors and resource use.
+  steps:
+  - Get the schema of the XML interface or the documented message format.
+  - Look for elements typed as free strings where a number, a date or a fixed set is expected.
+  - Send a very long value for each string and number element.
+  - Send a large document and a document with many elements and attributes.
+  - Measure the response time and the server memory.
+  example: 'python3 -c "print(''<age>''+''9''*100000+''</age>'')" > big.xml; curl -s -o /dev/null -w ''%{time_total}\n'' -H ''Content-Type: application/xml'' --data-binary @big.xml https://target/api; compare
+    the response time with a normal document'
+  expected: The schema sets type, length and range limits for each element. The server rejects an oversized document before it parses it fully.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    owasp_top10:
+    - A05:2025
+    - A06:2025
+    cheatsheet:
+    - XML_Security_Cheat_Sheet
+    wstg:
+    - WSTG-INJT-07
+    cwe:
+    - CWE-20
+    - CWE-400
+    other:
+    - 'OWASP DevGuide web app checklist: 05-validate-inputs.md'
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/XML_Security_Cheat_Sheet.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/07-XML_Injection.md
+  - sources/repos/DevGuide/docs/en/04-design/02-web-app-checklist/05-validate-inputs.md
+- id: WEB-XMLSEC-003
+  sheet: WEB
+  category: XMLSEC
+  title: Test XML parser handling of malformed documents and recovery mode
+  objective: Find XML parsers that repair or normalize invalid documents, so that two components read the same data in different ways.
+  steps:
+  - Find out which XML parser and which options the application uses.
+  - Send a document with a double hyphen in a comment and with a nested comment.
+  - Send a document with an unclosed tag and look at the response.
+  - Make sure the parser is not in recovery mode and rejects the document.
+  - Compare the response time of a valid document and a malformed version of it.
+  example: 'curl -d ''<a><!-- one <!-- two --></a>'' -H "Content-Type: application/xml" https://target/xml; compare timing with curl -w "%{time_total}"'
+  expected: The server rejects malformed documents and does not repair them. A malformed document does not take more time than a valid one.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A05:2025
+    cheatsheet:
+    - XML_Security_Cheat_Sheet
+    wstg:
+    - WSTG-INJT-07
+    asvs:
+    - V1.5.3
+    cwe:
+    - CWE-20
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/XML_Security_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/07-XML_Injection.md

@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Security Standards Checklist Builder</title>
+<meta name="description" content="Pick domains and standards (OWASP, PCI DSS, NIST, GDPR) and download a merged security test checklist as CSV, Markdown or XLSX.">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="wrap">
+  <h1>Security standards checklist builder</h1>
+  <p class="lede">1,509 de-duplicated security test cases. Each test lists every standard it maps to. Choose a scope, review, then download.</p>
+</header>
+<main class="wrap">
+  <section class="step">
+    <div class="step-head">
+      <h2><span class="num">1</span>Profile</h2>
+      <p class="hint">Optional. Sets domains and standards in one step.</p>
+    </div>
+    <div class="step-body">
+      <div id="presets" class="presets"></div>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="step-head">
+      <h2><span class="num">2</span>Domains</h2>
+      <p class="hint">Test areas to include.</p>
+    </div>
+    <div class="step-body">
+      <div class="tools"><button type="button" id="dAll" class="link">Select all</button><button type="button" id="dNone" class="link">Select none</button></div>
+      <div id="domains" class="opts"></div>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="step-head">
+      <h2><span class="num">3</span>Standards</h2>
+      <p class="hint">Optional. Keep only tests mapped to at least one selected standard. None selected means no filter.</p>
+    </div>
+    <div class="step-body">
+      <div class="tools"><button type="button" id="sClear" class="link">Clear</button></div>
+      <div id="standards" class="opts"></div>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="step-head">
+      <h2><span class="num">4</span>Severity</h2>
+      <p class="hint">Impact if the test fails.</p>
+    </div>
+    <div class="step-body">
+      <div id="sevs" class="opts inline"></div>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="step-head">
+      <h2><span class="num">5</span>Review</h2>
+      <p class="hint">Search by ID, title or standard reference, for example A01:2025, V6.2.1, CWE-79.</p>
+    </div>
+    <div class="step-body">
+      <label class="sr" for="q">Search tests</label>
+      <input id="q" type="search" placeholder="Search tests" autocomplete="off">
+      <div class="thead" aria-hidden="true"><span>ID</span><span>Test</span><span>Severity</span></div>
+      <div id="list"></div>
+      <p id="more" class="hint"></p>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="step-head">
+      <h2><span class="num">6</span>Download</h2>
+    </div>
+    <div class="step-body">
+      <p class="hint">XLSX has one sheet per domain. CSV and XLSX add empty Status, Evidence, Tester, Date and Notes columns. Markdown uses <code>- [ ]</code> checkboxes.</p>
+    </div>
+  </section>
+
+  <div class="bar" role="region" aria-label="Download">
+    <p id="count" aria-live="polite"></p>
+    <div class="dl">
+      <button type="button" id="dlXlsx" class="primary">XLSX</button>
+      <button type="button" id="dlCsv">CSV</button>
+      <button type="button" id="dlMd">Markdown</button>
+    </div>
+  </div>
+</main>
+<footer class="wrap">
+  <p>Content is derived from OWASP projects (ASVS, WSTG, MASVS/MASTG, Top 10 lists, Cheat Sheet Series; CC BY-SA 4.0), MITRE CWE/CAPEC/ATT&amp;CK/ATLAS, NIST SP 800-53 and PCI DSS v4.0.1 requirement numbers. Checklist content is licensed CC BY-SA 4.0, code Apache-2.0 (see NOTICE.md). Review before using as audit evidence. The Vietnam profile is a technical reading of OCR text from the signed PDFs, not legal advice.</p>
+  <p><a href="https://github.com/TyrusRC/security-industry-standards-checklist">Source on GitHub</a></p>
+</footer>
+<script src="vendor/xlsx.full.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

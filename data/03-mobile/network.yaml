@@ -1,0 +1,688 @@
+- id: MOB-NETWORK-001
+  sheet: MOB
+  category: NETWORK
+  title: Check that app configuration does not allow cleartext traffic
+  objective: Finds Android and iOS settings that let the app send HTTP traffic that anyone on the network can read.
+  steps:
+  - 'Android: Read AndroidManifest.xml and note android:usesCleartextTraffic and android:networkSecurityConfig.'
+  - 'Android: Read the Network Security Configuration and flag cleartextTrafficPermitted="true" in base-config or domain-config.'
+  - 'iOS: Read Info.plist and note the NSAppTransportSecurity dictionary.'
+  - 'iOS: Flag NSAllowsArbitraryLoads, NSAllowsArbitraryLoadsInWebContent, NSAllowsArbitraryLoadsForMedia, NSAllowsLocalNetworking and NSExceptionAllowsInsecureHTTPLoads.'
+  - Find out if each exception is needed for core app functions and has a justification.
+  example: apktool d -s -f app.apk -o out; grep -E "usesCleartextTraffic|networkSecurityConfig" out/AndroidManifest.xml; grep -i cleartextTrafficPermitted out/res/xml/network_security_config.xml; unzip app.ipa; plutil -convert json -o Info.json Payload/App.app/Info.plist; jq .NSAppTransportSecurity Info.json
+  expected: The app permits no cleartext traffic. Exceptions exist only for needed domains with a documented reason.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Automated
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M5:2024
+    - M8:2024
+    masvs:
+    - MASVS-NETWORK-1
+    mastg:
+    - MASTG-TEST-0235
+    - MASTG-TEST-0322
+    maswe:
+    - MASWE-0026
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    - Transport_Layer_Security_Cheat_Sheet
+    cwe:
+    - CWE-319
+  see:
+  - WEB-TLS-005
+  notes: On Android the flag usesCleartextTraffic is ignored when a Network Security Configuration exists. Read MASTG-TEST-0235 before you report.
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-NETWORK_MASWE-0026.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Transport_Layer_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0117.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0150.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0151.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0153.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0155.md
+  - sources/repos/mastg/tests-beta/android/MASVS-NETWORK/MASTG-TEST-0235.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-NETWORK/MASTG-TEST-0322.md
+  - sources/repos/masvs/controls/MASVS-NETWORK-1.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m5-insecure-communication.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m8-security-misconfiguration.md
+- id: MOB-NETWORK-002
+  sheet: MOB
+  category: NETWORK
+  title: Check that the app sends no cleartext HTTP traffic
+  objective: Finds hardcoded http:// URLs and real cleartext connections that carry app data.
+  steps:
+  - Search the unpacked app and its libraries for http:// URLs.
+  - Follow each URL in the code and see if the app uses it to open a connection.
+  - Set up an interception proxy or a network capture for the device.
+  - Use every workflow of the app and look for cleartext HTTP or other cleartext protocols.
+  - Use a capture tool when the app does not work with a proxy.
+  - Keep only traffic that comes from the target app.
+  example: apktool d app.apk; grep -rnoE "http://[^\" ]+" out/ src/; unzip app.ipa; strings -n 8 Payload/App.app/App | grep -E "^http://"; adb shell "tcpdump -i any -w /data/local/tmp/cap.pcap"; wireshark -r cap.pcap -Y "http || (tcp && !tls)"; rvictl -s <UDID> (iOS capture on macOS); mitmproxy --mode regular
+  expected: The capture shows no cleartext traffic from the app. All connections use TLS.
+  severity: Medium
+  test_type:
+  - Manual
+  - Automated
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M5:2024
+    masvs:
+    - MASVS-NETWORK-1
+    mastg:
+    - MASTG-TEST-0233
+    - MASTG-TEST-0321
+    - MASTG-TEST-0236
+    maswe:
+    - MASWE-0026
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    - Transport_Layer_Security_Cheat_Sheet
+    cwe:
+    - CWE-319
+  see:
+  - WEB-TLS-005
+  - WEB-TLS-006
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-NETWORK_MASWE-0026.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Transport_Layer_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0010.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0011.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0019.md
+  - sources/repos/mastg/techniques/generic/MASTG-TECH-0071.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0062.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0063.md
+  - sources/repos/mastg/tests-beta/android/MASVS-NETWORK/MASTG-TEST-0233.md
+  - sources/repos/mastg/tests-beta/android/MASVS-NETWORK/MASTG-TEST-0236.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-NETWORK/MASTG-TEST-0321.md
+  - sources/repos/masvs/controls/MASVS-NETWORK-1.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m5-insecure-communication.md
+- id: MOB-NETWORK-003
+  sheet: MOB
+  category: NETWORK
+  title: Check that low-level iOS networking APIs use TLS
+  objective: Finds Network framework, CFNetwork and BSD socket connections that skip App Transport Security and send cleartext.
+  preconditions:
+  - iOS only. ATS does not cover these APIs.
+  steps:
+  - Extract the binaries and search for NWConnection, CFSocketStream, CFHTTPStream and the BSD socket functions.
+  - Look at each location and see if the connection uses TLS, for example .tls in NWParameters.
+  - Capture the traffic of the app and look for non-TLS connections.
+  example: unzip app.ipa; r2 -qc "aaa; afl~NWConnection; afl~CFStream; afl~connect" Payload/App.app/App; strings Payload/App.app/App | grep -E "NWParameters|NWProtocolTLS"; frida-trace -U -f <bundle> -i connect -i send
+  expected: Every low-level connection uses TLS with a safe configuration. No connection sends sensitive data in cleartext.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M5:2024
+    masvs:
+    - MASVS-NETWORK-1
+    mastg:
+    - MASTG-TEST-0323
+    maswe:
+    - MASWE-0026
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-319
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-NETWORK_MASWE-0026.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0062.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-NETWORK/MASTG-TEST-0323.md
+  - sources/repos/masvs/controls/MASVS-NETWORK-1.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m5-insecure-communication.md
+- id: MOB-NETWORK-004
+  sheet: MOB
+  category: NETWORK
+  title: Check that code sets no TLS version below 1.2
+  objective: Finds code that enables TLS 1.0 or TLS 1.1 on Android and iOS.
+  steps:
+  - 'Android: Search for SSLContext.getInstance("TLSv1.1") and for SSLSocket.setEnabledProtocols.'
+  - 'Android: Search for OkHttp ConnectionSpec.COMPATIBLE_TLS and ConnectionSpec.Builder.tlsVersions.'
+  - 'iOS: Search for tlsMinimumSupportedProtocolVersion and tlsMinimumSupportedProtocol in URLSessionConfiguration.'
+  - 'iOS: Search for sec_protocol_options_set_min_tls_protocol_version and the max version function in Network framework code.'
+  - Flag the values TLSv1.0, TLSv1.1, kTLSProtocol1 and kTLSProtocol11.
+  example: jadx -d src app.apk; grep -rnE "TLSv1(\.[01])?\"|setEnabledProtocols|COMPATIBLE_TLS|tlsVersions" src/; r2 -qc "aaa; afl~tls_protocol_version; afl~sec_protocol_options_set" Payload/App.app/App; frida-trace -U -f <bundle> -i sec_protocol_options_set_min_tls_protocol_version
+  expected: The app enables only TLS 1.2 and TLS 1.3. No code sets a lower minimum version or a lower maximum version.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Automated
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M5:2024
+    masvs:
+    - MASVS-NETWORK-1
+    mastg:
+    - MASTG-TEST-0217
+    - MASTG-TEST-0343
+    - MASTG-TEST-0344
+    maswe:
+    - MASWE-0026
+    cheatsheet:
+    - Transport_Layer_Security_Cheat_Sheet
+    cwe:
+    - CWE-319
+  see:
+  - WEB-TLS-001
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-NETWORK_MASWE-0026.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Transport_Layer_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/tests-beta/android/MASVS-NETWORK/MASTG-TEST-0217.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-NETWORK/MASTG-TEST-0343.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-NETWORK/MASTG-TEST-0344.md
+  - sources/repos/masvs/controls/MASVS-NETWORK-1.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m5-insecure-communication.md
+- id: MOB-NETWORK-005
+  sheet: MOB
+  category: NETWORK
+  title: Check that ATS exceptions do not weaken TLS policy
+  objective: Finds Info.plist exceptions that turn off ATS or allow TLS 1.0, TLS 1.1 or no forward secrecy.
+  preconditions:
+  - iOS only.
+  steps:
+  - Convert Info.plist to JSON and read NSAppTransportSecurity.
+  - Flag NSAllowsArbitraryLoads set to true.
+  - Flag any NSExceptionMinimumTLSVersion of TLSv1.0 or TLSv1.1.
+  - Flag any NSExceptionRequiresForwardSecrecy set to false.
+  - Look at the scope of each exception, especially with NSIncludesSubdomains.
+  example: unzip app.ipa; plutil -convert json -o Info.json Payload/App.app/Info.plist; jq ".NSAppTransportSecurity.NSExceptionDomains" Info.json
+  expected: The app sets no weak TLS exceptions. Required exceptions are narrow, justified and apply only to named domains.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Automated
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M5:2024
+    - M8:2024
+    masvs:
+    - MASVS-NETWORK-1
+    mastg:
+    - MASTG-TEST-0342
+    maswe:
+    - MASWE-0026
+    cheatsheet:
+    - Transport_Layer_Security_Cheat_Sheet
+    cwe:
+    - CWE-319
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-NETWORK_MASWE-0026.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Transport_Layer_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0153.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0155.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-NETWORK/MASTG-TEST-0342.md
+  - sources/repos/masvs/controls/MASVS-NETWORK-1.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m5-insecure-communication.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m8-security-misconfiguration.md
+- id: MOB-NETWORK-006
+  sheet: MOB
+  category: NETWORK
+  title: Check the TLS settings of embedded and third-party network stacks
+  objective: Finds bundled OpenSSL, BoringSSL, mbedTLS, curl or gRPC code that weakens TLS and ignores ATS.
+  preconditions:
+  - iOS only in MASTG. Use the same method for Android native libraries.
+  steps:
+  - List the bundled libraries and frameworks in the IPA.
+  - Search for TLS library symbols, such as SSL_CTX_set_min_proto_version and SSL_CTX_set_verify.
+  - Look at the code at each location and note the minimum TLS version and cipher list.
+  - Flag disabled certificate verification and custom trust stores with no validation.
+  - Compare the results with the settings of the platform stack.
+  example: 'unzip -o app.ipa; find Payload -type d \( -name "*.framework" -o -name "*.appex" \); r2 -qc "aaa; afl~SSL_CTX" Payload/App.app/Frameworks/<lib>.framework/<lib>; frida-trace -U -f <bundle> -i SSL_CTX_set_min_proto_version -i SSL_CTX_set_verify; jadx -d src app.apk (Android native libraries: strings lib/*/*.so | grep -i ssl)'
+  expected: Every embedded stack allows only TLS 1.2 and higher, uses strong cipher suites and checks certificates against a valid trust store.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M5:2024
+    masvs:
+    - MASVS-NETWORK-1
+    mastg:
+    - MASTG-TEST-0345
+    maswe:
+    - MASWE-0026
+    cheatsheet:
+    - Transport_Layer_Security_Cheat_Sheet
+    cwe:
+    - CWE-319
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-NETWORK_MASWE-0026.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Transport_Layer_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0082.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-NETWORK/MASTG-TEST-0345.md
+  - sources/repos/masvs/controls/MASVS-NETWORK-1.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m5-insecure-communication.md
+- id: MOB-NETWORK-007
+  sheet: MOB
+  category: NETWORK
+  title: Check the TLS version in live app traffic
+  objective: Finds connections that negotiate TLS 1.0 or TLS 1.1 in practice.
+  steps:
+  - Install the app and capture its network traffic.
+  - Use every workflow of the app with sensitive data.
+  - Open the capture and list the TLS version in each handshake.
+  - Flag any connection that uses a version below TLS 1.2.
+  example: adb shell "tcpdump -i any -w /data/local/tmp/cap.pcap"; rvictl -s <UDID>; tshark -r cap.pcap -Y "tls.handshake.type==2" -T fields -e ip.src -e tls.handshake.version -e tls.handshake.extensions.supported_version; testssl.sh --protocols api.example.com
+  expected: All connections use TLS 1.2 or TLS 1.3.
+  severity: Medium
+  test_type:
+  - Manual
+  - Automated
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M5:2024
+    masvs:
+    - MASVS-NETWORK-1
+    mastg:
+    - MASTG-TEST-0218
+    - MASTG-TEST-0348
+    maswe:
+    - MASWE-0026
+    cheatsheet:
+    - Transport_Layer_Security_Cheat_Sheet
+    cwe:
+    - CWE-319
+  see:
+  - WEB-TLS-001
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-NETWORK_MASWE-0026.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Transport_Layer_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0005.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0010.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0056.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0062.md
+  - sources/repos/mastg/tests-beta/android/MASVS-NETWORK/MASTG-TEST-0218.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-NETWORK/MASTG-TEST-0348.md
+  - sources/repos/masvs/controls/MASVS-NETWORK-1.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m5-insecure-communication.md
+- id: MOB-NETWORK-008
+  sheet: MOB
+  category: NETWORK
+  title: Check that Android code checks server host names
+  objective: Finds SSLSocket use without host name checks and HostnameVerifier code that accepts any host.
+  preconditions:
+  - Android only.
+  steps:
+  - Search the code for SSLSocket and SSLSocketFactory.
+  - Check that the code calls a HostnameVerifier for each SSLSocket connection.
+  - Search for HostnameVerifier implementations and read their host check methods.
+  - Flag methods that return true for all hosts, use broad wildcard rules or skip some channels.
+  - Present a valid certificate of another host with a MITM proxy and see if the app connects.
+  example: jadx -d src app.apk; grep -rnE "SSLSocket|HostnameVerifier|ALLOW_ALL_HOSTNAME_VERIFIER|setHostnameVerifier" src/; mitmproxy --mode regular --certs *=wrong-host.pem; frida-trace -U -f <package> -j "javax.net.ssl.HostnameVerifier!*"
+  expected: The app checks the server host name against the certificate on every TLS channel, including SSLSocket. The MITM test fails to connect.
+  severity: High
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M5:2024
+    masvs:
+    - MASVS-NETWORK-1
+    mastg:
+    - MASTG-TEST-0234
+    - MASTG-TEST-0283
+    maswe:
+    - MASWE-0027
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    - Transport_Layer_Security_Cheat_Sheet
+    cwe:
+    - CWE-295
+    - CWE-297
+  see:
+  - WEB-TLS-010
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-NETWORK_MASWE-0027.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Transport_Layer_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0011.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/tests-beta/android/MASVS-NETWORK/MASTG-TEST-0234.md
+  - sources/repos/mastg/tests-beta/android/MASVS-NETWORK/MASTG-TEST-0283.md
+  - sources/repos/masvs/controls/MASVS-NETWORK-1.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m5-insecure-communication.md
+- id: MOB-NETWORK-009
+  sheet: MOB
+  category: NETWORK
+  title: Check that custom trust checks reject untrusted certificates
+  objective: Finds custom TrustManager and URLSession delegate code that accepts every certificate.
+  steps:
+  - 'Android: Search for X509TrustManager and checkServerTrusted implementations.'
+  - 'Android: Flag empty methods, ignored exceptions, checkValidity-only checks and empty getAcceptedIssuers results.'
+  - 'iOS: Search for urlSession(_:didReceive:completionHandler:) and cross-references to SecTrustEvaluateWithError.'
+  - 'iOS: Flag code that calls completionHandler with useCredential and URLCredential(trust:) before it evaluates the trust.'
+  - Send a self-signed certificate with a MITM proxy and see if the app accepts it.
+  example: jadx -d src app.apk; grep -rn "checkServerTrusted\|X509TrustManager\|getAcceptedIssuers" src/; r2 -qc "aaa; axt sym.imp.SecTrustEvaluateWithError" Payload/App.app/App; strings Payload/App.app/App | grep -i "URLAuthenticationChallenge"; mitmproxy --mode regular
+  expected: The app uses the platform trust checks. Custom code rejects bad certificates and the self-signed MITM test fails.
+  severity: High
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M5:2024
+    masvs:
+    - MASVS-NETWORK-1
+    mastg:
+    - MASTG-TEST-0282
+    - MASTG-TEST-0396
+    maswe:
+    - MASWE-0027
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    - Transport_Layer_Security_Cheat_Sheet
+    cwe:
+    - CWE-295
+    - CWE-297
+  see:
+  - WEB-TLS-010
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-NETWORK_MASWE-0027.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Transport_Layer_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0011.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0063.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/tests-beta/android/MASVS-NETWORK/MASTG-TEST-0282.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-NETWORK/MASTG-TEST-0396.md
+  - sources/repos/masvs/controls/MASVS-NETWORK-1.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m5-insecure-communication.md
+- id: MOB-NETWORK-010
+  sheet: MOB
+  category: NETWORK
+  title: Check that WebViews do not ignore TLS certificate errors
+  objective: Finds WebView code that proceeds after a certificate error and so allows MITM attacks.
+  steps:
+  - 'Android: Search for onReceivedSslError overrides in WebViewClient classes.'
+  - 'Android: Flag handler.proceed() calls that do not check the error, and catch blocks that do not call cancel().'
+  - 'iOS: Search for WKNavigationDelegate webView(_:didReceive:completionHandler:) implementations.'
+  - 'iOS: Flag code that accepts the server trust credential without a successful trust evaluation.'
+  - Load a page with an invalid certificate in the WebView and see if it loads.
+  example: jadx -d src app.apk; grep -rn "onReceivedSslError\|proceed()" src/; r2 -qc "aaa; axt sym.imp.SecTrustEvaluateWithError; axt sym.imp.SecTrustEvaluateAsyncWithError" Payload/App.app/App; mitmproxy --mode regular
+  expected: WebViews cancel loads after certificate errors. No code accepts an untrusted server trust.
+  severity: High
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M5:2024
+    masvs:
+    - MASVS-NETWORK-1
+    mastg:
+    - MASTG-TEST-0284
+    - MASTG-TEST-0397
+    maswe:
+    - MASWE-0027
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-295
+    - CWE-297
+  see:
+  - WEB-TLS-010
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-NETWORK_MASWE-0027.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0011.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0063.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/tests-beta/android/MASVS-NETWORK/MASTG-TEST-0284.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-NETWORK/MASTG-TEST-0397.md
+  - sources/repos/masvs/controls/MASVS-NETWORK-1.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m5-insecure-communication.md
+- id: MOB-NETWORK-011
+  sheet: MOB
+  category: NETWORK
+  title: Check that Android does not trust user-installed CAs
+  objective: Finds apps that trust CA certificates that the user or an attacker adds to the device.
+  preconditions:
+  - Android only. Debug builds may trust user CAs on purpose; test the release build.
+  steps:
+  - Read minSdkVersion in the manifest and flag values below 24.
+  - Read the Network Security Configuration and look for <certificates src="user" /> in trust-anchors.
+  - Install a proxy CA as a user certificate on a test device.
+  - Start the app and see if it connects through the proxy.
+  example: apktool d -s -f app.apk -o out; grep minSdkVersion out/AndroidManifest.xml out/apktool.yml; grep -n "certificates src" out/res/xml/network_security_config.xml; adb push burp-ca.der /sdcard/Download/ (install as a user CA in Settings)
+  expected: The app uses a minSdkVersion of 24 or higher and trusts no user CAs. The proxy cannot read the traffic.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M5:2024
+    masvs:
+    - MASVS-NETWORK-1
+    mastg:
+    - MASTG-TEST-0285
+    - MASTG-TEST-0286
+    maswe:
+    - MASWE-0027
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-295
+    - CWE-297
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-NETWORK_MASWE-0027.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0011.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0117.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0150.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0151.md
+  - sources/repos/mastg/tests-beta/android/MASVS-NETWORK/MASTG-TEST-0285.md
+  - sources/repos/mastg/tests-beta/android/MASVS-NETWORK/MASTG-TEST-0286.md
+  - sources/repos/masvs/controls/MASVS-NETWORK-1.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m5-insecure-communication.md
+- id: MOB-NETWORK-012
+  sheet: MOB
+  category: NETWORK
+  title: Check that the Android app updates the GMS security provider
+  objective: Finds apps on Android that skip the security provider update and so keep known TLS flaws.
+  preconditions:
+  - Android only.
+  steps:
+  - Search the code for ProviderInstaller.installIfNeeded and installIfNeededAsync.
+  - Check that the call runs before the first network connection.
+  - Check that the code handles errors and does not continue silently.
+  example: jadx -d src app.apk; grep -rn "ProviderInstaller\|installIfNeeded" src/
+  expected: The app calls ProviderInstaller before any network connection and handles update errors.
+  severity: Low
+  test_type:
+  - Code Review
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M5:2024
+    masvs:
+    - MASVS-NETWORK-1
+    mastg:
+    - MASTG-TEST-0295
+    maswe:
+    - MASWE-0027
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-295
+    - CWE-297
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-NETWORK_MASWE-0027.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/tests-beta/android/MASVS-NETWORK/MASTG-TEST-0295.md
+  - sources/repos/masvs/controls/MASVS-NETWORK-1.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m5-insecure-communication.md
+- id: MOB-NETWORK-013
+  sheet: MOB
+  category: NETWORK
+  title: Check that first-party domains use certificate pinning in app configuration
+  objective: Finds first-party endpoints that rely only on the default CA trust and so allow MITM by a rogue CA.
+  steps:
+  - List the first-party domains that the app uses for core and security functions.
+  - 'Android: Read the Network Security Configuration and list domain-config entries with a pin-set.'
+  - 'iOS: Read Info.plist and look for NSPinnedDomains in NSAppTransportSecurity.'
+  - Compare the pinned domains with the first-party list.
+  - Check that the app connects to the unpinned domains, and look for other pinning code.
+  example: apktool d -s -f app.apk -o out; xmlstarlet sel -t -c "//domain-config[pin-set]" out/res/xml/network_security_config.xml; unzip app.ipa; plutil -convert json -o Info.json Payload/App.app/Info.plist; jq ".NSAppTransportSecurity.NSPinnedDomains" Info.json; strings -n 8 Payload/App.app/App | grep -E "^https://"
+  expected: Every relevant first-party domain has a pin in the NSC or in ATS, or another documented pinning method covers it.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M5:2024
+    masvs:
+    - MASVS-NETWORK-2
+    mastg:
+    - MASTG-TEST-0242
+    - MASTG-TEST-0385
+    maswe:
+    - MASWE-0028
+    cheatsheet:
+    - Pinning_Cheat_Sheet
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-295
+  notes: Pinning is a risk-based choice. Do not report unpinned third-party domains. Confirm that the app really connects to the domain. Another pinning method (TrustManager, library) means the NSC result is not covered, not a confirmed absence of pinning.
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-NETWORK_MASWE-0028.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Pinning_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0011.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0117.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0150.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0151.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0063.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0138.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0153.md
+  - sources/repos/mastg/tests-beta/android/MASVS-NETWORK/MASTG-TEST-0242.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-NETWORK/MASTG-TEST-0385.md
+  - sources/repos/masvs/controls/MASVS-NETWORK-2.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m5-insecure-communication.md
+- id: MOB-NETWORK-014
+  sheet: MOB
+  category: NETWORK
+  title: Check that Android certificate pins have not expired
+  objective: Finds NSC pins with a past expiration date that Android no longer enforces.
+  preconditions:
+  - Android only.
+  steps:
+  - Read the Network Security Configuration and list each pin-set with its expiration attribute.
+  - Compare each date with the current date.
+  - Compare the domains with the list of first-party domains that the app uses.
+  - Check that the app still connects to those domains.
+  example: apktool d -s -f app.apk -o out; grep -n "pin-set\|expiration" out/res/xml/network_security_config.xml; date +%F
+  expected: No pin-set for a first-party domain has an expiration date in the past.
+  severity: Medium
+  test_type:
+  - Config Review
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M5:2024
+    masvs:
+    - MASVS-NETWORK-2
+    mastg:
+    - MASTG-TEST-0243
+    maswe:
+    - MASWE-0028
+    cheatsheet:
+    - Pinning_Cheat_Sheet
+    cwe:
+    - CWE-295
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-NETWORK_MASWE-0028.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Pinning_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0117.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0150.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0151.md
+  - sources/repos/mastg/tests-beta/android/MASVS-NETWORK/MASTG-TEST-0243.md
+  - sources/repos/masvs/controls/MASVS-NETWORK-2.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m5-insecure-communication.md
+- id: MOB-NETWORK-015
+  sheet: MOB
+  category: NETWORK
+  title: Check that a MITM proxy cannot read first-party HTTPS traffic
+  objective: Finds first-party endpoints with no effective pinning, whatever the implementation is.
+  steps:
+  - Install the app on a test device and set up an interception proxy with its CA trusted by the system.
+  - Use every workflow of the app.
+  - Look at the proxy log for first-party domains whose HTTPS traffic it decrypted.
+  - Watch the device log for pin check failures when pinning is active.
+  - Ignore unrelated third-party domains.
+  example: 'burp / mitmproxy --mode regular; adb shell settings put global http_proxy <host>:8080; adb logcat | grep -i "Pin verification failed"; iOS: iproxy 2222 22; ssh -R 8080:localhost:8080 mobile@localhost -p 2222; do not disable pinning in this test'
+  expected: The proxy cannot decrypt traffic to first-party domains. The app refuses the connection with an untrusted CA.
+  severity: Medium
+  test_type:
+  - Manual
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M5:2024
+    masvs:
+    - MASVS-NETWORK-2
+    mastg:
+    - MASTG-TEST-0244
+    maswe:
+    - MASWE-0028
+    cheatsheet:
+    - Pinning_Cheat_Sheet
+    cwe:
+    - CWE-295
+  notes: MASTG-TEST-0244 is written for Android. The same MITM check applies to iOS with the proxy set up as in MASTG-TECH-0063.
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-NETWORK_MASWE-0028.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Pinning_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0005.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0009.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0011.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0063.md
+  - sources/repos/mastg/tests-beta/android/MASVS-NETWORK/MASTG-TEST-0244.md
+  - sources/repos/masvs/controls/MASVS-NETWORK-2.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m5-insecure-communication.md

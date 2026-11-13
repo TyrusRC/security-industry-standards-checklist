@@ -1,0 +1,361 @@
+- id: WEB-DATA-001
+  sheet: WEB
+  category: DATA
+  title: Review the classification of sensitive data and its protection requirements
+  objective: Find sensitive data that is not classified and levels that have no documented protection rules.
+  steps:
+  - Ask for the data classification and the list of protection levels.
+  - List the data the application creates and processes, including Base64 values and JWT payloads.
+  - Compare the list with the classification and find unclassified data.
+  - Check that each level has rules for encryption, integrity, retention, logging, access and privacy.
+  example: 'Document review: data inventory vs classification table; decode JWT payloads and Base64 fields found in traffic.'
+  expected: All sensitive data is classified and each level has documented protection rules.
+  severity: Medium
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V14.1.1
+    - V14.1.2
+    owasp_top10:
+    - A04:2025
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+- id: WEB-DATA-002
+  sheet: WEB
+  category: DATA
+  title: Make sure sensitive data is not sent in the URL
+  objective: Find API keys, tokens and personal data in URLs, which logs, proxies and referrers store.
+  steps:
+  - Walk through the application with a proxy and list all URLs with query strings.
+  - Look for tokens, keys, passwords, session IDs and personal data in URLs.
+  - Look at the Referer header sent to third parties.
+  - Look at server and proxy access logs for such URLs.
+  example: zap-baseline.py -t https://example.com; grep -E '[?&](token|key|password|session)=' access.log
+  expected: Sensitive data goes only in the request body or header fields, never in the URL.
+  severity: Medium
+  test_type:
+  - Manual
+  - Automated
+  level: ASVS L1
+  refs:
+    asvs:
+    - V14.2.1
+    cwe:
+    - CWE-598
+    owasp_top10:
+    - A04:2025
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+- id: WEB-DATA-003
+  sheet: WEB
+  category: DATA
+  title: Make sure sensitive data is not kept in server-side caches
+  objective: Find load balancers, CDNs and application caches that store sensitive responses.
+  steps:
+  - Request a sensitive page with a session, then request it with no session or another session.
+  - Look at the cache headers and the Age, X-Cache and CF-Cache-Status headers.
+  - Review CDN, reverse proxy and Redis or Memcached cache rules.
+  - Check that cached sensitive data is purged after use.
+  example: 'curl -si -H ''Cookie: session=A'' https://example.com/account; curl -si https://example.com/account | grep -iE ''age|x-cache|cache-status'''
+  expected: Sensitive responses are not stored by shared caches, or the cache purges them after use.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  level: ASVS L2
+  refs:
+    asvs:
+    - V14.2.2
+    owasp_top10:
+    - A04:2025
+    cwe:
+    - CWE-524
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+- id: WEB-DATA-004
+  sheet: WEB
+  category: DATA
+  title: Make sure sensitive data is not sent to untrusted third parties
+  objective: Find trackers, analytics and third-party scripts that receive sensitive data.
+  steps:
+  - Record the requests to third-party hosts in the developer tools.
+  - Look at the URL, headers and body of each request for personal or sensitive data.
+  - List third-party scripts and check how they are loaded and what they can read.
+  - Check consent rules for the data that is sent.
+  example: Browser DevTools Network filter 'third-party'; mitmproxy -s log_third_party.py; Blacklight scan
+  expected: No sensitive data is sent to trackers or untrusted third parties. Only the listed data goes to approved parties.
+  severity: Medium
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V14.2.3
+    owasp_top10:
+    - A04:2025
+    cheatsheet:
+    - Third_Party_Javascript_Management_Cheat_Sheet
+    cwe:
+    - CWE-359
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Third_Party_Javascript_Management_Cheat_Sheet.md
+- id: WEB-DATA-005
+  sheet: WEB
+  category: DATA
+  title: Check that data protection controls follow the documented protection level
+  objective: Find sensitive data whose real protection differs from its documented level.
+  steps:
+  - Pick samples of each protection level.
+  - Check encryption, integrity checks, retention, logging and access control for each sample.
+  - Compare each result with the documented requirement.
+  example: 'Sample review table: data item, level, required control, observed control, gap.'
+  expected: Real controls match the documented requirements for each protection level.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  level: ASVS L2
+  refs:
+    asvs:
+    - V14.2.4
+    owasp_top10:
+    - A04:2025
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+- id: WEB-DATA-006
+  sheet: WEB
+  category: DATA
+  title: Make sure caches store only expected content types and non-sensitive responses
+  objective: Find caches that store sensitive, dynamic or wrong-type responses, or serve another file for a missing one.
+  steps:
+  - Request a non-existent static path and check for 404 or 302 and not another file.
+  - Request a dynamic page with a static extension, for example /account/x.css, and look at cache headers.
+  - Check that cache rules use the content type and not only the path.
+  - Request the page from a second client and compare.
+  example: 'curl -si https://example.com/account/none.css -H ''Cookie: session=A''; curl -si https://example.com/account/none.css'
+  expected: Caches store only the expected type of resource. Sensitive dynamic content is not cached. Missing files give 404 or 302.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  level: ASVS L3
+  refs:
+    asvs:
+    - V14.2.5
+    wstg:
+    - WSTG-CONF-13
+    owasp_top10:
+    - A04:2025
+    cwe:
+    - CWE-524
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/13-Path_Confusion.md
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+- id: WEB-DATA-007
+  sheet: WEB
+  category: DATA
+  title: Make sure responses contain only the minimum sensitive data and mask values
+  objective: Find responses and pages with more sensitive data than the function needs.
+  steps:
+  - Compare data shown in the UI with data in the response for key pages.
+  - Look for full card numbers, IDs, tokens and hashes in responses.
+  - Check that the UI masks values unless the user asks to see them.
+  example: 'Burp: compare rendered page and JSON; jq ''paths'' on the response to list all fields'
+  expected: Responses return the minimum data. Sensitive values such as card numbers are partly masked.
+  severity: Medium
+  test_type:
+  - Manual
+  level: ASVS L1
+  refs:
+    asvs:
+    - V14.2.6
+    - V15.3.1
+    wstg:
+    - WSTG-APIT-03
+    owasp_top10:
+    - A04:2025
+    cwe:
+    - CWE-200
+    - CWE-213
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/03-Excessive_Data_Exposure.md
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+- id: WEB-DATA-008
+  sheet: WEB
+  category: DATA
+  title: Check retention and automatic deletion of sensitive data
+  objective: Find sensitive data that stays after its retention period.
+  steps:
+  - Ask for the retention schedule for each data class.
+  - Check that deletion jobs or database rules exist and run.
+  - Find records older than the schedule in a test or production copy.
+  - Delete a test record and check backups, caches and storage versions.
+  example: SELECT count(*) FROM orders WHERE created < now() - interval '7 years';  review lifecycle rules of buckets
+  expected: Old sensitive data is deleted on schedule, with proof, including copies and versions.
+  severity: Low
+  test_type:
+  - Manual
+  - Config Review
+  level: ASVS L3
+  refs:
+    asvs:
+    - V14.2.7
+    owasp_top10:
+    - A04:2025
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+- id: WEB-DATA-009
+  sheet: WEB
+  category: DATA
+  title: Make sure metadata is removed from user-submitted files
+  objective: Find uploaded files that keep GPS, author and device data.
+  steps:
+  - Upload an image that has EXIF GPS data and a document with author data.
+  - Download the stored file from another account or the public URL.
+  - Read the metadata with exiftool.
+  - Check that the user gave consent if metadata stays.
+  example: exiftool -gps:all -author uploaded.jpg
+  expected: Stored files have no sensitive metadata unless the user agreed.
+  severity: Low
+  test_type:
+  - Manual
+  level: ASVS L3
+  refs:
+    asvs:
+    - V14.2.8
+    wstg:
+    - WSTG-INFO-05
+    cwe:
+    - CWE-212
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/01-Information_Gathering/05-Review_Web_Page_Content_for_Information_Leakage.md
+- id: WEB-DATA-010
+  sheet: WEB
+  category: DATA
+  title: Make sure the client clears authenticated data when the session ends
+  objective: Find DOM, storage and cache data that stays in the browser after logout or timeout.
+  steps:
+  - Log in, open sensitive pages, then log out.
+  - Look at localStorage, sessionStorage, IndexedDB, Cache API and the DOM.
+  - Use the Back button and look for sensitive pages.
+  - Check for the Clear-Site-Data header on the logout response.
+  - Test again with the server not reachable.
+  example: 'curl -si -X POST https://example.com/logout -H ''Cookie: session=A'' | grep -i clear-site-data; DevTools > Application > Storage'
+  expected: No authenticated data stays in the client after the session ends. Clear-Site-Data or client code clears it.
+  severity: Medium
+  test_type:
+  - Manual
+  level: ASVS L1
+  refs:
+    asvs:
+    - V14.3.1
+    wstg:
+    - WSTG-CONF-14
+    owasp_top10:
+    - A04:2025
+    cwe:
+    - CWE-922
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/14-Other_HTTP_Security_Header_Misconfigurations.md
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/HTTP_Headers_Cheat_Sheet.md
+- id: WEB-DATA-011
+  sheet: WEB
+  category: DATA
+  title: Check anti-caching headers on sensitive responses
+  objective: Find sensitive pages that browsers may cache.
+  steps:
+  - Request pages with sensitive data after login and read Cache-Control, Pragma and Expires.
+  - 'Make sure Cache-Control: no-store is set. no-cache alone is not enough.'
+  - Log out, then use the Back button and look for the cached page.
+  - Check API responses and file downloads too.
+  example: 'curl -sI https://example.com/account -H ''Cookie: session=A'' | grep -iE ''cache-control|pragma|expires'''
+  expected: 'All sensitive responses send Cache-Control: no-store. The browser shows no cached page after logout.'
+  severity: Medium
+  test_type:
+  - Manual
+  - Automated
+  level: ASVS L2
+  refs:
+    asvs:
+    - V14.3.2
+    owasp_top10:
+    - A04:2025
+    cheatsheet:
+    - HTTP_Headers_Cheat_Sheet
+    cwe:
+    - CWE-525
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/HTTP_Headers_Cheat_Sheet.md
+- id: WEB-DATA-012
+  sheet: WEB
+  category: DATA
+  title: Make sure browser storage holds no sensitive data except session tokens
+  objective: Find sensitive data in localStorage, sessionStorage, IndexedDB and cookies.
+  steps:
+  - Use the application for the main functions.
+  - Read all keys and values in localStorage, sessionStorage, IndexedDB and cookies.
+  - Look for personal data, API keys, JWTs with personal data and passwords.
+  - Check that cookies with tokens are the only secrets.
+  example: 'DevTools > Application; chrome-devtools evaluate: JSON.stringify(localStorage)'
+  expected: Browser storage holds no sensitive data. Only session tokens are allowed, in protected cookies.
+  severity: Medium
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V14.3.3
+    owasp_top10:
+    - A04:2025
+    cwe:
+    - CWE-922
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+- id: WEB-DATA-013
+  sheet: WEB
+  category: DATA
+  title: Make sure sensitive data is encrypted at rest
+  objective: Find stored sensitive data in clear text, such as databases, files and backups.
+  steps:
+  - 'Find where sensitive data is stored: database, files, object storage, backups, logs.'
+  - Check encryption at rest at the storage and the application level.
+  - Check that keys are stored apart from the data.
+  - Check that data not needed is not stored.
+  example: aws rds describe-db-instances --query 'DBInstances[].StorageEncrypted'; aws s3api get-bucket-encryption --bucket BUCKET
+  expected: All sensitive data at rest is encrypted with managed keys that are separate from the data.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    owasp_top10:
+    - A04:2025
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    cwe:
+    - CWE-311
+    - CWE-312
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md

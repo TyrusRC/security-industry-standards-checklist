@@ -1,0 +1,34 @@
+- id: WEB-XSLEAK-001
+  sheet: WEB
+  category: XSLEAK
+  title: Test authenticated endpoints for cross-site leaks of user state
+  objective: Find endpoints whose behavior shows account state to an attacker page through error events, frame counts, focus or cache timing.
+  preconditions:
+  - Test accounts with different roles.
+  steps:
+  - Pick endpoints that answer differently for logged-in users, admins or owners, such as status code, redirect or size.
+  - Load each endpoint from a page on another origin as image, script, iframe or window.open, in a test environment.
+  - 'Look for differences you can see: onload and onerror events, frame count, and load time.'
+  - Check that the endpoints send Cross-Origin-Resource-Policy, Cross-Origin-Opener-Policy and framing headers.
+  - Make sure the server uses Sec-Fetch-Site or Sec-Fetch-Dest to reject cross-site requests to private resources.
+  - 'Check that resources with user data use Cache-Control: no-store or an unpredictable URL.'
+  example: 'Attacker page: <img src="https://target/api/user/1234" onload=... onerror=...>; curl -sI https://target/api/me -H "Sec-Fetch-Site: cross-site"'
+  expected: A cross-site page cannot tell the user state from the result of a request. Private resources need isolation headers and reject cross-site requests.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    owasp_top10:
+    - A01:2025
+    cheatsheet:
+    - XS_Leaks_Cheat_Sheet
+    wstg:
+    - WSTG-CLNT-09
+    cwe:
+    - CWE-203
+    - CWE-200
+    capec:
+    - CAPEC-462
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/XS_Leaks_Cheat_Sheet.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/11-Client-side/09-Clickjacking.md

@@ -1,0 +1,176 @@
+- id: WEB-CSRF-001
+  sheet: WEB
+  category: CSRF
+  title: Test origin checks with Origin, Referer and Sec-Fetch-Site headers
+  objective: Find state-changing endpoints that accept requests from another site because the server does not check the request origin.
+  steps:
+  - List the state-changing requests that use cookie authentication.
+  - Replay each request with an Origin header from an attacker site.
+  - 'Replay each request with Origin: null and with the Origin header removed.'
+  - 'Replay each request with Sec-Fetch-Site: cross-site and a foreign Referer header.'
+  - Look for a safe method such as GET that changes state.
+  - Make sure the server does not allow the literal null origin or a partial host match.
+  example: 'curl -b "session=<id>" -H "Origin: https://evil.example" -H "Sec-Fetch-Site: cross-site" -X POST https://target/account/email -d "email=a@b.test"; also test Origin: https://target.evil.example'
+  expected: The server rejects cross-site requests that change state. It checks the Origin header, uses Referer only as a fallback, and does not trust null or a partial match.
+  severity: High
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A01:2025
+    wstg:
+    - WSTG-SESS-05
+    asvs:
+    - V3.5.1
+    - V3.5.3
+    cheatsheet:
+    - Cross-Site_Request_Forgery_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-352
+    capec:
+    - CAPEC-62
+    other:
+    - 'OWASP DevGuide web app checklist: 06-digital-identity.md'
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/05-Cross_Site_Request_Forgery.md
+  - sources/repos/DevGuide/docs/en/04-design/02-web-app-checklist/06-digital-identity.md
+- id: WEB-CSRF-002
+  sheet: WEB
+  category: CSRF
+  title: Test that anti-CSRF tokens are bound to the session and are random
+  objective: Find CSRF tokens that an attacker can predict, reuse, or use with another account.
+  steps:
+  - Collect anti-CSRF tokens from several sessions and users.
+  - Look at the tokens for patterns, such as a user ID, an email address, or a time value.
+  - Use a valid token of user A in a request of user B.
+  - Use a token from before logout or login in a new session.
+  - Look for tokens in URLs, Referer headers, and logs.
+  - Send the token in a different place, such as a query parameter, and in an empty form.
+  example: Burp Sequencer on the token; repeat a POST with the token of another session; compare token values with Burp Comparer
+  expected: Each token is unique per session, secret and unpredictable. The server rejects a token of another session, an old token, and an empty token. Tokens are not in URLs.
+  severity: High
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A01:2025
+    wstg:
+    - WSTG-SESS-05
+    asvs:
+    - V3.5.1
+    cheatsheet:
+    - Cross-Site_Request_Forgery_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-352
+    capec:
+    - CAPEC-62
+    other:
+    - 'OWASP DevGuide web app checklist: 06-digital-identity.md'
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/05-Cross_Site_Request_Forgery.md
+  - sources/repos/DevGuide/docs/en/04-design/02-web-app-checklist/06-digital-identity.md
+- id: WEB-CSRF-003
+  sheet: WEB
+  category: CSRF
+  title: Test double-submit cookie tokens for forgery from a subdomain
+  objective: Find double-submit CSRF defenses where an attacker can set the token cookie and a matching request value.
+  steps:
+  - Find out if the CSRF token is a cookie value that is copied into the request.
+  - Check if the token is signed (HMAC) and tied to the session.
+  - Set an own cookie with a chosen token value from a sibling subdomain or over HTTP, in a test environment.
+  - Send a request with the same chosen value in the cookie and in the header.
+  - Check if the cookie uses the __Host- prefix and no Domain attribute.
+  example: 'Set-Cookie: csrf=attacker; Domain=example.com from a test subdomain, then POST with X-CSRF-Token: attacker'
+  expected: The server rejects a token that it did not issue for this session. The token cookie cannot be set from another subdomain.
+  severity: Medium
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A01:2025
+    wstg:
+    - WSTG-SESS-05
+    asvs:
+    - V3.3.2
+    cheatsheet:
+    - Cross-Site_Request_Forgery_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-352
+    capec:
+    - CAPEC-62
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/05-Cross_Site_Request_Forgery.md
+- id: WEB-CSRF-004
+  sheet: WEB
+  category: CSRF
+  title: Test login and other pre-session forms for cross-site request forgery
+  objective: Find login forms that accept a forged request, which lets an attacker sign the victim in to an attacker account.
+  steps:
+  - Open the login form without a session and look for a CSRF token.
+  - Submit the login request from a page on another origin, in a test environment.
+  - Check if the victim then works in the attacker account and saves private data there.
+  - Do the same for the sign-up and password reset forms.
+  example: Host an HTML form that posts attacker credentials to https://target/login and open it in a browser that has no session
+  expected: The login and pre-session forms need a CSRF token or an origin check. A forged login request fails.
+  severity: Medium
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A01:2025
+    wstg:
+    - WSTG-SESS-05
+    asvs:
+    - V3.5.1
+    cheatsheet:
+    - Cross-Site_Request_Forgery_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-352
+    capec:
+    - CAPEC-62
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/05-Cross_Site_Request_Forgery.md
+- id: WEB-CSRF-005
+  sheet: WEB
+  category: CSRF
+  title: Test client-side code for request forgery from URL and DOM inputs
+  objective: Find client-side CSRF where attacker input in the URL or the DOM makes the page send a state-changing same-origin request.
+  steps:
+  - Search the JavaScript for request calls that build the URL or body from location, hash or postMessage data.
+  - Put path traversal and extra parameters in the input, such as ../ and &action=delete.
+  - Open a crafted link as the victim and watch the network requests.
+  - Check if the request carries the CSRF token and the session cookie.
+  example: https://target/app#/profile/..%2f..%2fadmin%2fdelete ; use browser DevTools network tab and grep the bundle for fetch(
+  expected: Client-side code does not build request targets from untrusted input without allowlist checks. The server still checks the token and the origin of each state-changing request.
+  severity: High
+  test_type:
+  - Manual
+  - Code Review
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A01:2025
+    wstg:
+    - WSTG-SESS-05
+    - WSTG-CLNT-01
+    cheatsheet:
+    - Cross-Site_Request_Forgery_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-352
+    capec:
+    - CAPEC-62
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/05-Cross_Site_Request_Forgery.md

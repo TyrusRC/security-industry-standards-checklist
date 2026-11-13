@@ -1,0 +1,279 @@
+- id: K8S-RBAC-010
+  sheet: K8S
+  category: RBAC
+  title: Find subjects that can exec, attach or port-forward into pods
+  objective: Finds users and service accounts that can run commands in containers or open tunnels to pods.
+  steps:
+  - List roles with create on pods/exec, pods/attach and pods/portforward.
+  - List the subjects bound to these roles.
+  - Check that day-to-day accounts do not hold these rights in production namespaces.
+  - Check that each use of exec appears in the audit log.
+  - Ask the owner to justify each subject.
+  example: kubectl auth can-i create pods/exec --as=<user> -n <ns>; kubectl get clusterrole,role -A -o json | jq ".. | select(.resources?) | select(.resources[]|test("pods/(exec|attach|portforward)"))"
+  expected: In production only a small, named group has exec and port-forward rights. These actions are logged and alerts exist for them.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K02
+    cloud_native_top10:
+    - CNAS-3
+    cwe:
+    - CWE-269
+    attack:
+    - T1609
+    - T1059.013
+    nist_800_53:
+    - AC-6
+    tool_check:
+    - kubescape:C-0002
+    - kubescape:C-0063
+    other:
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Audit Logging and Threat Detection, Alerting
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0002-execintocontainer.json
+  - sources/repos/regolibrary/controls/C-0063-portforwardingprivileges.json
+  - sources/nsa_k8s/nsa_k8s_hardening.md
+- id: K8S-RBAC-011
+  sheet: K8S
+  category: RBAC
+  title: Find subjects that can create workloads and the limits on them
+  objective: Finds users who can create pods and so can reach secrets, service accounts and nodes.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - List subjects with create, update or patch on pods, deployments, jobs, cronjobs and daemonsets.
+  - List the service accounts in each namespace where these subjects can create workloads.
+  - Make sure Pod Security admission enforces the baseline or restricted level there.
+  - Create a privileged pod in a test namespace as one of these subjects.
+  example: kubectl auth can-i create pods --as=<user> -n <ns>; kubectl get clusterrolebinding,rolebinding -A -o wide
+  expected: Workload creation rights are rare and limited by namespace. The enforced pod security level blocks privileged pods for these subjects.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K02
+    cloud_native_top10:
+    - CNAS-3
+    cwe:
+    - CWE-269
+    attack:
+    - T1610
+    nist_800_53:
+    - AC-6
+    tool_check:
+    - kubescape:C-0188
+    - prowler:kubernetes:rbac_minimize_pod_creation_access
+    other:
+    - 'Kubernetes docs: rbac-good-practices.md'
+    - 'Kubernetes docs: security-checklist.md'
+    - 'Kubernetes docs: application-security-checklist.md'
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0188-minimizeaccesstocreatepods.json
+  - sources/repos/k8s-website/content/en/docs/concepts/security/rbac-good-practices.md
+  - sources/repos/k8s-website/content/en/docs/concepts/security/security-checklist.md
+  - sources/repos/k8s-website/content/en/docs/concepts/security/application-security-checklist.md
+- id: K8S-RBAC-012
+  sheet: K8S
+  category: RBAC
+  title: Find subjects that can delete resources or Kubernetes events
+  objective: Finds accounts that can destroy workloads and data or erase traces of their actions.
+  steps:
+  - List roles with the delete or deletecollection verb on workloads, volumes, namespaces and nodes.
+  - List roles with delete on events.
+  - List the subjects bound to these roles.
+  - Check that daily-use accounts do not hold these rights.
+  - Check that events also go to a store outside the cluster.
+  example: kubectl auth can-i delete events -A --as=<user>; kubectl get clusterrole -o json | jq ".items[] | select(.rules[]?.verbs[]? | test("delete"))" | head
+  expected: Delete rights are limited to a named group. Only controllers can delete events, and events are copied to a separate log store.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K02
+    - K10
+    cloud_native_top10:
+    - CNAS-3
+    cwe:
+    - CWE-269
+    attack:
+    - T1070
+    nist_800_53:
+    - AC-6
+    - AU-9
+    tool_check:
+    - kubescape:C-0007
+    - kubescape:C-0031
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0007-datadestruction.json
+  - sources/repos/regolibrary/controls/C-0031-deletekubernetesevents.json
+- id: K8S-RBAC-013
+  sheet: K8S
+  category: RBAC
+  title: Find subjects that can create volumes, approve CSRs or mint tokens
+  objective: Finds rights that let a user escalate to node or cluster control.
+  steps:
+  - List subjects that can create PersistentVolumes.
+  - List subjects with update on certificatesigningrequests/approval and the sign verb.
+  - List subjects that can create serviceaccounts/token.
+  - List subjects that can create, change or delete webhook configurations.
+  - Ask the owner to justify each subject.
+  example: kubectl auth can-i create persistentvolumes --as=<user>; kubectl auth can-i update certificatesigningrequests/approval --as=<user>; kubectl auth can-i create serviceaccounts/token -n <ns> --as=<user>
+  expected: Only cluster administrators and control plane controllers hold these rights. Other subjects do not hold them.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K02
+    cloud_native_top10:
+    - CNAS-3
+    cwe:
+    - CWE-269
+    attack:
+    - T1098.006
+    nist_800_53:
+    - AC-6
+    tool_check:
+    - kubescape:C-0278
+    - kubescape:C-0280
+    - kubescape:C-0281
+    - kubescape:C-0282
+    - prowler:kubernetes:rbac_minimize_pv_creation_access
+    - prowler:kubernetes:rbac_minimize_csr_approval_access
+    - prowler:kubernetes:rbac_minimize_service_account_token_creation
+    - prowler:kubernetes:rbac_minimize_webhook_config_access
+    other:
+    - 'Kubernetes docs: rbac-good-practices.md'
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0278-minimizeaccesstocreatepv.json
+  - sources/repos/regolibrary/controls/C-0280-minimizeaccesstocertsigningreq.json
+  - sources/repos/regolibrary/controls/C-0281-minimizeaccesstoadmissionwebhook.json
+  - sources/repos/regolibrary/controls/C-0282-minimizeaccesstoserviceaccountcreate.json
+  - sources/repos/k8s-website/content/en/docs/concepts/security/rbac-good-practices.md
+- id: K8S-RBAC-014
+  sheet: K8S
+  category: RBAC
+  title: Check that nobody uses the system:masters group after bootstrap
+  objective: Finds users and components that hold unlimited rights through a group that RBAC cannot restrict.
+  steps:
+  - List client certificates and kubeconfig entries with the organization system:masters.
+  - List the bindings and OIDC group mappings that give the group to a user or service account.
+  - Check that the controller manager does not run as system:masters.
+  - Check that the CertificateSubjectRestriction plugin is on.
+  - Check the break-glass process for this group.
+  example: kubectl get csr -o json | jq ".items[].spec.request" ; openssl x509 -in client.crt -noout -subject; grep -r "system:masters" ~/.kube
+  expected: No user or component uses system:masters in daily work. It is a break-glass credential with a record of each use.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K02
+    - K09
+    cloud_native_top10:
+    - CNAS-3
+    cwe:
+    - CWE-269
+    attack:
+    - T1078
+    nist_800_53:
+    - AC-6
+    - AC-2
+    tool_check:
+    - kubescape:C-0246
+    other:
+    - 'Kubernetes docs: security-checklist.md'
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0246-avoiduseofsystemmastersgroup.json
+  - sources/repos/k8s-website/content/en/docs/concepts/security/security-checklist.md
+- id: K8S-RBAC-015
+  sheet: K8S
+  category: RBAC
+  title: Find workloads whose service accounts hold admin or takeover rights
+  objective: Finds pods that give an attacker cluster control after an application flaw.
+  steps:
+  - List workloads and their service accounts.
+  - List the roles of each service account, including aggregated roles.
+  - Find service accounts with cluster-admin, secret read, or workload create and update rights.
+  - Rank the findings by exposure of the workload to the Internet.
+  - Replace broad roles with narrow roles.
+  example: kubescape scan control C-0267,C-0272,C-0053; kubectl auth can-i --list --as=system:serviceaccount:<ns>:<sa>
+  expected: No workload service account holds admin rights or rights to read secrets or create workloads across the cluster without a written reason.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K02
+    cloud_native_top10:
+    - CNAS-3
+    cwe:
+    - CWE-269
+    attack:
+    - T1078
+    nist_800_53:
+    - AC-6
+    tool_check:
+    - kubescape:C-0053
+    - kubescape:C-0267
+    - kubescape:C-0272
+    other:
+    - 'Kubernetes docs: service-accounts.md'
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0053-accesscontainerserviceaccount.json
+  - sources/repos/regolibrary/controls/C-0267-workloadwithclustertakeoverroles.json
+  - sources/repos/regolibrary/controls/C-0272-workloadwithadministrativeroles.json
+  - sources/repos/k8s-website/content/en/docs/concepts/security/service-accounts.md
+- id: K8S-RBAC-016
+  sheet: K8S
+  category: RBAC
+  title: Find subjects that can change the CoreDNS configuration
+  objective: Finds accounts that can poison cluster DNS and take over service names.
+  steps:
+  - Find the CoreDNS ConfigMap in kube-system.
+  - List subjects with update or patch on that ConfigMap.
+  - List subjects with update or patch on the CoreDNS deployment.
+  - Make sure changes to the ConfigMap raise an alert.
+  example: kubectl -n kube-system get cm coredns -o yaml; kubectl auth can-i update configmaps/coredns -n kube-system --as=<user>
+  expected: Only cluster administrators can change the CoreDNS ConfigMap and deployment. Each change creates an alert.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K02
+    - K05
+    cwe:
+    - CWE-269
+    nist_800_53:
+    - AC-6
+    tool_check:
+    - kubescape:C-0037
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0037-corednspoisoning.json
+- id: K8S-RBAC-017
+  sheet: K8S
+  category: RBAC
+  title: Check periodic access reviews, CA protection and certificate lifetimes
+  objective: Finds clusters where old access stays and certificates live too long.
+  steps:
+  - Find the access review records and the date of the last review.
+  - Check that the interval between reviews is not more than 24 months.
+  - Read the validity period of intermediate and leaf certificates.
+  - Check how the root CA key is stored and who can use it.
+  example: openssl x509 -in /etc/kubernetes/pki/apiserver.crt -noout -dates; kubeadm certs check-expiration
+  expected: Reviews take place at least every 24 months. Certificates expire within 3 years. The root CA is offline or online with strict access.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K02
+    - K09
+    cloud_native_top10:
+    - CNAS-3
+    cwe:
+    - CWE-269
+    nist_800_53:
+    - AC-2
+    - IA-5
+    other:
+    - 'Kubernetes docs: security-checklist.md'
+  sources_read:
+  - sources/repos/k8s-website/content/en/docs/concepts/security/security-checklist.md

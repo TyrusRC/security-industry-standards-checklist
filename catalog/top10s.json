@@ -1,0 +1,558 @@
+{
+ "source": "OWASP Top 10 lists (official OWASP GitHub repos / genai.owasp.org)",
+ "retrieved": "2026-11-12",
+ "lists": {
+  "web_top10": {
+   "version": "2025 (OWASP Top 10:2025)",
+   "url": "https://owasp.org/Top10/2025/",
+   "items": [
+    {
+     "id": "A01:2025",
+     "title": "Broken Access Control"
+    },
+    {
+     "id": "A02:2025",
+     "title": "Security Misconfiguration"
+    },
+    {
+     "id": "A03:2025",
+     "title": "Software Supply Chain Failures"
+    },
+    {
+     "id": "A04:2025",
+     "title": "Cryptographic Failures"
+    },
+    {
+     "id": "A05:2025",
+     "title": "Injection"
+    },
+    {
+     "id": "A06:2025",
+     "title": "Insecure Design"
+    },
+    {
+     "id": "A07:2025",
+     "title": "Authentication Failures"
+    },
+    {
+     "id": "A08:2025",
+     "title": "Software or Data Integrity Failures"
+    },
+    {
+     "id": "A09:2025",
+     "title": "Security Logging and Alerting Failures"
+    },
+    {
+     "id": "A10:2025",
+     "title": "Mishandling of Exceptional Conditions"
+    }
+   ]
+  },
+  "api_top10": {
+   "version": "2023 (edition in OWASP/API-Security editions/2023; repo VERSION 2.7.0)",
+   "url": "https://owasp.org/API-Security/editions/2023/en/0x11-t10/",
+   "items": [
+    {
+     "id": "API1:2023",
+     "title": "Broken Object Level Authorization"
+    },
+    {
+     "id": "API2:2023",
+     "title": "Broken Authentication"
+    },
+    {
+     "id": "API3:2023",
+     "title": "Broken Object Property Level Authorization"
+    },
+    {
+     "id": "API4:2023",
+     "title": "Unrestricted Resource Consumption"
+    },
+    {
+     "id": "API5:2023",
+     "title": "Broken Function Level Authorization"
+    },
+    {
+     "id": "API6:2023",
+     "title": "Unrestricted Access to Sensitive Business Flows"
+    },
+    {
+     "id": "API7:2023",
+     "title": "Server Side Request Forgery"
+    },
+    {
+     "id": "API8:2023",
+     "title": "Security Misconfiguration"
+    },
+    {
+     "id": "API9:2023",
+     "title": "Improper Inventory Management"
+    },
+    {
+     "id": "API10:2023",
+     "title": "Unsafe Consumption of APIs"
+    }
+   ]
+  },
+  "mobile_top10": {
+   "version": "2024 (final release, OWASP/www-project-mobile-top-10 index)",
+   "url": "https://owasp.org/www-project-mobile-top-10/",
+   "items": [
+    {
+     "id": "M1:2024",
+     "title": "Improper Credential Usage"
+    },
+    {
+     "id": "M2:2024",
+     "title": "Inadequate Supply Chain Security"
+    },
+    {
+     "id": "M3:2024",
+     "title": "Insecure Authentication/Authorization"
+    },
+    {
+     "id": "M4:2024",
+     "title": "Insufficient Input/Output Validation"
+    },
+    {
+     "id": "M5:2024",
+     "title": "Insecure Communication"
+    },
+    {
+     "id": "M6:2024",
+     "title": "Inadequate Privacy Controls"
+    },
+    {
+     "id": "M7:2024",
+     "title": "Insufficient Binary Protections"
+    },
+    {
+     "id": "M8:2024",
+     "title": "Security Misconfiguration"
+    },
+    {
+     "id": "M9:2024",
+     "title": "Insecure Data Storage"
+    },
+    {
+     "id": "M10:2024",
+     "title": "Insufficient Cryptography"
+    }
+   ]
+  },
+  "llm_top10": {
+   "version": "2025 (OWASP Top 10 for LLM Applications 2025)",
+   "url": "https://genai.owasp.org/llm-top-10/",
+   "items": [
+    {
+     "id": "LLM01:2025",
+     "title": "Prompt Injection"
+    },
+    {
+     "id": "LLM02:2025",
+     "title": "Sensitive Information Disclosure"
+    },
+    {
+     "id": "LLM03:2025",
+     "title": "Supply Chain"
+    },
+    {
+     "id": "LLM04:2025",
+     "title": "Data and Model Poisoning"
+    },
+    {
+     "id": "LLM05:2025",
+     "title": "Improper Output Handling"
+    },
+    {
+     "id": "LLM06:2025",
+     "title": "Excessive Agency"
+    },
+    {
+     "id": "LLM07:2025",
+     "title": "System Prompt Leakage"
+    },
+    {
+     "id": "LLM08:2025",
+     "title": "Vector and Embedding Weaknesses"
+    },
+    {
+     "id": "LLM09:2025",
+     "title": "Misinformation"
+    },
+    {
+     "id": "LLM10:2025",
+     "title": "Unbounded Consumption"
+    }
+   ]
+  },
+  "llm_top10_2026": {
+   "version": "2026 (OWASP GenAI LLM Top 10 2026, canonical repo 2026/final; newer than 2025 list)",
+   "url": "https://github.com/GenAI-Security-Project/GenAI-LLM-Top10/tree/main/2026/final",
+   "items": [
+    {
+     "id": "LLM01:2026",
+     "title": "Prompt Injection"
+    },
+    {
+     "id": "LLM02:2026",
+     "title": "Sensitive Information Disclosure"
+    },
+    {
+     "id": "LLM03:2026",
+     "title": "Excessive Agency"
+    },
+    {
+     "id": "LLM04:2026",
+     "title": "Supply Chain"
+    },
+    {
+     "id": "LLM05:2026",
+     "title": "Data and Model Poisoning"
+    },
+    {
+     "id": "LLM06:2026",
+     "title": "Unbounded Consumption"
+    },
+    {
+     "id": "LLM07:2026",
+     "title": "Misinformation"
+    },
+    {
+     "id": "LLM08:2026",
+     "title": "Hidden Context Exposure"
+    },
+    {
+     "id": "LLM09:2026",
+     "title": "Vector and Embedding Weaknesses"
+    },
+    {
+     "id": "LLM10:2026",
+     "title": "Improper Output Handling"
+    }
+   ]
+  },
+  "agentic_top10": {
+   "version": "2026 (OWASP Top 10 for Agentic Applications for 2026, published 2025-12-09)",
+   "url": "https://genai.owasp.org/download/52117/ (PDF; landing page https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)",
+   "items": [
+    {
+     "id": "ASI01",
+     "title": "Agent Goal Hijack"
+    },
+    {
+     "id": "ASI02",
+     "title": "Tool Misuse and Exploitation"
+    },
+    {
+     "id": "ASI03",
+     "title": "Identity and Privilege Abuse"
+    },
+    {
+     "id": "ASI04",
+     "title": "Agentic Supply Chain Vulnerabilities"
+    },
+    {
+     "id": "ASI05",
+     "title": "Unexpected Code Execution (RCE)"
+    },
+    {
+     "id": "ASI06",
+     "title": "Memory & Context Poisoning"
+    },
+    {
+     "id": "ASI07",
+     "title": "Insecure Inter-Agent Communication"
+    },
+    {
+     "id": "ASI08",
+     "title": "Cascading Failures"
+    },
+    {
+     "id": "ASI09",
+     "title": "Human-Agent Trust Exploitation"
+    },
+    {
+     "id": "ASI10",
+     "title": "Rogue Agents"
+    }
+   ]
+  },
+  "k8s_top10": {
+   "version": "2025 (OWASP Kubernetes Top Ten 2025)",
+   "url": "https://owasp.org/www-project-kubernetes-top-ten/",
+   "items": [
+    {
+     "id": "K01",
+     "title": "Insecure Workload Configurations"
+    },
+    {
+     "id": "K02",
+     "title": "Overly Permissive Authorization Configurations"
+    },
+    {
+     "id": "K03",
+     "title": "Secrets Management Failures"
+    },
+    {
+     "id": "K04",
+     "title": "Lack Of Cluster Level Policy Enforcement"
+    },
+    {
+     "id": "K05",
+     "title": "Missing Network Segmentation Controls"
+    },
+    {
+     "id": "K06",
+     "title": "Overly Exposed Kubernetes Components"
+    },
+    {
+     "id": "K07",
+     "title": "Misconfigured And Vulnerable Cluster Components"
+    },
+    {
+     "id": "K08",
+     "title": "Cluster To Cloud Lateral Movement"
+    },
+    {
+     "id": "K09",
+     "title": "Broken Authentication Mechanisms"
+    },
+    {
+     "id": "K10",
+     "title": "Inadequate Logging And Monitoring"
+    }
+   ]
+  },
+  "cicd_top10": {
+   "version": "current master of OWASP/www-project-top-10-ci-cd-security-risks",
+   "url": "https://owasp.org/www-project-top-10-ci-cd-security-risks/",
+   "items": [
+    {
+     "id": "CICD-SEC-1",
+     "title": "Insufficient Flow Control Mechanisms"
+    },
+    {
+     "id": "CICD-SEC-2",
+     "title": "Inadequate Identity and Access Management"
+    },
+    {
+     "id": "CICD-SEC-3",
+     "title": "Dependency Chain Abuse"
+    },
+    {
+     "id": "CICD-SEC-4",
+     "title": "Poisoned Pipeline Execution (PPE)"
+    },
+    {
+     "id": "CICD-SEC-5",
+     "title": "Insufficient PBAC (Pipeline-Based Access Controls)"
+    },
+    {
+     "id": "CICD-SEC-6",
+     "title": "Insufficient Credential Hygiene"
+    },
+    {
+     "id": "CICD-SEC-7",
+     "title": "Insecure System Configuration"
+    },
+    {
+     "id": "CICD-SEC-8",
+     "title": "Ungoverned Usage of 3rd Party Services"
+    },
+    {
+     "id": "CICD-SEC-9",
+     "title": "Improper Artifact Integrity Validation"
+    },
+    {
+     "id": "CICD-SEC-10",
+     "title": "Insufficient Logging and Visibility"
+    }
+   ]
+  },
+  "cloud_native_top10": {
+   "version": "2022 (OWASP Cloud-Native Application Security Top 10 2022)",
+   "url": "https://owasp.org/www-project-cloud-native-application-security-top-10/",
+   "items": [
+    {
+     "id": "CNAS-1",
+     "title": "Insecure cloud, container or orchestration configuration"
+    },
+    {
+     "id": "CNAS-2",
+     "title": "Injection flaws (app layer, cloud events, cloud services)"
+    },
+    {
+     "id": "CNAS-3",
+     "title": "Improper authentication & authorization"
+    },
+    {
+     "id": "CNAS-4",
+     "title": "CI/CD pipeline & software supply chain flaws"
+    },
+    {
+     "id": "CNAS-5",
+     "title": "Insecure secrets storage"
+    },
+    {
+     "id": "CNAS-6",
+     "title": "Over-permissive or insecure network policies"
+    },
+    {
+     "id": "CNAS-7",
+     "title": "Using components with known vulnerabilities"
+    },
+    {
+     "id": "CNAS-8",
+     "title": "Improper assets management"
+    },
+    {
+     "id": "CNAS-9",
+     "title": "Inadequate 'compute' resource quota limits"
+    },
+    {
+     "id": "CNAS-10",
+     "title": "Ineffective logging & monitoring (e.g. runtime activity)"
+    }
+   ]
+  },
+  "privacy_top10": {
+   "version": "2.0 (2021)",
+   "url": "https://owasp.org/www-project-top-10-privacy-risks/",
+   "items": [
+    {
+     "id": "P1",
+     "title": "Web Application Vulnerabilities"
+    },
+    {
+     "id": "P2",
+     "title": "Operator-sided Data Leakage"
+    },
+    {
+     "id": "P3",
+     "title": "Insufficient Data Breach Response"
+    },
+    {
+     "id": "P4",
+     "title": "Consent on Everything"
+    },
+    {
+     "id": "P5",
+     "title": "Non-transparent Policies, Terms and Conditions"
+    },
+    {
+     "id": "P6",
+     "title": "Insufficient Deletion of User Data"
+    },
+    {
+     "id": "P7",
+     "title": "Insufficient Data Quality"
+    },
+    {
+     "id": "P8",
+     "title": "Missing or Insufficient Session Expiration"
+    },
+    {
+     "id": "P9",
+     "title": "Inability of Users to Access and Modify Data"
+    },
+    {
+     "id": "P10",
+     "title": "Collection of Data Not Required for the User-Consented Purpose"
+    }
+   ]
+  },
+  "desktop_top10": {
+   "version": "2021",
+   "url": "https://owasp.org/www-project-desktop-app-security-top-10/",
+   "items": [
+    {
+     "id": "DA1",
+     "title": "Injections"
+    },
+    {
+     "id": "DA2",
+     "title": "Broken Authentication & Session Management"
+    },
+    {
+     "id": "DA3",
+     "title": "Sensitive Data Exposure"
+    },
+    {
+     "id": "DA4",
+     "title": "Improper Cryptography Usage"
+    },
+    {
+     "id": "DA5",
+     "title": "Improper Authorization"
+    },
+    {
+     "id": "DA6",
+     "title": "Security Misconfiguration"
+    },
+    {
+     "id": "DA7",
+     "title": "Insecure Communication"
+    },
+    {
+     "id": "DA8",
+     "title": "Poor Code Quality"
+    },
+    {
+     "id": "DA9",
+     "title": "Using Components with Known Vulnerabilities"
+    },
+    {
+     "id": "DA10",
+     "title": "Insufficient Logging & Monitoring"
+    }
+   ]
+  },
+  "iot_top10": {
+   "version": "2018 (titles from secondary mapping project; official PDF link 404)",
+   "url": "https://owasp.org/www-project-internet-of-things/",
+   "items": [
+    {
+     "id": "I1",
+     "title": "Weak, Guessable, or Hardcoded Passwords"
+    },
+    {
+     "id": "I2",
+     "title": "Insecure Network Services"
+    },
+    {
+     "id": "I3",
+     "title": "Insecure Ecosystem Interfaces"
+    },
+    {
+     "id": "I4",
+     "title": "Lack of Secure Update Mechanism"
+    },
+    {
+     "id": "I5",
+     "title": "Use of Insecure or Outdated Components"
+    },
+    {
+     "id": "I6",
+     "title": "Insufficient Privacy Protection"
+    },
+    {
+     "id": "I7",
+     "title": "Insecure Data Transfer and Storage"
+    },
+    {
+     "id": "I8",
+     "title": "Lack of Device Management"
+    },
+    {
+     "id": "I9",
+     "title": "Insecure Default Settings"
+    },
+    {
+     "id": "I10",
+     "title": "Lack of Physical Hardening"
+    }
+   ]
+  }
+ }
+}

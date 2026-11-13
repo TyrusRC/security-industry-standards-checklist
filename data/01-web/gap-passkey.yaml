@@ -1,0 +1,132 @@
+- id: WEB-PASSKEY-001
+  sheet: WEB
+  category: PASSKEY
+  title: Test passkey registration for account binding and recent authentication
+  objective: Find passkey enrollment that lets an attacker add a credential to the account of a victim.
+  preconditions:
+  - A test account with WebAuthn support or a virtual authenticator.
+  steps:
+  - Add a passkey with a long-lived session and make sure the application asks for recent re-authentication.
+  - Start registration as user A and send the response from user B.
+  - Change the user ID or account value in the registration request.
+  - Send the registration request from another site and make sure CSRF checks block it.
+  - Look for rate limits and a notice to the user after enrollment.
+  example: 'Burp: intercept POST /webauthn/register/finish and change the userId; replay the options request without a fresh login'
+  expected: The server asks for recent authentication, uses the account from its own ceremony state and ignores an account identifier from the client. The user gets a notice.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    owasp_top10:
+    - A07:2025
+    cheatsheet:
+    - Passkey_Security_Cheat_Sheet
+    cwe:
+    - CWE-287
+    - CWE-306
+    wstg:
+    - WSTG-ATHN-04
+    other:
+    - 'OWASP DevGuide web app checklist: 06-digital-identity.md'
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Passkey_Security_Cheat_Sheet.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/04-Bypassing_Authentication_Schema.md
+- id: WEB-PASSKEY-002
+  sheet: WEB
+  category: PASSKEY
+  title: Test WebAuthn ceremony checks for challenge, origin and user verification
+  objective: Find a relying party that accepts a replayed, forged or wrong-scope passkey response.
+  preconditions:
+  - A virtual authenticator.
+  steps:
+  - Capture a valid registration and a valid sign-in response with a virtual authenticator.
+  - Replay the sign-in response and make sure the server rejects the used challenge.
+  - Wait until the challenge expires and send the response.
+  - Change the type, the origin and the RP ID hash in the client data and send it again.
+  - Use a registration challenge in a sign-in and a challenge of one account for another account.
+  - Clear the user verification flag where the policy needs it.
+  example: Chrome DevTools WebAuthn panel (virtual authenticator); Burp Repeater on /webauthn/authenticate/finish
+  expected: The server accepts only an unused and unexpired challenge of the right ceremony and account. Type, origin, RP ID and flags must match the policy. A used response fails.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    owasp_top10:
+    - A07:2025
+    cheatsheet:
+    - Passkey_Security_Cheat_Sheet
+    cwe:
+    - CWE-294
+    - CWE-287
+    wstg:
+    - WSTG-ATHN-04
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Passkey_Security_Cheat_Sheet.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/04-Bypassing_Authentication_Schema.md
+- id: WEB-PASSKEY-003
+  sheet: WEB
+  category: PASSKEY
+  title: Test passkey management, revocation and the last credential
+  objective: Find credential management that allows silent changes or leaves a revoked passkey valid.
+  preconditions:
+  - A test account with two passkeys.
+  steps:
+  - Open the passkey management page and look at the data shown, such as name and last use.
+  - Remove a passkey and use it to sign in again.
+  - Try to add or remove a passkey without recent re-authentication.
+  - Try to remove the last sign-in method.
+  - Make sure the user gets a notice when a passkey is added or removed.
+  - Look at the audit log for enrollment, use and revocation events.
+  example: Virtual authenticator in Chrome DevTools; sign in with a removed credential ID
+  expected: A removed passkey stops working at once. Changes need recent authentication, send a notice, and are logged. The last method cannot be removed without a safe recovery path.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    owasp_top10:
+    - A07:2025
+    cheatsheet:
+    - Passkey_Security_Cheat_Sheet
+    cwe:
+    - CWE-287
+    wstg:
+    - WSTG-ATHN-07
+    other:
+    - 'OWASP DevGuide web app checklist: 06-digital-identity.md'
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Passkey_Security_Cheat_Sheet.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/07-Weak_Authentication_Methods.md
+- id: WEB-PASSKEY-004
+  sheet: WEB
+  category: PASSKEY
+  title: Test account recovery and fallback paths for bypass of passkey login
+  objective: Find recovery or fallback methods that are weaker than the passkey and let an attacker take over the account.
+  preconditions:
+  - A test account with a passkey and a recovery email.
+  steps:
+  - List all recovery and fallback methods for an account with a passkey.
+  - Fail a passkey sign-in and look for a silent fallback to a password, SMS or email code.
+  - Start recovery with only email access and look at what the user gets.
+  - Make sure recovery codes are single-use and hashed, and that the user can create new ones.
+  - After recovery, look at the sessions and the old credentials, and make sure the user gets a notice.
+  example: Use the forgot password and lost device flows with a test mailbox; compare the steps with the passkey sign-in
+  expected: Recovery is not weaker than the passkey for high-risk accounts. Recovery codes work once. Recovery ends old sessions and the user gets a notice.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    owasp_top10:
+    - A07:2025
+    cheatsheet:
+    - Passkey_Security_Cheat_Sheet
+    cwe:
+    - CWE-640
+    - CWE-287
+    wstg:
+    - WSTG-ATHN-10
+    - WSTG-ATHN-09
+    other:
+    - 'OWASP DevGuide web app checklist: 06-digital-identity.md'
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Passkey_Security_Cheat_Sheet.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/10-Weaker_Authentication_in_Alternative_Channel.md

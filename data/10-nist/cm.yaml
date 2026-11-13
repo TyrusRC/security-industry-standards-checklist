@@ -1,0 +1,26 @@
+- id: NIST-CM-001
+  sheet: NIST
+  category: CM
+  title: Check the security impact analysis before a change
+  objective: Finds changes that go live without an analysis of their effect on security.
+  preconditions:
+  - Read access to the change records.
+  steps:
+  - 'Pick five recent changes: one each of code, settings, infrastructure, dependency and access.'
+  - Find the change record of each change.
+  - Look for a written security impact review with an approver.
+  - Look for the test result that shows the security controls still work.
+  - Look for a back-out plan.
+  example: Compare the change tickets with the deploy log; read the pull request checklist for security impact
+  expected: Each change has a security impact review before approval. The record shows a test of the controls and a back-out plan.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    nist_800_53:
+    - CM-4
+    - CM-3
+    - CM-3(2)
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json

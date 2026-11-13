@@ -1,0 +1,35 @@
+- id: CLD-IAC-005
+  sheet: CLD
+  category: IAC
+  title: Check stack termination protection and toolkit bootstrap version
+  objective: Finds infrastructure stacks that one call can delete, or old bootstrap roles.
+  steps:
+  - List the production stacks.
+  - Check that termination protection is on.
+  - Check the bootstrap version of the toolkit stack.
+  - Try to delete a protected test stack.
+  example: aws cloudformation describe-stacks --query "Stacks[].[StackName,EnableTerminationProtection]"; aws ssm get-parameter --name /cdk-bootstrap/hnb659fds/version; prowler aws --services cloudformation
+  expected: Production stacks have termination protection. Toolkit bootstrap is at the current version. The test delete fails.
+  severity: Low
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-4
+    - CNAS-1
+    tool_check:
+    - prowler:aws:cloudformation_stack_cdktoolkit_bootstrap_version
+    - prowler:aws:cloudformation_stacks_termination_protection_enabled
+    cwe:
+    - CWE-1188
+    attack:
+    - T1485
+    - T1578
+    nist_800_53:
+    - CM-3
+    - CP-9
+    other:
+    - Microsoft cloud security benchmark v1 DS-6
+    - Microsoft cloud security benchmark v1 PV-1
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/cloudformation/cloudformation_stacks_termination_protection_enabled/cloudformation_stacks_termination_protection_enabled.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx

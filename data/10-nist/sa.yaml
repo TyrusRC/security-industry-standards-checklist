@@ -1,0 +1,54 @@
+- id: NIST-SA-001
+  sheet: NIST
+  category: SA
+  title: Check the security flaw tracking tool and its link to the build
+  objective: Finds security flaws that are found but never tracked, assigned or fixed.
+  preconditions:
+  - Read access to the tracking tool.
+  steps:
+  - Find the tool that tracks security flaws for the system.
+  - Pick five flaws from scans and reviews of the last quarter.
+  - Look for each flaw in the tool with an owner, a severity and a status.
+  - Make sure the build or release step can see open flaws.
+  - Look for flaws that passed the fix time with no decision.
+  example: 'Compare scanner exports with the ticket system: jira JQL labels = security AND status != Done; defectdojo findings list'
+  expected: Each flaw has a record with an owner, a severity and a due date. The release step checks open flaws, and late flaws need a recorded decision.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    nist_800_53:
+    - SA-15(2)
+    - SA-15
+    - SA-11
+    - SI-2
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NIST-SA-002
+  sheet: NIST
+  category: SA
+  title: Check the dynamic and interactive security tests in the development process
+  objective: Finds releases that only get static scans and never run tests on the running application.
+  preconditions:
+  - Read access to the pipeline and the test reports.
+  steps:
+  - Read the pipeline and find the dynamic analysis and interactive test steps.
+  - Look at the last three runs and the code and API coverage.
+  - Make sure the test target is a running build, not a mock.
+  - Open the findings and check that the results are stored.
+  - Check that high findings stop the release or need a signed exception.
+  example: Look at ZAP, Burp or IAST agent runs in the pipeline logs; check agent coverage reports and the exception list
+  expected: Each release runs dynamic or interactive tests on a running build. The results are stored, and high findings block the release.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    nist_800_53:
+    - SA-11(9)
+    - SA-11(8)
+    - SA-11(1)
+    - SA-15(7)
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json

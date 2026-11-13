@@ -1,0 +1,83 @@
+- id: PRIV-VNPROC-001
+  sheet: PRIV
+  category: VNPROC
+  title: Check that a processor contract exists before data transfer
+  objective: Finds processors that receive data with no contract.
+  steps:
+  - List all processors and the date of first data transfer.
+  - Find the signed contract for each processor.
+  - Check that the date of the contract is before the first transfer.
+  - Check that the contract states the rights, duties and security measures.
+  example: Compare the processor list with the contract register and the date of first API call.
+  expected: Each processor has a signed contract that is older than the first transfer. The contract states the duties and the measures.
+  severity: High
+  test_type:
+  - Config Review
+  refs:
+    privacy_top10:
+    - P2
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 38
+    - Vietnam Decree 13/2023/ND-CP Art. 39
+    - Vietnam PDP Law 91/2025/QH15 Art. 37
+  sources_read: &id001
+  - sources/vn_law/13nd.ocr.txt
+  - sources/vn_law/91qh.ocr.txt
+  see:
+  - PRIV-SHARE-003
+  notes: Decree Art. 39(1), 39(2). Law Art. 37(1)(a), 37(2)(a), 37(2)(b).
+- id: PRIV-VNPROC-002
+  sheet: PRIV
+  category: VNPROC
+  title: Check that processors return or delete data when the work ends
+  objective: Finds processors that keep data after the contract ends.
+  steps:
+  - Read the exit clause of the contract.
+  - Close a test project with the processor.
+  - Ask for proof of deletion or return of the test data.
+  - Look in the processor systems for the test data.
+  example: Request a deletion certificate. Look at storage buckets and backups at the processor.
+  expected: The processor deletes or returns all personal data at the end of the work and gives proof.
+  severity: Medium
+  test_type: &id002
+  - Manual
+  - Config Review
+  refs:
+    privacy_top10:
+    - P6
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 39
+    - Vietnam PDP Law 91/2025/QH15 Art. 14
+    - Vietnam PDP Law 91/2025/QH15 Art. 37
+  sources_read: *id001
+  see:
+  - PRIV-RET-003
+  notes: Decree Art. 39(5) names the duty to delete or return. Law Art. 14(3) lets the controller ask the processor and third parties to delete; Law Art. 37(2) does not state the return duty.
+- id: PRIV-VNPROC-003
+  sheet: PRIV
+  category: VNPROC
+  title: Check the consent for data given to another organisation
+  objective: Finds data that goes to third parties without consent.
+  steps:
+  - List the third parties that get personal data.
+  - Find the consent or other ground for each flow.
+  - Run a test user flow and look at the outgoing traffic.
+  - Check the notice to users for the same parties.
+  example: Proxy capture on a test user session. Compare with the consent log.
+  expected: Data goes to third parties only with consent of the data subject or another ground in law. The notice names the parties.
+  severity: High
+  test_type: *id002
+  refs:
+    privacy_top10:
+    - P2
+    - P4
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 14
+    - Vietnam Decree 13/2023/ND-CP Art. 13
+    - Vietnam PDP Law 91/2025/QH15 Art. 15
+    - Vietnam PDP Law 91/2025/QH15 Art. 17
+  sources_read: *id001
+  see:
+  - PRIV-SHARE-001
+  - PRIV-SHARE-002
+  notes: 'Decree Art. 14(2)(a): give data to others only with consent. Law Art. 15(2)(b) and 17(1)(a). Law Art. 17(1)(d) also allows transfer to a processor or third party under the rules.'

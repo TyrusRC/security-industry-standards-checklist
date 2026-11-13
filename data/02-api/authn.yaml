@@ -1,0 +1,293 @@
+- id: API-AUTHN-001
+  sheet: API
+  category: AUTHN
+  title: Call every operation without credentials and with bad credentials
+  objective: Finds API operations that work without a valid authentication.
+  preconditions:
+  - The OpenAPI file or a Postman collection of the API.
+  steps:
+  - Build a list of all operations from the API description and the proxy history.
+  - Send each operation without any credential.
+  - Send each operation with an empty, expired and random token or API key.
+  - List every operation that does not return 401.
+  example: Newman run with the Authorization header removed; ZAP OpenAPI import plus a script that strips headers; Burp Autorize with an empty session.
+  expected: Every non-public operation returns 401 without a valid credential. Public operations are listed in the API description.
+  severity: Critical
+  test_type: Manual
+  refs:
+    api_top10:
+    - API2:2023
+    wstg:
+    - WSTG-APIT-01
+    cheatsheet:
+    - REST_Assessment_Cheat_Sheet
+    - REST_Security_Cheat_Sheet
+    cwe:
+    - CWE-306
+    - CWE-287
+    attack:
+    - T1190
+  see:
+  - WEB-AUTHZ-005
+  - WEB-AUTHN-009
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa2-broken-authentication.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/01-API_Reconnaissance.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Assessment_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Security_Cheat_Sheet.md
+- id: API-AUTHN-002
+  sheet: API
+  category: AUTHN
+  title: Find all authentication flows and test each one
+  objective: Finds login paths, such as mobile, deep link or legacy flows, that skip controls.
+  steps:
+  - Ask the engineers for all ways to authenticate to the API.
+  - Find more flows in the client code, the mobile app and the API description.
+  - 'Test each flow for the same checks: lock out, rate limit and multi-factor.'
+  - Compare the results and list flows with weaker controls.
+  example: Burp site map filter on /login, /token, /auth, /oauth; ZAP spider; review of the gateway routes.
+  expected: All authentication flows are known. Every flow applies the same lock out, rate limit and factor checks.
+  severity: High
+  test_type: Manual
+  refs:
+    api_top10:
+    - API2:2023
+    cwe:
+    - CWE-287
+    - CWE-306
+  see:
+  - WEB-AUTHN-009
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa2-broken-authentication.md
+- id: API-AUTHN-003
+  sheet: API
+  category: AUTHN
+  title: Test brute force and credential stuffing limits on API login
+  objective: Finds login endpoints that allow many password guesses for one account or many accounts.
+  preconditions:
+  - Use a test account. Agree the volume with the owner of the system.
+  steps:
+  - Send repeated failed logins for one account. Count the requests before a block or delay.
+  - Send one failed login for each of many accounts from one source.
+  - Change the source IP header and the client ID. Check if the limit still holds.
+  - Compare the limit with the limit of normal API calls.
+  example: Burp Turbo Intruder or ffuf against POST /auth/login with a short wordlist on a test account; hydra is not needed.
+  expected: The login limit is stricter than the general API limit. It holds per account and per source, and header changes do not bypass it.
+  severity: High
+  test_type: Automated
+  refs:
+    api_top10:
+    - API2:2023
+    cheatsheet:
+    - REST_Assessment_Cheat_Sheet
+    cwe:
+    - CWE-307
+    - CWE-799
+    capec:
+    - CAPEC-49
+    - CAPEC-112
+    attack:
+    - T1110
+    - T1110.004
+  see:
+  - WEB-AUTHN-002
+  - WEB-AUTHN-003
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa2-broken-authentication.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Assessment_Cheat_Sheet.md
+- id: API-AUTHN-004
+  sheet: API
+  category: AUTHN
+  title: Treat password reset and recovery endpoints as login endpoints
+  objective: Finds recovery endpoints that allow brute force of reset tokens or one-time codes.
+  steps:
+  - Start a reset for a test account. Send wrong tokens to the confirm endpoint many times.
+  - Count the requests before a block.
+  - Check if the token or code can be used more than once.
+  - Check if the limit also applies on the beta or older API hosts.
+  example: Burp Intruder on POST /password/reset/confirm with a 6-digit range; compare with the limit on the login endpoint.
+  expected: Reset endpoints have lock out and rate limits like login. A token cannot be guessed in its lifetime.
+  severity: High
+  test_type: Manual
+  refs:
+    api_top10:
+    - API2:2023
+    - API4:2023
+    cheatsheet:
+    - REST_Assessment_Cheat_Sheet
+    cwe:
+    - CWE-307
+    - CWE-799
+    capec:
+    - CAPEC-112
+    attack:
+    - T1110
+  see:
+  - WEB-PWD-018
+  - WEB-MFA-003
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa2-broken-authentication.md
+  - sources/repos/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Assessment_Cheat_Sheet.md
+- id: API-AUTHN-005
+  sheet: API
+  category: AUTHN
+  title: Check that sensitive account changes need the current password
+  objective: Finds endpoints that change email, phone or password with only a bearer token.
+  steps:
+  - Find the endpoints that change email, phone number, password or factors.
+  - Send each request with a valid token but without the current password.
+  - Send each request with a wrong current password.
+  - Start a password reset after the email change.
+  example: 'curl -X PUT https://api.example/account -H ''Authorization: Bearer <token>'' -d ''{"email":"new@x.test"}'''
+  expected: The API asks for the current password or a new login before it changes sensitive data. The request fails without it.
+  severity: High
+  test_type: Manual
+  refs:
+    api_top10:
+    - API2:2023
+    cwe:
+    - CWE-620
+  see:
+  - WEB-PWD-004
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa2-broken-authentication.md
+- id: API-AUTHN-006
+  sheet: API
+  category: AUTHN
+  title: Check that credentials and tokens are not sent in the URL
+  objective: Finds API keys, tokens and passwords that appear in URLs and logs.
+  steps:
+  - List all endpoints that take an API key, token or password.
+  - 'Read the securitySchemes of the API description for apiKey values with in: query.'
+  - Find the endpoints that accept the secret in the query string.
+  - Look in proxy, gateway and server logs for URLs that hold a secret.
+  - Make sure the secret travels in a header or in the body.
+  example: 'Burp search for apiKey, token, access_token in URLs; grep -i ''apikey='' access.log; example of an unsafe URL: /v1/data?apiKey=<key>.'
+  expected: No secret is accepted in the URL. Logs do not show secrets.
+  severity: Medium
+  test_type: Manual
+  refs:
+    api_top10:
+    - API2:2023
+    cheatsheet:
+    - REST_Security_Cheat_Sheet
+    cwe:
+    - CWE-598
+  see:
+  - WEB-DATA-002
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa2-broken-authentication.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Security_Cheat_Sheet.md
+- id: API-AUTHN-007
+  sheet: API
+  category: AUTHN
+  title: Check how API keys are used and revoked
+  objective: Finds API keys that act as user logins or that the owner cannot limit.
+  steps:
+  - List the API keys that the API accepts and the clients that use them.
+  - Check if a key identifies a user. Keys must identify only a client.
+  - Send many requests with one key. Look for 429 responses.
+  - Revoke a test key. Check that it is rejected at once.
+  example: 'curl -H ''X-API-Key: <key>'' https://api.example/v1/ping in a loop; review of the key management screen.'
+  expected: API keys identify API clients only. The API rate limits each key and returns 429. A revoked key is rejected.
+  severity: Medium
+  test_type: Manual
+  refs:
+    api_top10:
+    - API2:2023
+    - API4:2023
+    cheatsheet:
+    - REST_Security_Cheat_Sheet
+    cwe:
+    - CWE-287
+    - CWE-799
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa2-broken-authentication.md
+  - sources/repos/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Security_Cheat_Sheet.md
+- id: API-AUTHN-008
+  sheet: API
+  category: AUTHN
+  title: Compare login and reset responses for valid and invalid accounts
+  objective: Finds differences in status, body or time that reveal which accounts exist.
+  steps:
+  - Send a login with a valid user and a wrong password. Record status, body, length and time.
+  - Send a login with an unknown user. Record the same values.
+  - Repeat for the reset and registration endpoints.
+  - Compare the records.
+  example: Burp Comparer and Intruder with response timing; ffuf -mc all -fs <size> against the login endpoint.
+  expected: Responses for valid and unknown accounts are the same in status, body and time.
+  severity: Medium
+  test_type: Manual
+  refs:
+    api_top10:
+    - API2:2023
+    cwe:
+    - CWE-204
+    - CWE-203
+    capec:
+    - CAPEC-112
+  see:
+  - WEB-IDM-004
+  - WEB-PWD-017
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa2-broken-authentication.md
+- id: API-AUTHN-009
+  sheet: API
+  category: AUTHN
+  title: Send malformed and under-scoped tokens to every operation
+  objective: Finds token checks that fail with a server error or that ignore scopes and roles.
+  steps:
+  - Send tokens that are truncated, have extra parts or bad Base64.
+  - Check that the response is 401 and not a server error.
+  - Send a valid token with a scope that does not grant the operation.
+  - Send a valid token of a lower role to owner-only operations.
+  example: 'jwt_tool <JWT> -M pb -t https://api.example/v1/me -rh ''Authorization: Bearer JWT''; Postman test that expects 401 or 403.'
+  expected: Bad tokens give 401 and never a 500. A token without the needed scope or role gets 403.
+  severity: High
+  test_type: Manual
+  refs:
+    api_top10:
+    - API2:2023
+    cheatsheet:
+    - REST_Assessment_Cheat_Sheet
+    - REST_Security_Cheat_Sheet
+    cwe:
+    - CWE-287
+    - CWE-863
+  see:
+  - WEB-JWT-001
+  - WEB-JWT-005
+  - WEB-OAUTH-007
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa2-broken-authentication.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Assessment_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Security_Cheat_Sheet.md
+- id: API-AUTHN-010
+  sheet: API
+  category: AUTHN
+  title: Check how the API stores and shows API keys and client secrets
+  objective: Finds API keys and client secrets that are stored in plain text or shown again.
+  steps:
+  - Create an API key or client secret in a test account. Note how the API shows it.
+  - Read the key list and the key detail endpoints. Look for the full secret in the responses.
+  - 'Read how the service stores keys: look for plain text and reversible encryption.'
+  - Check the length and the random source of the keys.
+  example: 'curl -H ''Authorization: Bearer <token>'' https://api.example/v1/keys; review of the key table in a test database; code search for key generation.'
+  expected: The API shows a key once, at creation. The service stores only a hash or an encrypted value. Keys are long and random.
+  severity: High
+  test_type:
+  - Manual
+  - Code Review
+  refs:
+    api_top10:
+    - API2:2023
+    cwe:
+    - CWE-256
+    - CWE-522
+  see:
+  - WEB-PWD-012
+  - WEB-JWT-009
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa2-broken-authentication.md

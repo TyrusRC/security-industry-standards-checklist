@@ -1,0 +1,106 @@
+- id: CLD-SRV-007
+  sheet: CLD
+  category: SRV
+  title: Check function dead letter queues and cross-account layers
+  objective: Finds functions that lose failed events or load code layers from outside accounts.
+  steps:
+  - List all functions and their layers.
+  - Find layers owned by other accounts.
+  - Check that each async function has a dead letter queue or failure target.
+  - Send a failing event to a test function.
+  example: aws lambda list-functions; aws lambda get-function --function-name <f> --query "Configuration.[Layers,DeadLetterConfig]"; prowler aws --check awslambda_function_no_dead_letter_queue awslambda_function_using_cross_account_layers
+  expected: Layers come from trusted accounts only. Failed events go to a dead letter queue with an alert. The failing test event is stored and alerted.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-4
+    - CNAS-2
+    tool_check:
+    - prowler:aws:awslambda_function_no_dead_letter_queue
+    - prowler:aws:awslambda_function_using_cross_account_layers
+    cwe:
+    - CWE-829
+    attack:
+    - T1648
+    - T1195.002
+    nist_800_53:
+    - SI-7
+    - SR-3
+    other:
+    - Microsoft cloud security benchmark v1 PV-3
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/awslambda/awslambda_function_no_dead_letter_queue/awslambda_function_no_dead_letter_queue.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-SRV-008
+  sheet: CLD
+  category: SRV
+  title: Check client certificates and cache encryption on API gateways
+  objective: Finds API stages that send unauthenticated calls to backends or cache clear text data.
+  steps:
+  - List API stages.
+  - Check that stages use a client certificate to the backend.
+  - Check that the stage cache is encrypted.
+  - Call the backend directly without the certificate.
+  example: aws apigateway get-stage --rest-api-id <id> --stage-name <s> --query "[clientCertificateId,cacheClusterEnabled]"; aws apigateway get-rest-apis; curl -i https://<backend>/; prowler aws --services apigateway
+  expected: The backend accepts calls with the gateway certificate only. The stage cache is encrypted. The direct call is denied.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-3
+    tool_check:
+    - prowler:aws:apigateway_restapi_cache_encrypted
+    - prowler:aws:apigateway_restapi_client_certificate_enabled
+    cwe:
+    - CWE-306
+    attack:
+    - T1190
+    nist_800_53:
+    - SC-8
+    - SC-28
+    other:
+    - Microsoft cloud security benchmark v1 NS-2
+    - Microsoft cloud security benchmark v1 IM-4
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/apigateway/apigateway_restapi_cache_encrypted/apigateway_restapi_cache_encrypted.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-SRV-009
+  sheet: CLD
+  category: SRV
+  title: Check container task definitions for privilege, host sharing and root file system
+  objective: Finds tasks that run privileged, share the host or write to the root file system.
+  steps:
+  - List the task definitions in use.
+  - Find privileged containers.
+  - Find host network and host process sharing.
+  - Check that the root file system is read-only.
+  - Check that logging is on.
+  example: aws ecs list-task-definitions; aws ecs describe-task-definition --task-definition <t> --query "taskDefinition.[networkMode,pidMode,containerDefinitions[].[privileged,readonlyRootFilesystem]]"; prowler aws --services ecs
+  expected: No task is privileged or shares the host. Root file systems are read-only. Logging is on for every container.
+  severity: High
+  test_type:
+  - Config Review
+  - Code Review
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    tool_check:
+    - prowler:aws:ecs_task_definitions_containers_readonly_access
+    - prowler:aws:ecs_task_definitions_host_namespace_not_shared
+    - prowler:aws:ecs_task_definitions_host_networking_mode_users
+    - prowler:aws:ecs_task_definitions_no_privileged_containers
+    cwe:
+    - CWE-250
+    attack:
+    - T1611
+    - T1610
+    nist_800_53:
+    - CM-7
+    - AC-6
+    other:
+    - Microsoft cloud security benchmark v1 PV-3
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/ecs/ecs_task_definitions_containers_readonly_access/ecs_task_definitions_containers_readonly_access.metadata.json
+  - sources/repos/prowler/prowler/providers/aws/services/ecs/ecs_task_definitions_no_privileged_containers/ecs_task_definitions_no_privileged_containers.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx

@@ -1,0 +1,130 @@
+- id: WEB-WEBHOOK-001
+  sheet: WEB
+  category: WEBHOOK
+  title: Test webhook receivers for signature verification and downgrade
+  objective: Find webhook endpoints that accept forged events because the signature is missing, weak or compared in an unsafe way.
+  steps:
+  - Send a delivery with no signature header and with a wrong signature.
+  - Change one byte of the body and keep the old signature.
+  - Send a signature of an unexpected scheme or an empty signature value.
+  - Send the body re-serialized with different whitespace and key order.
+  - 'Look at the response: it must be 401 with no reason.'
+  - Review the code for a constant-time comparison and for use of the raw body.
+  - Make sure plain HTTP is refused.
+  example: 'curl -X POST https://target/webhooks/pay -H "X-Signature: v1=00" -d ''{"id":"evt_1","type":"payment.succeeded"}''; review hmac.compare_digest or crypto.timingSafeEqual'
+  expected: The receiver rejects any delivery without a valid HMAC of the raw body with 401 and a generic body. It compares in constant time and accepts only the expected scheme over HTTPS.
+  severity: High
+  test_type:
+  - Manual
+  - Code Review
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A08:2025
+    - A07:2025
+    cheatsheet:
+    - Webhook_Security_Cheat_Sheet
+    asvs:
+    - V4.1.5
+    cwe:
+    - CWE-345
+    - CWE-347
+    - CWE-208
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Webhook_Security_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+- id: WEB-WEBHOOK-002
+  sheet: WEB
+  category: WEBHOOK
+  title: Test webhook receivers for replay and duplicate events
+  objective: Find webhook endpoints that process a captured or repeated delivery twice.
+  preconditions:
+  - A test webhook with a known signing secret.
+  steps:
+  - Capture a valid delivery in a test environment.
+  - Send it again at once and look for a second side effect, such as a second payment record.
+  - Send it again after the timestamp tolerance time.
+  - Change the timestamp and keep the signature.
+  - Send the same event ID with a new valid signature.
+  - Send events out of order.
+  example: Replay with curl --data-binary @delivery.json -H @headers.txt; compare the database rows before and after
+  expected: The receiver rejects old timestamps and stored event IDs. A duplicate gets 200 and does not repeat the side effects. Out-of-order events do not corrupt the state.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    owasp_top10:
+    - A08:2025
+    - A06:2025
+    cheatsheet:
+    - Webhook_Security_Cheat_Sheet
+    cwe:
+    - CWE-294
+    - CWE-345
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Webhook_Security_Cheat_Sheet.md
+- id: WEB-WEBHOOK-003
+  sheet: WEB
+  category: WEBHOOK
+  title: Review webhook signing secret storage, scope and rotation
+  objective: Find signing secrets that leak, are shared between integrations, or stay valid after revocation.
+  steps:
+  - List the webhook endpoints and their signing secrets.
+  - Make sure each webhook has its own random secret of at least 32 bytes in a secrets manager.
+  - Look in source code, images, logs and error responses for the secret and signature headers.
+  - Rotate a secret with an overlap window and make sure both secrets are accepted in it.
+  - Revoke a secret and send a delivery signed only with it.
+  example: grep -R "whsec_\|webhook_secret" repo/ logs/; send a delivery signed with the revoked secret
+  expected: Each webhook has its own secret in a secrets manager. Logs hold no secrets. A revoked secret fails at once and rotation does not drop events.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A04:2025
+    - A08:2025
+    cheatsheet:
+    - Webhook_Security_Cheat_Sheet
+    - Secrets_Management_Cheat_Sheet
+    asvs:
+    - V13.3.1
+    cwe:
+    - CWE-798
+    - CWE-522
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Webhook_Security_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+- id: WEB-WEBHOOK-004
+  sheet: WEB
+  category: WEBHOOK
+  title: 'Test webhook endpoint hardening: method, size, content type and rate'
+  objective: Find webhook endpoints that accept bad methods, large bodies or floods, or that fail with internal details.
+  steps:
+  - Send GET, PUT and DELETE requests to the endpoint and look for 405.
+  - Send an oversized body and a body with an unexpected Content-Type.
+  - Send a signed body that breaks the schema, and a payload with injection strings in the fields.
+  - Send a burst of requests and look for 429 with Retry-After.
+  - Look at error responses for stack traces.
+  - Make sure a failing event goes to a dead-letter queue and raises an alert.
+  example: curl -X GET https://target/webhooks/pay; seq 1 200 | xargs -P20 -I{} curl -s -o /dev/null -w "%{http_code}\n" -X POST https://target/webhooks/pay
+  expected: The endpoint accepts POST only, with limits on size and type, and validates the schema. It limits the rate, returns generic errors, and queues failed events.
+  severity: Medium
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A06:2025
+    - A10:2025
+    cheatsheet:
+    - Webhook_Security_Cheat_Sheet
+    asvs:
+    - V2.4.1
+    cwe:
+    - CWE-770
+    - CWE-20
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Webhook_Security_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json

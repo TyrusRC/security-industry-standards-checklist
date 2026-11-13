@@ -1,0 +1,2286 @@
+{
+ "nist_800_53": {
+  "AC-2": [
+   "WEB-IDM-002",
+   "WEB-IDM-003",
+   "WEB-AUTHN-001",
+   "WEB-SESS-021",
+   "K8S-RBAC-009",
+   "CLD-IAM-004",
+   "CLD-AST-004",
+   "CICD-IAM-002",
+   "CICD-IAM-004",
+   "CICD-IAM-006",
+   "CICD-IAM-007",
+   "NET-CRED-001",
+   "IOT-MGMT-003",
+   "NIST-AC-001",
+   "NIST-IA-001"
+  ],
+  "AC-2(1)": [
+   "WEB-IDM-003",
+   "CICD-IAM-003",
+   "CICD-IAM-004",
+   "NIST-AC-001"
+  ],
+  "AC-2(2)": [
+   "K8S-RBAC-009",
+   "CICD-IAM-006",
+   "NIST-AC-002",
+   "NIST-AC-011"
+  ],
+  "AC-2(3)": [
+   "CLD-IAM-004",
+   "CICD-IAM-002",
+   "WEB-SESS-021",
+   "NIST-AC-001",
+   "NIST-AC-002"
+  ],
+  "AC-2(4)": [
+   "CICD-LOG-002",
+   "K8S-RBAC-009",
+   "NIST-AC-003"
+  ],
+  "AC-2(5)": [
+   "WEB-SESS-019",
+   "DESK-AUTH-002",
+   "NET-ADM-005",
+   "PRIV-SEC-005",
+   "NIST-AC-002"
+  ],
+  "AC-2(6)": [
+   "WEB-AUTHZ-003",
+   "WEB-AUTHZ-008"
+  ],
+  "AC-2(7)": [
+   "K8S-RBAC-002",
+   "CICD-IAM-001",
+   "K8S-RBAC-009",
+   "WEB-AUTHZ-013",
+   "CLD-IAM-003",
+   "NIST-AC-004"
+  ],
+  "AC-2(9)": [
+   "CICD-IAM-007",
+   "DESK-AUTH-004",
+   "NIST-AC-001"
+  ],
+  "AC-2(11)": [
+   "WEB-AUTHZ-003",
+   "WEB-AUTHZ-008",
+   "CICD-CRED-009",
+   "NIST-AC-012"
+  ],
+  "AC-2(12)": [
+   "WEB-AUTHN-013",
+   "WEB-AUTHZ-008",
+   "WEB-LOG-014",
+   "CLD-LOG-004",
+   "IOT-MGMT-002",
+   "NIST-AC-008"
+  ],
+  "AC-3": [
+   "WEB-AUTHZ-001",
+   "WEB-AUTHZ-004",
+   "WEB-AUTHZ-005",
+   "WEB-AUTHZ-006",
+   "WEB-AUTHZ-007",
+   "WEB-AUTHZ-009",
+   "WEB-AUTHZ-012",
+   "WEB-AUTHZ-016",
+   "WEB-AUTHZ-017",
+   "WEB-IDOR-001",
+   "WEB-IDOR-002",
+   "WEB-IDOR-003",
+   "WEB-IDOR-004",
+   "API-BOLA-001",
+   "API-BOLA-002",
+   "API-BOLA-003",
+   "API-BOLA-004",
+   "API-BOLA-006",
+   "API-BFLA-001",
+   "API-BFLA-002",
+   "API-BFLA-003",
+   "API-BFLA-004",
+   "API-BOPLA-004",
+   "API-GQL-004",
+   "API-GQL-005",
+   "API-GRPC-004",
+   "API-WS-001",
+   "API-MSVC-002",
+   "WEB-BIZ-001",
+   "K8S-RBAC-001",
+   "CLD-IAM-006",
+   "PRIV-SEC-003"
+  ],
+  "AC-3(2)": [
+   "WEB-BIZ-008",
+   "CICD-FLOW-004",
+   "CICD-FLOW-007",
+   "LLM-AGENCY-004"
+  ],
+  "AC-3(4)": [
+   "NIST-AC-012"
+  ],
+  "AC-3(7)": [
+   "WEB-AUTHZ-004",
+   "WEB-IDM-001",
+   "API-BFLA-004",
+   "K8S-RBAC-001",
+   "K8S-RBAC-003",
+   "CLD-IAM-001"
+  ],
+  "AC-3(8)": [
+   "WEB-AUTHZ-010",
+   "WEB-SESS-021",
+   "WEB-OAUTH-018",
+   "WEB-JWT-012",
+   "API-AUTHN-007"
+  ],
+  "AC-3(10)": [
+   "NIST-AC-011"
+  ],
+  "AC-3(11)": [
+   "WEB-AUTHZ-002",
+   "API-BOPLA-002",
+   "LLM-RAG-003",
+   "LLM-RAG-014",
+   "NET-SEG-002",
+   "CLD-CFG-002",
+   "K8S-RBAC-004"
+  ],
+  "AC-3(12)": [
+   "WEB-OAUTH-005",
+   "WEB-OAUTH-020",
+   "WEB-OAUTH-007",
+   "MOB-PRIV-001",
+   "MOB-IPC-001",
+   "MOB-IPC-002",
+   "LLM-MCP-004"
+  ],
+  "AC-3(13)": [
+   "WEB-AUTHZ-003",
+   "WEB-OAUTH-007",
+   "API-BOLA-007",
+   "LLM-RAG-003"
+  ],
+  "AC-3(14)": [
+   "PRIV-DSR-001",
+   "PRIV-DSR-002",
+   "MOB-PRIV-014"
+  ],
+  "AC-4": [
+   "CLD-NET-001",
+   "CLD-NET-003",
+   "K8S-NET-001",
+   "K8S-NET-002",
+   "K8S-NET-003",
+   "K8S-NET-006",
+   "NET-SEG-001",
+   "NET-SEG-002",
+   "NET-SEG-003",
+   "NET-SEG-004",
+   "NET-SEG-008",
+   "WEB-ARCH-001",
+   "WEB-ARCH-004",
+   "API-SSRF-007",
+   "WEB-CLIENT-002",
+   "LLM-AGENCY-009"
+  ],
+  "AC-4(21)": [
+   "CLD-NET-001",
+   "NET-SEG-001",
+   "NET-SEG-003",
+   "K8S-NET-006",
+   "CICD-CFG-009"
+  ],
+  "AC-5": [
+   "CICD-FLOW-007",
+   "CICD-FLOW-002",
+   "CICD-FLOW-004",
+   "WEB-BIZ-008",
+   "CLD-IAM-005",
+   "CLD-IAC-001",
+   "NIST-AC-004"
+  ],
+  "AC-6": [
+   "WEB-AUTHZ-006",
+   "WEB-ARCH-003",
+   "CLD-IAM-001",
+   "CLD-SRV-001",
+   "K8S-RBAC-002",
+   "K8S-RBAC-003",
+   "K8S-RBAC-008",
+   "K8S-WRK-001",
+   "K8S-WRK-002",
+   "K8S-WRK-003",
+   "K8S-WRK-004",
+   "K8S-LAT-001",
+   "K8S-LAT-002",
+   "K8S-DKR-002",
+   "CICD-IAM-001",
+   "CICD-PBAC-002",
+   "CICD-PBAC-004",
+   "LLM-MCP-004",
+   "LLM-AGENCY-001",
+   "LLM-AGENCY-003",
+   "LLM-AGENT-004",
+   "DESK-AUTHZ-002",
+   "IOT-COMP-004",
+   "NIST-AC-005"
+  ],
+  "AC-6(1)": [
+   "K8S-RBAC-005",
+   "NET-ADM-006",
+   "WEB-AUTHZ-013",
+   "CICD-IAM-001",
+   "NIST-AC-004"
+  ],
+  "AC-6(2)": [
+   "CLD-IAM-003",
+   "K8S-RBAC-009",
+   "NIST-AC-005"
+  ],
+  "AC-6(3)": [
+   "NET-ADM-001",
+   "NET-ADM-006",
+   "K8S-EXP-001",
+   "K8S-EXP-003",
+   "WEB-CONF-007",
+   "API-CONF-006"
+  ],
+  "AC-6(5)": [
+   "K8S-RBAC-002",
+   "CLD-IAM-003",
+   "CICD-IAM-001",
+   "WEB-CONF-007",
+   "NET-CRED-001",
+   "NIST-AC-004"
+  ],
+  "AC-6(8)": [
+   "K8S-WRK-001",
+   "K8S-WRK-003",
+   "K8S-WRK-004",
+   "K8S-DKR-002",
+   "CICD-PBAC-004",
+   "CICD-CFG-005",
+   "DESK-AUTHZ-002",
+   "NIST-AC-005"
+  ],
+  "AC-6(9)": [
+   "K8S-LOG-001",
+   "K8S-LOG-002",
+   "K8S-LOG-005",
+   "CICD-LOG-002",
+   "WEB-LOG-009",
+   "NET-LOG-005",
+   "DESK-LOG-001",
+   "LLM-AGENCY-014",
+   "NIST-AC-003",
+   "NIST-AC-011"
+  ],
+  "AC-6(10)": [
+   "API-BFLA-001",
+   "API-BFLA-003",
+   "WEB-AUTHZ-004",
+   "WEB-AUTHZ-006",
+   "WEB-AUTHZ-013",
+   "API-GQL-005",
+   "K8S-RBAC-005",
+   "DESK-AUTHZ-004",
+   "NIST-AC-005"
+  ],
+  "AC-7": [
+   "WEB-AUTHN-002",
+   "WEB-AUTHN-003",
+   "WEB-AUTHN-005",
+   "API-AUTHN-003",
+   "NET-CRED-003",
+   "IOT-PWD-003",
+   "MOB-AUTH-006",
+   "WEB-MFA-003",
+   "API-GQL-001",
+   "NIST-AC-006"
+  ],
+  "AC-7(4)": [
+   "WEB-AUTHN-005",
+   "WEB-MFA-014",
+   "NIST-AC-006"
+  ],
+  "AC-8": [
+   "NIST-AC-007"
+  ],
+  "AC-9": [
+   "WEB-AUTHN-013",
+   "WEB-AUTHN-015",
+   "NIST-AC-008"
+  ],
+  "AC-10": [
+   "WEB-SESS-028",
+   "WEB-SESS-002",
+   "API-WS-003",
+   "PRIV-SEC-006"
+  ],
+  "AC-11": [
+   "DESK-AUTH-002",
+   "MOB-CRYPTO-016",
+   "NIST-AC-009"
+  ],
+  "AC-11(1)": [
+   "NIST-AC-009"
+  ],
+  "AC-12": [
+   "WEB-SESS-001",
+   "WEB-SESS-016",
+   "WEB-SESS-017",
+   "WEB-SESS-019",
+   "WEB-SESS-020",
+   "MOB-AUTH-011",
+   "DESK-AUTH-002",
+   "NET-ADM-005",
+   "API-WS-004",
+   "PRIV-SEC-005",
+   "NIST-AC-009",
+   "NIST-AC-010"
+  ],
+  "AC-12(1)": [
+   "WEB-SESS-016",
+   "WEB-SESS-017",
+   "WEB-SESS-018",
+   "MOB-AUTH-011",
+   "NIST-AC-010"
+  ],
+  "AC-12(2)": [
+   "NIST-AC-010"
+  ],
+  "AC-12(3)": [
+   "NIST-AC-010"
+  ],
+  "AC-14": [
+   "WEB-AUTHZ-005",
+   "API-AUTHN-001",
+   "K8S-AUTH-002",
+   "WEB-AUTHN-008"
+  ],
+  "AC-17": [
+   "K8S-EXP-001",
+   "NET-ADM-001",
+   "NET-ADM-002",
+   "NET-ADM-003",
+   "NET-ADM-004",
+   "NET-SVC-002",
+   "K8S-AUTH-002",
+   "CICD-CFG-002"
+  ],
+  "AC-17(1)": [
+   "NET-ADM-001",
+   "NET-ADM-004",
+   "NET-LOG-005"
+  ],
+  "AC-17(2)": [
+   "NET-ADM-002",
+   "NET-ADM-004",
+   "NET-ADM-003"
+  ],
+  "AC-17(4)": [
+   "NET-ADM-001",
+   "NET-ADM-006",
+   "K8S-EXP-001"
+  ],
+  "AC-17(9)": [
+   "NET-ADM-005",
+   "WEB-SESS-023",
+   "CICD-CFG-004"
+  ],
+  "AC-17(10)": [
+   "IOT-ECO-005",
+   "WEB-HTTP-003",
+   "LLM-AGENT-020",
+   "API-WS-004"
+  ],
+  "AC-22": [
+   "WEB-INFO-001",
+   "WEB-INFO-005",
+   "WEB-CONF-003",
+   "WEB-CONF-004",
+   "WEB-CONF-005",
+   "WEB-CONF-012",
+   "WEB-DATA-007",
+   "CLD-CFG-001"
+  ],
+  "AC-23": [
+   "API-RES-002",
+   "API-BOLA-004",
+   "WEB-BIZ-004",
+   "WEB-BIZ-009",
+   "API-GQL-007",
+   "LLM-DOS-009"
+  ],
+  "AC-24": [
+   "WEB-AUTHZ-009",
+   "WEB-AUTHZ-017",
+   "WEB-AUTHZ-011",
+   "API-BOLA-007",
+   "API-MSVC-001"
+  ],
+  "AC-24(1)": [
+   "API-MSVC-003",
+   "WEB-AUTHZ-011",
+   "API-MSVC-004",
+   "WEB-OAUTH-007"
+  ],
+  "AU-2": [
+   "WEB-LOG-001",
+   "WEB-LOG-007",
+   "WEB-LOG-008",
+   "WEB-LOG-009",
+   "WEB-LOG-010",
+   "API-REST-007",
+   "API-MSVC-006",
+   "CLD-LOG-001",
+   "K8S-LOG-001",
+   "K8S-LOG-002",
+   "CICD-LOG-002",
+   "NET-LOG-001",
+   "NET-LOG-005",
+   "DESK-LOG-001",
+   "API-WS-004",
+   "LLM-AGENCY-014",
+   "WEB-AUTHN-025",
+   "NIST-AC-003",
+   "NIST-AU-001",
+   "NIST-SI-002"
+  ],
+  "AU-3": [
+   "WEB-LOG-002",
+   "WEB-LOG-005",
+   "API-REST-007",
+   "CICD-LOG-005",
+   "DESK-LOG-001",
+   "NET-LOG-004",
+   "CLD-LOG-005",
+   "K8S-LOG-002"
+  ],
+  "AU-3(1)": [
+   "WEB-LOG-002",
+   "LLM-AGENT-026",
+   "K8S-LOG-002"
+  ],
+  "AU-3(3)": [
+   "WEB-LOG-006",
+   "PRIV-SEC-001",
+   "DESK-DATA-004",
+   "IOT-DATA-005",
+   "LLM-DATA-005",
+   "K8S-SEC-006",
+   "CICD-CRED-004",
+   "MOB-STORAGE-006"
+  ],
+  "AU-4": [
+   "K8S-LOG-004",
+   "CICD-LOG-005",
+   "NIST-AU-002"
+  ],
+  "AU-5": [
+   "K8S-LOG-004",
+   "WEB-LOG-010",
+   "NIST-AU-003"
+  ],
+  "AU-5(1)": [
+   "NIST-AU-002"
+  ],
+  "AU-5(2)": [
+   "NIST-AU-003"
+  ],
+  "AU-6": [
+   "WEB-LOG-014",
+   "CLD-LOG-004",
+   "K8S-LOG-005",
+   "CICD-LOG-004",
+   "NET-LOG-001",
+   "NET-DOS-006",
+   "DESK-LOG-004",
+   "IOT-MGMT-002",
+   "API-FLOW-007",
+   "WEB-AUTHZ-018",
+   "WEB-AUTHN-025",
+   "LLM-OUTPUT-011",
+   "NIST-AU-004"
+  ],
+  "AU-7": [
+   "WEB-LOG-005",
+   "NIST-AU-004"
+  ],
+  "AU-7(1)": [
+   "WEB-LOG-005",
+   "NIST-AU-004"
+  ],
+  "AU-8": [
+   "WEB-LOG-003",
+   "CLD-LOG-005",
+   "NET-LOG-003",
+   "NET-SVC-005"
+  ],
+  "AU-9": [
+   "WEB-LOG-012",
+   "WEB-LOG-013",
+   "K8S-LOG-003",
+   "CLD-LOG-002",
+   "CICD-LOG-007",
+   "DESK-LOG-002",
+   "NET-LOG-002",
+   "LLM-AGENT-026"
+  ],
+  "AU-9(2)": [
+   "WEB-LOG-013",
+   "K8S-LOG-003",
+   "NET-LOG-002",
+   "CICD-LOG-003",
+   "CLD-LOG-002"
+  ],
+  "AU-9(3)": [
+   "CICD-LOG-007",
+   "LLM-AGENT-026"
+  ],
+  "AU-9(4)": [
+   "WEB-LOG-012",
+   "DESK-LOG-002",
+   "CLD-LOG-002",
+   "NIST-AU-001"
+  ],
+  "AU-9(6)": [
+   "WEB-LOG-012",
+   "DESK-LOG-002"
+  ],
+  "AU-10": [
+   "WEB-HTTP-003",
+   "MOB-AUTH-012",
+   "LLM-AGENT-026",
+   "CICD-LOG-007"
+  ],
+  "AU-11": [
+   "CICD-ART-009",
+   "CLD-LOG-002",
+   "CICD-LOG-005",
+   "NET-LOG-003",
+   "NIST-AU-002"
+  ],
+  "AU-12": [
+   "WEB-LOG-001",
+   "WEB-LOG-007",
+   "WEB-LOG-008",
+   "WEB-LOG-009",
+   "WEB-LOG-010",
+   "CLD-LOG-001",
+   "K8S-LOG-001",
+   "CICD-LOG-002",
+   "API-REST-007",
+   "NET-LOG-005",
+   "DESK-LOG-001",
+   "API-MSVC-006",
+   "NIST-AC-003",
+   "NIST-AU-001",
+   "NIST-AU-003",
+   "NIST-SI-003"
+  ],
+  "AU-12(1)": [
+   "CLD-LOG-001",
+   "CICD-LOG-003",
+   "K8S-LOG-003",
+   "API-MSVC-006",
+   "WEB-LOG-001",
+   "NET-LOG-002",
+   "NET-LOG-003"
+  ],
+  "AU-12(2)": [
+   "WEB-LOG-005",
+   "CICD-LOG-005"
+  ],
+  "AU-12(3)": [
+   "NIST-AU-001"
+  ],
+  "IA-2": [
+   "WEB-AUTHN-007",
+   "WEB-AUTHN-008",
+   "WEB-AUTHN-009",
+   "API-AUTHN-001",
+   "API-AUTHN-002",
+   "CLD-IAM-003",
+   "K8S-AUTH-001",
+   "CICD-IAM-003",
+   "NET-ADM-001",
+   "MOB-AUTH-007",
+   "DESK-AUTH-001"
+  ],
+  "IA-2(1)": [
+   "WEB-MFA-001",
+   "NET-ADM-001",
+   "CLD-IAM-003",
+   "CICD-IAM-003",
+   "CICD-IAM-008",
+   "WEB-SESS-026"
+  ],
+  "IA-2(2)": [
+   "WEB-MFA-001",
+   "CICD-IAM-003",
+   "DESK-AUTH-003",
+   "CLD-IAM-003"
+  ],
+  "IA-2(5)": [
+   "CICD-IAM-007",
+   "DESK-AUTH-004"
+  ],
+  "IA-2(6)": [
+   "WEB-MFA-008",
+   "WEB-MFA-009",
+   "WEB-MFA-010"
+  ],
+  "IA-2(8)": [
+   "WEB-MFA-004",
+   "WEB-MFA-005",
+   "WEB-AUTHN-018",
+   "WEB-AUTHN-024",
+   "WEB-OAUTH-010"
+  ],
+  "IA-2(10)": [
+   "WEB-SESS-003",
+   "WEB-SESS-018",
+   "WEB-OAUTH-027",
+   "WEB-OAUTH-029",
+   "CICD-IAM-003",
+   "K8S-AUTH-001"
+  ],
+  "IA-3": [
+   "IOT-PWD-005",
+   "WEB-TLS-009",
+   "WEB-TLS-011",
+   "API-GRPC-001",
+   "API-MSVC-004",
+   "WEB-ARCH-003",
+   "K8S-NET-005",
+   "NET-DISC-003",
+   "MOB-RESIL-004",
+   "MOB-RESIL-007",
+   "LLM-AGENT-007"
+  ],
+  "IA-3(1)": [
+   "WEB-TLS-009",
+   "API-GRPC-001",
+   "K8S-NET-005",
+   "IOT-PWD-005",
+   "WEB-TLS-011",
+   "CLD-NET-005"
+  ],
+  "IA-4": [
+   "WEB-IDM-005",
+   "WEB-IDM-006",
+   "WEB-IDM-003",
+   "WEB-OAUTH-008",
+   "NIST-AC-001",
+   "NIST-IA-002"
+  ],
+  "IA-4(1)": [
+   "WEB-IDM-006",
+   "NIST-IA-002"
+  ],
+  "IA-5": [
+   "WEB-PWD-001",
+   "WEB-PWD-002",
+   "WEB-PWD-005",
+   "WEB-PWD-006",
+   "WEB-PWD-012",
+   "WEB-PWD-016",
+   "WEB-PWD-018",
+   "WEB-PWD-020",
+   "WEB-PWD-021",
+   "WEB-PWD-022",
+   "WEB-AUTHN-001",
+   "API-AUTHN-004",
+   "API-AUTHN-005",
+   "API-AUTHN-007",
+   "API-AUTHN-010",
+   "NET-CRED-001",
+   "NET-CRED-002",
+   "NET-CRED-005",
+   "IOT-PWD-001",
+   "IOT-PWD-003",
+   "IOT-PWD-004",
+   "CICD-CRED-008",
+   "K8S-SEC-005",
+   "DESK-AUTH-005",
+   "WEB-MFA-006",
+   "WEB-MFA-007",
+   "CLD-SEC-003",
+   "WEB-SECRET-002",
+   "NIST-IA-001"
+  ],
+  "IA-5(1)": [
+   "WEB-PWD-001",
+   "WEB-PWD-002",
+   "WEB-PWD-003",
+   "WEB-PWD-004",
+   "WEB-PWD-005",
+   "WEB-PWD-006",
+   "WEB-PWD-007",
+   "WEB-PWD-008",
+   "WEB-PWD-009",
+   "WEB-PWD-010",
+   "WEB-PWD-011",
+   "WEB-PWD-012",
+   "WEB-PWD-013",
+   "WEB-CRYPTO-013",
+   "NET-CRED-002",
+   "IOT-PWD-003",
+   "IOT-PWD-004",
+   "MOB-AUTH-006",
+   "NIST-AC-006"
+  ],
+  "IA-5(2)": [
+   "WEB-TLS-009",
+   "WEB-AUTHN-023",
+   "WEB-AUTHN-024",
+   "NET-ADM-003",
+   "MOB-AUTH-001",
+   "DESK-CRYPTO-003",
+   "API-GRPC-001",
+   "K8S-AUTH-004",
+   "WEB-TLS-003",
+   "IOT-PWD-005"
+  ],
+  "IA-5(6)": [
+   "WEB-PWD-012",
+   "WEB-SECRET-001",
+   "WEB-MFA-007",
+   "WEB-CRYPTO-018",
+   "WEB-SESS-029",
+   "WEB-AUTHN-011",
+   "API-AUTHN-010",
+   "MOB-CRYPTO-006",
+   "MOB-STORAGE-001",
+   "DESK-AUTH-005",
+   "DESK-CRYPTO-003",
+   "K8S-SEC-002",
+   "K8S-SEC-003",
+   "CLD-SEC-004",
+   "WEB-JWT-011",
+   "WEB-OAUTH-032",
+   "IOT-PWD-004",
+   "CICD-CRED-011",
+   "NIST-IA-001"
+  ],
+  "IA-5(7)": [
+   "WEB-CRYPTO-018",
+   "CICD-CRED-001",
+   "CICD-CRED-002",
+   "CICD-CRED-003",
+   "CICD-CRED-005",
+   "CICD-CRED-006",
+   "MOB-CRYPTO-005",
+   "MOB-STORAGE-009",
+   "DESK-DATA-001",
+   "IOT-PWD-002",
+   "K8S-SEC-001",
+   "K8S-SEC-007",
+   "CLD-SEC-002",
+   "CLD-SEC-005",
+   "NET-CRED-005",
+   "LLM-SYSPROMPT-003"
+  ],
+  "IA-5(13)": [
+   "WEB-SESS-020",
+   "WEB-OAUTH-017",
+   "WEB-JWT-005",
+   "WEB-AUTHN-011",
+   "DESK-AUTH-005"
+  ],
+  "IA-5(14)": [
+   "MOB-NETWORK-011",
+   "MOB-NETWORK-009",
+   "WEB-TLS-010",
+   "DESK-COMM-003",
+   "NET-TLS-005"
+  ],
+  "IA-5(18)": [
+   "WEB-PWD-009",
+   "MOB-AUTH-009"
+  ],
+  "IA-6": [
+   "WEB-PWD-009",
+   "WEB-IDM-004",
+   "WEB-PWD-017",
+   "API-AUTHN-008",
+   "MOB-STORAGE-008"
+  ],
+  "IA-7": [
+   "WEB-SECRET-003",
+   "CICD-ART-008"
+  ],
+  "IA-8": [
+   "WEB-AUTHN-007",
+   "WEB-AUTHN-008",
+   "API-AUTHN-001",
+   "API-AUTHN-002",
+   "WEB-OAUTH-008",
+   "WEB-OAUTH-025",
+   "MOB-AUTH-007"
+  ],
+  "IA-8(2)": [
+   "WEB-AUTHN-016",
+   "WEB-AUTHN-017",
+   "WEB-AUTHN-019",
+   "WEB-AUTHN-020",
+   "WEB-OAUTH-009"
+  ],
+  "IA-9": [
+   "API-MSVC-004",
+   "WEB-ARCH-003",
+   "WEB-TLS-011",
+   "API-CONS-003",
+   "WEB-TLS-010",
+   "CLD-IAM-002",
+   "K8S-AUTH-003",
+   "K8S-NET-005",
+   "API-CONS-005"
+  ],
+  "IA-10": [
+   "WEB-AUTHZ-008",
+   "WEB-AUTHN-019",
+   "WEB-SESS-026",
+   "WEB-MFA-017",
+   "MOB-AUTH-010"
+  ],
+  "IA-11": [
+   "WEB-SESS-025",
+   "WEB-SESS-026",
+   "WEB-SESS-001",
+   "WEB-PWD-004",
+   "API-AUTHN-005",
+   "MOB-AUTH-010",
+   "WEB-MFA-016"
+  ],
+  "IA-12": [
+   "WEB-IDM-002",
+   "WEB-MFA-014",
+   "NIST-IA-001"
+  ],
+  "IA-13": [
+   "WEB-OAUTH-008",
+   "WEB-OAUTH-019",
+   "WEB-OAUTH-026",
+   "WEB-JWT-008",
+   "CICD-IAM-003",
+   "K8S-AUTH-001",
+   "WEB-AUTHN-016"
+  ],
+  "IA-13(1)": [
+   "WEB-JWT-003",
+   "WEB-JWT-004",
+   "WEB-JWT-009",
+   "WEB-AUTHN-023",
+   "NIST-SC-001"
+  ],
+  "IA-13(2)": [
+   "WEB-JWT-001",
+   "WEB-JWT-002",
+   "WEB-JWT-013",
+   "WEB-JWT-007",
+   "WEB-JWT-008",
+   "WEB-AUTHN-017",
+   "WEB-AUTHN-020",
+   "WEB-OAUTH-006",
+   "WEB-OAUTH-025",
+   "WEB-SESS-004"
+  ],
+  "IA-13(3)": [
+   "WEB-JWT-005",
+   "WEB-JWT-006",
+   "WEB-JWT-007",
+   "WEB-JWT-012",
+   "WEB-OAUTH-012",
+   "WEB-OAUTH-014",
+   "WEB-OAUTH-017",
+   "WEB-OAUTH-018",
+   "WEB-AUTHN-018",
+   "API-AUTHN-007",
+   "LLM-AGENT-009"
+  ],
+  "SC-2": [
+   "WEB-CONF-007",
+   "WEB-AUTHZ-013",
+   "API-CONF-006",
+   "K8S-EXP-005",
+   "NET-ADM-006",
+   "CICD-CFG-002"
+  ],
+  "SC-3": [
+   "WEB-SECRET-003",
+   "K8S-WRK-010"
+  ],
+  "SC-4": [
+   "WEB-DATA-003",
+   "CLD-SRV-004",
+   "CICD-PBAC-003",
+   "LLM-DATA-003",
+   "LLM-RAG-004",
+   "WEB-AUTHZ-012",
+   "K8S-WRK-010",
+   "LLM-SUPPLY-014"
+  ],
+  "SC-5": [
+   "API-RES-001",
+   "API-RES-002",
+   "API-RES-003",
+   "API-RES-004",
+   "API-RES-005",
+   "API-RES-007",
+   "API-RES-008",
+   "API-RES-009",
+   "WEB-ARCH-002",
+   "WEB-ARCH-010",
+   "WEB-BIZ-004",
+   "WEB-BIZ-009",
+   "WEB-FILE-002",
+   "WEB-FILE-004",
+   "WEB-FILE-005",
+   "WEB-FILE-007",
+   "LLM-DOS-001",
+   "LLM-DOS-002",
+   "LLM-DOS-003",
+   "LLM-DOS-004",
+   "LLM-DOS-008",
+   "LLM-DOS-011",
+   "NET-DOS-001",
+   "NET-DOS-002",
+   "NET-DOS-003",
+   "NET-DOS-004",
+   "NET-DOS-005",
+   "NET-DOS-006",
+   "CLD-QTA-002",
+   "CLD-NET-006",
+   "API-WS-003",
+   "API-GRPC-006",
+   "API-GQL-007",
+   "WEB-HTTP-007",
+   "API-SOAP-002",
+   "CLD-SRV-006"
+  ],
+  "SC-5(1)": [
+   "K8S-NET-003",
+   "NET-SEG-004",
+   "NET-SEG-006",
+   "CLD-NET-003"
+  ],
+  "SC-5(2)": [
+   "NET-DOS-001",
+   "NET-DOS-003",
+   "NET-DOS-005",
+   "CLD-NET-006",
+   "CLD-QTA-003"
+  ],
+  "SC-5(3)": [
+   "NET-DOS-006",
+   "K8S-LOG-007",
+   "CLD-LOG-004"
+  ],
+  "SC-6": [
+   "CLD-QTA-001",
+   "CLD-QTA-002",
+   "CLD-QTA-003",
+   "CLD-QTA-004",
+   "K8S-WRK-008",
+   "K8S-WRK-009",
+   "K8S-DKR-004",
+   "API-RES-009",
+   "CLD-SRV-006",
+   "WEB-ARCH-002",
+   "LLM-DOS-002",
+   "LLM-DOS-003",
+   "LLM-DOS-008"
+  ],
+  "SC-7": [
+   "NET-SEG-001",
+   "NET-SEG-002",
+   "NET-SEG-003",
+   "NET-SEG-004",
+   "NET-SEG-005",
+   "NET-SEG-006",
+   "NET-SEG-007",
+   "NET-SEG-008",
+   "NET-SEG-010",
+   "NET-REV-002",
+   "NET-REV-003",
+   "CLD-NET-001",
+   "CLD-NET-002",
+   "CLD-NET-003",
+   "CLD-NET-004",
+   "CLD-NET-005",
+   "CLD-NET-006",
+   "CLD-CFG-002",
+   "CLD-CFG-003",
+   "K8S-NET-001",
+   "K8S-NET-002",
+   "K8S-NET-003",
+   "K8S-NET-004",
+   "K8S-NET-006",
+   "K8S-EXP-001",
+   "K8S-EXP-003",
+   "K8S-EXP-006",
+   "NET-DISC-004",
+   "NET-DISC-007",
+   "NET-DISC-008",
+   "NET-DISC-009",
+   "API-MSVC-001",
+   "WEB-ARCH-001",
+   "WEB-ARCH-004",
+   "API-SSRF-007",
+   "CLD-SRV-003",
+   "CICD-PBAC-005",
+   "CICD-PBAC-006",
+   "K8S-DKR-003",
+   "NET-WIFI-004",
+   "NET-SVC-007",
+   "IOT-NET-001",
+   "CICD-CFG-002"
+  ],
+  "SC-7(4)": [
+   "NET-REV-001",
+   "NET-ADM-004",
+   "API-CONS-003"
+  ],
+  "SC-7(5)": [
+   "NET-REV-002",
+   "NET-REV-003",
+   "K8S-NET-002",
+   "K8S-NET-003",
+   "NET-SEG-004",
+   "NET-SEG-010",
+   "CLD-CFG-003",
+   "CLD-NET-003",
+   "WEB-ARCH-004"
+  ],
+  "SC-7(8)": [
+   "NET-ADM-001",
+   "CICD-DEP-001"
+  ],
+  "SC-7(9)": [
+   "NET-SEG-004",
+   "NET-SEG-006",
+   "K8S-NET-003",
+   "CLD-NET-003",
+   "CICD-PBAC-005",
+   "WEB-ARCH-004",
+   "API-SSRF-007"
+  ],
+  "SC-7(10)": [
+   "NET-SEG-004",
+   "K8S-NET-003",
+   "CLD-NET-003",
+   "LLM-AGENCY-009",
+   "LLM-AGENCY-010",
+   "LLM-AGENT-033",
+   "LLM-DATA-013",
+   "WEB-DATA-004",
+   "CICD-PBAC-005"
+  ],
+  "SC-7(11)": [
+   "NET-SEG-002",
+   "NET-SEG-003",
+   "K8S-NET-002",
+   "K8S-NET-006",
+   "CLD-NET-002",
+   "CLD-CFG-003",
+   "NET-DISC-009",
+   "NET-REV-002"
+  ],
+  "SC-7(12)": [
+   "NET-REV-003",
+   "NET-REV-004",
+   "K8S-NET-001",
+   "K8S-WRK-005",
+   "K8S-DKR-003"
+  ],
+  "SC-7(18)": [
+   "WEB-ERR-003",
+   "WEB-ERR-004",
+   "K8S-POL-003",
+   "LLM-RAG-015",
+   "NIST-SC-002"
+  ],
+  "SC-7(21)": [
+   "CLD-NET-001",
+   "NET-SEG-001",
+   "NET-SEG-003",
+   "K8S-NET-002",
+   "K8S-WRK-010",
+   "CICD-CFG-009",
+   "CICD-PBAC-003",
+   "CICD-PBAC-006",
+   "NET-WIFI-004",
+   "LLM-SUPPLY-014"
+  ],
+  "SC-8": [
+   "WEB-TLS-001",
+   "WEB-TLS-002",
+   "WEB-TLS-005",
+   "WEB-TLS-006",
+   "WEB-TLS-011",
+   "WEB-HDR-001",
+   "WEB-HTTP-002",
+   "WEB-DATA-002",
+   "WEB-SESS-013",
+   "WEB-CLIENT-011",
+   "API-CONF-001",
+   "API-GRPC-001",
+   "API-CONS-003",
+   "API-SOAP-004",
+   "MOB-NETWORK-001",
+   "MOB-NETWORK-002",
+   "MOB-NETWORK-004",
+   "MOB-NETWORK-007",
+   "DESK-COMM-001",
+   "DESK-COMM-002",
+   "IOT-DATA-001",
+   "IOT-DATA-002",
+   "IOT-UPD-002",
+   "NET-TLS-001",
+   "NET-REV-005",
+   "NET-DISC-008",
+   "K8S-NET-005",
+   "CLD-NET-005",
+   "PRIV-SEC-004",
+   "NIST-SC-003"
+  ],
+  "SC-8(1)": [
+   "WEB-TLS-001",
+   "WEB-TLS-002",
+   "WEB-TLS-005",
+   "WEB-TLS-006",
+   "WEB-TLS-011",
+   "API-CONF-001",
+   "API-GRPC-001",
+   "DESK-COMM-002",
+   "MOB-NETWORK-004",
+   "NET-TLS-001",
+   "NET-TLS-002",
+   "IOT-DATA-002",
+   "K8S-NET-005",
+   "CLD-NET-005"
+  ],
+  "SC-8(2)": [
+   "WEB-DATA-002",
+   "API-SOAP-004",
+   "WEB-HTTP-003",
+   "MOB-RESIL-018",
+   "WEB-CRYPTO-010"
+  ],
+  "SC-10": [
+   "NET-ADM-005",
+   "WEB-SESS-017",
+   "WEB-SESS-019",
+   "WEB-SESS-020",
+   "API-WS-003",
+   "NET-DOS-002",
+   "NET-DOS-003"
+  ],
+  "SC-12": [
+   "WEB-CRYPTO-001",
+   "WEB-CRYPTO-004",
+   "WEB-CRYPTO-014",
+   "WEB-CRYPTO-015",
+   "WEB-CRYPTO-016",
+   "WEB-CRYPTO-018",
+   "WEB-SECRET-001",
+   "WEB-SECRET-002",
+   "WEB-SECRET-003",
+   "WEB-TLS-004",
+   "WEB-JWT-009",
+   "MOB-CRYPTO-004",
+   "MOB-CRYPTO-005",
+   "MOB-CRYPTO-006",
+   "MOB-CRYPTO-014",
+   "MOB-CRYPTO-015",
+   "DESK-CRYPTO-002",
+   "DESK-CRYPTO-003",
+   "CLD-SEC-003",
+   "CLD-SEC-004",
+   "K8S-SEC-003",
+   "K8S-SEC-005",
+   "CICD-ART-008",
+   "CICD-CRED-008",
+   "IOT-DATA-003",
+   "IOT-DATA-004",
+   "NIST-SC-001"
+  ],
+  "SC-12(1)": [
+   "WEB-CRYPTO-001",
+   "CLD-SEC-004",
+   "NIST-SC-001"
+  ],
+  "SC-13": [
+   "WEB-CRYPTO-002",
+   "WEB-CRYPTO-003",
+   "WEB-CRYPTO-004",
+   "WEB-CRYPTO-005",
+   "WEB-CRYPTO-007",
+   "WEB-CRYPTO-008",
+   "WEB-CRYPTO-009",
+   "WEB-CRYPTO-010",
+   "WEB-CRYPTO-012",
+   "WEB-CRYPTO-013",
+   "WEB-CRYPTO-015",
+   "WEB-CRYPTO-016",
+   "WEB-JWT-002",
+   "MOB-CRYPTO-001",
+   "MOB-CRYPTO-002",
+   "MOB-CRYPTO-009",
+   "MOB-CRYPTO-010",
+   "DESK-CRYPTO-001",
+   "IOT-DATA-004"
+  ],
+  "SC-16": [
+   "WEB-HTTP-003",
+   "API-SOAP-004",
+   "API-MSVC-003",
+   "LLM-AGENT-020"
+  ],
+  "SC-17": [
+   "WEB-TLS-003",
+   "WEB-TLS-004",
+   "WEB-TLS-007",
+   "WEB-TLS-009",
+   "WEB-TLS-010",
+   "NET-TLS-005",
+   "NET-DNS-003",
+   "MOB-NETWORK-009",
+   "DESK-COMM-003"
+  ],
+  "SC-18": [
+   "WEB-CLIENT-007",
+   "WEB-CLIENT-012",
+   "WEB-CLIENT-018",
+   "WEB-CLIENT-019",
+   "WEB-WASM-001",
+   "MOB-CODE-009",
+   "LLM-AGENT-012"
+  ],
+  "SC-20": [
+   "NET-DNS-001",
+   "NET-DNS-003",
+   "NET-DNS-005"
+  ],
+  "SC-21": [
+   "NET-DNS-004",
+   "NET-DNS-005"
+  ],
+  "SC-22": [
+   "NET-DNS-001",
+   "NET-DNS-002",
+   "NET-DNS-004",
+   "NET-DNS-005",
+   "NET-DNS-006"
+  ],
+  "SC-23": [
+   "WEB-SESS-004",
+   "WEB-SESS-005",
+   "WEB-SESS-006",
+   "WEB-SESS-007",
+   "WEB-SESS-008",
+   "WEB-SESS-009",
+   "WEB-SESS-010",
+   "WEB-SESS-011",
+   "WEB-SESS-012",
+   "WEB-SESS-013",
+   "WEB-SESS-015",
+   "WEB-SESS-017",
+   "WEB-SESS-030",
+   "WEB-CLIENT-009",
+   "WEB-CLIENT-016",
+   "WEB-OAUTH-002",
+   "WEB-HTTP-009",
+   "API-WS-004"
+  ],
+  "SC-23(1)": [
+   "WEB-SESS-016",
+   "WEB-SESS-017",
+   "WEB-SESS-018",
+   "WEB-JWT-012",
+   "WEB-OAUTH-027",
+   "WEB-OAUTH-029",
+   "MOB-AUTH-011",
+   "DESK-AUTH-002"
+  ],
+  "SC-23(3)": [
+   "WEB-SESS-005",
+   "WEB-SESS-006",
+   "WEB-SESS-007",
+   "WEB-SESS-011",
+   "WEB-SESS-012",
+   "WEB-SESS-015",
+   "WEB-CRYPTO-014"
+  ],
+  "SC-23(5)": [
+   "MOB-NETWORK-013",
+   "MOB-NETWORK-011",
+   "DESK-COMM-004",
+   "NET-DNS-003",
+   "WEB-TLS-003"
+  ],
+  "SC-24": [
+   "WEB-ERR-003",
+   "WEB-ERR-004",
+   "WEB-ERR-005",
+   "K8S-POL-003",
+   "LLM-RAG-015",
+   "IOT-MGMT-004",
+   "API-CONS-004",
+   "NIST-SC-002"
+  ],
+  "SC-28": [
+   "WEB-DATA-013",
+   "WEB-DATA-003",
+   "WEB-DATA-012",
+   "CLD-CFG-004",
+   "CLD-SEC-004",
+   "K8S-SEC-003",
+   "MOB-STORAGE-001",
+   "MOB-STORAGE-002",
+   "MOB-STORAGE-003",
+   "MOB-STORAGE-005",
+   "DESK-DATA-002",
+   "IOT-DATA-003",
+   "NET-BKP-002",
+   "LLM-DATA-012",
+   "PRIV-SEC-002"
+  ],
+  "SC-28(1)": [
+   "WEB-DATA-013",
+   "CLD-CFG-004",
+   "K8S-SEC-003",
+   "CLD-SEC-004",
+   "MOB-STORAGE-003",
+   "DESK-DATA-002",
+   "IOT-DATA-003",
+   "NET-BKP-002",
+   "PRIV-SEC-002"
+  ],
+  "SC-28(3)": [
+   "CLD-SEC-004",
+   "MOB-CRYPTO-006",
+   "DESK-CRYPTO-003",
+   "WEB-SECRET-001",
+   "WEB-SECRET-003",
+   "K8S-SEC-004",
+   "MOB-CRYPTO-015",
+   "NIST-SC-001"
+  ],
+  "SC-39": [
+   "K8S-WRK-010",
+   "CICD-PBAC-003",
+   "LLM-SUPPLY-014",
+   "CLD-SRV-004",
+   "LLM-AGENT-012",
+   "LLM-MCP-006",
+   "K8S-WRK-005"
+  ],
+  "SC-43": [
+   "WEB-DEP-007",
+   "CICD-TPS-003",
+   "CICD-TPS-004",
+   "LLM-MCP-007",
+   "IOT-DEF-005"
+  ],
+  "SC-45": [
+   "WEB-LOG-003",
+   "WEB-MFA-013",
+   "NET-LOG-003",
+   "NET-SVC-005",
+   "CLD-LOG-005"
+  ],
+  "SI-2": [
+   "WEB-DEP-001",
+   "WEB-DEP-003",
+   "API-INV-008",
+   "MOB-CODE-003",
+   "MOB-CODE-004",
+   "DESK-DEP-001",
+   "DESK-DEP-002",
+   "DESK-DEP-004",
+   "IOT-UPD-005",
+   "IOT-UPD-001",
+   "IOT-COMP-001",
+   "IOT-COMP-002",
+   "NET-VULN-001",
+   "NET-VULN-004",
+   "NET-VULN-007",
+   "CICD-CFG-001",
+   "CICD-VULN-001",
+   "CICD-VULN-002",
+   "CICD-VULN-003",
+   "CICD-VULN-004",
+   "K8S-CMP-002",
+   "K8S-CMP-003",
+   "K8S-IMG-003",
+   "CLD-SUP-003",
+   "CLD-SUP-004",
+   "NIST-SA-001",
+   "NIST-SI-001"
+  ],
+  "SI-2(2)": [
+   "NET-VULN-001",
+   "CLD-SUP-004",
+   "CICD-VULN-003",
+   "K8S-IMG-003",
+   "WEB-DEP-003",
+   "IOT-COMP-001"
+  ],
+  "SI-2(3)": [
+   "WEB-DEP-001",
+   "NET-VULN-004",
+   "CICD-VULN-004",
+   "NET-VULN-006"
+  ],
+  "SI-2(5)": [
+   "MOB-CODE-003",
+   "DESK-DEP-003",
+   "IOT-UPD-001",
+   "CLD-SUP-003"
+  ],
+  "SI-2(6)": [
+   "NIST-SI-001"
+  ],
+  "SI-3": [
+   "WEB-FILE-008",
+   "WEB-FILE-012",
+   "LLM-SUPPLY-002",
+   "CICD-VULN-002",
+   "MOB-RESIL-010",
+   "NIST-SI-005"
+  ],
+  "SI-4": [
+   "WEB-LOG-014",
+   "WEB-AUTHN-025",
+   "WEB-AUTHN-013",
+   "WEB-AUTHZ-018",
+   "WEB-BIZ-011",
+   "CLD-LOG-004",
+   "K8S-LOG-005",
+   "K8S-LOG-006",
+   "K8S-LOG-007",
+   "K8S-LAT-005",
+   "CICD-LOG-004",
+   "NET-LOG-001",
+   "NET-LOG-004",
+   "NET-DOS-006",
+   "NET-REV-006",
+   "NET-WIFI-001",
+   "NET-WIFI-005",
+   "NET-DISC-003",
+   "NET-DISC-010",
+   "DESK-LOG-004",
+   "IOT-MGMT-002",
+   "API-FLOW-007",
+   "LLM-AGENCY-014",
+   "LLM-OUTPUT-011",
+   "LLM-AGENT-026",
+   "LLM-AGENT-029"
+  ],
+  "SI-4(2)": [
+   "CLD-LOG-004",
+   "K8S-LOG-005",
+   "CICD-LOG-004",
+   "WEB-LOG-014",
+   "NET-WIFI-005"
+  ],
+  "SI-4(4)": [
+   "CLD-LOG-003",
+   "CLD-NET-003",
+   "NET-LOG-001",
+   "K8S-LOG-006",
+   "NET-DOS-006",
+   "NIST-SC-003"
+  ],
+  "SI-4(5)": [
+   "WEB-LOG-014",
+   "CLD-LOG-004",
+   "K8S-LOG-005",
+   "CICD-LOG-004",
+   "WEB-AUTHN-025",
+   "WEB-AUTHZ-018",
+   "NIST-AU-003",
+   "NIST-SI-004",
+   "NIST-SI-005"
+  ],
+  "SI-4(7)": [
+   "WEB-BIZ-011",
+   "API-FLOW-007",
+   "WEB-LOG-014",
+   "LLM-AGENT-030",
+   "LLM-AGENCY-007"
+  ],
+  "SI-4(10)": [
+   "NIST-SC-003"
+  ],
+  "SI-6": [
+   "API-BOLA-008",
+   "LLM-GOV-006",
+   "LLM-RAG-018",
+   "LLM-MODEL-007",
+   "NIST-SI-004"
+  ],
+  "SI-7": [
+   "NET-REV-006",
+   "MOB-RESIL-006",
+   "MOB-RESIL-008",
+   "MOB-RESIL-009",
+   "CICD-ART-001",
+   "CICD-ART-002",
+   "CICD-ART-003",
+   "CICD-ART-006",
+   "DESK-CODE-001",
+   "DESK-CRYPTO-004",
+   "IOT-DEF-004",
+   "IOT-UPD-001",
+   "K8S-IMG-001",
+   "WEB-DEP-005",
+   "WEB-DEP-006",
+   "LLM-SUPPLY-003",
+   "CICD-DEP-004",
+   "CICD-LOG-007",
+   "CLD-IAC-003",
+   "CICD-FLOW-006",
+   "NIST-SI-002"
+  ],
+  "SI-7(1)": [
+   "NET-REV-006",
+   "MOB-RESIL-008",
+   "DESK-CRYPTO-004",
+   "CLD-IAC-003",
+   "CICD-ART-006",
+   "WEB-DEP-005",
+   "IOT-DEF-004"
+  ],
+  "SI-7(5)": [
+   "K8S-IMG-001",
+   "IOT-UPD-001",
+   "IOT-DEF-004",
+   "MOB-RESIL-009",
+   "CICD-ART-002",
+   "NIST-SI-002"
+  ],
+  "SI-7(6)": [
+   "CICD-ART-002",
+   "DESK-CODE-001",
+   "MOB-RESIL-006",
+   "IOT-UPD-001",
+   "WEB-DEP-006",
+   "LLM-SUPPLY-003",
+   "K8S-IMG-001",
+   "DESK-CRYPTO-004"
+  ],
+  "SI-7(8)": [
+   "NIST-SI-002"
+  ],
+  "SI-7(15)": [
+   "DESK-CODE-001",
+   "DESK-DEP-003",
+   "IOT-UPD-001",
+   "IOT-DEF-004",
+   "K8S-IMG-001",
+   "CICD-ART-002",
+   "CICD-DEP-004",
+   "LLM-SUPPLY-003",
+   "MOB-RESIL-006",
+   "CICD-ART-006"
+  ],
+  "SI-7(17)": [
+   "MOB-RESIL-009",
+   "MOB-RESIL-017",
+   "WEB-BIZ-011"
+  ],
+  "SI-10": [
+   "WEB-VAL-002",
+   "WEB-VAL-009",
+   "WEB-VAL-010",
+   "WEB-VAL-011",
+   "WEB-VAL-012",
+   "WEB-VAL-013",
+   "WEB-VAL-014",
+   "WEB-ARCH-007",
+   "WEB-FILE-003",
+   "WEB-FILE-013",
+   "API-REST-005",
+   "API-GQL-008",
+   "API-GRPC-005",
+   "API-SOAP-001",
+   "MOB-CODE-010",
+   "DESK-INJ-001",
+   "DESK-INJ-002",
+   "DESK-CONF-003",
+   "WEB-XSS-001",
+   "WEB-XSS-002",
+   "NIST-SI-003"
+  ],
+  "SI-10(1)": [
+   "NIST-SI-003"
+  ],
+  "SI-10(3)": [
+   "WEB-VAL-002",
+   "WEB-VAL-006",
+   "WEB-ERR-001",
+   "WEB-ARCH-007",
+   "API-REST-002",
+   "API-REST-005",
+   "API-SOAP-001",
+   "LLM-DOS-001"
+  ],
+  "SI-10(5)": [
+   "WEB-VAL-009",
+   "WEB-VAL-012",
+   "API-REST-004",
+   "WEB-FILE-001",
+   "WEB-FILE-013",
+   "WEB-ARCH-004",
+   "API-SSRF-006",
+   "API-CONS-005"
+  ],
+  "SI-10(6)": [
+   "WEB-INJ-001",
+   "WEB-INJ-002",
+   "WEB-INJ-003",
+   "WEB-INJ-004",
+   "WEB-INJ-005",
+   "WEB-INJ-006",
+   "WEB-INJ-007",
+   "WEB-INJ-008",
+   "WEB-INJ-010",
+   "WEB-INJ-012",
+   "WEB-INJ-013",
+   "WEB-INJ-014",
+   "WEB-INJ-017",
+   "WEB-INJ-020",
+   "WEB-INJ-021",
+   "WEB-INJ-022",
+   "WEB-INJ-024",
+   "WEB-INJ-025",
+   "WEB-VAL-001",
+   "WEB-VAL-003",
+   "WEB-VAL-004",
+   "WEB-XSS-001",
+   "WEB-XSS-002",
+   "WEB-XSS-003",
+   "WEB-XSS-004",
+   "WEB-XSS-006",
+   "WEB-LOG-011",
+   "API-GQL-008",
+   "CLD-INJ-003",
+   "DESK-INJ-001",
+   "DESK-INJ-002",
+   "DESK-INJ-003",
+   "DESK-INJ-004",
+   "DESK-INJ-005",
+   "LLM-OUTPUT-003",
+   "LLM-OUTPUT-004",
+   "LLM-PINJ-012",
+   "LLM-MCP-008"
+  ],
+  "SI-11": [
+   "WEB-ERR-001",
+   "WEB-ERR-002",
+   "WEB-ERR-005",
+   "API-CONF-004",
+   "API-REST-006",
+   "API-GQL-010",
+   "API-GRPC-007",
+   "LLM-DATA-011",
+   "WEB-CONF-002",
+   "WEB-INFO-002"
+  ],
+  "SI-12": [
+   "WEB-DATA-008",
+   "WEB-DATA-009",
+   "PRIV-RET-001",
+   "PRIV-RET-002",
+   "CLD-AST-004",
+   "LLM-RAG-012"
+  ],
+  "SI-12(3)": [
+   "PRIV-RET-002",
+   "PRIV-RET-003",
+   "PRIV-RET-004",
+   "IOT-PRIV-002",
+   "IOT-MGMT-003",
+   "CLD-AST-004",
+   "LLM-GOV-004",
+   "LLM-RAG-012"
+  ],
+  "SI-15": [
+   "LLM-OUTPUT-001",
+   "LLM-OUTPUT-002",
+   "LLM-OUTPUT-006",
+   "WEB-DATA-007",
+   "API-BOPLA-001",
+   "API-BOPLA-003",
+   "WEB-ARCH-005",
+   "LLM-PINJ-013",
+   "LLM-PINJ-014",
+   "LLM-SYSPROMPT-005",
+   "LLM-RAG-017",
+   "WEB-HTTP-001",
+   "WEB-ERR-001"
+  ],
+  "SI-16": [
+   "WEB-VAL-005",
+   "WEB-VAL-006",
+   "WEB-VAL-007",
+   "MOB-CODE-005",
+   "DESK-CODE-004",
+   "WEB-CRYPTO-017",
+   "DESK-DATA-003",
+   "IOT-NET-004",
+   "NET-TLS-003",
+   "K8S-WRK-005"
+  ],
+  "SI-17": [
+   "WEB-ERR-003",
+   "WEB-ERR-004",
+   "IOT-MGMT-004",
+   "IOT-UPD-004",
+   "K8S-POL-003",
+   "LLM-RAG-015",
+   "LLM-AGENCY-015",
+   "LLM-AGENCY-007",
+   "LLM-AGENT-030",
+   "WEB-BIZ-006",
+   "NIST-SC-002"
+  ],
+  "SA-3": [
+   "CICD-CFG-009",
+   "CICD-FLOW-001",
+   "CICD-VULN-006",
+   "API-MSVC-005",
+   "WEB-ARCH-001"
+  ],
+  "SA-3(1)": [
+   "CICD-CFG-009",
+   "API-INV-003",
+   "API-INV-009",
+   "CICD-CFG-008"
+  ],
+  "SA-3(2)": [
+   "API-INV-009",
+   "LLM-GOV-003",
+   "PRIV-MINIM-004"
+  ],
+  "SA-4(9)": [
+   "WEB-ARCH-001",
+   "NET-DISC-004",
+   "NET-DISC-006",
+   "IOT-NET-001",
+   "API-INV-007"
+  ],
+  "SA-8(14)": [
+   "WEB-ARCH-003",
+   "LLM-AGENCY-001",
+   "LLM-AGENCY-003",
+   "CLD-SRV-001",
+   "K8S-RBAC-003",
+   "LLM-MCP-004",
+   "K8S-WRK-002",
+   "NIST-AC-005"
+  ],
+  "SA-8(23)": [
+   "WEB-CONF-002",
+   "IOT-DEF-001",
+   "IOT-PWD-001",
+   "NET-WIFI-003",
+   "K8S-CMP-001",
+   "CICD-CFG-003",
+   "API-CONF-009",
+   "K8S-RBAC-008",
+   "K8S-AUTH-002",
+   "WEB-AUTHZ-017"
+  ],
+  "SA-8(24)": [
+   "WEB-ERR-003",
+   "WEB-ERR-004",
+   "WEB-ERR-005",
+   "IOT-MGMT-004",
+   "IOT-UPD-004",
+   "CICD-FLOW-009",
+   "K8S-POL-003",
+   "LLM-RAG-015",
+   "NIST-SC-002"
+  ],
+  "SA-9": [
+   "CICD-TPS-005",
+   "LLM-SUPPLY-008",
+   "API-CONS-006",
+   "WEB-DATA-004",
+   "CICD-TPS-001",
+   "CICD-TPS-002",
+   "API-INV-007",
+   "LLM-SUPPLY-013",
+   "WEB-DEP-002",
+   "IOT-COMP-003",
+   "LLM-DATA-013"
+  ],
+  "SA-9(2)": [
+   "CICD-TPS-001",
+   "API-INV-007",
+   "API-CONS-006",
+   "WEB-DATA-004",
+   "CICD-TPS-002"
+  ],
+  "SA-10": [
+   "CICD-FLOW-001",
+   "CICD-FLOW-003",
+   "CICD-ART-001",
+   "CICD-CFG-007",
+   "CICD-FLOW-006",
+   "CICD-PPE-002",
+   "CICD-PPE-008",
+   "CLD-IAC-001",
+   "LLM-SUPPLY-010"
+  ],
+  "SA-10(1)": [
+   "CICD-ART-002",
+   "CICD-ART-003",
+   "CICD-ART-006",
+   "CICD-DEP-004",
+   "LLM-SUPPLY-003",
+   "WEB-DEP-005",
+   "IOT-UPD-001",
+   "DESK-CODE-001"
+  ],
+  "SA-10(4)": [
+   "CICD-ART-003",
+   "CICD-ART-005",
+   "CICD-FLOW-006"
+  ],
+  "SA-11": [
+   "CICD-VULN-006",
+   "CICD-VULN-001",
+   "CICD-VULN-002",
+   "CICD-VULN-005",
+   "NET-PEN-001",
+   "NET-PEN-002",
+   "NET-VULN-001",
+   "API-BOLA-008",
+   "API-REST-001",
+   "API-REST-002",
+   "LLM-GOV-006",
+   "LLM-MODEL-007",
+   "LLM-RAG-018",
+   "LLM-PINJ-016",
+   "NIST-SA-001",
+   "NIST-SI-004"
+  ],
+  "SA-11(1)": [
+   "CICD-VULN-006",
+   "CICD-VULN-005",
+   "CLD-IAC-002",
+   "NIST-SA-002"
+  ],
+  "SA-11(2)": [
+   "API-MSVC-005",
+   "NET-REV-001",
+   "WEB-ARCH-001"
+  ],
+  "SA-11(4)": [
+   "LLM-OUTPUT-008",
+   "CICD-FLOW-001",
+   "CICD-PPE-002"
+  ],
+  "SA-11(5)": [
+   "NET-PEN-001",
+   "NET-PEN-002",
+   "NET-PEN-003",
+   "NET-SEG-005",
+   "LLM-MODEL-007",
+   "LLM-GOV-006",
+   "LLM-SUPPLY-013"
+  ],
+  "SA-11(6)": [
+   "NET-DISC-004",
+   "NET-DISC-011",
+   "API-INV-001",
+   "API-INV-002",
+   "WEB-INFO-004",
+   "WEB-INFO-006",
+   "WEB-INFO-007",
+   "WEB-INFO-008",
+   "CLD-AST-002",
+   "K8S-CMP-006",
+   "NET-DISC-001",
+   "LLM-AGENCY-001"
+  ],
+  "SA-11(8)": [
+   "API-REST-001",
+   "API-REST-002",
+   "NET-VULN-001",
+   "NIST-SA-002"
+  ],
+  "SA-11(9)": [
+   "NIST-SA-002"
+  ],
+  "SA-15": [
+   "CICD-CFG-007",
+   "CICD-VULN-006",
+   "CICD-CRED-002",
+   "CICD-DEP-003",
+   "LLM-GOV-006",
+   "NIST-SA-001"
+  ],
+  "SA-15(2)": [
+   "NIST-SA-001"
+  ],
+  "SA-15(5)": [
+   "WEB-CONF-002",
+   "IOT-DEF-003",
+   "K8S-IMG-004",
+   "K8S-WRK-011",
+   "LLM-AGENCY-001",
+   "WEB-CONF-007",
+   "CICD-CFG-003"
+  ],
+  "SA-15(7)": [
+   "CICD-VULN-001",
+   "CICD-VULN-002",
+   "CICD-VULN-005",
+   "CICD-VULN-006",
+   "CLD-SUP-004",
+   "CLD-IAC-002",
+   "NIST-SA-002"
+  ],
+  "SA-15(13)": [
+   "WEB-LOG-002",
+   "WEB-LOG-005",
+   "CICD-LOG-005",
+   "DESK-LOG-001"
+  ],
+  "SA-22": [
+   "WEB-DEP-003",
+   "NET-VULN-007",
+   "IOT-COMP-002",
+   "IOT-UPD-005",
+   "DESK-DEP-004",
+   "MOB-CODE-001",
+   "K8S-CMP-002",
+   "API-INV-008",
+   "CLD-SUP-003",
+   "WEB-DEP-001",
+   "NIST-SI-001"
+  ],
+  "CM-2": [
+   "CICD-CFG-001",
+   "CICD-CFG-003",
+   "NET-REV-004",
+   "K8S-CMP-001",
+   "CLD-IAC-003",
+   "CLD-CFG-005",
+   "API-CONF-009",
+   "IOT-DEF-001",
+   "WEB-CONF-001",
+   "NET-ADM-007",
+   "K8S-CMP-006",
+   "K8S-DKR-006"
+  ],
+  "CM-2(2)": [
+   "CLD-IAC-003",
+   "CLD-CFG-005",
+   "CICD-CFG-010",
+   "K8S-CMP-001",
+   "CICD-FLOW-006"
+  ],
+  "CM-2(3)": [
+   "NET-ADM-007",
+   "IOT-UPD-004",
+   "CLD-IAC-003"
+  ],
+  "CM-2(6)": [
+   "CICD-CFG-009",
+   "API-INV-003",
+   "CICD-CFG-008"
+  ],
+  "CM-3": [
+   "CICD-CFG-007",
+   "CICD-CFG-010",
+   "CICD-FLOW-001",
+   "CICD-FLOW-002",
+   "CICD-FLOW-003",
+   "CICD-FLOW-004",
+   "CICD-FLOW-006",
+   "CICD-FLOW-008",
+   "NET-ADM-007",
+   "CLD-IAC-001",
+   "CLD-IAC-003",
+   "K8S-POL-004",
+   "NIST-CM-001"
+  ],
+  "CM-3(2)": [
+   "CICD-FLOW-009",
+   "CICD-FLOW-004",
+   "CICD-VULN-001",
+   "CLD-IAC-002",
+   "K8S-POL-004",
+   "NIST-CM-001"
+  ],
+  "CM-3(6)": [
+   "WEB-CRYPTO-001",
+   "WEB-CRYPTO-002",
+   "WEB-CRYPTO-004"
+  ],
+  "CM-3(8)": [
+   "K8S-POL-001",
+   "K8S-POL-002",
+   "CICD-FLOW-008",
+   "CICD-ART-007",
+   "K8S-WRK-006"
+  ],
+  "CM-4": [
+   "NIST-CM-001"
+  ],
+  "CM-5": [
+   "CICD-FLOW-001",
+   "CICD-FLOW-002",
+   "CICD-FLOW-004",
+   "CICD-FLOW-005",
+   "CICD-FLOW-008",
+   "CICD-IAM-001",
+   "CICD-PBAC-007",
+   "CLD-IAC-001",
+   "NET-ADM-007",
+   "K8S-RBAC-006",
+   "CICD-ART-007",
+   "CICD-CFG-006",
+   "IOT-DEF-002"
+  ],
+  "CM-5(1)": [
+   "CICD-LOG-002",
+   "CICD-FLOW-001",
+   "CICD-FLOW-008",
+   "K8S-LOG-001",
+   "CLD-LOG-001"
+  ],
+  "CM-5(5)": [
+   "CICD-FLOW-008",
+   "CICD-IAM-001",
+   "CICD-PBAC-002",
+   "CLD-IAC-001",
+   "CICD-PBAC-007",
+   "K8S-RBAC-006"
+  ],
+  "CM-5(6)": [
+   "CICD-ART-007",
+   "CICD-TPS-004",
+   "CICD-DEP-001",
+   "CICD-FLOW-005",
+   "CICD-IAM-008",
+   "K8S-IMG-005",
+   "CLD-SUP-001"
+  ],
+  "CM-6": [
+   "WEB-CONF-001",
+   "WEB-CONF-002",
+   "WEB-CONF-003",
+   "WEB-CONF-007",
+   "WEB-CONF-008",
+   "WEB-CONF-009",
+   "WEB-CONF-010",
+   "WEB-HDR-001",
+   "WEB-HDR-002",
+   "WEB-HDR-003",
+   "API-CONF-009",
+   "K8S-CMP-001",
+   "K8S-CMP-004",
+   "K8S-CMP-005",
+   "K8S-DKR-006",
+   "CICD-CFG-003",
+   "CLD-CFG-005",
+   "CLD-CFG-006",
+   "NET-REV-004",
+   "IOT-DEF-001",
+   "NET-WIFI-003",
+   "NET-ADM-007",
+   "CLD-IAC-002"
+  ],
+  "CM-6(1)": [
+   "CLD-CFG-005",
+   "K8S-CMP-001",
+   "NET-REV-004",
+   "CLD-IAC-002",
+   "CLD-IAC-003",
+   "K8S-POL-002",
+   "NET-VULN-001"
+  ],
+  "CM-6(2)": [
+   "CLD-IAC-003",
+   "CICD-FLOW-006",
+   "NET-REV-006",
+   "K8S-POL-002"
+  ],
+  "CM-7": [
+   "WEB-CONF-002",
+   "WEB-CONF-003",
+   "WEB-CONF-004",
+   "WEB-CONF-005",
+   "WEB-CONF-006",
+   "WEB-CONF-007",
+   "WEB-CONF-008",
+   "WEB-CONF-009",
+   "API-CONF-006",
+   "K8S-IMG-004",
+   "K8S-WRK-011",
+   "K8S-EXP-003",
+   "NET-DISC-004",
+   "NET-DISC-005",
+   "NET-DISC-006",
+   "NET-DISC-008",
+   "NET-SVC-001",
+   "NET-SVC-002",
+   "NET-SVC-003",
+   "IOT-NET-001",
+   "IOT-DEF-003",
+   "IOT-DEF-005",
+   "K8S-DKR-003",
+   "K8S-CMP-001",
+   "CLD-CFG-003",
+   "LLM-MCP-007",
+   "LLM-AGENCY-001",
+   "LLM-AGENCY-002",
+   "WEB-WASM-001",
+   "API-GRPC-002",
+   "API-GQL-010",
+   "API-INV-002"
+  ],
+  "CM-7(1)": [
+   "NET-DISC-004",
+   "NET-DISC-006",
+   "NET-DISC-010",
+   "NET-REV-004",
+   "LLM-AGENCY-001",
+   "WEB-CONF-001",
+   "K8S-CMP-001",
+   "CLD-AST-003",
+   "API-INV-002",
+   "IOT-NET-001"
+  ],
+  "CM-7(2)": [
+   "K8S-IMG-001",
+   "K8S-WRK-005",
+   "K8S-WRK-006"
+  ],
+  "CM-7(4)": [
+   "K8S-IMG-001",
+   "CLD-SUP-002"
+  ],
+  "CM-7(5)": [
+   "K8S-IMG-001",
+   "CLD-SUP-002",
+   "CICD-TPS-003",
+   "CICD-DEP-001",
+   "LLM-MCP-007",
+   "LLM-SUPPLY-003"
+  ],
+  "CM-7(7)": [
+   "K8S-WRK-010",
+   "CICD-PBAC-003",
+   "CICD-PBAC-008",
+   "LLM-AGENT-012",
+   "LLM-MCP-006",
+   "LLM-SUPPLY-014",
+   "CLD-SRV-004"
+  ],
+  "CM-7(8)": [
+   "LLM-SUPPLY-001",
+   "LLM-SUPPLY-003",
+   "CICD-DEP-004",
+   "MOB-CODE-008",
+   "CICD-TPS-003",
+   "CICD-DEP-008"
+  ],
+  "CM-8": [
+   "NET-DISC-001",
+   "CLD-AST-001",
+   "CLD-AST-002",
+   "CLD-AST-003",
+   "K8S-CMP-006",
+   "CICD-CFG-001",
+   "CICD-LOG-001",
+   "CICD-TPS-001",
+   "API-INV-001",
+   "API-INV-007",
+   "WEB-DEP-002",
+   "WEB-CRYPTO-002",
+   "IOT-COMP-001",
+   "IOT-MGMT-001",
+   "DESK-DEP-001",
+   "LLM-SUPPLY-007",
+   "WEB-INFO-004",
+   "CICD-ART-004",
+   "WEB-CRYPTO-001"
+  ],
+  "CM-8(3)": [
+   "NET-DISC-001",
+   "NET-DISC-003",
+   "NET-DISC-010",
+   "NET-WIFI-001",
+   "CLD-AST-003",
+   "API-INV-001",
+   "CICD-TPS-001",
+   "CICD-DEP-008"
+  ],
+  "CM-8(7)": [
+   "CLD-AST-001",
+   "K8S-CMP-006",
+   "CICD-LOG-001",
+   "CICD-ART-004",
+   "LLM-SUPPLY-007",
+   "WEB-DEP-002"
+  ],
+  "CM-10(1)": [
+   "CICD-DEP-001",
+   "WEB-DEP-002",
+   "CICD-TPS-003",
+   "CICD-DEP-004",
+   "LLM-SUPPLY-007"
+  ],
+  "CM-11": [
+   "LLM-MCP-007",
+   "CICD-TPS-004",
+   "CICD-CFG-008",
+   "IOT-DEF-005"
+  ],
+  "CM-11(3)": [
+   "CICD-TPS-004",
+   "CICD-TPS-003",
+   "LLM-MCP-007",
+   "CICD-TPS-006"
+  ],
+  "CM-12": [
+   "WEB-DATA-001",
+   "IOT-PRIV-001",
+   "CLD-AST-001",
+   "PRIV-GOV-001",
+   "PRIV-MINIM-001",
+   "LLM-GOV-003"
+  ],
+  "CM-12(1)": [
+   "CLD-SEC-005",
+   "CICD-CRED-001",
+   "LLM-DATA-013",
+   "WEB-DATA-005"
+  ],
+  "CM-14": [
+   "DESK-CODE-001",
+   "IOT-UPD-001",
+   "IOT-DEF-004",
+   "K8S-IMG-001",
+   "CICD-ART-002",
+   "DESK-DEP-003",
+   "MOB-RESIL-006",
+   "CICD-ART-006",
+   "WEB-DEP-005"
+  ]
+ }
+}

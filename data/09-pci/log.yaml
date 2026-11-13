@@ -1,0 +1,448 @@
+- id: PCI-LOG-001
+  sheet: PCI
+  category: LOG
+  title: Check that audit logs record all individual access to cardholder data
+  objective: Find reads and changes of cardholder data that leave no audit record.
+  preconditions:
+  - Test user account
+  - Test cardholder record
+  steps:
+  - List the applications and data stores that hold cardholder data.
+  - Log in as a test user. View, export, change and delete a test cardholder record.
+  - Look at the audit log for one entry for each action.
+  - Make sure each entry names the user and the record.
+  - Do the same through the API and by a direct database query.
+  example: Application audit trail query; database audit log (pgaudit, Oracle audit, SQL Server audit); API gateway logs
+  expected: Each individual access to cardholder data creates an audit log entry that names the user, action and record.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 10.2.1.1
+    cwe:
+    - CWE-778
+    nist_800_53:
+    - AU-2
+    - AU-12
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-LOG-002
+  sheet: PCI
+  category: LOG
+  title: Check that audit logs record all actions of administrative users
+  objective: Find administrative actions, including interactive use of service accounts, that leave no record.
+  preconditions:
+  - Test administrative account
+  steps:
+  - List the administrative roles and the accounts with administrative access.
+  - Log in as an administrator on a test system. Change a setting, add a user and run a privileged command.
+  - Do the same with a service account if interactive use is possible.
+  - Look at the logs for one entry for each action.
+  - Make sure the entry shows the person behind a shared or service account.
+  example: sudo log; auditd rules for execve by uid 0; cloud audit trail; database admin audit
+  expected: Every action of an administrative user is logged, including interactive use of application and system accounts.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 10.2.1.2
+    cwe:
+    - CWE-778
+    nist_800_53:
+    - AU-2
+    - AU-12
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-LOG-003
+  sheet: PCI
+  category: LOG
+  title: Check that audit logs record all access to the audit logs
+  objective: Find reads and changes of the audit logs that leave no record.
+  preconditions:
+  - Test account with log access
+  steps:
+  - Find where the audit logs are stored and who can reach them.
+  - As a test user with log access, open a log file or query the log platform.
+  - Try to change a setting of the log platform.
+  - Look at the audit trail of the log system for one entry for each action.
+  - Make sure the entry names the user.
+  example: Log platform audit trail; file access auditing on the log directory; object store access logs
+  expected: All access to the audit logs creates an entry that names the user and the action.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 10.2.1.3
+    cwe:
+    - CWE-778
+    nist_800_53:
+    - AU-9
+    - AU-12
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-LOG-004
+  sheet: PCI
+  category: LOG
+  title: Check that audit logs record changes to credentials and authentication factors
+  objective: Find changes to identities, factors and privileges that leave no record.
+  preconditions:
+  - Test account and test administrator
+  steps:
+  - Use a test account to create an ID, change a password and enrol a factor. Remove a factor and change a privilege.
+  - Look at the audit log for one entry for each action.
+  - Make sure the entry names the person who made the change and the affected account.
+  - Make sure the entry never holds the password or the secret.
+  - Include elevation of privilege and add or change of administrator rights.
+  example: Directory service event IDs 4720, 4723, 4724, 4728; application audit trail; identity provider event log
+  expected: Each addition, change or deletion of an identity or an authentication factor and each privilege elevation is logged without secrets.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 10.2.1.5
+    cwe:
+    - CWE-778
+    - CWE-532
+    nist_800_53:
+    - AU-2
+    - IA-5
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-LOG-005
+  sheet: PCI
+  category: LOG
+  title: Check that audit logs record the start, stop and pause of logging
+  objective: Find ways to stop or pause logging without a record.
+  preconditions:
+  - Test system. Do not run on production.
+  steps:
+  - Find the logging agents and log services on a test system.
+  - Stop the logging service, then start it again.
+  - Pause or change the audit configuration if the system allows it.
+  - Look in the central log system for an entry for each of these events.
+  - Make sure a new log file or new log source also creates an entry.
+  example: systemctl stop auditd; auditctl -e 0; Windows event 1100 and 1102; check the central log
+  expected: Every start, stop, pause and initialization of an audit log creates a log entry that is stored in a protected place.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 10.2.1.6
+    cwe:
+    - CWE-778
+    nist_800_53:
+    - AU-2
+    - AU-5
+    - AU-12
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-LOG-006
+  sheet: PCI
+  category: LOG
+  title: Check that audit logs record creation and deletion of system-level objects
+  objective: Find system-level objects that appear or vanish with no record.
+  preconditions:
+  - Test system
+  steps:
+  - List the system-level objects of the platform, such as database tables, stored procedures, scheduled jobs and services.
+  - On a test system, create a scheduled job, a database object and a service. Then delete them.
+  - Look at the audit log for one entry for each action.
+  - Make sure the entry names the user and the object.
+  - Include object creation by a cloud API.
+  example: auditd watch rules; SQL DDL audit; Windows event 4698 and 7045; cloud audit trail for resource creation
+  expected: The creation and deletion of each system-level object creates an audit log entry with the user and the object name.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 10.2.1.7
+    cwe:
+    - CWE-778
+    nist_800_53:
+    - AU-2
+    - AU-12
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-LOG-007
+  sheet: PCI
+  category: LOG
+  title: Check that file integrity or change detection alerts on audit log changes
+  objective: Find audit log changes that raise no alert.
+  preconditions:
+  - Test system. Do not run on production.
+  steps:
+  - Find the file integrity monitoring or change-detection tool that covers the audit logs.
+  - Make sure it covers all log locations, including the central log store.
+  - On a test system, change an old entry in a log file. Delete a log file.
+  - Make sure the tool raises an alert in the agreed time.
+  - Make sure normal appends of new entries do not raise an alert.
+  example: AIDE or Tripwire configuration; OSSEC syscheck; object lock plus hash chain; echo test >> old.log
+  expected: A tool alerts personnel when existing log data is changed or deleted. Normal additions do not raise an alert.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 10.3.4
+    cwe:
+    - CWE-778
+    nist_800_53:
+    - AU-9
+    - SI-7
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-LOG-008
+  sheet: PCI
+  category: LOG
+  title: Check the daily review of security and cardholder data system logs
+  objective: Find security event logs and critical system logs that no one reviews every day.
+  preconditions:
+  - Access to review records
+  steps:
+  - Ask for the list of logs that need a daily review and the review procedure.
+  - Make sure it covers security events, systems that handle cardholder data, critical systems and security functions.
+  - Pick seven days in the last 30 days. Find the review record for each day.
+  - Make sure the record shows who reviewed the logs.
+  - Make sure the review covers each log on the list.
+  example: SIEM dashboard review records; ticket log; shift handover notes
+  expected: All security events and logs of in-scope and critical systems are reviewed at least once a day, with a record.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    pci_dss:
+    - 10.4.1
+    nist_800_53:
+    - AU-6
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-LOG-009
+  sheet: PCI
+  category: LOG
+  title: Check that automated mechanisms do the log review
+  objective: Find log review that depends on manual work only.
+  preconditions:
+  - Access to the log review system
+  steps:
+  - Find the automated mechanisms that review logs, such as a SIEM or log analysis tool.
+  - Make sure the mechanisms cover the logs that need a daily review.
+  - Send a test event that should match a rule.
+  - Make sure the mechanism raises an alert or a finding.
+  - Examine the rules and the update dates.
+  example: SIEM correlation rules; alert history; use case list
+  expected: Automated mechanisms review the required logs. They raise findings for test events and the rules are current.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 10.4.1.1
+    nist_800_53:
+    - AU-6
+    - SI-4
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-LOG-010
+  sheet: PCI
+  category: LOG
+  title: Check the periodic review of other system component logs
+  objective: Find logs of other components that no one reviews, or a review frequency with no risk analysis.
+  preconditions:
+  - Access to review records
+  steps:
+  - Ask for the list of the other system components that are not in the daily review.
+  - Find the targeted risk analysis that sets the review frequency.
+  - Make sure the frequency in the procedure matches the analysis.
+  - Find the review records for the last period.
+  - Make sure all components on the list have records.
+  example: Targeted risk analysis document; review schedule; review tickets
+  expected: The logs of other components are reviewed at the frequency in the targeted risk analysis. Records exist for each component.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    pci_dss:
+    - 10.4.2
+    - 10.4.2.1
+    nist_800_53:
+    - AU-6
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-LOG-011
+  sheet: PCI
+  category: LOG
+  title: Check that exceptions found in log reviews are addressed
+  objective: Find anomalies from log reviews that nobody handles.
+  preconditions:
+  - Access to tickets
+  steps:
+  - Pick five anomalies or exceptions that log reviews found in the last 90 days.
+  - Find the ticket or incident for each one.
+  - Make sure each was investigated and resolved or accepted by an authorized person.
+  - Compare the time to resolve with the procedure.
+  - Look for reviews that found nothing for a long time and ask why.
+  example: Ticket system; incident log; SIEM case history
+  expected: Each exception and anomaly from a log review is investigated and closed or accepted, with a record.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    pci_dss:
+    - 10.4.3
+    nist_800_53:
+    - AU-6
+    - IR-4
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-LOG-012
+  sheet: PCI
+  category: LOG
+  title: Check that audit logs are kept 12 months, with 3 months online
+  objective: Find audit logs that are kept too short or that need a long restore to read.
+  preconditions:
+  - Access to the log platform
+  steps:
+  - Ask for the log retention policy.
+  - Make sure it states at least 12 months of history.
+  - Look at the oldest log record in the log store. Make sure it is at least 12 months old.
+  - Run a search for the last three months. Make sure the result comes back at once.
+  - Restore a record from an older period and make sure it is complete.
+  example: SIEM retention setting; S3 lifecycle rule; log index list; query the date range
+  expected: Audit log history for at least 12 months exists. The most recent three months are immediately available for analysis.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 10.5.1
+    cwe:
+    - CWE-778
+    nist_800_53:
+    - AU-11
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-LOG-013
+  sheet: PCI
+  category: LOG
+  title: Check that systems use trusted time sources and the same time
+  objective: Find systems that take time from an untrusted source or drift apart.
+  preconditions:
+  - Access to system time settings
+  steps:
+  - Find the time sources of each class of system in scope.
+  - Make sure systems use designated central time servers, and those servers use industry-accepted time sources.
+  - Make sure the time servers accept time only from the approved sources.
+  - Compare the clock offset of ten systems.
+  - Make sure systems peer with each other only through the designated time servers.
+  example: chronyc sources -v; ntpq -p; w32tm /query /status; compare date -u across hosts
+  expected: Systems get time from designated central servers with industry-accepted sources. The clocks on all systems are consistent.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 10.6.2
+    nist_800_53:
+    - AU-8
+    - SC-45
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-LOG-014
+  sheet: PCI
+  category: LOG
+  title: Check that time settings and time data are protected
+  objective: Find time settings that unauthorized persons can read or change.
+  preconditions:
+  - Test system. Do not run on production.
+  steps:
+  - List who can read and change the time settings and the time data on critical systems.
+  - Make sure access is limited to personnel with a business need.
+  - On a test system, change the time as an ordinary user. Make sure it fails.
+  - Change a time setting as an administrator. Make sure it creates a log entry.
+  - Make sure the log entry is monitored and reviewed.
+  example: chrony.conf permissions; Windows event 4616; auditd rule for settimeofday and clock_settime
+  expected: Only personnel with a business need can reach time data. Changes to time settings on critical systems are logged, monitored and reviewed.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 10.6.3
+    cwe:
+    - CWE-778
+    nist_800_53:
+    - AU-8
+    - AU-9
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-LOG-015
+  sheet: PCI
+  category: LOG
+  title: Check that failures of critical security controls raise alerts
+  objective: Find control failures that no one notices.
+  preconditions:
+  - Test system. Do not run on production.
+  steps:
+  - 'List the critical security control systems: network controls, IDS or IPS, change detection, anti-malware, access control and audit logging.'
+  - Include audit log review tools, segmentation controls and automated security test tools if used.
+  - On a test system, stop one control. Make sure an alert reaches the response team in the agreed time.
+  - Repeat for each type of control on the list.
+  - Look at the last alert history for real failures.
+  example: Stop the agent or service on a test system; check the monitoring alert; heartbeat monitor configuration
+  expected: A failure of each critical security control creates an alert that reaches personnel promptly.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 10.7.2
+    - 10.7.1
+    nist_800_53:
+    - SI-4
+    - AU-5
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-LOG-016
+  sheet: PCI
+  category: LOG
+  title: Check the response to failures of critical security controls
+  objective: Find control failures that stay open or have no cause analysis.
+  preconditions:
+  - Access to incident records
+  steps:
+  - Pick three real failures of critical security controls from the last 12 months.
+  - Make sure each control was restored.
+  - Make sure the record shows the cause, the duration and the security gap during the failure.
+  - Make sure the record shows that the team looked for new risks and fixed the cause.
+  - Make sure the monitoring resumed and the failure was recorded.
+  example: Incident tickets; post-incident reviews; control uptime reports
+  expected: Each failure is answered with a restore of the control, a root cause record, a check for security issues and a fix.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    pci_dss:
+    - 10.7.3
+    nist_800_53:
+    - IR-4
+    - SI-4
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md

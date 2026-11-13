@@ -1,0 +1,84 @@
+- id: NIST-SC-001
+  sheet: NIST
+  category: SC
+  title: Review the lifecycle of cryptographic keys from creation to destruction
+  objective: Finds keys that are made weak, kept in clear text, never rotated or never destroyed.
+  preconditions:
+  - Read access to the key store. Do not copy key values.
+  steps:
+  - 'List all keys: TLS, signing, data encryption, token and backup keys.'
+  - Read where each key is created, who can read it and where it is stored.
+  - Look at the rotation date of each key.
+  - Revoke or rotate one test key and make sure the system keeps working.
+  - Check how the system gets back data if a user key is lost.
+  example: aws kms list-keys; aws kms get-key-rotation-status --key-id ID; vault read sys/keys/encryption; keytool -list -v
+  expected: Each key has an owner, a rotation date and protected storage. Rotation and revoke work, and the loss of a key does not cause data loss.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    nist_800_53:
+    - SC-12
+    - SC-12(1)
+    - SC-28(3)
+    - IA-13(1)
+    cheatsheet:
+    - Key_Management_Cheat_Sheet
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NIST-SC-002
+  sheet: NIST
+  category: SC
+  title: Check that the system fails to a safe state when security fails
+  objective: Finds systems that open access or lose protection when a security function or boundary device fails.
+  preconditions:
+  - A test system that copies production. Do not run on production.
+  steps:
+  - 'List the security functions: authentication, authorization, filtering, logging and encryption.'
+  - Stop or break one security function on a test system.
+  - Send a request that the function normally blocks.
+  - Make sure the system denies the request or stops, and does not allow it.
+  - Look for an alert, restore the function and make sure it works again.
+  example: Stop the authorization service and call a protected API; stop the WAF or firewall rule engine; block the policy server
+  expected: When a security function fails the system denies access or stops in a known state. It sends an alert and keeps data safe.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    nist_800_53:
+    - SC-24
+    - SC-7(18)
+    - SI-17
+    - SA-8(24)
+    cwe:
+    - CWE-636
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NIST-SC-003
+  sheet: NIST
+  category: SC
+  title: Check that monitoring tools can see encrypted traffic where policy needs it
+  objective: Finds encrypted paths where attack tools and data loss tools are blind.
+  preconditions:
+  - A monitoring tool in scope and approval for the test payload.
+  steps:
+  - Read which traffic the policy says the monitoring tools must inspect.
+  - List where the system encrypts this traffic and who holds the keys.
+  - Send a test payload that the monitor must detect through the encrypted path.
+  - Look for the alert, or for the log of the decrypting proxy or host agent.
+  - Make sure the decrypting point is protected and logs access.
+  example: Send the EICAR test string over HTTPS through the proxy; compare the IDS alerts with and without TLS inspection
+  expected: The test payload raises an alert on every required path. The point that decrypts traffic is protected and audited.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    nist_800_53:
+    - SI-4(10)
+    - SC-8
+    - SI-4(4)
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json

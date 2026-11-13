@@ -1,0 +1,398 @@
+{
+ "source": "OWASP MASWE (weaknesses/ front matter)",
+ "version": "main@4859052afadb (commit 2026-09-30)",
+ "url": "https://github.com/OWASP/maswe/tree/main/weaknesses",
+ "retrieved": "2026-11-12",
+ "items": [
+  {
+   "id": "MASWE-0001",
+   "title": "Sensitive Data Stored Unencrypted in Private Storage",
+   "chapter": "MASVS-STORAGE"
+  },
+  {
+   "id": "MASWE-0002",
+   "title": "Sensitive Data Stored Unencrypted Outside of Private Storage",
+   "chapter": "MASVS-STORAGE"
+  },
+  {
+   "id": "MASWE-0003",
+   "title": "Cryptographic Keys Stored Outside of Platform Keystore",
+   "chapter": "MASVS-STORAGE"
+  },
+  {
+   "id": "MASWE-0004",
+   "title": "Sensitive Data Hardcoded in the App Package",
+   "chapter": "MASVS-STORAGE"
+  },
+  {
+   "id": "MASWE-0005",
+   "title": "Insertion of Sensitive Data into Logs",
+   "chapter": "MASVS-STORAGE"
+  },
+  {
+   "id": "MASWE-0006",
+   "title": "Sensitive Data Not Excluded From Backup",
+   "chapter": "MASVS-STORAGE"
+  },
+  {
+   "id": "MASWE-0007",
+   "title": "Improper Encryption",
+   "chapter": "MASVS-CRYPTO"
+  },
+  {
+   "id": "MASWE-0008",
+   "title": "Improper Hashing",
+   "chapter": "MASVS-CRYPTO"
+  },
+  {
+   "id": "MASWE-0009",
+   "title": "Improper Use of Message Authentication Code (MAC)",
+   "chapter": "MASVS-CRYPTO"
+  },
+  {
+   "id": "MASWE-0010",
+   "title": "Improper Generation of Cryptographic Signatures",
+   "chapter": "MASVS-CRYPTO"
+  },
+  {
+   "id": "MASWE-0011",
+   "title": "Improper Verification of Cryptographic Signature",
+   "chapter": "MASVS-CRYPTO"
+  },
+  {
+   "id": "MASWE-0012",
+   "title": "Improper Random Number Generation",
+   "chapter": "MASVS-CRYPTO"
+  },
+  {
+   "id": "MASWE-0013",
+   "title": "Improper Cryptographic Key Generation",
+   "chapter": "MASVS-CRYPTO"
+  },
+  {
+   "id": "MASWE-0014",
+   "title": "Improper Cryptographic Key Derivation",
+   "chapter": "MASVS-CRYPTO"
+  },
+  {
+   "id": "MASWE-0015",
+   "title": "Cryptographic Key Rotation Not Implemented",
+   "chapter": "MASVS-CRYPTO"
+  },
+  {
+   "id": "MASWE-0016",
+   "title": "Cryptographic Key Access Not Restricted",
+   "chapter": "MASVS-CRYPTO"
+  },
+  {
+   "id": "MASWE-0017",
+   "title": "Device Secure Lock Not Enforced",
+   "chapter": "MASVS-CRYPTO"
+  },
+  {
+   "id": "MASWE-0018",
+   "title": "Lack of Authentication or Authorization on App Components",
+   "chapter": "MASVS-AUTH"
+  },
+  {
+   "id": "MASWE-0019",
+   "title": "Lack of Auto-fill Support for Credential Providers",
+   "chapter": "MASVS-AUTH"
+  },
+  {
+   "id": "MASWE-0020",
+   "title": "Local Authentication Can Be Bypassed",
+   "chapter": "MASVS-AUTH"
+  },
+  {
+   "id": "MASWE-0021",
+   "title": "Fallback to Non-biometric Credentials Allowed for Sensitive Transactions",
+   "chapter": "MASVS-AUTH"
+  },
+  {
+   "id": "MASWE-0022",
+   "title": "Crypto Keys Not Invalidated on New Biometric Enrollment",
+   "chapter": "MASVS-AUTH"
+  },
+  {
+   "id": "MASWE-0023",
+   "title": "Step-Up Authentication Not Implemented for Sensitive Actions",
+   "chapter": "MASVS-AUTH"
+  },
+  {
+   "id": "MASWE-0024",
+   "title": "Sensitive Data Accessible After Session Termination",
+   "chapter": "MASVS-AUTH"
+  },
+  {
+   "id": "MASWE-0025",
+   "title": "Lack of Non-Repudiation for Critical Actions",
+   "chapter": "MASVS-AUTH"
+  },
+  {
+   "id": "MASWE-0026",
+   "title": "Network Traffic Not Encrypted",
+   "chapter": "MASVS-NETWORK"
+  },
+  {
+   "id": "MASWE-0027",
+   "title": "Insecure Certificate Validation",
+   "chapter": "MASVS-NETWORK"
+  },
+  {
+   "id": "MASWE-0028",
+   "title": "Insecure Identity Pinning",
+   "chapter": "MASVS-NETWORK"
+  },
+  {
+   "id": "MASWE-0029",
+   "title": "Insecure Deep Links",
+   "chapter": "MASVS-PLATFORM"
+  },
+  {
+   "id": "MASWE-0030",
+   "title": "Improper Use of the Clipboard",
+   "chapter": "MASVS-PLATFORM"
+  },
+  {
+   "id": "MASWE-0031",
+   "title": "Allowing Untrusted App Extensions",
+   "chapter": "MASVS-PLATFORM"
+  },
+  {
+   "id": "MASWE-0032",
+   "title": "Insecure Intents",
+   "chapter": "MASVS-PLATFORM"
+  },
+  {
+   "id": "MASWE-0033",
+   "title": "Sensitive Native Functionality Exposed in WebViews",
+   "chapter": "MASVS-PLATFORM"
+  },
+  {
+   "id": "MASWE-0034",
+   "title": "WebViews Allow Access to Local Resources with Untrusted Content",
+   "chapter": "MASVS-PLATFORM"
+  },
+  {
+   "id": "MASWE-0035",
+   "title": "WebViews Loading Untrusted Content",
+   "chapter": "MASVS-PLATFORM"
+  },
+  {
+   "id": "MASWE-0036",
+   "title": "Unnecessary Exposure of Sensitive Data via the User Interface",
+   "chapter": "MASVS-PLATFORM"
+  },
+  {
+   "id": "MASWE-0037",
+   "title": "Unnecessary Exposure of Sensitive Data via Notifications",
+   "chapter": "MASVS-PLATFORM"
+  },
+  {
+   "id": "MASWE-0038",
+   "title": "Insufficient Protection of Sensitive Data from Screenshots or Screen Recordings",
+   "chapter": "MASVS-PLATFORM"
+  },
+  {
+   "id": "MASWE-0039",
+   "title": "App Vulnerable to Overlay Attacks",
+   "chapter": "MASVS-PLATFORM"
+  },
+  {
+   "id": "MASWE-0040",
+   "title": "Sensitive Data Leaked via Accessibility Services",
+   "chapter": "MASVS-PLATFORM"
+  },
+  {
+   "id": "MASWE-0041",
+   "title": "Running on a Recent Platform Version Not Ensured",
+   "chapter": "MASVS-CODE"
+  },
+  {
+   "id": "MASWE-0042",
+   "title": "Latest Platform Version Not Targeted",
+   "chapter": "MASVS-CODE"
+  },
+  {
+   "id": "MASWE-0043",
+   "title": "Enforced Updating Not Implemented",
+   "chapter": "MASVS-CODE"
+  },
+  {
+   "id": "MASWE-0044",
+   "title": "Dependencies with Known Vulnerabilities",
+   "chapter": "MASVS-CODE"
+  },
+  {
+   "id": "MASWE-0045",
+   "title": "Compiler-Provided Security Features Not Used",
+   "chapter": "MASVS-CODE"
+  },
+  {
+   "id": "MASWE-0046",
+   "title": "Use of Deprecated APIs or Functionality",
+   "chapter": "MASVS-CODE"
+  },
+  {
+   "id": "MASWE-0047",
+   "title": "Using Non-Standard APIs for Security-Critical Functionality",
+   "chapter": "MASVS-CODE"
+  },
+  {
+   "id": "MASWE-0048",
+   "title": "Malicious Code Included in the App",
+   "chapter": "MASVS-CODE"
+  },
+  {
+   "id": "MASWE-0049",
+   "title": "Unsafe Dynamic Code Loading",
+   "chapter": "MASVS-CODE"
+  },
+  {
+   "id": "MASWE-0050",
+   "title": "Unsafe Handling of Untrusted Data",
+   "chapter": "MASVS-CODE"
+  },
+  {
+   "id": "MASWE-0051",
+   "title": "Root/Jailbreak Detection Not Implemented",
+   "chapter": "MASVS-RESILIENCE"
+  },
+  {
+   "id": "MASWE-0052",
+   "title": "App Virtualization Environment Detection Not Implemented",
+   "chapter": "MASVS-RESILIENCE"
+  },
+  {
+   "id": "MASWE-0053",
+   "title": "Emulated or Virtual Device Detection Not Implemented",
+   "chapter": "MASVS-RESILIENCE"
+  },
+  {
+   "id": "MASWE-0054",
+   "title": "Device Attestation Not Implemented",
+   "chapter": "MASVS-RESILIENCE"
+  },
+  {
+   "id": "MASWE-0055",
+   "title": "Malware Detection Not Implemented",
+   "chapter": "MASVS-RESILIENCE"
+  },
+  {
+   "id": "MASWE-0056",
+   "title": "App Attestation Not Implemented",
+   "chapter": "MASVS-RESILIENCE"
+  },
+  {
+   "id": "MASWE-0057",
+   "title": "App Resources Integrity Not Verified",
+   "chapter": "MASVS-RESILIENCE"
+  },
+  {
+   "id": "MASWE-0058",
+   "title": "Runtime Code Integrity Not Verified",
+   "chapter": "MASVS-RESILIENCE"
+  },
+  {
+   "id": "MASWE-0059",
+   "title": "Code Obfuscation Not Implemented",
+   "chapter": "MASVS-RESILIENCE"
+  },
+  {
+   "id": "MASWE-0060",
+   "title": "Resource Obfuscation Not Implemented",
+   "chapter": "MASVS-RESILIENCE"
+  },
+  {
+   "id": "MASWE-0061",
+   "title": "Debug Artifacts Not Removed",
+   "chapter": "MASVS-RESILIENCE"
+  },
+  {
+   "id": "MASWE-0062",
+   "title": "No Application-Level Payload Encryption",
+   "chapter": "MASVS-RESILIENCE"
+  },
+  {
+   "id": "MASWE-0063",
+   "title": "Debug Mechanisms Not Disabled",
+   "chapter": "MASVS-RESILIENCE"
+  },
+  {
+   "id": "MASWE-0064",
+   "title": "Debugger Detection Not Implemented",
+   "chapter": "MASVS-RESILIENCE"
+  },
+  {
+   "id": "MASWE-0065",
+   "title": "Dynamic Analysis Tools Detection Not Implemented",
+   "chapter": "MASVS-RESILIENCE"
+  },
+  {
+   "id": "MASWE-0066",
+   "title": "Inadequate Permission Management",
+   "chapter": "MASVS-PRIVACY"
+  },
+  {
+   "id": "MASWE-0067",
+   "title": "Lack of Anonymization or Pseudonymisation Measures",
+   "chapter": "MASVS-PRIVACY"
+  },
+  {
+   "id": "MASWE-0068",
+   "title": "Incorrect Use of Identifiers for User Tracking",
+   "chapter": "MASVS-PRIVACY"
+  },
+  {
+   "id": "MASWE-0069",
+   "title": "Usage of Non-Privacy-Preserving Functionality",
+   "chapter": "MASVS-PRIVACY"
+  },
+  {
+   "id": "MASWE-0070",
+   "title": "Inadequate Awareness for Privacy Relevant Actions",
+   "chapter": "MASVS-PRIVACY"
+  },
+  {
+   "id": "MASWE-0071",
+   "title": "Inadequate Defaults for Privacy Relevant Actions",
+   "chapter": "MASVS-PRIVACY"
+  },
+  {
+   "id": "MASWE-0072",
+   "title": "Inadequate Privacy Policy",
+   "chapter": "MASVS-PRIVACY"
+  },
+  {
+   "id": "MASWE-0073",
+   "title": "Inadequate Data Collection Declarations",
+   "chapter": "MASVS-PRIVACY"
+  },
+  {
+   "id": "MASWE-0074",
+   "title": "Inadequate Tracking Domains Declarations",
+   "chapter": "MASVS-PRIVACY"
+  },
+  {
+   "id": "MASWE-0075",
+   "title": "Non-Reproducible Builds",
+   "chapter": "MASVS-PRIVACY"
+  },
+  {
+   "id": "MASWE-0076",
+   "title": "Lack of Proper Data Management Controls",
+   "chapter": "MASVS-PRIVACY"
+  },
+  {
+   "id": "MASWE-0077",
+   "title": "Inadequate Data Visibility Controls",
+   "chapter": "MASVS-PRIVACY"
+  },
+  {
+   "id": "MASWE-0078",
+   "title": "Inadequate or Ambiguous User Consent Mechanisms",
+   "chapter": "MASVS-PRIVACY"
+  }
+ ]
+}

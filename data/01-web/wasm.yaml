@@ -1,0 +1,29 @@
+- id: WEB-WASM-001
+  sheet: WEB
+  category: WASM
+  title: Find WebAssembly modules, debug artifacts and embedded endpoints
+  objective: Find Wasm modules, source maps, DWARF data and embedded URLs or secrets that leak implementation details.
+  steps:
+  - Open the Network tab, use the Wasm filter, and reload the application.
+  - Search the JavaScript for WebAssembly.instantiate, compile and new WebAssembly.Module.
+  - 'Look for embedded modules: long Base64 strings, data: URIs and files with other extensions.'
+  - Check files for the magic bytes 00 61 73 6d.
+  - List imports, exports, custom sections (name, DWARF) and source map links.
+  - Extract strings for URLs, API endpoints and keys.
+  example: wasm-objdump -x module.wasm | head -50; strings -n 8 module.wasm | grep -iE 'http|key|token'; od -An -tx1 -N8 module.bin; wasm-tools print module.wasm
+  expected: No debug information, source maps or secrets are in production modules. The tester has a list of all modules.
+  severity: Low
+  test_type:
+  - Manual
+  refs:
+    wstg:
+    - WSTG-WASM-01
+    cwe:
+    - CWE-540
+    - CWE-200
+    capec:
+    - CAPEC-188
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/13-WebAssembly_Testing/00-WebAssembly_Testing_Overview.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/13-WebAssembly_Testing/01-WebAssembly_Reconnaissance.md

@@ -1,0 +1,309 @@
+- id: NET-PKG-001
+  sheet: NET
+  category: PKG
+  title: Check the system crypto policy and its use by services
+  objective: Finds hosts that use the LEGACY policy or have local overrides that bring back weak algorithms.
+  preconditions: &id001
+  - Root or sudo read access to the host in scope.
+  - Do not change settings on a production host without a change window.
+  steps:
+  - Run update-crypto-policies --show.
+  - Make sure the policy is not LEGACY and that no module in /etc/crypto-policies/policies/modules weakens it.
+  - Look at the symlinks in /etc/crypto-policies/back-ends. Make sure they point to the generated files.
+  - Look at the OpenSSL, GnuTLS, BIND, Kerberos, SSH and Libreswan settings and make sure they follow the policy.
+  - Look at the random number source for OpenSSL.
+  example: update-crypto-policies --show ; update-crypto-policies --check ; ls -l /etc/crypto-policies/back-ends/ ; grep -r "crypto-policies" /etc/ssh/ssh_config.d /etc/ssh/sshd_config.d ; openssl list
+    -cipher-algorithms | head
+  expected: The policy is DEFAULT or stricter, not LEGACY. No local file overrides the back-end files. The services use the system policy.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:configure_bind_crypto_policy
+    - cac:configure_crypto_policy
+    - cac:configure_custom_crypto_policy_cis
+    - cac:configure_gnutls_tls_crypto_policy
+    - cac:configure_kerberos_crypto_policy
+    - cac:configure_libreswan_crypto_policy
+    - cac:configure_openssl_crypto_policy
+    - cac:configure_openssl_tls_crypto_policy
+    - cac:configure_ssh_crypto_policy
+    - cac:crypto_policy_not_legacy
+    - cac:crypto_policy_not_overridden
+    - cac:fips_crypto_policy_symlinks
+    - cac:harden_openssl_crypto_policy
+    - cac:harden_ssh_client_crypto_policy
+    - cac:harden_sshd_ciphers_openssh_conf_crypto_policy
+    - cac:harden_sshd_ciphers_opensshserver_conf_crypto_policy
+    - cac:harden_sshd_crypto_policy
+    - cac:harden_sshd_macs_openssh_conf_crypto_policy
+    - cac:harden_sshd_macs_opensshserver_conf_crypto_policy
+    - cac:openssl_use_strong_entropy
+    - cac:package_crypto-policies_installed
+    nist_800_53:
+    - AC-17
+    - SC-12
+    - SC-13
+    - MA-4
+    pci_dss:
+    - '2.2'
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/integrity/crypto/configure_bind_crypto_policy/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/integrity/crypto/configure_libreswan_crypto_policy/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/integrity/crypto/crypto_policy_not_overridden/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/integrity/crypto/harden_sshd_ciphers_opensshserver_conf_crypto_policy/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/integrity/crypto/package_crypto-policies_installed/rule.yml
+- id: NET-PKG-002
+  sheet: NET
+  category: PKG
+  title: Check FIPS mode, boot setup and certified OS status
+  objective: Finds hosts that must use validated cryptography but run with FIPS mode off.
+  preconditions: *id001
+  steps:
+  - Read /proc/sys/crypto/fips_enabled.
+  - Run fips-mode-setup --check.
+  - Look at the kernel command line for fips=1 and the dracut fips module.
+  - Look at the crypto policy and sub-policy names.
+  - Compare the result with the compliance requirement of the host.
+  example: cat /proc/sys/crypto/fips_enabled ; fips-mode-setup --check ; grep -o "fips=1" /proc/cmdline ; lsinitrd | grep fips ; update-crypto-policies --show
+  expected: On hosts that need FIPS, FIPS mode is on at boot and the crypto policy is FIPS. The OS build is a certified build.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    tool_check:
+    - cac:enable_dracut_fips_module
+    - cac:enable_fips_mode
+    - cac:ensure_tuxcare_fips_packages_installed
+    - cac:etc_system_fips_exists
+    - cac:fips_crypto_subpolicy
+    - cac:fips_custom_stig_sub_policy
+    - cac:grub2_enable_fips_mode
+    - cac:installed_OS_is_FIPS_certified
+    - cac:is_fips_mode_enabled
+    - cac:package_dracut-fips-aesni_installed
+    - cac:package_dracut-fips_installed
+    - cac:sysctl_crypto_fips_enabled
+    - cac:system_booted_in_fips_mode
+    nist_800_53:
+    - SC-12
+    - SC-13
+    - IA-7
+    - CM-6
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/integrity/fips/enable_dracut_fips_module/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/integrity/fips/etc_system_fips_exists/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/integrity/fips/grub2_enable_fips_mode/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/integrity/fips/package_dracut-fips-aesni_installed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/integrity/fips/system_booted_in_fips_mode/rule.yml
+- id: NET-PKG-003
+  sheet: NET
+  category: PKG
+  title: Check endpoint protection, HIDS and user data backup tools
+  objective: Finds hosts with no malware scanner, no host intrusion detection or no backup of user data.
+  preconditions: *id001
+  steps:
+  - Look for the endpoint protection or antivirus agent and its service state.
+  - Look at the date of the last signature update.
+  - Look for a host intrusion detection tool, or for a written reason why audit and SELinux are enough.
+  - Look for the backup job for user data and find the last good run.
+  example: systemctl status nails mfetpd 2>/dev/null ; rpm -qa | grep -iE "mcafee|MFE|clamav|aide|ossec|wazuh" ; ls -l /var/log/backup* ; crontab -l
+  expected: An approved endpoint protection agent runs with current signatures. A host intrusion detection tool or an approved alternative exists. User data backups run on schedule.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    tool_check:
+    - cac:agent_mfetpd_running
+    - cac:configure_user_data_backups
+    - cac:install_antivirus
+    - cac:install_endpoint_security_software
+    - cac:install_hids
+    - cac:install_mcafee_antivirus
+    - cac:install_mcafee_cma_rt
+    - cac:install_mcafee_hbss_accm
+    - cac:install_mcafee_hbss_pa
+    - cac:mcafee_antivirus_definitions_updated
+    - cac:package_MFEhiplsm_installed
+    - cac:package_mcafeetp_installed
+    - cac:service_nails_enabled
+    nist_800_53:
+    - CM-6
+    - SI-3
+    - SC-28
+    - SI-2
+    pci_dss:
+    - '11.4'
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/integrity/endpoint_security_software/mcafee_security_software/mcafee_endpoint_security_software/agent_mfetpd_running/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/integrity/endpoint_security_software/install_endpoint_security_software/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/integrity/endpoint_security_software/mcafee_security_software/install_mcafee_cma_rt/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/integrity/endpoint_security_software/mcafee_security_software/mcafee_antivirus_definitions_updated/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/integrity/endpoint_security_software/mcafee_security_software/service_nails_enabled/rule.yml
+- id: NET-PKG-004
+  sheet: NET
+  category: PKG
+  title: Check package signature checks, repositories and automatic updates
+  objective: Finds hosts that install unsigned packages or take packages from unapproved repositories.
+  preconditions: *id001
+  steps:
+  - Read the gpgcheck, localpkg_gpgcheck and repo_gpgcheck values in /etc/dnf/dnf.conf or /etc/yum.conf.
+  - Read each file in /etc/yum.repos.d and look for gpgcheck=0.
+  - List the repositories. Compare them with the approved list. Look for EPEL.
+  - Run rpm -qa gpg-pubkey and compare the keys with the vendor keys.
+  - Look at dnf-automatic and its timer, the upgrade type and the weak dependency setting.
+  example: grep -rE "gpgcheck" /etc/dnf/dnf.conf /etc/yum.conf /etc/yum.repos.d/ ; dnf repolist ; rpm -qa gpg-pubkey ; systemctl is-enabled dnf-automatic.timer ; grep -E "upgrade_type|apply_updates" /etc/dnf/automatic.conf
+  expected: Package, local package and repository metadata signature checks are on for all repositories. Only approved repositories are enabled. The vendor keys match.
+  severity: High
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:clean_components_post_updating
+    - cac:disable_weak_deps
+    - cac:dnf-automatic_apply_updates
+    - cac:dnf-automatic_security_updates_only
+    - cac:enable_gpgcheck_for_all_repositories
+    - cac:ensure_GPG_keys_are_configured
+    - cac:ensure_almalinux_gpgkey_installed
+    - cac:ensure_amazon_gpgkey_installed
+    - cac:ensure_epel_repos_disabled
+    - cac:ensure_fedora_gpgkey_installed
+    - cac:ensure_gpgcheck_globally_activated
+    - cac:ensure_gpgcheck_local_packages
+    - cac:ensure_gpgcheck_never_disabled
+    - cac:ensure_gpgcheck_repo_metadata
+    - cac:ensure_oracle_gpgkey_installed
+    - cac:ensure_package_repositories_are_configured
+    - cac:ensure_redhat_gpgkey_installed
+    - cac:ensure_suse_gpgkey_installed
+    - cac:ensure_tuxcare_esu_repo_enabled
+    - cac:package_dnf-automatic_installed
+    - cac:package_gnome_software_installed
+    - cac:timer_dnf-automatic_enabled
+    - cac:zypper_only_requires_enabled
+    nist_800_53:
+    - SC-12
+    - CM-6
+    - CM-11
+    - CM-5
+    pci_dss:
+    - '6.2'
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/updating/clean_components_post_updating/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/updating/ensure_GPG_keys_are_configured/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/updating/ensure_gpgcheck_local_packages/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/updating/ensure_suse_gpgkey_installed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/updating/zypper_only_requires_enabled/rule.yml
+- id: NET-PKG-005
+  sheet: NET
+  category: PKG
+  title: Check APT sources, keys, authentication and file permissions
+  objective: Finds hosts that accept unauthenticated packages or allow others to change the package sources.
+  preconditions: *id001
+  steps:
+  - Read /etc/apt/sources.list and /etc/apt/sources.list.d. Compare the sources with the official list.
+  - Search /etc/apt/apt.conf.d for AllowUnauthenticated.
+  - Look at APT::Install-Recommends, APT::Install-Suggests and the weak dependency setting.
+  - List the owner and mode of the source, key and auth.conf.d directories and files.
+  example: grep -rn "AllowUnauthenticated\|Install-Recommends\|Install-Suggests" /etc/apt/apt.conf.d/ ; cat /etc/apt/sources.list /etc/apt/sources.list.d/* ; stat -c "%U:%G %a %n" /etc/apt/sources.list.d
+    /etc/apt/trusted.gpg.d /etc/apt/auth.conf.d /usr/share/keyrings
+  expected: APT does not allow unauthenticated packages. The sources are official and signed. Root owns the APT files and no other user can write to them.
+  severity: High
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:apt_conf_disable_recommends
+    - cac:apt_conf_disable_suggests
+    - cac:apt_conf_disallow_unauthenticated
+    - cac:apt_disable_weak_dependencies
+    - cac:apt_sources_list_official
+    - cac:directory_groupowner_apt_auth_conf_d
+    - cac:directory_groupowner_apt_sources_list_d
+    - cac:directory_groupowner_apt_trusted_gpg_d
+    - cac:directory_groupowner_usr_share_keyrings
+    - cac:directory_owner_apt_auth_conf_d
+    - cac:directory_owner_apt_sources_list_d
+    - cac:directory_owner_apt_trusted_gpg_d
+    - cac:directory_owner_usr_share_keyrings
+    - cac:directory_permissions_apt_auth_conf_d
+    - cac:directory_permissions_apt_sources_list_d
+    - cac:directory_permissions_apt_trusted_gpg_d
+    - cac:directory_permissions_usr_share_keyrings
+    - cac:file_groupowner_apt_auth_conf_d
+    - cac:file_groupowner_apt_gpg_keys
+    - cac:file_groupowner_apt_sources_list_d
+    - cac:file_owner_apt_auth_conf_d
+    - cac:file_owner_apt_gpg_keys
+    - cac:file_owner_apt_sources_list_d
+    - cac:file_permissions_apt_auth_conf_d
+    - cac:file_permissions_apt_gpg_keys
+    - cac:file_permissions_apt_sources_list_d
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/apt/apt_conf_disable_recommends/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/apt/directory_groupowner_apt_sources_list_d/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/apt/directory_permissions_apt_auth_conf_d/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/apt/file_groupowner_apt_sources_list_d/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/apt/file_permissions_apt_sources_list_d/rule.yml
+- id: NET-PKG-006
+  sheet: NET
+  category: PKG
+  title: Check installed and removed system tool packages against the standard
+  objective: Finds hosts that miss required security tools or keep crash reporters and extra tools that leak data.
+  preconditions: *id001
+  steps:
+  - List the installed packages with rpm -qa or dpkg -l.
+  - 'Look for the required tools: cryptsetup, openscap-scanner, scap-security-guide, rng-tools, nss-tools, gnutls-utils, tar and vim.'
+  - 'Look for the packages that the standard removes: abrt and its plug-ins, libreport plug-ins, tuned, pigz, geolite2 and gssproxy.'
+  - Look at the OS word size and the entropy settings.
+  example: rpm -q cryptsetup openscap-scanner scap-security-guide rng-tools nss-tools gnutls-utils ; rpm -qa | grep -E "^(abrt|libreport|tuned|pigz|geolite2|gssproxy)" ; uname -m
+  expected: The required tools are installed. The removed packages are not installed. Any deviation has an approval.
+  severity: Low
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:accounts_authorized_local_users_sidadm_orasid
+    - cac:package_abrt-addon-ccpp_removed
+    - cac:package_abrt-addon-kerneloops_removed
+    - cac:package_abrt-addon-python_removed
+    - cac:package_abrt-cli_removed
+    - cac:package_abrt-libs_removed
+    - cac:package_abrt-plugin-logger_removed
+    - cac:package_abrt-plugin-rhtsupport_removed
+    - cac:package_abrt-plugin-sosreport_removed
+    - cac:package_abrt-server-info-page_removed
+    - cac:package_binutils_installed
+    - cac:package_cryptsetup-luks_installed
+    - cac:package_dnf-plugin-subscription-manager_installed
+    - cac:package_geolite2-city_removed
+    - cac:package_geolite2-country_removed
+    - cac:package_glibc_installed
+    - cac:package_gnutls-utils_installed
+    - cac:package_gssproxy_removed
+    - cac:package_iprutils_removed
+    - cac:package_krb5-workstation_removed
+    - cac:package_libcap-ng-utils_installed
+    - cac:package_libdnf-plugin-subscription-manager_installed
+    - cac:package_libreport-plugin-logger_removed
+    - cac:package_libreport-plugin-rhtsupport_removed
+    - cac:package_nss-tools_installed
+    - cac:package_openscap-scanner_installed
+    - cac:package_pigz_removed
+    - cac:package_python3-abrt-addon_removed
+    - cac:package_rear_installed
+    - cac:package_rng-tools_installed
+    - cac:package_scap-security-guide_installed
+    - cac:package_sequoia-sq_installed
+    - cac:package_subscription-manager_installed
+    - cac:package_tar_installed
+    - cac:package_tuned_removed
+    - cac:package_uuidd_installed
+    - cac:package_vim_installed
+    - cac:prefer_64bit_os
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/sap_host/accounts_authorized_local_users_sidadm_orasid/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/system-tools/package_abrt-server-info-page_removed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/system-tools/package_krb5-workstation_removed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/system-tools/package_rear_installed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/prefer_64bit_os/rule.yml

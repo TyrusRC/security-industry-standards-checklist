@@ -1,0 +1,192 @@
+- id: API-BOPLA-001
+  sheet: API
+  category: BOPLA
+  title: Compare API response fields with the fields that the client shows
+  objective: Finds responses that carry sensitive fields which the user interface hides.
+  steps:
+  - Open a page that shows user or object data. Record the API request with a proxy.
+  - List all fields in the JSON response and all fields that the page shows.
+  - Mark fields such as password_hash, api_key, role, internal IDs and IP addresses.
+  - Repeat for list, search and detail endpoints.
+  example: Burp Logger++ or browser DevTools Network tab; jq 'keys' on each response; ZAP passive scan rules for information disclosure.
+  expected: Each response holds only the fields that the client needs and the caller may read. The client does not filter data.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    api_top10:
+    - API3:2023
+    wstg:
+    - WSTG-APIT-03
+    asvs:
+    - V8.2.3
+    cheatsheet:
+    - REST_Security_Cheat_Sheet
+    cwe:
+    - CWE-213
+    - CWE-200
+  see:
+  - WEB-ARCH-005
+  - WEB-DATA-007
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa3-broken-object-property-level-authorization.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/03-Excessive_Data_Exposure.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Security_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: API-BOPLA-002
+  sheet: API
+  category: BOPLA
+  title: Compare the fields in responses for different roles and for anonymous calls
+  objective: Finds endpoints that return the same rich object to every caller.
+  steps:
+  - Request one object as the owner, as another user, as an administrator and without a token.
+  - Save the four JSON responses.
+  - Compare the field lists with a diff tool.
+  - Look for fields that a lower role should not see.
+  example: curl -s ... | jq -S . > owner.json; diff owner.json other.json; Burp Comparer.
+  expected: Fields depend on the role of the caller and the relation to the object. An anonymous call gets no private fields.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    api_top10:
+    - API3:2023
+    wstg:
+    - WSTG-APIT-03
+    asvs:
+    - V8.2.3
+    cwe:
+    - CWE-213
+    - CWE-200
+  see:
+  - WEB-AUTHZ-007
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa3-broken-object-property-level-authorization.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/03-Excessive_Data_Exposure.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: API-BOPLA-003
+  sheet: API
+  category: BOPLA
+  title: Inspect nested objects and error responses for extra properties
+  objective: Finds embedded objects and error bodies that expose data of other objects.
+  steps:
+  - Request objects that embed other objects, such as an order with a customer and a payment.
+  - Read every nested object for fields that the caller does not need.
+  - Send invalid requests and read the error bodies.
+  - Look for internal notes, card data, internal IDs and file paths.
+  example: jq '..|objects|keys' response.json; Burp Search for the strings password, token, secret and internal; ZAP alert list.
+  expected: Nested objects and error bodies carry only the minimum fields. Sensitive properties of other objects are not shown.
+  severity: Medium
+  test_type: Manual
+  refs:
+    api_top10:
+    - API3:2023
+    wstg:
+    - WSTG-APIT-03
+    cwe:
+    - CWE-213
+    - CWE-209
+  see:
+  - WEB-DATA-007
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa3-broken-object-property-level-authorization.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/03-Excessive_Data_Exposure.md
+- id: API-BOPLA-004
+  sheet: API
+  category: BOPLA
+  title: Add extra properties to write requests and read the object back
+  objective: Finds endpoints that write properties which the caller may not change.
+  steps:
+  - Take a valid create or update request. Add fields such as role, isAdmin, balance, price and status.
+  - Send the request. Read the object back with a second request.
+  - Check if the value was stored and if the behavior changed.
+  - Repeat with PATCH, nulls to delete a property and a different Content-Type.
+  example: 'Burp Param Miner; Arjun (arjun -u https://api.example/v1/users/me -m JSON); example body: {"email":"a@b.test","role":"admin"}.'
+  expected: The API ignores or rejects properties that the caller may not write. The stored object does not change for those fields.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    api_top10:
+    - API3:2023
+    wstg:
+    - WSTG-APIT-03
+    asvs:
+    - V8.2.3
+    cheatsheet:
+    - Mass_Assignment_Cheat_Sheet
+    - REST_Assessment_Cheat_Sheet
+    cwe:
+    - CWE-915
+  see:
+  - WEB-INJ-022
+  - WEB-ARCH-006
+  - WEB-AUTHZ-007
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa3-broken-object-property-level-authorization.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/03-Excessive_Data_Exposure.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mass_Assignment_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Assessment_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: API-BOPLA-005
+  sheet: API
+  category: BOPLA
+  title: Find hidden properties with the API description and accepted fields
+  objective: Finds properties that the API accepts although the schema does not define them.
+  steps:
+  - Read the schema of the request body in the OpenAPI file.
+  - Send each request with one extra property that the schema does not define.
+  - Read the object back and look for the stored value.
+  - Write each accepted extra property in the report.
+  example: Schemathesis (st run openapi.json --checks all); ZAP OpenAPI add-on; Burp Param Miner guess JSON properties.
+  expected: The API rejects properties that the schema does not define, or ignores them. It never stores them.
+  severity: Medium
+  test_type: Automated
+  refs:
+    api_top10:
+    - API3:2023
+    wstg:
+    - WSTG-APIT-03
+    cheatsheet:
+    - REST_Assessment_Cheat_Sheet
+    - Mass_Assignment_Cheat_Sheet
+    cwe:
+    - CWE-915
+  see:
+  - WEB-INJ-022
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa3-broken-object-property-level-authorization.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/03-Excessive_Data_Exposure.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Assessment_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mass_Assignment_Cheat_Sheet.md
+- id: API-BOPLA-006
+  sheet: API
+  category: BOPLA
+  title: Check how the code limits response and request fields
+  objective: Finds generic serializers and automatic binders that expose or accept internal properties.
+  steps:
+  - Search the code for to_json, to_string and automatic binders of request data to objects.
+  - Check that each endpoint uses a response schema with named fields.
+  - Check that each endpoint uses an input class or an allowlist of fields.
+  - Check that a block list is not the only protection.
+  example: grep -rn 'to_json\|toString()\|@RequestBody\|permit(' src/; review of DTO classes; response schema validation in the gateway.
+  expected: Responses use fixed schemas. Input binds only to allowed fields. Both are enforced in code or in the gateway.
+  severity: Medium
+  test_type: Code Review
+  level: ASVS L2
+  refs:
+    api_top10:
+    - API3:2023
+    asvs:
+    - V8.2.3
+    cheatsheet:
+    - Mass_Assignment_Cheat_Sheet
+    cwe:
+    - CWE-915
+    - CWE-213
+  see:
+  - WEB-ARCH-006
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa3-broken-object-property-level-authorization.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mass_Assignment_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json

@@ -1,0 +1,756 @@
+- id: MOB-RESIL-001
+  sheet: MOB
+  category: RESIL
+  title: Check root and jailbreak detection
+  objective: Finds apps that run with sensitive functions on a rooted or jailbroken device.
+  preconditions:
+  - Rooted or jailbroken test device with Frida.
+  steps:
+  - 'Android: Search the code for root checks, such as su paths, test-keys, root packages and system property reads.'
+  - 'iOS: Search the binary for jailbreak checks, such as Cydia paths, writable system folders and URL scheme tests.'
+  - Hook the file, property and system calls at runtime and record the checks that run.
+  - Run the app on a rooted or jailbroken test device. Check how the app reacts.
+  - Try an automated bypass tool. Note which checks it must bypass.
+  - Make sure the app restricts sensitive functions or warns the backend when it detects the change.
+  example: frida -U -f <pkg> -l hook_root_checks.js ; objection -g <pkg> explore, then android root disable ; objection -g <bundle_id> explore, then ios jailbreak disable ; frida-trace -U -f <pkg> -i "access" -i "fopen"
+  expected: The app detects a rooted or jailbroken device with several checks. It limits sensitive functions or informs the backend when it finds one.
+  severity: Low
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS R
+  refs:
+    mobile_top10:
+    - M7:2024
+    masvs:
+    - MASVS-RESILIENCE-1
+    - MASVS-RESILIENCE-4
+    mastg:
+    - MASTG-TEST-0324
+    - MASTG-TEST-0325
+    - MASTG-TEST-0240
+    - MASTG-TEST-0241
+    maswe:
+    - MASWE-0051
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-1326
+  sources_read:
+  - sources/masvs/controls-master/MASVS-RESILIENCE-1.md
+  - sources/masvs/controls-master/MASVS-RESILIENCE-4.md
+  - sources/mastg/files/tests-beta_android_MASVS-RESILIENCE_MASTG-TEST-0324.md
+  - sources/mastg/files/tests-beta_android_MASVS-RESILIENCE_MASTG-TEST-0325.md
+  - sources/mastg/files/tests-beta_ios_MASVS-RESILIENCE_MASTG-TEST-0240.md
+  - sources/mastg/files/tests-beta_ios_MASVS-RESILIENCE_MASTG-TEST-0241.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-RESILIENCE_MASWE-0051.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m7-insufficient-binary-protection.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0043.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0032.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0152.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+- id: MOB-RESIL-002
+  sheet: MOB
+  category: RESIL
+  title: Check emulator and virtual device detection
+  objective: Finds apps that run sensitive functions in an emulator where attackers have full control.
+  preconditions:
+  - Emulator or virtual device with Frida.
+  steps:
+  - 'Android: Search the code for checks of Build properties, QEMU files and emulator sensors.'
+  - 'iOS: Look for hooks on the checks that find a simulator or virtual device.'
+  - Run the app in an emulator or virtual device. Hook the checks and trace the system calls.
+  - Record which checks run and how the app reacts.
+  - Make sure the app limits sensitive functions when it detects the virtual device.
+  example: frida -U -f <pkg> -l hook_build_props.js ; frida-trace -U -f <pkg> -i "__system_property_get" ; run the app in an Android Virtual Device or an iOS simulator
+  expected: The app detects emulators and virtual devices with several checks. It limits sensitive functions when it detects one.
+  severity: Low
+  test_type:
+  - Manual
+  level: MASVS R
+  refs:
+    mobile_top10:
+    - M7:2024
+    masvs:
+    - MASVS-RESILIENCE-1
+    - MASVS-RESILIENCE-4
+    mastg:
+    - MASTG-TEST-0351
+    - MASTG-TEST-0367
+    maswe:
+    - MASWE-0053
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+  sources_read:
+  - sources/masvs/controls-master/MASVS-RESILIENCE-1.md
+  - sources/masvs/controls-master/MASVS-RESILIENCE-4.md
+  - sources/mastg/files/tests-beta_android_MASVS-RESILIENCE_MASTG-TEST-0351.md
+  - sources/mastg/files/tests-beta_ios_MASVS-RESILIENCE_MASTG-TEST-0367.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-RESILIENCE_MASWE-0053.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m7-insufficient-binary-protection.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0043.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0032.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0095.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+- id: MOB-RESIL-003
+  sheet: MOB
+  category: RESIL
+  title: Check detection of app cloning and virtual app environments
+  objective: Finds apps that run inside a virtual container where another app can read and change them.
+  preconditions:
+  - A virtualization or dual-app tool on the test device.
+  steps:
+  - 'Android: Run the app inside a known app-virtualization or dual-app tool.'
+  - 'Android: Look at the process path, data folder and package structure that the app reads at runtime.'
+  - Check if the app compares these values with the expected ones.
+  - Check if the app restricts sensitive functions, informs the backend or ends when it finds a container.
+  example: adb shell pm list packages | grep <container> ; adb shell ps -A | grep <pkg> ; frida -U -f <pkg> -l hook_process_path.js
+  expected: The app finds that it runs in a virtual container, and it limits sensitive functions or informs the backend.
+  severity: Info
+  test_type:
+  - Manual
+  level: MASVS R
+  refs:
+    mobile_top10:
+    - M7:2024
+    masvs:
+    - MASVS-RESILIENCE-1
+    maswe:
+    - MASWE-0052
+    cwe:
+    - CWE-693
+  sources_read:
+  - sources/masvs/controls-master/MASVS-RESILIENCE-1.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-RESILIENCE_MASWE-0052.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m7-insufficient-binary-protection.md
+- id: MOB-RESIL-004
+  sheet: MOB
+  category: RESIL
+  title: Check device attestation in the backend
+  objective: Finds backends that cannot tell real devices from rooted, emulated or automated ones.
+  preconditions:
+  - Test backend that you may send replayed tokens to.
+  steps:
+  - Find the code that asks the platform for a device attestation, such as Play Integrity or hardware key attestation.
+  - 'iOS: Find the use of DeviceCheck and App Attest.'
+  - Capture the request that carries the attestation. Look for a server-issued nonce.
+  - Replay an old attestation and send a changed one. Check that the backend rejects both.
+  - Check that the backend checks the verdict itself and gates sensitive operations on it.
+  example: 'Burp Suite: capture and replay the attestation request ; grep -rn "IntegrityManager\|requestIntegrityToken\|DCAppAttestService" out/'
+  expected: The backend checks device attestation evidence with a fresh nonce. It blocks sensitive operations when the evidence is missing or bad.
+  severity: Medium
+  test_type:
+  - Manual
+  - Code Review
+  level: MASVS R
+  refs:
+    mobile_top10:
+    - M7:2024
+    masvs:
+    - MASVS-RESILIENCE-1
+    maswe:
+    - MASWE-0054
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+  sources_read:
+  - sources/masvs/controls-master/MASVS-RESILIENCE-1.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-RESILIENCE_MASWE-0054.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m7-insufficient-binary-protection.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+- id: MOB-RESIL-005
+  sheet: MOB
+  category: RESIL
+  title: Check that the app detects a device without a secure screen lock
+  objective: Finds apps that keep sensitive data and keys on devices that have no passcode.
+  preconditions:
+  - Test device where you can remove the lock.
+  steps:
+  - 'Android: Search the code for KeyguardManager.isDeviceSecure and BiometricManager.canAuthenticate.'
+  - 'iOS: Search the binary for LAContext canEvaluatePolicy with deviceOwnerAuthentication.'
+  - 'iOS: Check the Keychain items for kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly.'
+  - Hook these calls at runtime. Remove the device lock and use the app.
+  - Check that the app checks the lock again before it enables sensitive functions.
+  example: frida -U -f <pkg> -l hook_keyguard.js ; objection -g <pkg> explore, then android hooking watch class_method android.app.KeyguardManager.isDeviceSecure --dump-return
+  expected: The app checks that a secure screen lock exists before it enables sensitive functions. Keys bind to the device lock.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS L2
+  refs:
+    masvs:
+    - MASVS-CRYPTO-2
+    - MASVS-RESILIENCE-1
+    mastg:
+    - MASTG-TEST-0247
+    - MASTG-TEST-0249
+    - MASTG-TEST-0246
+    - MASTG-TEST-0248
+    maswe:
+    - MASWE-0017
+  sources_read:
+  - sources/masvs/controls-master/MASVS-RESILIENCE-1.md
+  - sources/masvs/controls-master/MASVS-CRYPTO-2.md
+  - sources/mastg/files/tests-beta_android_MASVS-RESILIENCE_MASTG-TEST-0247.md
+  - sources/mastg/files/tests-beta_android_MASVS-RESILIENCE_MASTG-TEST-0249.md
+  - sources/mastg/files/tests-beta_ios_MASVS-RESILIENCE_MASTG-TEST-0246.md
+  - sources/mastg/files/tests-beta_ios_MASVS-RESILIENCE_MASTG-TEST-0248.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-CRYPTO_MASWE-0017.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0043.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0095.md
+  notes: MASWE-0017 maps to MASVS-CRYPTO-2 in MASWE. The MASTG tests sit in the RESILIENCE folder. The MOB-A slice may cover the same control.
+  see:
+  - MOB-CRYPTO-016
+- id: MOB-RESIL-006
+  sheet: MOB
+  category: RESIL
+  title: Check the app signature scheme, key size and code signature format
+  objective: Finds weak or old signatures that attackers can abuse to repackage the app.
+  preconditions:
+  - APK or IPA of the release build.
+  steps:
+  - 'Android: Read minSdkVersion in the AndroidManifest.xml.'
+  - 'Android: List the signature schemes of the APK. Flag a v1-only signature when minSdkVersion is 24 or higher.'
+  - 'Android: Read the key size of each signer. Flag RSA keys below 2048 bits.'
+  - 'iOS: Extract the binary and read the CodeDirectory version of the code signature.'
+  - 'iOS: Compare it with the latest code signature format that Apple recommends.'
+  example: apksigner verify --verbose --print-certs app.apk ; apksigner verify -v app.apk | grep -i "scheme" ; codesign -dv --verbose=4 App.app | grep -E "CodeDirectory|Format"
+  expected: The APK uses v2 or newer signatures with strong keys. The iOS app uses the current code signature format.
+  severity: Low
+  test_type:
+  - Config Review
+  - Automated
+  level: MASVS R
+  refs:
+    mobile_top10:
+    - M7:2024
+    masvs:
+    - MASVS-RESILIENCE-2
+    mastg:
+    - MASTG-TEST-0224
+    - MASTG-TEST-0225
+    - MASTG-TEST-0220
+    maswe:
+    - MASWE-0056
+    cwe:
+    - CWE-347
+  sources_read:
+  - sources/masvs/controls-master/MASVS-RESILIENCE-2.md
+  - sources/mastg/files/tests-beta_android_MASVS-RESILIENCE_MASTG-TEST-0224.md
+  - sources/mastg/files/tests-beta_android_MASVS-RESILIENCE_MASTG-TEST-0225.md
+  - sources/mastg/files/tests-beta_ios_MASVS-RESILIENCE_MASTG-TEST-0220.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-RESILIENCE_MASWE-0056.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m7-insufficient-binary-protection.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0116.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0117.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0150.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0112.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+- id: MOB-RESIL-007
+  sheet: MOB
+  category: RESIL
+  title: Check app attestation in the backend
+  objective: Finds backends that accept requests from modified or repackaged copies of the app.
+  preconditions:
+  - Test backend. Do not run on production.
+  steps:
+  - Find the code that checks the signing identity, the package identity and the packaged files at runtime.
+  - Find the use of App Attest or the Play Integrity app verdict.
+  - Repackage the app with a test change. Send its requests to a test backend.
+  - Check that the backend rejects requests from the changed app.
+  - Check how the app reacts when its own checks fail.
+  example: apktool d app.apk ; apktool b -o repack.apk ; apksigner sign --ks test.jks repack.apk ; adb install repack.apk
+  expected: The backend checks an app integrity signal and rejects modified or repackaged clients. The app reacts to failed checks.
+  severity: Medium
+  test_type:
+  - Manual
+  - Code Review
+  level: MASVS R
+  refs:
+    mobile_top10:
+    - M7:2024
+    masvs:
+    - MASVS-RESILIENCE-2
+    maswe:
+    - MASWE-0056
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-347
+  sources_read:
+  - sources/masvs/controls-master/MASVS-RESILIENCE-2.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-RESILIENCE_MASWE-0056.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m7-insufficient-binary-protection.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+- id: MOB-RESIL-008
+  sheet: MOB
+  category: RESIL
+  title: Check integrity checks on data that the app stores locally
+  objective: Finds apps that trust local data for security decisions without an integrity check.
+  preconditions:
+  - Rooted or jailbroken test device.
+  steps:
+  - Find data in SharedPreferences, UserDefaults, files and databases that drives a security decision.
+  - Examples are login state, feature access, limits and server settings.
+  - Search the code for HMAC, Signature and digest APIs around the reads of that data.
+  - Change the stored value on a rooted or jailbroken device. Start the app.
+  - Check that the app finds the change and reacts.
+  example: grep -rn "javax.crypto.Mac\|SharedPreferences" out/ ; r2 -A <app_binary> ; afl~CCHmac ; adb shell run-as <pkg> cat shared_prefs/<file>.xml
+  expected: The app signs or authenticates data that drives a security decision, checks it on each read and reacts to a change.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS R
+  refs:
+    mobile_top10:
+    - M7:2024
+    masvs:
+    - MASVS-RESILIENCE-2
+    - MASVS-CODE-4
+    mastg:
+    - MASTG-TEST-0338
+    - MASTG-TEST-0387
+    maswe:
+    - MASWE-0057
+    cwe:
+    - CWE-471
+  sources_read:
+  - sources/masvs/controls-master/MASVS-RESILIENCE-2.md
+  - sources/masvs/controls-master/MASVS-CODE-4.md
+  - sources/mastg/files/tests-beta_android_MASVS-RESILIENCE_MASTG-TEST-0338.md
+  - sources/mastg/files/tests-beta_ios_MASVS-RESILIENCE_MASTG-TEST-0387.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-RESILIENCE_MASWE-0057.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m7-insufficient-binary-protection.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+- id: MOB-RESIL-009
+  sheet: MOB
+  category: RESIL
+  title: Check detection of hooking tools and code changes at runtime
+  objective: Finds apps that let attackers hook sensitive APIs and read secrets without any reaction.
+  preconditions:
+  - Test device with Frida server.
+  steps:
+  - Install the app and attach Frida to it.
+  - Hook sensitive APIs, such as AccountManager, KeyStore, SecItemCopyMatching and SecKey functions.
+  - Record whether the hook runs and returns data, or whether the app ends or blocks it.
+  - Look in the code for checks of loaded libraries, named pipes, ports and function prologues.
+  - Check that the app reacts, for example by ending the session or warning the backend.
+  example: frida -U -f <pkg> -l hook_keystore_getkey.js ; frida -U -f <bundle_id> -l hook_secitemcopymatching.js ; objection -g <pkg> explore
+  expected: The hook fails or the app reacts. The app detects hooking tools and changed code with several checks.
+  severity: Low
+  test_type:
+  - Manual
+  level: MASVS R
+  refs:
+    mobile_top10:
+    - M7:2024
+    masvs:
+    - MASVS-RESILIENCE-2
+    - MASVS-RESILIENCE-4
+    mastg:
+    - MASTG-TEST-0341
+    - MASTG-TEST-0354
+    maswe:
+    - MASWE-0058
+    - MASWE-0065
+  sources_read:
+  - sources/masvs/controls-master/MASVS-RESILIENCE-2.md
+  - sources/masvs/controls-master/MASVS-RESILIENCE-4.md
+  - sources/mastg/files/tests-beta_android_MASVS-RESILIENCE_MASTG-TEST-0341.md
+  - sources/mastg/files/tests-beta_ios_MASVS-RESILIENCE_MASTG-TEST-0354.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-RESILIENCE_MASWE-0058.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-RESILIENCE_MASWE-0065.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m7-insufficient-binary-protection.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0043.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0095.md
+- id: MOB-RESIL-010
+  sheet: MOB
+  category: RESIL
+  title: Check detection of malware and risky apps on the device
+  objective: Finds apps that handle high-risk flows without any check for a hostile environment.
+  preconditions:
+  - Test app with accessibility rights.
+  steps:
+  - Find uses of platform threat signals, such as Play Protect status or Play Integrity verdicts.
+  - Check if the app considers apps with accessibility or overlay rights in risk decisions.
+  - Install a test app with accessibility rights. Start a sensitive flow.
+  - Check if the app warns the user, asks for more checks or restricts the flow.
+  - Check if the backend restricts the account and not only the local client.
+  example: adb shell settings get secure enabled_accessibility_services ; adb shell dumpsys window | grep -i overlay
+  expected: For high-risk flows, the app uses threat signals and reacts in proportion. Restrictions apply to the account and not only to the device.
+  severity: Info
+  test_type:
+  - Manual
+  level: MASVS R
+  refs:
+    mobile_top10:
+    - M7:2024
+    masvs:
+    - MASVS-RESILIENCE-2
+    maswe:
+    - MASWE-0055
+    cwe:
+    - CWE-693
+  sources_read:
+  - sources/masvs/controls-master/MASVS-RESILIENCE-2.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-RESILIENCE_MASWE-0055.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0040.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0039.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m7-insufficient-binary-protection.md
+- id: MOB-RESIL-011
+  sheet: MOB
+  category: RESIL
+  title: Check code obfuscation of security-relevant logic
+  objective: Finds readable security logic that helps attackers to find and remove checks.
+  steps:
+  - 'Android: Decompile the DEX code. Look for readable class and method names in security logic.'
+  - 'Android: Extract the native libraries. Look for readable strings, symbols and constants.'
+  - 'iOS: Extract the main binary and bundled Mach-O files. Read the symbols and strings, and demangle Swift names.'
+  - Find root checks, attestation, integrity checks and key handling.
+  - Check that an attacker cannot find and understand these parts with reasonable effort.
+  example: jadx-gui app.apk ; strings -a lib/arm64-v8a/lib.so | head -100 ; r2 -A <app_binary> ; izz ; xcrun swift-demangle <symbol>
+  expected: Security-relevant code is obfuscated in the Java, Kotlin and native layers. An attacker needs much effort to find and understand it.
+  severity: Low
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS R
+  refs:
+    mobile_top10:
+    - M7:2024
+    masvs:
+    - MASVS-RESILIENCE-3
+    mastg:
+    - MASTG-TEST-0368
+    - MASTG-TEST-0369
+    - MASTG-TEST-0391
+    maswe:
+    - MASWE-0059
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-693
+  sources_read:
+  - sources/masvs/controls-master/MASVS-RESILIENCE-3.md
+  - sources/mastg/files/tests-beta_android_MASVS-RESILIENCE_MASTG-TEST-0368.md
+  - sources/mastg/files/tests-beta_android_MASVS-RESILIENCE_MASTG-TEST-0369.md
+  - sources/mastg/files/tests-beta_ios_MASVS-RESILIENCE_MASTG-TEST-0391.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-RESILIENCE_MASWE-0059.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m7-insufficient-binary-protection.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0023.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0157.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0018.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/techniques/generic/MASTG-TECH-0071.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0076.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0114.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+- id: MOB-RESIL-012
+  sheet: MOB
+  category: RESIL
+  title: Check obfuscation of resources and identifiers
+  objective: Finds readable resources and strings that show how the app works.
+  steps:
+  - Unpack the APK or IPA. List strings, layouts, configuration files and bundled data.
+  - Look for descriptive resource and string names that map to security features.
+  - Look for sensitive strings and settings in clear form.
+  - Check if integrity checks protect the obfuscated resources from replacement.
+  example: apktool d app.apk -o out ; cat out/res/values/strings.xml ; unzip app.ipa ; plutil -p Payload/App.app/Info.plist
+  expected: Resources that reveal security behavior are obfuscated or encrypted. Their identifiers carry no meaning in release builds.
+  severity: Info
+  test_type:
+  - Manual
+  level: MASVS R
+  refs:
+    mobile_top10:
+    - M7:2024
+    masvs:
+    - MASVS-RESILIENCE-3
+    maswe:
+    - MASWE-0060
+    cwe:
+    - CWE-693
+  sources_read:
+  - sources/masvs/controls-master/MASVS-RESILIENCE-3.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-RESILIENCE_MASWE-0060.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-RESILIENCE_MASWE-0057.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m7-insufficient-binary-protection.md
+- id: MOB-RESIL-013
+  sheet: MOB
+  category: RESIL
+  title: Check native binaries for debug symbols
+  objective: Finds binaries with symbols that show names and structure of the code.
+  preconditions:
+  - Extracted release package.
+  steps:
+  - 'Android: Extract the native libraries and read their symbol and line number information.'
+  - 'Android: Flag libraries that are not stripped or that have line numbers.'
+  - 'iOS: Extract the binaries. List the symbols of each executable and library.'
+  - 'iOS: Flag symbols that are marked as debug symbols.'
+  - Check that release builds keep dSYM files out of the app package.
+  example: r2 -A lib.so ; i~stripped,linenum,lsyms ; r2 -A <app_binary> ; is~debug ; nm -a lib.so | head
+  expected: Release binaries are stripped. They hold no debug symbols or line numbers.
+  severity: Low
+  test_type:
+  - Automated
+  - Config Review
+  level: MASVS R
+  refs:
+    mobile_top10:
+    - M7:2024
+    masvs:
+    - MASVS-RESILIENCE-3
+    mastg:
+    - MASTG-TEST-0288
+    - MASTG-TEST-0219
+    maswe:
+    - MASWE-0061
+    cwe:
+    - CWE-489
+    - CWE-497
+    - CWE-540
+    - CWE-912
+    - CWE-1295
+  sources_read:
+  - sources/masvs/controls-master/MASVS-RESILIENCE-3.md
+  - sources/mastg/files/tests-beta_android_MASVS-RESILIENCE_MASTG-TEST-0288.md
+  - sources/mastg/files/tests-beta_ios_MASVS-RESILIENCE_MASTG-TEST-0219.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-RESILIENCE_MASWE-0061.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m7-insufficient-binary-protection.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0140.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0157.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0113.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+- id: MOB-RESIL-014
+  sheet: MOB
+  category: RESIL
+  title: Check release builds for debug logging and StrictMode
+  objective: Finds logs that show implementation details to attackers.
+  preconditions:
+  - Release build of the app.
+  steps:
+  - 'Android: Search the code for StrictMode setVmPolicy and setThreadPolicy.'
+  - 'Android: Run the release build and read the logcat output for StrictMode messages.'
+  - 'iOS: Search the binary for NSLog, print, dump, debugPrint and os_log calls and their strings.'
+  - Run the release build and trigger errors, such as network failures and invalid input.
+  - Read the device logs for stack traces, endpoints, internal paths and verbose messages.
+  example: adb logcat | grep -i StrictMode ; adb logcat --pid=$(adb shell pidof <pkg>) ; xcrun simctl spawn booted log stream --style compact --level debug --predicate 'process CONTAINS[c] "App"'
+  expected: Release builds do not use StrictMode. Logs show no implementation details, debug messages or detailed errors.
+  severity: Low
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS R
+  refs:
+    mobile_top10:
+    - M8:2024
+    masvs:
+    - MASVS-RESILIENCE-3
+    mastg:
+    - MASTG-TEST-0263
+    - MASTG-TEST-0264
+    - MASTG-TEST-0265
+    - MASTG-TEST-0358
+    - MASTG-TEST-0359
+    maswe:
+    - MASWE-0061
+    cwe:
+    - CWE-489
+    - CWE-497
+    - CWE-540
+    - CWE-912
+    - CWE-1295
+  sources_read:
+  - sources/masvs/controls-master/MASVS-RESILIENCE-3.md
+  - sources/mastg/files/tests-beta_android_MASVS-RESILIENCE_MASTG-TEST-0263.md
+  - sources/mastg/files/tests-beta_android_MASVS-RESILIENCE_MASTG-TEST-0264.md
+  - sources/mastg/files/tests-beta_android_MASVS-RESILIENCE_MASTG-TEST-0265.md
+  - sources/mastg/files/tests-beta_ios_MASVS-RESILIENCE_MASTG-TEST-0358.md
+  - sources/mastg/files/tests-beta_ios_MASVS-RESILIENCE_MASTG-TEST-0359.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-RESILIENCE_MASWE-0061.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m8-security-misconfiguration.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0009.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0043.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0060.md
+  - sources/repos/mastg/techniques/generic/MASTG-TECH-0071.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+- id: MOB-RESIL-015
+  sheet: MOB
+  category: RESIL
+  title: Check that release builds are not debuggable
+  objective: Finds builds that let an attacker attach a debugger and read app memory and data.
+  preconditions:
+  - Release build of the app.
+  steps:
+  - 'Android: Read the android:debuggable attribute in the AndroidManifest.xml.'
+  - 'Android: Flag the value true.'
+  - 'iOS: Extract the entitlements of the main binary and look for get-task-allow.'
+  - 'iOS: Flag the value true.'
+  - Try to attach a debugger to the release build.
+  example: aapt2 d badging app.apk | grep -i debuggable ; apktool d app.apk ; grep debuggable out/AndroidManifest.xml ; rabin2 -OC App | grep -A1 get-task-allow ; adb jdwp
+  expected: The release build is not debuggable. The debuggable flag and the get-task-allow entitlement are false or missing.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Automated
+  level: MASVS R
+  refs:
+    mobile_top10:
+    - M8:2024
+    masvs:
+    - MASVS-RESILIENCE-4
+    mastg:
+    - MASTG-TEST-0226
+    - MASTG-TEST-0261
+    maswe:
+    - MASWE-0063
+    cwe:
+    - CWE-489
+  sources_read:
+  - sources/masvs/controls-master/MASVS-RESILIENCE-4.md
+  - sources/mastg/files/tests-beta_android_MASVS-RESILIENCE_MASTG-TEST-0226.md
+  - sources/mastg/files/tests-beta_ios_MASVS-RESILIENCE_MASTG-TEST-0261.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-RESILIENCE_MASWE-0063.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m8-security-misconfiguration.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0117.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0150.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0111.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0031.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0084.md
+- id: MOB-RESIL-016
+  sheet: MOB
+  category: RESIL
+  title: Check that WebView debugging is off in release builds
+  objective: Finds WebViews that let attackers inspect and change web content with remote tools.
+  preconditions:
+  - Release build on a device with USB debugging.
+  steps:
+  - 'Android: Search the code for WebView.setWebContentsDebuggingEnabled.'
+  - 'Android: Flag calls with true that do not check ApplicationInfo.FLAG_DEBUGGABLE.'
+  - 'Android: Open chrome://inspect with the release build running. Look for WebViews to inspect.'
+  example: grep -rn "setWebContentsDebuggingEnabled" out/ ; open chrome://inspect on the host with the device connected by USB
+  expected: The app calls setWebContentsDebuggingEnabled with true only when FLAG_DEBUGGABLE is set. The release build offers no WebView to inspect.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS R
+  refs:
+    mobile_top10:
+    - M8:2024
+    masvs:
+    - MASVS-RESILIENCE-4
+    - MASVS-PLATFORM-2
+    mastg:
+    - MASTG-TEST-0227
+    maswe:
+    - MASWE-0063
+    cwe:
+    - CWE-489
+  sources_read:
+  - sources/masvs/controls-master/MASVS-RESILIENCE-4.md
+  - sources/masvs/controls-master/MASVS-PLATFORM-2.md
+  - sources/mastg/files/tests-beta_android_MASVS-RESILIENCE_MASTG-TEST-0227.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-RESILIENCE_MASWE-0063.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m8-security-misconfiguration.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+- id: MOB-RESIL-017
+  sheet: MOB
+  category: RESIL
+  title: Check detection of attached debuggers
+  objective: Finds apps that keep running while a debugger controls them.
+  preconditions:
+  - Release build and a test device.
+  steps:
+  - 'Android: Search for Debug.isDebuggerConnected, ptrace, TracerPid reads and JDWP checks.'
+  - 'iOS: Search the binary for ptrace with PT_DENY_ATTACH, sysctl P_TRACED, getppid and exception port checks.'
+  - Hook the detection calls at runtime. Record return values and backtraces.
+  - Attach a debugger to the running app.
+  - Check that the app ends, limits functions or informs the backend.
+  example: adb jdwp ; adb forward tcp:7777 jdwp:<pid> ; jdb -attach localhost:7777 ; grep -rn "isDebuggerConnected\|TracerPid" out/ ; frida -U -f <pkg> -l hook_debug_detect.js
+  expected: The app detects an attached debugger in the Java, Kotlin, native and iOS code. It reacts when it finds one.
+  severity: Low
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS R
+  refs:
+    mobile_top10:
+    - M7:2024
+    masvs:
+    - MASVS-RESILIENCE-4
+    mastg:
+    - MASTG-TEST-0352
+    - MASTG-TEST-0353
+    - MASTG-TEST-0401
+    - MASTG-TEST-0402
+    maswe:
+    - MASWE-0064
+  sources_read:
+  - sources/masvs/controls-master/MASVS-RESILIENCE-4.md
+  - sources/mastg/files/tests-beta_android_MASVS-RESILIENCE_MASTG-TEST-0352.md
+  - sources/mastg/files/tests-beta_android_MASVS-RESILIENCE_MASTG-TEST-0353.md
+  - sources/mastg/files/tests-beta_ios_MASVS-RESILIENCE_MASTG-TEST-0401.md
+  - sources/mastg/files/tests-beta_ios_MASVS-RESILIENCE_MASTG-TEST-0402.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-RESILIENCE_MASWE-0064.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m7-insufficient-binary-protection.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0157.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0018.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0043.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0032.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0031.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0095.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0084.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0055.md
+- id: MOB-RESIL-018
+  sheet: MOB
+  category: RESIL
+  title: Check application-level encryption of API payloads
+  objective: Finds apps whose API payloads show in clear text once an attacker defeats TLS pinning.
+  preconditions:
+  - Test device with an intercepting proxy.
+  steps:
+  - Defeat certificate pinning on a test device. Capture the app traffic.
+  - Read the request and response bodies of security-relevant calls.
+  - Check if the app encrypts or signs the payloads in a second layer.
+  - Check that the keys come from the platform keystore.
+  - Change a captured request and replay it. Check that the server rejects it.
+  example: 'objection -g <pkg> explore, then android sslpinning disable ; Burp Suite: capture, edit and replay requests'
+  expected: Security-relevant payloads have a second layer of encryption or signature on top of TLS. The server rejects changed requests.
+  severity: Info
+  test_type:
+  - Manual
+  level: MASVS R
+  refs:
+    mobile_top10:
+    - M7:2024
+    masvs:
+    - MASVS-RESILIENCE-3
+    maswe:
+    - MASWE-0062
+    cwe:
+    - CWE-319
+  sources_read:
+  - sources/masvs/controls-master/MASVS-RESILIENCE-3.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-RESILIENCE_MASWE-0062.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m7-insufficient-binary-protection.md

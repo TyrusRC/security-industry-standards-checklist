@@ -1,0 +1,516 @@
+- id: LLM-SUPPLY-001
+  sheet: LLM
+  category: SUPPLY
+  title: Test model loading for unsafe serialization such as pickle
+  objective: Finds model loaders that run code from a model file at load time.
+  preconditions:
+  - Isolated test host without secrets.
+  steps:
+  - List the model file formats that the system loads.
+  - Search the code for pickle, torch.load and similar loaders without safe flags.
+  - Load a harmless test file that writes a marker file when it is unpickled.
+  - Check whether the marker appears and whether the load runs in a sandbox.
+  example: 'Tools: model scanners, semgrep, safetensors format checks. Use a marker file only.'
+  expected: The system uses safe formats and safe loaders. Loading runs in a sandbox and the marker file is not created.
+  severity: Critical
+  test_type:
+  - Code Review
+  - Manual
+  refs:
+    llm_top10:
+    - LLM03:2025
+    - LLM04:2026
+    - LLM04:2025
+    - LLM05:2026
+    atlas:
+    - AML.T0010.003
+    - AML.T0058
+    - AML.M0011
+    - AML.M0014
+    cwe:
+    - CWE-502
+    - CWE-829
+    attack:
+    - T1195
+    - T1059
+    cheatsheet:
+    - Secure_AI_Model_Ops_Cheat_Sheet
+    other: LLM04:2025 intro; LLM05:2026 scenario 7
+  see:
+  - WEB-INJ-025
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_AI_Model_Ops_Cheat_Sheet.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM03_SupplyChain.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM04_DataModelPoisoning.md
+  - sources/top10s/llm2026_LLM04_SupplyChain.md
+  - sources/top10s/llm2026_LLM05_DataModelPoisoning.md
+- id: LLM-SUPPLY-002
+  sheet: LLM
+  category: SUPPLY
+  title: Test model scanners and safe loader options for bypass
+  objective: Finds pipelines that trust a scanner or a loader flag that an attacker can defeat.
+  preconditions:
+  - Isolated test host.
+  steps:
+  - Make test files with a broken stream, compression wrapping and a harmless marker action.
+  - Run the scanner and note the verdict.
+  - Load the file with the safe loader option in the sandbox.
+  - Check whether the marker action runs.
+  - Check that the pipeline has other controls than the scanner alone.
+  example: 'Tools: model scanners, sandbox host. Related finding in LLM04:2026: nullifAI models.'
+  expected: A bypassed scanner does not lead to code execution. The pipeline uses signatures, safe formats and sandbox loading as well.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    llm_top10:
+    - LLM03:2025
+    - LLM04:2026
+    atlas:
+    - AML.T0010.003
+    - AML.T0058
+    - AML.M0016
+    cwe:
+    - CWE-502
+    - CWE-693
+    cheatsheet:
+    - Secure_AI_Model_Ops_Cheat_Sheet
+    other: LLM04:2026 scenario 6
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_AI_Model_Ops_Cheat_Sheet.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM03_SupplyChain.md
+  - sources/top10s/llm2026_LLM04_SupplyChain.md
+- id: LLM-SUPPLY-003
+  sheet: LLM
+  category: SUPPLY
+  title: Check signing, hash pinning and provenance of models and adapters
+  objective: Finds models, adapters and datasets that can be replaced without detection.
+  steps:
+  - List each model, adapter, tokenizer and data set that production uses.
+  - Check that each one is pinned by hash or commit and that the signature is checked at deploy time.
+  - Replace one artifact in a test registry and deploy.
+  - Check that the deploy fails.
+  example: 'Tools: Sigstore, OpenSSF model signing, sha256sum, registry policy.'
+  expected: Deploy fails for any artifact without a valid signature or a matching hash. The system keeps records of the provenance.
+  severity: High
+  test_type:
+  - Config Review
+  refs:
+    llm_top10:
+    - LLM03:2025
+    - LLM04:2026
+    agentic_top10:
+    - ASI04
+    atlas:
+    - AML.M0013
+    - AML.M0014
+    - AML.M0017
+    cwe:
+    - CWE-345
+    - CWE-494
+    cheatsheet:
+    - Secure_AI_Model_Ops_Cheat_Sheet
+    other: LLM03:2025 mitigation 6; LLM04:2026 mitigation 5
+  see:
+  - WEB-DEP-005
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_AI_Model_Ops_Cheat_Sheet.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM03_SupplyChain.md
+  - sources/top10s/agentic.txt
+  - sources/top10s/llm2026_LLM04_SupplyChain.md
+- id: LLM-SUPPLY-004
+  sheet: LLM
+  category: SUPPLY
+  title: Test model references for namespace reuse
+  objective: Finds pipelines that pull a model by hub name only so a re-registered name can deliver a malicious model.
+  steps:
+  - List the models that code, notebooks and catalogs pull by Author/ModelName.
+  - Check that each reference uses a fixed revision or hash.
+  - Check that the system mirrors approved models in an internal registry.
+  - Check for alerts when an upstream owner or name changes.
+  example: 'Tools: grep for from_pretrained and model ids, registry configuration review.'
+  expected: Pipelines pull models by pinned revision from an internal registry. A change of the upstream owner raises an alert.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    llm_top10:
+    - LLM03:2025
+    - LLM04:2026
+    agentic_top10:
+    - ASI04
+    atlas:
+    - AML.T0010.003
+    - AML.T0109
+    - AML.M0014
+    cwe:
+    - CWE-829
+    - CWE-494
+    cheatsheet:
+    - Secure_AI_Model_Ops_Cheat_Sheet
+    other: LLM04:2026 scenario 5
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_AI_Model_Ops_Cheat_Sheet.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM03_SupplyChain.md
+  - sources/top10s/agentic.txt
+  - sources/top10s/llm2026_LLM04_SupplyChain.md
+- id: LLM-SUPPLY-005
+  sheet: LLM
+  category: SUPPLY
+  title: Test LoRA adapters and model merge steps
+  objective: Finds adapters or merged models that bring hidden behavior into a base model.
+  steps:
+  - List adapters and merged models in use and their sources.
+  - Compare adapter weights and metadata with the supplier release.
+  - Run the behavior test set on the base model and on the model with the adapter.
+  - Check that inference platforms accept adapters only from an approved list.
+  example: 'Tools: hash checks, promptfoo, garak, backdoor trigger probes.'
+  expected: Only approved, signed adapters load. Behavior tests with the adapter match the base model on safety cases.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    llm_top10:
+    - LLM03:2025
+    - LLM04:2026
+    - LLM04:2025
+    - LLM05:2026
+    atlas:
+    - AML.T0010.003
+    - AML.T0018.000
+    - AML.M0008
+    cwe:
+    - CWE-494
+    - CWE-829
+    cheatsheet:
+    - Secure_AI_Model_Ops_Cheat_Sheet
+    other: LLM03:2025 examples 6 and 7, scenarios 5 and 6
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_AI_Model_Ops_Cheat_Sheet.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM03_SupplyChain.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM04_DataModelPoisoning.md
+  - sources/top10s/llm2026_LLM04_SupplyChain.md
+  - sources/top10s/llm2026_LLM05_DataModelPoisoning.md
+- id: LLM-SUPPLY-006
+  sheet: LLM
+  category: SUPPLY
+  title: Review conversion, merge and quantization services
+  objective: Finds model conversion or merge services that can change a model without review.
+  steps:
+  - List the services and bots that convert, merge or quantize models.
+  - Check who can trigger them and where the output is stored.
+  - Check that outputs are re-signed, scanned and tested before promotion.
+  - Check the audit logs for changes.
+  example: 'Reference in the source: HiddenLayer research on the Safetensors conversion bot.'
+  expected: Conversion and merge outputs go through scans, tests and re-signing. Only named roles can trigger the services.
+  severity: Medium
+  test_type:
+  - Config Review
+  refs:
+    llm_top10:
+    - LLM03:2025
+    - LLM04:2026
+    atlas:
+    - AML.T0010.003
+    - AML.M0016
+    - AML.M0013
+    cwe:
+    - CWE-494
+    - CWE-829
+    cheatsheet:
+    - Secure_AI_Model_Ops_Cheat_Sheet
+    other: LLM03:2025 scenario 10; LLM04:2026 scenario 4
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_AI_Model_Ops_Cheat_Sheet.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM03_SupplyChain.md
+  - sources/top10s/llm2026_LLM04_SupplyChain.md
+- id: LLM-SUPPLY-007
+  sheet: LLM
+  category: SUPPLY
+  title: Check the AI bill of materials, licenses and model inventory
+  objective: Finds missing records of models, datasets, adapters and licenses.
+  steps:
+  - Ask for the SBOM and the AIBOM of one production service.
+  - Check that models, datasets, adapters and licenses are listed with versions.
+  - Pick one component and find the license text and the allowed use.
+  - Check that the inventory shows deprecated models.
+  example: 'Tools: CycloneDX ML-BOM, SPDX, license scanners.'
+  expected: A signed inventory lists models, datasets, adapters, dependencies and licenses with versions. The team reviews it on a set schedule.
+  severity: Medium
+  test_type:
+  - Config Review
+  refs:
+    llm_top10:
+    - LLM03:2025
+    - LLM04:2026
+    atlas:
+    - AML.M0023
+    - AML.M0025
+    cwe:
+    - CWE-1104
+    cheatsheet:
+    - Secure_AI_Model_Ops_Cheat_Sheet
+    other: LLM03:2025 mitigations 4 and 5
+  see:
+  - WEB-DEP-002
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_AI_Model_Ops_Cheat_Sheet.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM03_SupplyChain.md
+  - sources/top10s/llm2026_LLM04_SupplyChain.md
+- id: LLM-SUPPLY-008
+  sheet: LLM
+  category: SUPPLY
+  title: Review supplier terms, privacy policy and data use
+  objective: Finds model suppliers whose terms allow use of your data for training.
+  steps:
+  - List the model and data suppliers.
+  - Read the terms and privacy policy for training and retention rules.
+  - Check that the account settings turn off training on your data.
+  - Set a review on every change of terms.
+  example: Provider console settings, contract review.
+  expected: Terms and settings forbid training on your data and limit retention. The team reviews changes of terms.
+  severity: Low
+  test_type:
+  - Config Review
+  refs:
+    llm_top10:
+    - LLM03:2025
+    - LLM04:2026
+    - LLM02:2025
+    - LLM02:2026
+    cwe:
+    - CWE-359
+    cheatsheet:
+    - Secure_AI_Model_Ops_Cheat_Sheet
+    other: LLM03:2025 example 9 and scenario 13
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_AI_Model_Ops_Cheat_Sheet.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM02_SensitiveInformationDisclosure.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM03_SupplyChain.md
+  - sources/top10s/llm2026_LLM02_SensitiveInformationDisclosure.md
+  - sources/top10s/llm2026_LLM04_SupplyChain.md
+- id: LLM-SUPPLY-009
+  sheet: LLM
+  category: SUPPLY
+  title: Check serving frameworks, patching and authentication of inference endpoints
+  objective: Finds exposed or old model serving software.
+  steps:
+  - List the serving tools and their versions, such as vLLM, Ollama or Triton.
+  - Compare versions with the known vulnerability lists.
+  - Test every inference endpoint without credentials.
+  - Check that unsafe deserialization and special token passthrough are off.
+  example: 'Tools: Trivy, nmap, curl, vendor advisories.'
+  expected: Serving software is current and every endpoint needs authentication. Unsafe features are off.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    llm_top10:
+    - LLM03:2025
+    - LLM04:2026
+    - LLM10:2025
+    - LLM06:2026
+    agentic_top10:
+    - ASI04
+    atlas:
+    - AML.T0010.001
+    - AML.M0016
+    - AML.M0019
+    cwe:
+    - CWE-1395
+    - CWE-306
+    attack:
+    - T1190
+    cheatsheet:
+    - Secure_AI_Model_Ops_Cheat_Sheet
+    other: LLM04:2026 scenario 1; LLM06:2026 example 9
+  see:
+  - WEB-DEP-003
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_AI_Model_Ops_Cheat_Sheet.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM03_SupplyChain.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM10_UnboundedConsumption.md
+  - sources/top10s/agentic.txt
+  - sources/top10s/llm2026_LLM04_SupplyChain.md
+  - sources/top10s/llm2026_LLM06_UnboundedConsumption.md
+- id: LLM-SUPPLY-010
+  sheet: LLM
+  category: SUPPLY
+  title: Test ML dependencies and build pipelines of model artifacts
+  objective: Finds weak dependency or CI controls that let an attacker change models or libraries.
+  steps:
+  - Run a dependency scan on the training and serving projects.
+  - Check that the pipeline fails on high severity findings.
+  - Check that the build uses pinned versions and a private package mirror.
+  - Check that CI secrets, caches and registry tokens have narrow rights.
+  example: 'Tools: Trivy, OWASP Dependency-Check, OpenSSF Scorecards, Cosign.'
+  expected: The pipeline fails on high severity issues and uses pinned, signed inputs. Registry credentials are narrow and rotated.
+  severity: High
+  test_type:
+  - Config Review
+  refs:
+    llm_top10:
+    - LLM03:2025
+    - LLM04:2026
+    atlas:
+    - AML.M0016
+    - AML.M0013
+    cwe:
+    - CWE-1395
+    - CWE-829
+    attack:
+    - T1195.002
+    other: AITG-INF-01; LLM04:2026 scenarios 1 and 7
+  see:
+  - WEB-DEP-004
+  sources_read:
+  - sources/repos/www-project-ai-testing-guide/Document/content/tests/AITG-INF-01_Testing_for_Supply_Chain_Tampering.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM03_SupplyChain.md
+  - sources/top10s/llm2026_LLM04_SupplyChain.md
+- id: LLM-SUPPLY-011
+  sheet: LLM
+  category: SUPPLY
+  title: Test protection of models and secrets in development
+  objective: Finds ways to steal models or training secrets from repositories, notebooks and CI.
+  steps:
+  - Scan repositories and notebooks for keys and tokens.
+  - Check access to model registries and experiment trackers without credentials.
+  - Check CI runners for egress limits and review of pipeline changes.
+  - Check that model files are encrypted at rest.
+  example: 'Tools: git-secrets, TruffleHog, MLflow endpoint test, cloud DLP.'
+  expected: No secrets sit in code. Registries and trackers need authentication. CI runners have egress limits.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    llm_top10:
+    - LLM03:2025
+    - LLM04:2026
+    - LLM10:2025
+    - LLM06:2026
+    atlas:
+    - AML.M0005
+    - AML.M0012
+    - AML.M0019
+    cwe:
+    - CWE-798
+    - CWE-306
+    cheatsheet:
+    - Secure_AI_Model_Ops_Cheat_Sheet
+    other: AITG-INF-06; Secure AI Model Ops cheat sheet open MLflow example
+  see:
+  - WEB-SECRET-001
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_AI_Model_Ops_Cheat_Sheet.md
+  - sources/repos/www-project-ai-testing-guide/Document/content/tests/AITG-INF-06_Testing_for_Dev-Time_Model_Theft.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM03_SupplyChain.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM10_UnboundedConsumption.md
+  - sources/top10s/llm2026_LLM04_SupplyChain.md
+  - sources/top10s/llm2026_LLM06_UnboundedConsumption.md
+- id: LLM-SUPPLY-012
+  sheet: LLM
+  category: SUPPLY
+  title: Test on-device model integrity and app repackaging
+  objective: Finds apps whose model file can be replaced.
+  preconditions:
+  - Mobile or edge application that ships a model.
+  steps:
+  - Extract the model file from the test app package.
+  - Replace it with a changed test model and repackage the app.
+  - Run the repackaged app.
+  - Check for integrity checks, attestation and encryption of the model.
+  example: 'Tools: apktool, Frida, vendor attestation APIs.'
+  expected: The app detects a changed model and refuses to run. The model file is encrypted and bound to attestation.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    llm_top10:
+    - LLM03:2025
+    - LLM04:2026
+    atlas:
+    - AML.M0014
+    - AML.M0017
+    cwe:
+    - CWE-345
+    - CWE-494
+    cheatsheet:
+    - Secure_AI_Model_Ops_Cheat_Sheet
+    other: LLM03:2025 scenario 11; LLM04:2026 scenario 8
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_AI_Model_Ops_Cheat_Sheet.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM03_SupplyChain.md
+  - sources/top10s/llm2026_LLM04_SupplyChain.md
+- id: LLM-SUPPLY-013
+  sheet: LLM
+  category: SUPPLY
+  title: Evaluate third-party models with red teaming before use
+  objective: Finds model choices based only on public benchmarks that a tuned model can game.
+  steps:
+  - Choose use-case test sets that cover safety, injection and data leaks.
+  - Run garak, promptfoo and PyRIT suites on the candidate model.
+  - Compare results with the benchmark claims of the supplier.
+  - Repeat on every model update.
+  example: 'Tools: garak, promptfoo, PyRIT, Giskard.'
+  expected: The team accepts a model only after use-case red teaming. Results are kept and repeated on updates.
+  severity: Medium
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    llm_top10:
+    - LLM03:2025
+    - LLM04:2026
+    - LLM04:2025
+    - LLM05:2026
+    atlas:
+    - AML.M0008
+    - AML.M0003
+    cheatsheet:
+    - Secure_AI_Model_Ops_Cheat_Sheet
+    other: LLM03:2025 mitigation 3
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_AI_Model_Ops_Cheat_Sheet.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM03_SupplyChain.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM04_DataModelPoisoning.md
+  - sources/top10s/llm2026_LLM04_SupplyChain.md
+  - sources/top10s/llm2026_LLM05_DataModelPoisoning.md
+- id: LLM-SUPPLY-014
+  sheet: LLM
+  category: SUPPLY
+  title: Check runtime isolation of GPUs and model jobs
+  objective: Finds shared accelerators or job environments that leak data between workloads.
+  steps:
+  - List which workloads share GPUs, nodes and storage.
+  - Check that untrusted tenants do not share an accelerator without hardware partitions.
+  - Check that jobs clear memory, caches and temp files on exit.
+  - Check for blocked access to the cloud metadata service from serving containers.
+  example: 'Tools: kubectl and node review, gVisor or Kata settings, network policy tests.'
+  expected: Mutually untrusted workloads do not share accelerators without hardware partitions. Jobs clear data at the end.
+  severity: Medium
+  test_type:
+  - Config Review
+  refs:
+    llm_top10:
+    - LLM03:2025
+    - LLM04:2026
+    - LLM02:2025
+    - LLM02:2026
+    atlas:
+    - AML.M0019
+    cwe:
+    - CWE-668
+    - CWE-226
+    cheatsheet:
+    - Secure_AI_Model_Ops_Cheat_Sheet
+    other: LLM03:2025 scenario 8; Secure AI Model Ops cheat sheet section 6
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_AI_Model_Ops_Cheat_Sheet.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM02_SensitiveInformationDisclosure.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM03_SupplyChain.md
+  - sources/top10s/llm2026_LLM02_SensitiveInformationDisclosure.md
+  - sources/top10s/llm2026_LLM04_SupplyChain.md

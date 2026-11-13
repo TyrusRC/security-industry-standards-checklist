@@ -1,0 +1,30 @@
+- id: WEB-PQC-001
+  sheet: WEB
+  category: PQC
+  title: Test post-quantum hybrid key exchange, fallback and dual signature checks
+  objective: Find deployments where post-quantum protection is not used, is silently dropped, or where one of two signatures is enough.
+  preconditions:
+  - A test client that supports hybrid key exchange.
+  steps:
+  - Open the connection from real clients through the proxy, the gateway and the back end.
+  - Look at the negotiated key exchange group of each connection.
+  - Block the post-quantum group at the client and look for a silent retry with classical algorithms where PQC is required.
+  - Send a signature object where one of two required signatures is missing or wrong.
+  - Test the handshake time and the limits for certificate, message and field sizes.
+  - Look at logs and alerts for connections that use classical algorithms only.
+  example: openssl s_client -connect target:443 -groups X25519MLKEM768 -brief; curl --curves X25519MLKEM768 -v https://target; wireshark ClientHello
+  expected: Required paths use the hybrid exchange and fail without a silent classical retry. Both signatures must be valid. Classical-only use is logged and approved as an exception.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    owasp_top10:
+    - A04:2025
+    cheatsheet:
+    - Post_Quantum_Cryptography_Cheat_Sheet
+    cwe:
+    - CWE-327
+    - CWE-757
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Post_Quantum_Cryptography_Cheat_Sheet.md

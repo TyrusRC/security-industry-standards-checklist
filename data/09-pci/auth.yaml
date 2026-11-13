@@ -1,0 +1,374 @@
+- id: PCI-AUTH-001
+  sheet: PCI
+  category: AUTH
+  title: Check that every user has a unique ID before access is allowed
+  objective: Find users who share an ID or whose actions cannot be linked to one person.
+  preconditions:
+  - Access to user lists and audit logs
+  steps:
+  - Export the user list of each system and application in scope.
+  - Look for IDs that two or more people use, such as admin, root or team names.
+  - Interview two users of each system. Ask whether they use their own ID.
+  - Pick five events in the audit logs. Link each one to one named person.
+  - Look for access that needs no ID.
+  example: getent passwd; SELECT username FROM users; compare with the HR list; follow five log entries to a person
+  expected: Each user has a unique ID before access is allowed. Every logged action can be linked to one person.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 8.2.1
+    nist_800_53:
+    - IA-2
+    - IA-4
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-AUTH-002
+  sheet: PCI
+  category: AUTH
+  title: Check that shared and generic IDs are rare and controlled
+  objective: Find group, shared or generic IDs that are used without a need or without individual accountability.
+  preconditions:
+  - Access to the account lists and the vault
+  steps:
+  - List all group, shared and generic IDs and shared credentials, including service and vendor IDs.
+  - Make sure each has a written business reason and management approval.
+  - Make sure use is blocked by default and open only for the time of the exception.
+  - Make sure the system confirms the identity of the person before the use of the account.
+  - Pick one recent use. Make sure the log links each action to one person.
+  example: Privileged access management check-out log; vault session records; sudo log
+  expected: Shared and generic IDs are used only by exception, with approval, a time limit, identity confirmation and individual accountability.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 8.2.2
+    nist_800_53:
+    - AC-2
+    - IA-2
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-AUTH-003
+  sheet: PCI
+  category: AUTH
+  title: Check that remote access factors are unique for each customer
+  objective: Find service providers that reuse one credential for remote access to several customers.
+  preconditions:
+  - Service provider scope
+  steps:
+  - Ask for the list of customers that the provider can reach with remote access.
+  - Examine the authentication factors that are used for each customer environment.
+  - Look for factors that two or more customer environments share.
+  - Make sure the remote access tool stores the factors per customer.
+  - Make sure a leak of one factor opens only one customer environment.
+  example: Remote support tool configuration; vault entries per customer
+  expected: Each customer premises has its own authentication factors. No factor works on more than one customer environment.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 8.2.3
+    nist_800_53:
+    - IA-5
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-AUTH-004
+  sheet: PCI
+  category: AUTH
+  title: Check that access of terminated users is revoked at once
+  objective: Find accounts of former staff and contractors that still work.
+  preconditions:
+  - Access to the leaver list and directories
+  steps:
+  - Get the list of users who left in the last 90 days.
+  - Look for each user in the local, remote, VPN, application and database accounts.
+  - Compare the leave date with the date the access ended.
+  - Make sure the access ended at once, in the same working day.
+  - Try to log in with one disabled account on a test system.
+  example: 'Compare the HR leaver list with: ldapsearch, lastlog, aws iam list-users, VPN user list'
+  expected: Every account of a terminated user is removed or disabled at once on every system, for local and remote access.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 8.2.5
+    nist_800_53:
+    - PS-4
+    - AC-2
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-AUTH-005
+  sheet: PCI
+  category: AUTH
+  title: Check that inactive accounts are removed or disabled within 90 days
+  objective: Find user accounts that stay active after 90 days with no use.
+  preconditions:
+  - Access to last-login data
+  steps:
+  - Export last-login dates for all user accounts of each system in scope.
+  - Find accounts with no use for more than 90 days.
+  - Make sure each such account is removed or disabled.
+  - Make sure an automatic job or a documented process does this.
+  - Make sure the reason is on file for any exception.
+  example: lastlog; SELECT last_login FROM users; aws iam generate-credential-report; Get-ADUser -Filter {LastLogonDate -lt $d}
+  expected: No user account is active after 90 days of inactivity. A process removes or disables inactive accounts.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 8.2.6
+    nist_800_53:
+    - AC-2
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-AUTH-006
+  sheet: PCI
+  category: AUTH
+  title: Check that third-party remote access accounts are limited and monitored
+  objective: Find vendor accounts that stay enabled all the time or run with no monitoring.
+  preconditions:
+  - Access to vendor account records
+  steps:
+  - List all accounts that third parties use for remote access.
+  - Make sure each account is disabled when not in use.
+  - Make sure the account is open only for the time needed, with approval.
+  - Look at the logs of the last vendor session. Make sure it was monitored for unexpected activity.
+  - Try to log in with a vendor account outside an approved period.
+  example: VPN account list; vendor access schedule; session recording of the last vendor session
+  expected: Third-party remote accounts are enabled only for the needed period and disabled otherwise. Their use is monitored.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 8.2.7
+    nist_800_53:
+    - AC-17
+    - MA-4
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-AUTH-007
+  sheet: PCI
+  category: AUTH
+  title: Check that sessions need new authentication after 15 minutes of idle time
+  objective: Find terminals and sessions that stay open for more than 15 minutes with no activity.
+  preconditions:
+  - Test account on each system
+  steps:
+  - Find the idle timeout settings for each application, operating system and remote access tool in scope.
+  - Make sure each value is 15 minutes or less.
+  - Log in to a test system and stay idle for 16 minutes.
+  - Try to use the session. Make sure the system asks for authentication again.
+  - Try the same on a session that the user locked, and on a remote desktop session.
+  example: Application session timeout setting; Windows screen lock policy; sshd ClientAliveInterval; TMOUT
+  expected: A session that is idle for more than 15 minutes needs authentication again. All in-scope systems have a timeout of 15 minutes or less.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 8.2.8
+    nist_800_53:
+    - AC-11
+    - AC-12
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-AUTH-008
+  sheet: PCI
+  category: AUTH
+  title: Check the lockout limit and duration for invalid logins
+  objective: Find login functions that allow more than 10 invalid attempts or unlock too early.
+  preconditions:
+  - Test account that can be locked
+  steps:
+  - Find the lockout settings for each login function in scope.
+  - Make sure the lockout starts after no more than 10 invalid attempts.
+  - Send 10 wrong passwords to a test account. Then send the correct password.
+  - Make sure the account stays locked for at least 30 minutes or until an administrator confirms the user.
+  - Try the same on the API and on remote access.
+  example: Active Directory account lockout policy; application lockout setting; hydra against a test account
+  expected: An account locks after no more than 10 invalid attempts. It stays locked for at least 30 minutes or until the identity is confirmed.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 8.3.4
+    cwe:
+    - CWE-307
+    nist_800_53:
+    - AC-7
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-AUTH-009
+  sheet: PCI
+  category: AUTH
+  title: Check the password length and character type rules against PCI DSS
+  objective: Find password settings that allow fewer than 12 characters or no mix of numbers and letters.
+  preconditions:
+  - Test account
+  steps:
+  - Find the password settings for each system and application that uses passwords as a factor.
+  - Make sure the minimum length is 12 characters, or 8 where the system cannot support 12.
+  - Try to set a password of 11 characters. Make sure the system refuses it.
+  - Try to set a password of only letters and one of only digits. Make sure the system refuses both.
+  - Make sure the rule is enforced on the server.
+  example: Active Directory password policy; /etc/security/pwquality.conf; the application password rule
+  expected: Passwords need at least 12 characters, or 8 where 12 is not supported, and contain both numbers and letters.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 8.3.6
+    cwe:
+    - CWE-521
+    nist_800_53:
+    - IA-5
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-AUTH-010
+  sheet: PCI
+  category: AUTH
+  title: Check that a new password differs from the last four passwords
+  objective: Find systems that allow users to reuse a recent password.
+  preconditions:
+  - Test account
+  steps:
+  - Find the password history setting for each system in scope.
+  - Make sure the history size is at least four.
+  - Change the password of a test account five times.
+  - Try to set the second password again. Make sure the system refuses it.
+  - Try to set the first password. Make sure the system accepts it only after four changes.
+  example: net accounts; /etc/pam.d/common-password remember=4; application password history table
+  expected: A user cannot set a new password that matches any of the last four passwords.
+  severity: Low
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 8.3.7
+    nist_800_53:
+    - IA-5
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-AUTH-011
+  sheet: PCI
+  category: AUTH
+  title: Check that single-factor passwords change every 90 days or get dynamic analysis
+  objective: Find accounts that use a password as the only factor and keep it more than 90 days with no risk analysis.
+  preconditions:
+  - Access to authentication configuration
+  steps:
+  - List the systems where a password is the only authentication factor.
+  - Find the password age rule of each. Make sure it is 90 days or less.
+  - If the system uses dynamic analysis, examine how it decides on access in real time.
+  - Examine the posture signals that the analysis uses.
+  - Look for accounts with a password older than 90 days and no dynamic analysis.
+  example: Active Directory maxPwdAge; account password last set date; risk-based access policy export
+  expected: Single-factor passwords change at least every 90 days, or the posture of the account is analyzed and access is set in real time.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 8.3.9
+    nist_800_53:
+    - IA-5
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-AUTH-012
+  sheet: PCI
+  category: AUTH
+  title: Check that a service provider guides customers on single-factor passwords
+  objective: Find customer password guidance that omits change timing and the conditions for a change.
+  preconditions:
+  - Service provider scope
+  steps:
+  - Find out if customer users can reach cardholder data with a password as the only factor.
+  - Ask for the guidance that the provider gives to these users.
+  - Make sure the guidance tells users when and how often to change the password.
+  - Make sure it states the conditions for a password change.
+  - Or make sure the provider uses dynamic analysis of the account posture instead (see 8.3.10.1).
+  example: Customer onboarding documents; portal help pages; password policy of the customer portal
+  expected: The provider gives customer users guidance on password change timing and conditions. Passwords change every 90 days or accounts are analyzed dynamically.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    pci_dss:
+    - 8.3.10
+    - 8.3.10.1
+    nist_800_53:
+    - IA-5
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-AUTH-013
+  sheet: PCI
+  category: AUTH
+  title: Check that tokens, smart cards and certificates belong to one user
+  objective: Find authentication tokens that several people share or that others can use.
+  preconditions:
+  - Access to token and certificate records
+  steps:
+  - List the physical and logical tokens, smart cards and certificates in use.
+  - Compare each with the user it is assigned to.
+  - Look for tokens or certificates that more than one person uses.
+  - Make sure a PIN, a biometric or another control stops others from using the factor.
+  - Look for client certificates and keys saved in shared folders.
+  example: Token inventory; certificate subject check; PIN policy; keystore file search
+  expected: Each token, smart card or certificate is assigned to one user. Controls stop other persons from using the factor.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 8.3.11
+    nist_800_53:
+    - IA-5
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-AUTH-014
+  sheet: PCI
+  category: AUTH
+  title: Check that interactive use of application and system accounts is limited
+  objective: Find service accounts that people use to log in with no need, approval or attribution.
+  preconditions:
+  - Access to account lists and logs
+  steps:
+  - List application and system accounts that can log in interactively.
+  - Make sure interactive login is blocked unless an exceptional circumstance needs it.
+  - Make sure each exception has a business reason and management approval.
+  - Make sure use is limited in time and the identity of the person is confirmed before access.
+  - Pick one recent use. Make sure the log links each action to one person.
+  example: grep -v nologin /etc/passwd; service account shell and logon type audit; vault check-out log
+  expected: Interactive use of application and system accounts is blocked by default. Exceptions are approved, time limited and attributable to a person.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 8.6.1
+    nist_800_53:
+    - AC-2
+    - IA-2
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md

@@ -1,0 +1,87 @@
+- id: WEB-VDP-001
+  sheet: WEB
+  category: VDP
+  title: Check that a security.txt file gives a valid way to report vulnerabilities
+  objective: Finds sites where researchers cannot find a contact for security reports.
+  steps:
+  - Request /.well-known/security.txt over HTTPS.
+  - Make sure the file has a Contact field and an Expires field in the future.
+  - Make sure the contact address or form works and reaches the security team.
+  - If the file lists an encryption key or a policy link, make sure they work.
+  example: curl -si https://HOST/.well-known/security.txt
+  expected: The file at /.well-known/security.txt has a valid Contact and a future Expires. Its links work.
+  severity: Low
+  test_type:
+  - Manual
+  refs:
+    cheatsheet:
+    - Vulnerability_Disclosure_Cheat_Sheet
+    cwe:
+    - CWE-1059
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Vulnerability_Disclosure_Cheat_Sheet.md
+- id: WEB-VDP-002
+  sheet: WEB
+  category: VDP
+  title: Check the reporting guidelines, safe harbor and response timeline
+  objective: Finds disclosure policies that leave researchers without scope, legal protection or a response promise.
+  steps:
+  - Read the published disclosure policy.
+  - Make sure it states the scope, the information to include, and a PGP key or other secure channel.
+  - Make sure it states safe harbor provisions and a timeline for first response and triage.
+  - For a bug bounty, make sure it states eligible bug types, rewards and the in-scope systems.
+  example: Policy page linked from security.txt; disclose.io policy template
+  expected: The policy states scope, secure channel, safe harbor and response timeline. Bounty rules state scope and rewards.
+  severity: Low
+  test_type:
+  - Manual
+  refs:
+    cheatsheet:
+    - Vulnerability_Disclosure_Cheat_Sheet
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Vulnerability_Disclosure_Cheat_Sheet.md
+- id: WEB-VDP-003
+  sheet: WEB
+  category: VDP
+  title: Test the handling of a vulnerability report from receipt to closure
+  objective: Finds intake processes that lose reports or leave researchers without feedback.
+  preconditions:
+  - Get written approval before you send a test report.
+  steps:
+  - Send a harmless test report to the published contact, or ask the team for three recent reports.
+  - Make sure frontline staff on the main contact address know where to send security reports.
+  - Make sure the researcher got an acknowledgement and a triage timeline.
+  - Make sure the process includes updates, a fix confirmation and a retest request.
+  - Make sure the team asks for payment details only through a mediated platform when a researcher demands money first.
+  example: Test report mail to security@ or the policy address; ticket history of recent reports
+  expected: Reports reach the security team. The researcher gets acknowledgement, updates and closure within the stated times.
+  severity: Low
+  test_type:
+  - Manual
+  refs:
+    cheatsheet:
+    - Vulnerability_Disclosure_Cheat_Sheet
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Vulnerability_Disclosure_Cheat_Sheet.md
+- id: WEB-VDP-004
+  sheet: WEB
+  category: VDP
+  title: Check that security advisories have the required details
+  objective: Finds fixed vulnerabilities that users cannot learn about or act on.
+  steps:
+  - Find the advisory page, mailing list or release notes links.
+  - Take one recent advisory. Make sure it has a summary with impact, vulnerable versions and fixed versions.
+  - Make sure it states conditions, workarounds and a CVE ID when one exists.
+  - Make sure the advisory credits the researcher and links from the changelog.
+  example: curl -s https://HOST/security/advisories; compare with the release notes of the fixed version
+  expected: Advisories list impact, affected and fixed versions, workarounds and CVE ID. Users find them from the site and the changelog.
+  severity: Low
+  test_type:
+  - Manual
+  refs:
+    cheatsheet:
+    - Vulnerability_Disclosure_Cheat_Sheet
+    cwe:
+    - CWE-1059
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Vulnerability_Disclosure_Cheat_Sheet.md

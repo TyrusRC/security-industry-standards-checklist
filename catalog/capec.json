@@ -1,0 +1,2244 @@
+{
+ "source": "MITRE CAPEC",
+ "version": "3.9",
+ "url": "https://capec.mitre.org/data/xml/capec_latest.xml",
+ "retrieved": "2026-11-12",
+ "items": [
+  {
+   "id": "CAPEC-1",
+   "title": "Accessing Functionality Not Properly Constrained by ACLs"
+  },
+  {
+   "id": "CAPEC-10",
+   "title": "Buffer Overflow via Environment Variables"
+  },
+  {
+   "id": "CAPEC-100",
+   "title": "Overflow Buffers"
+  },
+  {
+   "id": "CAPEC-101",
+   "title": "Server Side Include (SSI) Injection"
+  },
+  {
+   "id": "CAPEC-102",
+   "title": "Session Sidejacking"
+  },
+  {
+   "id": "CAPEC-103",
+   "title": "Clickjacking"
+  },
+  {
+   "id": "CAPEC-104",
+   "title": "Cross Zone Scripting"
+  },
+  {
+   "id": "CAPEC-105",
+   "title": "HTTP Request Splitting"
+  },
+  {
+   "id": "CAPEC-107",
+   "title": "Cross Site Tracing"
+  },
+  {
+   "id": "CAPEC-108",
+   "title": "Command Line Execution through SQL Injection"
+  },
+  {
+   "id": "CAPEC-109",
+   "title": "Object Relational Mapping Injection"
+  },
+  {
+   "id": "CAPEC-11",
+   "title": "Cause Web Server Misclassification"
+  },
+  {
+   "id": "CAPEC-110",
+   "title": "SQL Injection through SOAP Parameter Tampering"
+  },
+  {
+   "id": "CAPEC-111",
+   "title": "JSON Hijacking (aka JavaScript Hijacking)"
+  },
+  {
+   "id": "CAPEC-112",
+   "title": "Brute Force"
+  },
+  {
+   "id": "CAPEC-113",
+   "title": "Interface Manipulation"
+  },
+  {
+   "id": "CAPEC-114",
+   "title": "Authentication Abuse"
+  },
+  {
+   "id": "CAPEC-115",
+   "title": "Authentication Bypass"
+  },
+  {
+   "id": "CAPEC-116",
+   "title": "Excavation"
+  },
+  {
+   "id": "CAPEC-117",
+   "title": "Interception"
+  },
+  {
+   "id": "CAPEC-12",
+   "title": "Choosing Message Identifier"
+  },
+  {
+   "id": "CAPEC-120",
+   "title": "Double Encoding"
+  },
+  {
+   "id": "CAPEC-121",
+   "title": "Exploit Non-Production Interfaces"
+  },
+  {
+   "id": "CAPEC-122",
+   "title": "Privilege Abuse"
+  },
+  {
+   "id": "CAPEC-123",
+   "title": "Buffer Manipulation"
+  },
+  {
+   "id": "CAPEC-124",
+   "title": "Shared Resource Manipulation"
+  },
+  {
+   "id": "CAPEC-125",
+   "title": "Flooding"
+  },
+  {
+   "id": "CAPEC-126",
+   "title": "Path Traversal"
+  },
+  {
+   "id": "CAPEC-127",
+   "title": "Directory Indexing"
+  },
+  {
+   "id": "CAPEC-128",
+   "title": "Integer Attacks"
+  },
+  {
+   "id": "CAPEC-129",
+   "title": "Pointer Manipulation"
+  },
+  {
+   "id": "CAPEC-13",
+   "title": "Subverting Environment Variable Values"
+  },
+  {
+   "id": "CAPEC-130",
+   "title": "Excessive Allocation"
+  },
+  {
+   "id": "CAPEC-131",
+   "title": "Resource Leak Exposure"
+  },
+  {
+   "id": "CAPEC-132",
+   "title": "Symlink Attack"
+  },
+  {
+   "id": "CAPEC-133",
+   "title": "Try All Common Switches"
+  },
+  {
+   "id": "CAPEC-134",
+   "title": "Email Injection"
+  },
+  {
+   "id": "CAPEC-135",
+   "title": "Format String Injection"
+  },
+  {
+   "id": "CAPEC-136",
+   "title": "LDAP Injection"
+  },
+  {
+   "id": "CAPEC-137",
+   "title": "Parameter Injection"
+  },
+  {
+   "id": "CAPEC-138",
+   "title": "Reflection Injection"
+  },
+  {
+   "id": "CAPEC-139",
+   "title": "Relative Path Traversal"
+  },
+  {
+   "id": "CAPEC-14",
+   "title": "Client-side Injection-induced Buffer Overflow"
+  },
+  {
+   "id": "CAPEC-140",
+   "title": "Bypassing of Intermediate Forms in Multiple-Form Sets"
+  },
+  {
+   "id": "CAPEC-141",
+   "title": "Cache Poisoning"
+  },
+  {
+   "id": "CAPEC-142",
+   "title": "DNS Cache Poisoning"
+  },
+  {
+   "id": "CAPEC-143",
+   "title": "Detect Unpublicized Web Pages"
+  },
+  {
+   "id": "CAPEC-144",
+   "title": "Detect Unpublicized Web Services"
+  },
+  {
+   "id": "CAPEC-145",
+   "title": "Checksum Spoofing"
+  },
+  {
+   "id": "CAPEC-146",
+   "title": "XML Schema Poisoning"
+  },
+  {
+   "id": "CAPEC-147",
+   "title": "XML Ping of the Death"
+  },
+  {
+   "id": "CAPEC-148",
+   "title": "Content Spoofing"
+  },
+  {
+   "id": "CAPEC-149",
+   "title": "Explore for Predictable Temporary File Names"
+  },
+  {
+   "id": "CAPEC-15",
+   "title": "Command Delimiters"
+  },
+  {
+   "id": "CAPEC-150",
+   "title": "Collect Data from Common Resource Locations"
+  },
+  {
+   "id": "CAPEC-151",
+   "title": "Identity Spoofing"
+  },
+  {
+   "id": "CAPEC-153",
+   "title": "Input Data Manipulation"
+  },
+  {
+   "id": "CAPEC-154",
+   "title": "Resource Location Spoofing"
+  },
+  {
+   "id": "CAPEC-155",
+   "title": "Screen Temporary Files for Sensitive Information"
+  },
+  {
+   "id": "CAPEC-157",
+   "title": "Sniffing Attacks"
+  },
+  {
+   "id": "CAPEC-158",
+   "title": "Sniffing Network Traffic"
+  },
+  {
+   "id": "CAPEC-159",
+   "title": "Redirect Access to Libraries"
+  },
+  {
+   "id": "CAPEC-16",
+   "title": "Dictionary-based Password Attack"
+  },
+  {
+   "id": "CAPEC-160",
+   "title": "Exploit Script-Based APIs"
+  },
+  {
+   "id": "CAPEC-161",
+   "title": "Infrastructure Manipulation"
+  },
+  {
+   "id": "CAPEC-162",
+   "title": "Manipulating Hidden Fields"
+  },
+  {
+   "id": "CAPEC-163",
+   "title": "Spear Phishing"
+  },
+  {
+   "id": "CAPEC-164",
+   "title": "Mobile Phishing"
+  },
+  {
+   "id": "CAPEC-165",
+   "title": "File Manipulation"
+  },
+  {
+   "id": "CAPEC-166",
+   "title": "Force the System to Reset Values"
+  },
+  {
+   "id": "CAPEC-167",
+   "title": "White Box Reverse Engineering"
+  },
+  {
+   "id": "CAPEC-168",
+   "title": "Windows ::DATA Alternate Data Stream"
+  },
+  {
+   "id": "CAPEC-169",
+   "title": "Footprinting"
+  },
+  {
+   "id": "CAPEC-17",
+   "title": "Using Malicious Files"
+  },
+  {
+   "id": "CAPEC-170",
+   "title": "Web Application Fingerprinting"
+  },
+  {
+   "id": "CAPEC-173",
+   "title": "Action Spoofing"
+  },
+  {
+   "id": "CAPEC-174",
+   "title": "Flash Parameter Injection"
+  },
+  {
+   "id": "CAPEC-175",
+   "title": "Code Inclusion"
+  },
+  {
+   "id": "CAPEC-176",
+   "title": "Configuration/Environment Manipulation"
+  },
+  {
+   "id": "CAPEC-177",
+   "title": "Create files with the same name as files protected with a higher classification"
+  },
+  {
+   "id": "CAPEC-178",
+   "title": "Cross-Site Flashing"
+  },
+  {
+   "id": "CAPEC-179",
+   "title": "Calling Micro-Services Directly"
+  },
+  {
+   "id": "CAPEC-18",
+   "title": "XSS Targeting Non-Script Elements"
+  },
+  {
+   "id": "CAPEC-180",
+   "title": "Exploiting Incorrectly Configured Access Control Security Levels"
+  },
+  {
+   "id": "CAPEC-181",
+   "title": "Flash File Overlay"
+  },
+  {
+   "id": "CAPEC-182",
+   "title": "Flash Injection"
+  },
+  {
+   "id": "CAPEC-183",
+   "title": "IMAP/SMTP Command Injection"
+  },
+  {
+   "id": "CAPEC-184",
+   "title": "Software Integrity Attack"
+  },
+  {
+   "id": "CAPEC-185",
+   "title": "Malicious Software Download"
+  },
+  {
+   "id": "CAPEC-186",
+   "title": "Malicious Software Update"
+  },
+  {
+   "id": "CAPEC-187",
+   "title": "Malicious Automated Software Update via Redirection"
+  },
+  {
+   "id": "CAPEC-188",
+   "title": "Reverse Engineering"
+  },
+  {
+   "id": "CAPEC-189",
+   "title": "Black Box Reverse Engineering"
+  },
+  {
+   "id": "CAPEC-19",
+   "title": "Embedding Scripts within Scripts"
+  },
+  {
+   "id": "CAPEC-190",
+   "title": "Reverse Engineer an Executable to Expose Assumed Hidden Functionality"
+  },
+  {
+   "id": "CAPEC-191",
+   "title": "Read Sensitive Constants Within an Executable"
+  },
+  {
+   "id": "CAPEC-192",
+   "title": "Protocol Analysis"
+  },
+  {
+   "id": "CAPEC-193",
+   "title": "PHP Remote File Inclusion"
+  },
+  {
+   "id": "CAPEC-194",
+   "title": "Fake the Source of Data"
+  },
+  {
+   "id": "CAPEC-195",
+   "title": "Principal Spoof"
+  },
+  {
+   "id": "CAPEC-196",
+   "title": "Session Credential Falsification through Forging"
+  },
+  {
+   "id": "CAPEC-197",
+   "title": "Exponential Data Expansion"
+  },
+  {
+   "id": "CAPEC-198",
+   "title": "XSS Targeting Error Pages"
+  },
+  {
+   "id": "CAPEC-199",
+   "title": "XSS Using Alternate Syntax"
+  },
+  {
+   "id": "CAPEC-2",
+   "title": "Inducing Account Lockout"
+  },
+  {
+   "id": "CAPEC-20",
+   "title": "Encryption Brute Forcing"
+  },
+  {
+   "id": "CAPEC-200",
+   "title": "Removal of filters: Input filters, output filters, data masking"
+  },
+  {
+   "id": "CAPEC-201",
+   "title": "Serialized Data External Linking"
+  },
+  {
+   "id": "CAPEC-202",
+   "title": "Create Malicious Client"
+  },
+  {
+   "id": "CAPEC-203",
+   "title": "Manipulate Registry Information"
+  },
+  {
+   "id": "CAPEC-204",
+   "title": "Lifting Sensitive Data Embedded in Cache"
+  },
+  {
+   "id": "CAPEC-206",
+   "title": "Signing Malicious Code"
+  },
+  {
+   "id": "CAPEC-207",
+   "title": "Removing Important Client Functionality"
+  },
+  {
+   "id": "CAPEC-208",
+   "title": "Removing/short-circuiting 'Purse' logic: removing/mutating 'cash' decrements"
+  },
+  {
+   "id": "CAPEC-209",
+   "title": "XSS Using MIME Type Mismatch"
+  },
+  {
+   "id": "CAPEC-21",
+   "title": "Exploitation of Trusted Identifiers"
+  },
+  {
+   "id": "CAPEC-212",
+   "title": "Functionality Misuse"
+  },
+  {
+   "id": "CAPEC-215",
+   "title": "Fuzzing for application mapping"
+  },
+  {
+   "id": "CAPEC-216",
+   "title": "Communication Channel Manipulation"
+  },
+  {
+   "id": "CAPEC-217",
+   "title": "Exploiting Incorrectly Configured SSL/TLS"
+  },
+  {
+   "id": "CAPEC-218",
+   "title": "Spoofing of UDDI/ebXML Messages"
+  },
+  {
+   "id": "CAPEC-219",
+   "title": "XML Routing Detour Attacks"
+  },
+  {
+   "id": "CAPEC-22",
+   "title": "Exploiting Trust in Client"
+  },
+  {
+   "id": "CAPEC-220",
+   "title": "Client-Server Protocol Manipulation"
+  },
+  {
+   "id": "CAPEC-221",
+   "title": "Data Serialization External Entities Blowup"
+  },
+  {
+   "id": "CAPEC-222",
+   "title": "iFrame Overlay"
+  },
+  {
+   "id": "CAPEC-224",
+   "title": "Fingerprinting"
+  },
+  {
+   "id": "CAPEC-226",
+   "title": "Session Credential Falsification through Manipulation"
+  },
+  {
+   "id": "CAPEC-227",
+   "title": "Sustained Client Engagement"
+  },
+  {
+   "id": "CAPEC-228",
+   "title": "DTD Injection"
+  },
+  {
+   "id": "CAPEC-229",
+   "title": "Serialized Data Parameter Blowup"
+  },
+  {
+   "id": "CAPEC-23",
+   "title": "File Content Injection"
+  },
+  {
+   "id": "CAPEC-230",
+   "title": "Serialized Data with Nested Payloads"
+  },
+  {
+   "id": "CAPEC-231",
+   "title": "Oversized Serialized Data Payloads"
+  },
+  {
+   "id": "CAPEC-233",
+   "title": "Privilege Escalation"
+  },
+  {
+   "id": "CAPEC-234",
+   "title": "Hijacking a privileged process"
+  },
+  {
+   "id": "CAPEC-237",
+   "title": "Escaping a Sandbox by Calling Code in Another Language"
+  },
+  {
+   "id": "CAPEC-24",
+   "title": "Filter Failure through Buffer Overflow"
+  },
+  {
+   "id": "CAPEC-240",
+   "title": "Resource Injection"
+  },
+  {
+   "id": "CAPEC-242",
+   "title": "Code Injection"
+  },
+  {
+   "id": "CAPEC-243",
+   "title": "XSS Targeting HTML Attributes"
+  },
+  {
+   "id": "CAPEC-244",
+   "title": "XSS Targeting URI Placeholders"
+  },
+  {
+   "id": "CAPEC-245",
+   "title": "XSS Using Doubled Characters"
+  },
+  {
+   "id": "CAPEC-247",
+   "title": "XSS Using Invalid Characters"
+  },
+  {
+   "id": "CAPEC-248",
+   "title": "Command Injection"
+  },
+  {
+   "id": "CAPEC-25",
+   "title": "Forced Deadlock"
+  },
+  {
+   "id": "CAPEC-250",
+   "title": "XML Injection"
+  },
+  {
+   "id": "CAPEC-251",
+   "title": "Local Code Inclusion"
+  },
+  {
+   "id": "CAPEC-252",
+   "title": "PHP Local File Inclusion"
+  },
+  {
+   "id": "CAPEC-253",
+   "title": "Remote Code Inclusion"
+  },
+  {
+   "id": "CAPEC-256",
+   "title": "SOAP Array Overflow"
+  },
+  {
+   "id": "CAPEC-26",
+   "title": "Leveraging Race Conditions"
+  },
+  {
+   "id": "CAPEC-261",
+   "title": "Fuzzing for garnering other adjacent user/sensitive data"
+  },
+  {
+   "id": "CAPEC-263",
+   "title": "Force Use of Corrupted Files"
+  },
+  {
+   "id": "CAPEC-267",
+   "title": "Leverage Alternate Encoding"
+  },
+  {
+   "id": "CAPEC-268",
+   "title": "Audit Log Manipulation"
+  },
+  {
+   "id": "CAPEC-27",
+   "title": "Leveraging Race Conditions via Symbolic Links"
+  },
+  {
+   "id": "CAPEC-270",
+   "title": "Modification of Registry Run Keys"
+  },
+  {
+   "id": "CAPEC-271",
+   "title": "Schema Poisoning"
+  },
+  {
+   "id": "CAPEC-272",
+   "title": "Protocol Manipulation"
+  },
+  {
+   "id": "CAPEC-273",
+   "title": "HTTP Response Smuggling"
+  },
+  {
+   "id": "CAPEC-274",
+   "title": "HTTP Verb Tampering"
+  },
+  {
+   "id": "CAPEC-275",
+   "title": "DNS Rebinding"
+  },
+  {
+   "id": "CAPEC-276",
+   "title": "Inter-component Protocol Manipulation"
+  },
+  {
+   "id": "CAPEC-277",
+   "title": "Data Interchange Protocol Manipulation"
+  },
+  {
+   "id": "CAPEC-278",
+   "title": "Web Services Protocol Manipulation"
+  },
+  {
+   "id": "CAPEC-279",
+   "title": "SOAP Manipulation"
+  },
+  {
+   "id": "CAPEC-28",
+   "title": "Fuzzing"
+  },
+  {
+   "id": "CAPEC-285",
+   "title": "ICMP Echo Request Ping"
+  },
+  {
+   "id": "CAPEC-287",
+   "title": "TCP SYN Scan"
+  },
+  {
+   "id": "CAPEC-29",
+   "title": "Leveraging Time-of-Check and Time-of-Use (TOCTOU) Race Conditions"
+  },
+  {
+   "id": "CAPEC-290",
+   "title": "Enumerate Mail Exchange (MX) Records"
+  },
+  {
+   "id": "CAPEC-291",
+   "title": "DNS Zone Transfers"
+  },
+  {
+   "id": "CAPEC-292",
+   "title": "Host Discovery"
+  },
+  {
+   "id": "CAPEC-293",
+   "title": "Traceroute Route Enumeration"
+  },
+  {
+   "id": "CAPEC-294",
+   "title": "ICMP Address Mask Request"
+  },
+  {
+   "id": "CAPEC-295",
+   "title": "Timestamp Request"
+  },
+  {
+   "id": "CAPEC-296",
+   "title": "ICMP Information Request"
+  },
+  {
+   "id": "CAPEC-297",
+   "title": "TCP ACK Ping"
+  },
+  {
+   "id": "CAPEC-298",
+   "title": "UDP Ping"
+  },
+  {
+   "id": "CAPEC-299",
+   "title": "TCP SYN Ping"
+  },
+  {
+   "id": "CAPEC-3",
+   "title": "Using Leading 'Ghost' Character Sequences to Bypass Input Filters"
+  },
+  {
+   "id": "CAPEC-30",
+   "title": "Hijacking a Privileged Thread of Execution"
+  },
+  {
+   "id": "CAPEC-300",
+   "title": "Port Scanning"
+  },
+  {
+   "id": "CAPEC-301",
+   "title": "TCP Connect Scan"
+  },
+  {
+   "id": "CAPEC-302",
+   "title": "TCP FIN Scan"
+  },
+  {
+   "id": "CAPEC-303",
+   "title": "TCP Xmas Scan"
+  },
+  {
+   "id": "CAPEC-304",
+   "title": "TCP Null Scan"
+  },
+  {
+   "id": "CAPEC-305",
+   "title": "TCP ACK Scan"
+  },
+  {
+   "id": "CAPEC-306",
+   "title": "TCP Window Scan"
+  },
+  {
+   "id": "CAPEC-307",
+   "title": "TCP RPC Scan"
+  },
+  {
+   "id": "CAPEC-308",
+   "title": "UDP Scan"
+  },
+  {
+   "id": "CAPEC-309",
+   "title": "Network Topology Mapping"
+  },
+  {
+   "id": "CAPEC-31",
+   "title": "Accessing/Intercepting/Modifying HTTP Cookies"
+  },
+  {
+   "id": "CAPEC-310",
+   "title": "Scanning for Vulnerable Software"
+  },
+  {
+   "id": "CAPEC-312",
+   "title": "Active OS Fingerprinting"
+  },
+  {
+   "id": "CAPEC-313",
+   "title": "Passive OS Fingerprinting"
+  },
+  {
+   "id": "CAPEC-317",
+   "title": "IP ID Sequencing Probe"
+  },
+  {
+   "id": "CAPEC-318",
+   "title": "IP 'ID' Echoed Byte-Order Probe"
+  },
+  {
+   "id": "CAPEC-319",
+   "title": "IP (DF) 'Don't Fragment Bit' Echoing Probe"
+  },
+  {
+   "id": "CAPEC-32",
+   "title": "XSS Through HTTP Query Strings"
+  },
+  {
+   "id": "CAPEC-320",
+   "title": "TCP Timestamp Probe"
+  },
+  {
+   "id": "CAPEC-321",
+   "title": "TCP Sequence Number Probe"
+  },
+  {
+   "id": "CAPEC-322",
+   "title": "TCP (ISN) Greatest Common Divisor Probe"
+  },
+  {
+   "id": "CAPEC-323",
+   "title": "TCP (ISN) Counter Rate Probe"
+  },
+  {
+   "id": "CAPEC-324",
+   "title": "TCP (ISN) Sequence Predictability Probe"
+  },
+  {
+   "id": "CAPEC-325",
+   "title": "TCP Congestion Control Flag (ECN) Probe"
+  },
+  {
+   "id": "CAPEC-326",
+   "title": "TCP Initial Window Size Probe"
+  },
+  {
+   "id": "CAPEC-327",
+   "title": "TCP Options Probe"
+  },
+  {
+   "id": "CAPEC-328",
+   "title": "TCP 'RST' Flag Checksum Probe"
+  },
+  {
+   "id": "CAPEC-329",
+   "title": "ICMP Error Message Quoting Probe"
+  },
+  {
+   "id": "CAPEC-33",
+   "title": "HTTP Request Smuggling"
+  },
+  {
+   "id": "CAPEC-330",
+   "title": "ICMP Error Message Echoing Integrity Probe"
+  },
+  {
+   "id": "CAPEC-331",
+   "title": "ICMP IP Total Length Field Probe"
+  },
+  {
+   "id": "CAPEC-332",
+   "title": "ICMP IP 'ID' Field Error Message Probe"
+  },
+  {
+   "id": "CAPEC-34",
+   "title": "HTTP Response Splitting"
+  },
+  {
+   "id": "CAPEC-35",
+   "title": "Leverage Executable Code in Non-Executable Files"
+  },
+  {
+   "id": "CAPEC-36",
+   "title": "Using Unpublished Interfaces or Functionality"
+  },
+  {
+   "id": "CAPEC-37",
+   "title": "Retrieve Embedded Sensitive Data"
+  },
+  {
+   "id": "CAPEC-38",
+   "title": "Leveraging/Manipulating Configuration File Search Paths"
+  },
+  {
+   "id": "CAPEC-383",
+   "title": "Harvesting Information via API Event Monitoring"
+  },
+  {
+   "id": "CAPEC-384",
+   "title": "Application API Message Manipulation via Man-in-the-Middle"
+  },
+  {
+   "id": "CAPEC-385",
+   "title": "Transaction or Event Tampering via Application API Manipulation"
+  },
+  {
+   "id": "CAPEC-386",
+   "title": "Application API Navigation Remapping"
+  },
+  {
+   "id": "CAPEC-387",
+   "title": "Navigation Remapping To Propagate Malicious Content"
+  },
+  {
+   "id": "CAPEC-388",
+   "title": "Application API Button Hijacking"
+  },
+  {
+   "id": "CAPEC-389",
+   "title": "Content Spoofing Via Application API Manipulation"
+  },
+  {
+   "id": "CAPEC-39",
+   "title": "Manipulating Opaque Client-based Data Tokens"
+  },
+  {
+   "id": "CAPEC-390",
+   "title": "Bypassing Physical Security"
+  },
+  {
+   "id": "CAPEC-391",
+   "title": "Bypassing Physical Locks"
+  },
+  {
+   "id": "CAPEC-392",
+   "title": "Lock Bumping"
+  },
+  {
+   "id": "CAPEC-393",
+   "title": "Lock Picking"
+  },
+  {
+   "id": "CAPEC-394",
+   "title": "Using a Snap Gun Lock to Force a Lock"
+  },
+  {
+   "id": "CAPEC-395",
+   "title": "Bypassing Electronic Locks and Access Controls"
+  },
+  {
+   "id": "CAPEC-397",
+   "title": "Cloning Magnetic Strip Cards"
+  },
+  {
+   "id": "CAPEC-398",
+   "title": "Magnetic Strip Card Brute Force Attacks"
+  },
+  {
+   "id": "CAPEC-399",
+   "title": "Cloning RFID Cards or Chips"
+  },
+  {
+   "id": "CAPEC-4",
+   "title": "Using Alternative IP Address Encodings"
+  },
+  {
+   "id": "CAPEC-40",
+   "title": "Manipulating Writeable Terminal Devices"
+  },
+  {
+   "id": "CAPEC-400",
+   "title": "RFID Chip Deactivation or Destruction"
+  },
+  {
+   "id": "CAPEC-401",
+   "title": "Physically Hacking Hardware"
+  },
+  {
+   "id": "CAPEC-402",
+   "title": "Bypassing ATA Password Security"
+  },
+  {
+   "id": "CAPEC-406",
+   "title": "Dumpster Diving"
+  },
+  {
+   "id": "CAPEC-407",
+   "title": "Pretexting"
+  },
+  {
+   "id": "CAPEC-41",
+   "title": "Using Meta-characters in E-mail Headers to Inject Malicious Payloads"
+  },
+  {
+   "id": "CAPEC-410",
+   "title": "Information Elicitation"
+  },
+  {
+   "id": "CAPEC-412",
+   "title": "Pretexting via Customer Service"
+  },
+  {
+   "id": "CAPEC-413",
+   "title": "Pretexting via Tech Support"
+  },
+  {
+   "id": "CAPEC-414",
+   "title": "Pretexting via Delivery Person"
+  },
+  {
+   "id": "CAPEC-415",
+   "title": "Pretexting via Phone"
+  },
+  {
+   "id": "CAPEC-416",
+   "title": "Manipulate Human Behavior"
+  },
+  {
+   "id": "CAPEC-417",
+   "title": "Influence Perception"
+  },
+  {
+   "id": "CAPEC-418",
+   "title": "Influence Perception of Reciprocation"
+  },
+  {
+   "id": "CAPEC-42",
+   "title": "MIME Conversion"
+  },
+  {
+   "id": "CAPEC-420",
+   "title": "Influence Perception of Scarcity"
+  },
+  {
+   "id": "CAPEC-421",
+   "title": "Influence Perception of Authority"
+  },
+  {
+   "id": "CAPEC-422",
+   "title": "Influence Perception of Commitment and Consistency"
+  },
+  {
+   "id": "CAPEC-423",
+   "title": "Influence Perception of Liking"
+  },
+  {
+   "id": "CAPEC-424",
+   "title": "Influence Perception of Consensus or Social Proof"
+  },
+  {
+   "id": "CAPEC-425",
+   "title": "Target Influence via Framing"
+  },
+  {
+   "id": "CAPEC-426",
+   "title": "Influence via Incentives"
+  },
+  {
+   "id": "CAPEC-427",
+   "title": "Influence via Psychological Principles"
+  },
+  {
+   "id": "CAPEC-428",
+   "title": "Influence via Modes of Thinking"
+  },
+  {
+   "id": "CAPEC-429",
+   "title": "Target Influence via Eye Cues"
+  },
+  {
+   "id": "CAPEC-43",
+   "title": "Exploiting Multiple Input Interpretation Layers"
+  },
+  {
+   "id": "CAPEC-433",
+   "title": "Target Influence via The Human Buffer Overflow"
+  },
+  {
+   "id": "CAPEC-434",
+   "title": "Target Influence via Interview and Interrogation"
+  },
+  {
+   "id": "CAPEC-435",
+   "title": "Target Influence via Instant Rapport"
+  },
+  {
+   "id": "CAPEC-438",
+   "title": "Modification During Manufacture"
+  },
+  {
+   "id": "CAPEC-439",
+   "title": "Manipulation During Distribution"
+  },
+  {
+   "id": "CAPEC-44",
+   "title": "Overflow Binary Resource File"
+  },
+  {
+   "id": "CAPEC-440",
+   "title": "Hardware Integrity Attack"
+  },
+  {
+   "id": "CAPEC-441",
+   "title": "Malicious Logic Insertion"
+  },
+  {
+   "id": "CAPEC-442",
+   "title": "Infected Software"
+  },
+  {
+   "id": "CAPEC-443",
+   "title": "Malicious Logic Inserted Into Product by Authorized Developer"
+  },
+  {
+   "id": "CAPEC-444",
+   "title": "Development Alteration"
+  },
+  {
+   "id": "CAPEC-445",
+   "title": "Malicious Logic Insertion into Product Software via Configuration Management Manipulation"
+  },
+  {
+   "id": "CAPEC-446",
+   "title": "Malicious Logic Insertion into Product via Inclusion of Third-Party Component"
+  },
+  {
+   "id": "CAPEC-447",
+   "title": "Design Alteration"
+  },
+  {
+   "id": "CAPEC-448",
+   "title": "Embed Virus into DLL"
+  },
+  {
+   "id": "CAPEC-45",
+   "title": "Buffer Overflow via Symbolic Links"
+  },
+  {
+   "id": "CAPEC-452",
+   "title": "Infected Hardware"
+  },
+  {
+   "id": "CAPEC-456",
+   "title": "Infected Memory"
+  },
+  {
+   "id": "CAPEC-457",
+   "title": "USB Memory Attacks"
+  },
+  {
+   "id": "CAPEC-458",
+   "title": "Flash Memory Attacks"
+  },
+  {
+   "id": "CAPEC-459",
+   "title": "Creating a Rogue Certification Authority Certificate"
+  },
+  {
+   "id": "CAPEC-46",
+   "title": "Overflow Variables and Tags"
+  },
+  {
+   "id": "CAPEC-460",
+   "title": "HTTP Parameter Pollution (HPP)"
+  },
+  {
+   "id": "CAPEC-461",
+   "title": "Web Services API Signature Forgery Leveraging Hash Function Extension Weakness"
+  },
+  {
+   "id": "CAPEC-462",
+   "title": "Cross-Domain Search Timing"
+  },
+  {
+   "id": "CAPEC-463",
+   "title": "Padding Oracle Crypto Attack"
+  },
+  {
+   "id": "CAPEC-464",
+   "title": "Evercookie"
+  },
+  {
+   "id": "CAPEC-465",
+   "title": "Transparent Proxy Abuse"
+  },
+  {
+   "id": "CAPEC-466",
+   "title": "Leveraging Active Adversary in the Middle Attacks to Bypass Same Origin Policy"
+  },
+  {
+   "id": "CAPEC-467",
+   "title": "Cross Site Identification"
+  },
+  {
+   "id": "CAPEC-468",
+   "title": "Generic Cross-Browser Cross-Domain Theft"
+  },
+  {
+   "id": "CAPEC-469",
+   "title": "HTTP DoS"
+  },
+  {
+   "id": "CAPEC-47",
+   "title": "Buffer Overflow via Parameter Expansion"
+  },
+  {
+   "id": "CAPEC-470",
+   "title": "Expanding Control over the Operating System from the Database"
+  },
+  {
+   "id": "CAPEC-471",
+   "title": "Search Order Hijacking"
+  },
+  {
+   "id": "CAPEC-472",
+   "title": "Browser Fingerprinting"
+  },
+  {
+   "id": "CAPEC-473",
+   "title": "Signature Spoof"
+  },
+  {
+   "id": "CAPEC-474",
+   "title": "Signature Spoofing by Key Theft"
+  },
+  {
+   "id": "CAPEC-475",
+   "title": "Signature Spoofing by Improper Validation"
+  },
+  {
+   "id": "CAPEC-476",
+   "title": "Signature Spoofing by Misrepresentation"
+  },
+  {
+   "id": "CAPEC-477",
+   "title": "Signature Spoofing by Mixing Signed and Unsigned Content"
+  },
+  {
+   "id": "CAPEC-478",
+   "title": "Modification of Windows Service Configuration"
+  },
+  {
+   "id": "CAPEC-479",
+   "title": "Malicious Root Certificate"
+  },
+  {
+   "id": "CAPEC-48",
+   "title": "Passing Local Filenames to Functions That Expect a URL"
+  },
+  {
+   "id": "CAPEC-480",
+   "title": "Escaping Virtualization"
+  },
+  {
+   "id": "CAPEC-481",
+   "title": "Contradictory Destinations in Traffic Routing Schemes"
+  },
+  {
+   "id": "CAPEC-482",
+   "title": "TCP Flood"
+  },
+  {
+   "id": "CAPEC-485",
+   "title": "Signature Spoofing by Key Recreation"
+  },
+  {
+   "id": "CAPEC-486",
+   "title": "UDP Flood"
+  },
+  {
+   "id": "CAPEC-487",
+   "title": "ICMP Flood"
+  },
+  {
+   "id": "CAPEC-488",
+   "title": "HTTP Flood"
+  },
+  {
+   "id": "CAPEC-489",
+   "title": "SSL Flood"
+  },
+  {
+   "id": "CAPEC-49",
+   "title": "Password Brute Forcing"
+  },
+  {
+   "id": "CAPEC-490",
+   "title": "Amplification"
+  },
+  {
+   "id": "CAPEC-491",
+   "title": "Quadratic Data Expansion"
+  },
+  {
+   "id": "CAPEC-492",
+   "title": "Regular Expression Exponential Blowup"
+  },
+  {
+   "id": "CAPEC-493",
+   "title": "SOAP Array Blowup"
+  },
+  {
+   "id": "CAPEC-494",
+   "title": "TCP Fragmentation"
+  },
+  {
+   "id": "CAPEC-495",
+   "title": "UDP Fragmentation"
+  },
+  {
+   "id": "CAPEC-496",
+   "title": "ICMP Fragmentation"
+  },
+  {
+   "id": "CAPEC-497",
+   "title": "File Discovery"
+  },
+  {
+   "id": "CAPEC-498",
+   "title": "Probe iOS Screenshots"
+  },
+  {
+   "id": "CAPEC-499",
+   "title": "Android Intent Intercept"
+  },
+  {
+   "id": "CAPEC-5",
+   "title": "Blue Boxing"
+  },
+  {
+   "id": "CAPEC-50",
+   "title": "Password Recovery Exploitation"
+  },
+  {
+   "id": "CAPEC-500",
+   "title": "WebView Injection"
+  },
+  {
+   "id": "CAPEC-501",
+   "title": "Android Activity Hijack"
+  },
+  {
+   "id": "CAPEC-502",
+   "title": "Intent Spoof"
+  },
+  {
+   "id": "CAPEC-503",
+   "title": "WebView Exposure"
+  },
+  {
+   "id": "CAPEC-504",
+   "title": "Task Impersonation"
+  },
+  {
+   "id": "CAPEC-505",
+   "title": "Scheme Squatting"
+  },
+  {
+   "id": "CAPEC-506",
+   "title": "Tapjacking"
+  },
+  {
+   "id": "CAPEC-507",
+   "title": "Physical Theft"
+  },
+  {
+   "id": "CAPEC-508",
+   "title": "Shoulder Surfing"
+  },
+  {
+   "id": "CAPEC-509",
+   "title": "Kerberoasting"
+  },
+  {
+   "id": "CAPEC-51",
+   "title": "Poison Web Service Registry"
+  },
+  {
+   "id": "CAPEC-510",
+   "title": "SaaS User Request Forgery"
+  },
+  {
+   "id": "CAPEC-511",
+   "title": "Infiltration of Software Development Environment"
+  },
+  {
+   "id": "CAPEC-516",
+   "title": "Hardware Component Substitution During Baselining"
+  },
+  {
+   "id": "CAPEC-517",
+   "title": "Documentation Alteration to Circumvent Dial-down"
+  },
+  {
+   "id": "CAPEC-518",
+   "title": "Documentation Alteration to Produce Under-performing Systems"
+  },
+  {
+   "id": "CAPEC-519",
+   "title": "Documentation Alteration to Cause Errors in System Design"
+  },
+  {
+   "id": "CAPEC-52",
+   "title": "Embedding NULL Bytes"
+  },
+  {
+   "id": "CAPEC-520",
+   "title": "Counterfeit Hardware Component Inserted During Product Assembly"
+  },
+  {
+   "id": "CAPEC-521",
+   "title": "Hardware Design Specifications Are Altered"
+  },
+  {
+   "id": "CAPEC-522",
+   "title": "Malicious Hardware Component Replacement"
+  },
+  {
+   "id": "CAPEC-523",
+   "title": "Malicious Software Implanted"
+  },
+  {
+   "id": "CAPEC-524",
+   "title": "Rogue Integration Procedures"
+  },
+  {
+   "id": "CAPEC-528",
+   "title": "XML Flood"
+  },
+  {
+   "id": "CAPEC-529",
+   "title": "Malware-Directed Internal Reconnaissance"
+  },
+  {
+   "id": "CAPEC-53",
+   "title": "Postfix, Null Terminate, and Backslash"
+  },
+  {
+   "id": "CAPEC-530",
+   "title": "Provide Counterfeit Component"
+  },
+  {
+   "id": "CAPEC-531",
+   "title": "Hardware Component Substitution"
+  },
+  {
+   "id": "CAPEC-532",
+   "title": "Altered Installed BIOS"
+  },
+  {
+   "id": "CAPEC-533",
+   "title": "Malicious Manual Software Update"
+  },
+  {
+   "id": "CAPEC-534",
+   "title": "Malicious Hardware Update"
+  },
+  {
+   "id": "CAPEC-535",
+   "title": "Malicious Gray Market Hardware"
+  },
+  {
+   "id": "CAPEC-536",
+   "title": "Data Injected During Configuration"
+  },
+  {
+   "id": "CAPEC-537",
+   "title": "Infiltration of Hardware Development Environment"
+  },
+  {
+   "id": "CAPEC-538",
+   "title": "Open-Source Library Manipulation"
+  },
+  {
+   "id": "CAPEC-539",
+   "title": "ASIC With Malicious Functionality"
+  },
+  {
+   "id": "CAPEC-54",
+   "title": "Query System for Information"
+  },
+  {
+   "id": "CAPEC-540",
+   "title": "Overread Buffers"
+  },
+  {
+   "id": "CAPEC-541",
+   "title": "Application Fingerprinting"
+  },
+  {
+   "id": "CAPEC-542",
+   "title": "Targeted Malware"
+  },
+  {
+   "id": "CAPEC-543",
+   "title": "Counterfeit Websites"
+  },
+  {
+   "id": "CAPEC-544",
+   "title": "Counterfeit Organizations"
+  },
+  {
+   "id": "CAPEC-545",
+   "title": "Pull Data from System Resources"
+  },
+  {
+   "id": "CAPEC-546",
+   "title": "Incomplete Data Deletion in a Multi-Tenant Environment"
+  },
+  {
+   "id": "CAPEC-547",
+   "title": "Physical Destruction of Device or Component"
+  },
+  {
+   "id": "CAPEC-548",
+   "title": "Contaminate Resource"
+  },
+  {
+   "id": "CAPEC-549",
+   "title": "Local Execution of Code"
+  },
+  {
+   "id": "CAPEC-55",
+   "title": "Rainbow Table Password Cracking"
+  },
+  {
+   "id": "CAPEC-550",
+   "title": "Install New Service"
+  },
+  {
+   "id": "CAPEC-551",
+   "title": "Modify Existing Service"
+  },
+  {
+   "id": "CAPEC-552",
+   "title": "Install Rootkit "
+  },
+  {
+   "id": "CAPEC-554",
+   "title": "Functionality Bypass"
+  },
+  {
+   "id": "CAPEC-555",
+   "title": "Remote Services with Stolen Credentials"
+  },
+  {
+   "id": "CAPEC-556",
+   "title": "Replace File Extension Handlers"
+  },
+  {
+   "id": "CAPEC-558",
+   "title": "Replace Trusted Executable"
+  },
+  {
+   "id": "CAPEC-559",
+   "title": "Orbital Jamming"
+  },
+  {
+   "id": "CAPEC-560",
+   "title": "Use of Known Domain Credentials"
+  },
+  {
+   "id": "CAPEC-561",
+   "title": "Windows Admin Shares with Stolen Credentials"
+  },
+  {
+   "id": "CAPEC-562",
+   "title": "Modify Shared File"
+  },
+  {
+   "id": "CAPEC-563",
+   "title": "Add Malicious File to Shared Webroot"
+  },
+  {
+   "id": "CAPEC-564",
+   "title": "Run Software at Logon"
+  },
+  {
+   "id": "CAPEC-565",
+   "title": "Password Spraying"
+  },
+  {
+   "id": "CAPEC-568",
+   "title": "Capture Credentials via Keylogger"
+  },
+  {
+   "id": "CAPEC-569",
+   "title": "Collect Data as Provided by Users"
+  },
+  {
+   "id": "CAPEC-57",
+   "title": "Utilizing REST's Trust in the System Resource to Obtain Sensitive Data"
+  },
+  {
+   "id": "CAPEC-571",
+   "title": "Block Logging to Central Repository"
+  },
+  {
+   "id": "CAPEC-572",
+   "title": "Artificially Inflate File Sizes"
+  },
+  {
+   "id": "CAPEC-573",
+   "title": "Process Footprinting"
+  },
+  {
+   "id": "CAPEC-574",
+   "title": "Services Footprinting"
+  },
+  {
+   "id": "CAPEC-575",
+   "title": "Account Footprinting"
+  },
+  {
+   "id": "CAPEC-576",
+   "title": "Group Permission Footprinting"
+  },
+  {
+   "id": "CAPEC-577",
+   "title": "Owner Footprinting"
+  },
+  {
+   "id": "CAPEC-578",
+   "title": "Disable Security Software"
+  },
+  {
+   "id": "CAPEC-579",
+   "title": "Replace Winlogon Helper DLL"
+  },
+  {
+   "id": "CAPEC-58",
+   "title": "Restful Privilege Elevation"
+  },
+  {
+   "id": "CAPEC-580",
+   "title": "System Footprinting"
+  },
+  {
+   "id": "CAPEC-581",
+   "title": "Security Software Footprinting"
+  },
+  {
+   "id": "CAPEC-582",
+   "title": "Route Disabling"
+  },
+  {
+   "id": "CAPEC-583",
+   "title": "Disabling Network Hardware"
+  },
+  {
+   "id": "CAPEC-584",
+   "title": "BGP Route Disabling"
+  },
+  {
+   "id": "CAPEC-585",
+   "title": "DNS Domain Seizure"
+  },
+  {
+   "id": "CAPEC-586",
+   "title": "Object Injection"
+  },
+  {
+   "id": "CAPEC-587",
+   "title": "Cross Frame Scripting (XFS)"
+  },
+  {
+   "id": "CAPEC-588",
+   "title": "DOM-Based XSS"
+  },
+  {
+   "id": "CAPEC-589",
+   "title": "DNS Blocking"
+  },
+  {
+   "id": "CAPEC-59",
+   "title": "Session Credential Falsification through Prediction"
+  },
+  {
+   "id": "CAPEC-590",
+   "title": "IP Address Blocking"
+  },
+  {
+   "id": "CAPEC-591",
+   "title": "Reflected XSS"
+  },
+  {
+   "id": "CAPEC-592",
+   "title": "Stored XSS"
+  },
+  {
+   "id": "CAPEC-593",
+   "title": "Session Hijacking"
+  },
+  {
+   "id": "CAPEC-594",
+   "title": "Traffic Injection"
+  },
+  {
+   "id": "CAPEC-595",
+   "title": "Connection Reset"
+  },
+  {
+   "id": "CAPEC-596",
+   "title": "TCP RST Injection"
+  },
+  {
+   "id": "CAPEC-597",
+   "title": "Absolute Path Traversal"
+  },
+  {
+   "id": "CAPEC-598",
+   "title": "DNS Spoofing"
+  },
+  {
+   "id": "CAPEC-599",
+   "title": "Terrestrial Jamming"
+  },
+  {
+   "id": "CAPEC-6",
+   "title": "Argument Injection"
+  },
+  {
+   "id": "CAPEC-60",
+   "title": "Reusing Session IDs (aka Session Replay)"
+  },
+  {
+   "id": "CAPEC-600",
+   "title": "Credential Stuffing"
+  },
+  {
+   "id": "CAPEC-601",
+   "title": "Jamming"
+  },
+  {
+   "id": "CAPEC-603",
+   "title": "Blockage"
+  },
+  {
+   "id": "CAPEC-604",
+   "title": "Wi-Fi Jamming"
+  },
+  {
+   "id": "CAPEC-605",
+   "title": "Cellular Jamming"
+  },
+  {
+   "id": "CAPEC-606",
+   "title": "Weakening of Cellular Encryption"
+  },
+  {
+   "id": "CAPEC-607",
+   "title": "Obstruction"
+  },
+  {
+   "id": "CAPEC-608",
+   "title": "Cryptanalysis of Cellular Encryption"
+  },
+  {
+   "id": "CAPEC-609",
+   "title": "Cellular Traffic Intercept"
+  },
+  {
+   "id": "CAPEC-61",
+   "title": "Session Fixation"
+  },
+  {
+   "id": "CAPEC-610",
+   "title": "Cellular Data Injection"
+  },
+  {
+   "id": "CAPEC-611",
+   "title": "BitSquatting"
+  },
+  {
+   "id": "CAPEC-612",
+   "title": "WiFi MAC Address Tracking"
+  },
+  {
+   "id": "CAPEC-613",
+   "title": "WiFi SSID Tracking"
+  },
+  {
+   "id": "CAPEC-614",
+   "title": "Rooting SIM Cards"
+  },
+  {
+   "id": "CAPEC-615",
+   "title": "Evil Twin Wi-Fi Attack"
+  },
+  {
+   "id": "CAPEC-616",
+   "title": "Establish Rogue Location"
+  },
+  {
+   "id": "CAPEC-617",
+   "title": "Cellular Rogue Base Station"
+  },
+  {
+   "id": "CAPEC-618",
+   "title": "Cellular Broadcast Message Request"
+  },
+  {
+   "id": "CAPEC-619",
+   "title": "Signal Strength Tracking"
+  },
+  {
+   "id": "CAPEC-62",
+   "title": "Cross Site Request Forgery"
+  },
+  {
+   "id": "CAPEC-620",
+   "title": "Drop Encryption Level"
+  },
+  {
+   "id": "CAPEC-621",
+   "title": "Analysis of Packet Timing and Sizes"
+  },
+  {
+   "id": "CAPEC-622",
+   "title": "Electromagnetic Side-Channel Attack"
+  },
+  {
+   "id": "CAPEC-623",
+   "title": "Compromising Emanations Attack"
+  },
+  {
+   "id": "CAPEC-624",
+   "title": "Hardware Fault Injection"
+  },
+  {
+   "id": "CAPEC-625",
+   "title": "Mobile Device Fault Injection"
+  },
+  {
+   "id": "CAPEC-626",
+   "title": "Smudge Attack"
+  },
+  {
+   "id": "CAPEC-627",
+   "title": "Counterfeit GPS Signals"
+  },
+  {
+   "id": "CAPEC-628",
+   "title": "Carry-Off GPS Attack"
+  },
+  {
+   "id": "CAPEC-63",
+   "title": "Cross-Site Scripting (XSS)"
+  },
+  {
+   "id": "CAPEC-630",
+   "title": "TypoSquatting"
+  },
+  {
+   "id": "CAPEC-631",
+   "title": "SoundSquatting"
+  },
+  {
+   "id": "CAPEC-632",
+   "title": "Homograph Attack via Homoglyphs"
+  },
+  {
+   "id": "CAPEC-633",
+   "title": "Token Impersonation"
+  },
+  {
+   "id": "CAPEC-634",
+   "title": "Probe Audio and Video Peripherals"
+  },
+  {
+   "id": "CAPEC-635",
+   "title": "Alternative Execution Due to Deceptive Filenames"
+  },
+  {
+   "id": "CAPEC-636",
+   "title": "Hiding Malicious Data or Code within Files"
+  },
+  {
+   "id": "CAPEC-637",
+   "title": "Collect Data from Clipboard"
+  },
+  {
+   "id": "CAPEC-638",
+   "title": "Altered Component Firmware"
+  },
+  {
+   "id": "CAPEC-639",
+   "title": "Probe System Files"
+  },
+  {
+   "id": "CAPEC-64",
+   "title": "Using Slashes and URL Encoding Combined to Bypass Validation Logic"
+  },
+  {
+   "id": "CAPEC-640",
+   "title": "Inclusion of Code in Existing Process"
+  },
+  {
+   "id": "CAPEC-641",
+   "title": "DLL Side-Loading"
+  },
+  {
+   "id": "CAPEC-642",
+   "title": "Replace Binaries"
+  },
+  {
+   "id": "CAPEC-643",
+   "title": "Identify Shared Files/Directories on System"
+  },
+  {
+   "id": "CAPEC-644",
+   "title": "Use of Captured Hashes (Pass The Hash)"
+  },
+  {
+   "id": "CAPEC-645",
+   "title": "Use of Captured Tickets (Pass The Ticket)"
+  },
+  {
+   "id": "CAPEC-646",
+   "title": "Peripheral Footprinting"
+  },
+  {
+   "id": "CAPEC-647",
+   "title": "Collect Data from Registries"
+  },
+  {
+   "id": "CAPEC-648",
+   "title": "Collect Data from Screen Capture"
+  },
+  {
+   "id": "CAPEC-649",
+   "title": "Adding a Space to a File Extension"
+  },
+  {
+   "id": "CAPEC-65",
+   "title": "Sniff Application Code"
+  },
+  {
+   "id": "CAPEC-650",
+   "title": "Upload a Web Shell to a Web Server"
+  },
+  {
+   "id": "CAPEC-651",
+   "title": "Eavesdropping"
+  },
+  {
+   "id": "CAPEC-652",
+   "title": "Use of Known Kerberos Credentials"
+  },
+  {
+   "id": "CAPEC-653",
+   "title": "Use of Known Operating System Credentials"
+  },
+  {
+   "id": "CAPEC-654",
+   "title": "Credential Prompt Impersonation"
+  },
+  {
+   "id": "CAPEC-655",
+   "title": "Avoid Security Tool Identification by Adding Data"
+  },
+  {
+   "id": "CAPEC-656",
+   "title": "Voice Phishing"
+  },
+  {
+   "id": "CAPEC-657",
+   "title": "Malicious Automated Software Update via Spoofing"
+  },
+  {
+   "id": "CAPEC-66",
+   "title": "SQL Injection"
+  },
+  {
+   "id": "CAPEC-660",
+   "title": "Root/Jailbreak Detection Evasion via Hooking"
+  },
+  {
+   "id": "CAPEC-661",
+   "title": "Root/Jailbreak Detection Evasion via Debugging"
+  },
+  {
+   "id": "CAPEC-662",
+   "title": "Adversary in the Browser (AiTB)"
+  },
+  {
+   "id": "CAPEC-663",
+   "title": "Exploitation of Transient Instruction Execution"
+  },
+  {
+   "id": "CAPEC-664",
+   "title": "Server Side Request Forgery"
+  },
+  {
+   "id": "CAPEC-665",
+   "title": "Exploitation of Thunderbolt Protection Flaws"
+  },
+  {
+   "id": "CAPEC-666",
+   "title": "BlueSmacking"
+  },
+  {
+   "id": "CAPEC-667",
+   "title": "Bluetooth Impersonation AttackS (BIAS)"
+  },
+  {
+   "id": "CAPEC-668",
+   "title": "Key Negotiation of Bluetooth Attack (KNOB)"
+  },
+  {
+   "id": "CAPEC-669",
+   "title": "Alteration of a Software Update"
+  },
+  {
+   "id": "CAPEC-67",
+   "title": "String Format Overflow in syslog()"
+  },
+  {
+   "id": "CAPEC-670",
+   "title": "Software Development Tools Maliciously Altered"
+  },
+  {
+   "id": "CAPEC-671",
+   "title": "Requirements for ASIC Functionality Maliciously Altered"
+  },
+  {
+   "id": "CAPEC-672",
+   "title": "Malicious Code Implanted During Chip Programming"
+  },
+  {
+   "id": "CAPEC-673",
+   "title": "Developer Signing Maliciously Altered Software"
+  },
+  {
+   "id": "CAPEC-674",
+   "title": "Design for FPGA Maliciously Altered"
+  },
+  {
+   "id": "CAPEC-675",
+   "title": "Retrieve Data from Decommissioned Devices"
+  },
+  {
+   "id": "CAPEC-676",
+   "title": "NoSQL Injection"
+  },
+  {
+   "id": "CAPEC-677",
+   "title": "Server Motherboard Compromise"
+  },
+  {
+   "id": "CAPEC-678",
+   "title": "System Build Data Maliciously Altered"
+  },
+  {
+   "id": "CAPEC-679",
+   "title": "Exploitation of Improperly Configured or Implemented Memory Protections"
+  },
+  {
+   "id": "CAPEC-68",
+   "title": "Subvert Code-signing Facilities"
+  },
+  {
+   "id": "CAPEC-680",
+   "title": "Exploitation of Improperly Controlled Registers"
+  },
+  {
+   "id": "CAPEC-681",
+   "title": "Exploitation of Improperly Controlled Hardware Security Identifiers"
+  },
+  {
+   "id": "CAPEC-682",
+   "title": "Exploitation of Firmware or ROM Code with Unpatchable Vulnerabilities"
+  },
+  {
+   "id": "CAPEC-69",
+   "title": "Target Programs with Elevated Privileges"
+  },
+  {
+   "id": "CAPEC-690",
+   "title": "Metadata Spoofing"
+  },
+  {
+   "id": "CAPEC-691",
+   "title": "Spoof Open-Source Software Metadata"
+  },
+  {
+   "id": "CAPEC-692",
+   "title": "Spoof Version Control System Commit Metadata"
+  },
+  {
+   "id": "CAPEC-693",
+   "title": "StarJacking"
+  },
+  {
+   "id": "CAPEC-694",
+   "title": "System Location Discovery"
+  },
+  {
+   "id": "CAPEC-695",
+   "title": "Repo Jacking"
+  },
+  {
+   "id": "CAPEC-696",
+   "title": "Load Value Injection"
+  },
+  {
+   "id": "CAPEC-697",
+   "title": "DHCP Spoofing"
+  },
+  {
+   "id": "CAPEC-698",
+   "title": "Install Malicious Extension"
+  },
+  {
+   "id": "CAPEC-699",
+   "title": "Eavesdropping on a Monitor"
+  },
+  {
+   "id": "CAPEC-7",
+   "title": "Blind SQL Injection"
+  },
+  {
+   "id": "CAPEC-70",
+   "title": "Try Common or Default Usernames and Passwords"
+  },
+  {
+   "id": "CAPEC-700",
+   "title": "Network Boundary Bridging"
+  },
+  {
+   "id": "CAPEC-701",
+   "title": "Browser in the Middle (BiTM)"
+  },
+  {
+   "id": "CAPEC-702",
+   "title": "Exploiting Incorrect Chaining or Granularity of Hardware Debug Components"
+  },
+  {
+   "id": "CAPEC-71",
+   "title": "Using Unicode Encoding to Bypass Validation Logic"
+  },
+  {
+   "id": "CAPEC-72",
+   "title": "URL Encoding"
+  },
+  {
+   "id": "CAPEC-73",
+   "title": "User-Controlled Filename"
+  },
+  {
+   "id": "CAPEC-74",
+   "title": "Manipulating State"
+  },
+  {
+   "id": "CAPEC-75",
+   "title": "Manipulating Writeable Configuration Files"
+  },
+  {
+   "id": "CAPEC-76",
+   "title": "Manipulating Web Input to File System Calls"
+  },
+  {
+   "id": "CAPEC-77",
+   "title": "Manipulating User-Controlled Variables"
+  },
+  {
+   "id": "CAPEC-78",
+   "title": "Using Escaped Slashes in Alternate Encoding"
+  },
+  {
+   "id": "CAPEC-79",
+   "title": "Using Slashes in Alternate Encoding"
+  },
+  {
+   "id": "CAPEC-8",
+   "title": "Buffer Overflow in an API Call"
+  },
+  {
+   "id": "CAPEC-80",
+   "title": "Using UTF-8 Encoding to Bypass Validation Logic"
+  },
+  {
+   "id": "CAPEC-81",
+   "title": "Web Server Logs Tampering"
+  },
+  {
+   "id": "CAPEC-83",
+   "title": "XPath Injection"
+  },
+  {
+   "id": "CAPEC-84",
+   "title": "XQuery Injection"
+  },
+  {
+   "id": "CAPEC-85",
+   "title": "AJAX Footprinting"
+  },
+  {
+   "id": "CAPEC-86",
+   "title": "XSS Through HTTP Headers"
+  },
+  {
+   "id": "CAPEC-87",
+   "title": "Forceful Browsing"
+  },
+  {
+   "id": "CAPEC-88",
+   "title": "OS Command Injection"
+  },
+  {
+   "id": "CAPEC-89",
+   "title": "Pharming"
+  },
+  {
+   "id": "CAPEC-9",
+   "title": "Buffer Overflow in Local Command-Line Utilities"
+  },
+  {
+   "id": "CAPEC-90",
+   "title": "Reflection Attack in Authentication Protocol"
+  },
+  {
+   "id": "CAPEC-92",
+   "title": "Forced Integer Overflow"
+  },
+  {
+   "id": "CAPEC-93",
+   "title": "Log Injection-Tampering-Forging"
+  },
+  {
+   "id": "CAPEC-94",
+   "title": "Adversary in the Middle (AiTM)"
+  },
+  {
+   "id": "CAPEC-95",
+   "title": "WSDL Scanning"
+  },
+  {
+   "id": "CAPEC-96",
+   "title": "Block Access to Libraries"
+  },
+  {
+   "id": "CAPEC-97",
+   "title": "Cryptanalysis"
+  },
+  {
+   "id": "CAPEC-98",
+   "title": "Phishing"
+  }
+ ]
+}

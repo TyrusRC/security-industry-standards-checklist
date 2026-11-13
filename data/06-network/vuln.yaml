@@ -1,0 +1,211 @@
+- id: NET-VULN-001
+  sheet: NET
+  category: VULN
+  title: Run an authenticated network vulnerability scan with current signatures
+  objective: Finds missing patches, old software and misconfigurations that a scan without login misses.
+  preconditions:
+  - Written approval for vulnerability scans of the hosts in scope.
+  - Do not run on production without a scan window. Turn off the tests for denial of service.
+  steps:
+  - Update the vulnerability database of the scanner and write down the update date.
+  - Set up scan accounts with read access on the hosts in scope.
+  - Run the scan against the hosts from the internal viewpoint.
+  - Run a scan without login from the external viewpoint.
+  - Save the reports in a standard format.
+  example: 'OpenVAS/GVM: gvm-cli ... create_task with a scan config "Full and fast" and credentials ; nmap -sV --script vuln <host>'
+  expected: The scan covers all hosts in scope with a database of the last few days. The reports list all findings, missing patches and misconfigurations.
+  severity: Medium
+  test_type: Automated
+  refs:
+    attack:
+    - T1595.002
+    capec:
+    - CAPEC-310
+    nist_800_53:
+    - RA-5
+    pci_dss:
+    - '11.3.1'
+    - '11.3.2'
+    other:
+    - NIST SP 800-115 section 4.3 (vulnerability scanning)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-VULN-002
+  sheet: NET
+  category: VULN
+  title: Validate each high scanner finding and remove false positives
+  objective: Finds scanner results that are wrong, so that teams fix real problems only.
+  steps:
+  - Take each Critical and High finding from the scan reports.
+  - Look at the evidence of the finding, such as the banner, the version or the response.
+  - Confirm the finding with a second tool or by a manual check.
+  - Mark each finding as confirmed, false positive or not known.
+  - Record the evidence for each confirmed finding.
+  example: 'nmap -sV --script <vuln-script> -p <port> <host> ; curl -sv telnet://<host>:<port> ; compare OpenVAS result with a second scanner'
+  expected: Each high finding is confirmed or marked as a false positive with evidence. No unconfirmed finding stays in the report as a fact.
+  severity: Low
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-CONF-01
+    nist_800_53:
+    - RA-5
+    other:
+    - NIST SP 800-115 sections 4.3 and 5.2 (false positives and exploit validation)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/01-Network_Infrastructure_Configuration.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-VULN-003
+  sheet: NET
+  category: VULN
+  title: Rate scanner findings by real risk and combine related findings
+  objective: Finds findings that the scanner rates too low or too high for the real environment.
+  steps:
+  - Get the risk rating method of the organization.
+  - Compare the scanner rating of each finding with the organization rating.
+  - Look at the exposure and the data of each affected host.
+  - Look for low findings on one host or path that together give a higher risk.
+  - Record the final rating and the reason.
+  example: 'Group findings per host: openvas-report --format csv | sort -t, -k<host-col> ; check reachability from untrusted networks with nmap'
+  expected: Each finding has an organization rating with a reason. Findings that combine into a higher risk are listed together.
+  severity: Low
+  test_type: Manual
+  refs:
+    cwe:
+    - CWE-693
+    nist_800_53:
+    - RA-5
+    - RA-3
+    pci_dss:
+    - '6.3.1'
+    other:
+    - NIST SP 800-115 section 4.3 (scanner risk levels and combined vulnerabilities)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-VULN-004
+  sheet: NET
+  category: VULN
+  title: Check that patches for network systems are installed within the set time
+  objective: Finds hosts and devices that stay unpatched after the fix is out.
+  steps:
+  - Get the patch policy and the time limits for each risk level.
+  - Get the scan reports and the patch status from at least two scan periods.
+  - Find each Critical and High finding and its first scan date.
+  - Compare the first scan date with the time limit.
+  - Include network devices, firmware and security appliances in the list.
+  example: 'Compare reports: gvm-cli ... get_reports ; nmap -sV --script vulners <host> ; list installed patches: apt list --upgradable ; Get-HotFix'
+  expected: Critical patches are installed within one month of release. Other patches are installed within the time set in the policy.
+  severity: High
+  test_type: Manual
+  refs:
+    owasp_top10:
+    - A02:2025
+    cheatsheet:
+    - Vulnerable_Dependency_Management_Cheat_Sheet
+    cwe:
+    - CWE-1104
+    - CWE-1395
+    nist_800_53:
+    - SI-2
+    - RA-5
+    pci_dss:
+    - '6.3.3'
+    other:
+    - NIST SP 800-115 sections 4.3 and 8.3 (mitigation and remediation)
+  see:
+  - WEB-DEP-001
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/repos/Top10/2025/docs/en/A02_2025-Security_Misconfiguration.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Vulnerable_Dependency_Management_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-VULN-005
+  sheet: NET
+  category: VULN
+  title: Check that a virtual patch exists where no fix is possible
+  objective: Finds known vulnerabilities that stay open with no fix and no other protection.
+  steps:
+  - List the open vulnerabilities that have no vendor fix or no scheduled fix.
+  - Look for a virtual patch or other control for each of them.
+  - Send the known exploit pattern to a test system that has the same protection.
+  - Send variants of the pattern to look for bypasses.
+  - Make sure the virtual patch is tracked in a change ticket and is reviewed again.
+  example: 'curl -s "https://<test-host>/<vulnerable-path>?<exploit-pattern>" -o /dev/null -w "%{http_code}\n" ; ZAP or curl for variants'
+  expected: The WAF or IPS blocks the exploit pattern and its variants. The virtual patch is tracked in a ticket and reviewed after the real fix.
+  severity: Medium
+  test_type: Manual
+  preconditions:
+  - Do not run on production. Use a test system with the same virtual patch.
+  refs:
+    cheatsheet:
+    - Virtual_Patching_Cheat_Sheet
+    nist_800_53:
+    - SI-2
+    - SC-7
+    other:
+    - NIST SP 800-115 section 4.3 (mitigation)
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Virtual_Patching_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-VULN-006
+  sheet: NET
+  category: VULN
+  title: Rescan after remediation and confirm that the finding is closed
+  objective: Finds fixes that were not applied or that did not remove the vulnerability.
+  steps:
+  - Take each finding that the team marked as fixed.
+  - Run a rescan of the affected host and port.
+  - Compare the result with the first report.
+  - Reopen each finding that still appears.
+  - Keep the old and new reports together.
+  example: 'nmap -sV --script <vuln-script> -p <port> <host> ; OpenVAS: create a task with the same config and compare the reports'
+  expected: The rescan shows no Critical or High finding that was marked as fixed. Each closed finding has a rescan report as evidence.
+  severity: Medium
+  test_type: Automated
+  refs:
+    nist_800_53:
+    - RA-5
+    - SI-2
+    pci_dss:
+    - '11.3.1'
+    other:
+    - NIST SP 800-115 section 8.3 (remediation) and PCI DSS 11.3.1 (rescans)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-VULN-007
+  sheet: NET
+  category: VULN
+  title: Make sure no unsupported software runs on the network
+  objective: Finds hosts and devices that run software without security fixes.
+  steps:
+  - Use the service and version scan results of the network.
+  - Compare each product and version with the vendor support dates.
+  - List each end-of-life operating system, firmware and service.
+  - Check if each item has a replacement plan or an approved exception.
+  example: 'nmap -sV -O -oX inv.xml <range> ; xsltproc inv.xml -o inv.html'
+  expected: No unsupported software runs on the network. Any exception has an owner, an end date and a compensating control.
+  severity: High
+  test_type: Automated
+  refs:
+    owasp_top10:
+    - A02:2025
+    cwe:
+    - CWE-1104
+    - CWE-1329
+    nist_800_53:
+    - SI-2
+    - CM-8
+    other:
+    - NIST SP 800-115 section 4.2 (version scanning)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/repos/Top10/2025/docs/en/A02_2025-Security_Misconfiguration.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json

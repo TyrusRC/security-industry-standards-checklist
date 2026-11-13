@@ -1,0 +1,160 @@
+- id: IOT-UPD-001
+  sheet: IOT
+  category: UPD
+  title: Check that firmware updates are signed and the device checks the signature
+  objective: Finds devices that install unsigned or changed firmware.
+  steps:
+  - Get an update package.
+  - Change one byte in a lab copy.
+  - Try to install it.
+  - Try to install a package with a wrong signature.
+  example: binwalk the package; openssl dgst -verify; flash the changed copy only on a lab unit.
+  expected: The device rejects firmware with a missing or wrong signature.
+  severity: Critical
+  test_type:
+  - Manual
+  refs:
+    other:
+    - UK Code of Practice for Consumer IoT Security provision 3, as listed in iot_map.md
+    - GSMA CLP13_6.11
+    - GSMA CLP13_7.5
+    cwe:
+    - CWE-347
+    - CWE-494
+    - CWE-345
+    cheatsheet:
+    - Drone_Security_Cheat_Sheet
+    - Automotive_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    attack:
+    - T1693.001
+    - T1693
+    iot_top10:
+    - I4
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Drone_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Automotive_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+  - sources/attack/ics-attack.json
+  - sources/repos/www-project-internet-of-things/tab_validate_and_test.md
+- id: IOT-UPD-002
+  sheet: IOT
+  category: UPD
+  title: Test the update channel for transport protection
+  objective: Finds update downloads over HTTP or TLS without certificate checks.
+  steps:
+  - Capture an update check and download.
+  - Look at the protocol and the certificate checks.
+  - Serve a lab response from a proxy.
+  - Check what the device does.
+  example: mitmproxy with a lab CA; Wireshark.
+  expected: The device gets updates over TLS with certificate validation. It rejects a proxy response.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-319
+    - CWE-295
+    cheatsheet:
+    - Automotive_Security_Cheat_Sheet
+    attack:
+    - T0830
+    iot_top10:
+    - I4
+    - I7
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Automotive_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+  - sources/attack/ics-attack.json
+- id: IOT-UPD-003
+  sheet: IOT
+  category: UPD
+  title: Test anti-rollback of firmware
+  objective: Finds devices that accept older vulnerable firmware.
+  steps:
+  - Record the current firmware version.
+  - Get an older signed package.
+  - Try to install it in a lab.
+  - Check the version counter in the bootloader.
+  example: Install an older signed image on a lab unit; read the version from the console.
+  expected: The device refuses older firmware versions. A version counter in protected storage enforces this.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-1329
+    cheatsheet:
+    - Drone_Security_Cheat_Sheet
+    - Automotive_Security_Cheat_Sheet
+    iot_top10:
+    - I4
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Drone_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Automotive_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: IOT-UPD-004
+  sheet: IOT
+  category: UPD
+  title: Test interrupted updates and recovery
+  objective: Finds devices that stay broken or unprotected after a failed update.
+  steps:
+  - Start an update on a lab unit.
+  - Cut power at 50 percent.
+  - Power on again.
+  - Check the version, the state and the signature check.
+  example: Controllable power switch; serial console log.
+  expected: The device boots a known good image or a signed recovery image. It never runs half-written code.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-345
+    cheatsheet:
+    - Automotive_Security_Cheat_Sheet
+    attack:
+    - T0800
+    iot_top10:
+    - I4
+    - I8
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Automotive_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+  - sources/attack/ics-attack.json
+- id: IOT-UPD-005
+  sheet: IOT
+  category: UPD
+  title: Check update notices and the published support period
+  objective: Finds products with no update notice or published end of support.
+  steps:
+  - Find the update notice in the app or the device.
+  - Read the support period in the documentation.
+  - Check the update steps for a normal user.
+  - Check the notice for the reason of the update.
+  example: 'Document review: support policy, release notes, update UI.'
+  expected: Users see update notices with the reason. The vendor publishes a minimum support period.
+  severity: Low
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    other:
+    - UK Code of Practice for Consumer IoT Security provision 3, as listed in iot_map.md
+    iot_top10:
+    - I4
+    - I8
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/cwe/cwec_latest.xml.zip

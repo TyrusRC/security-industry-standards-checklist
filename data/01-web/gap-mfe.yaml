@@ -1,0 +1,70 @@
+- id: WEB-MFE-001
+  sheet: WEB
+  category: MFE
+  title: Test micro-frontend iframe sandbox and message sender checks
+  objective: Find embedded features that run with the privileges of the host page or accept messages from a wrong sender.
+  steps:
+  - 'List the micro-frontends and how the host loads each one: script, component or iframe.'
+  - Look at the iframe sandbox attribute of each less-trusted feature.
+  - Make sure allow-scripts and allow-same-origin are not both set for a same-origin frame.
+  - Send a message from another frame of the same origin and from a sandboxed frame with origin null.
+  - Make sure the receiver checks event.origin, event.source and the message type and fields.
+  - Make sure a message cannot start a privileged action without a server-side check.
+  example: 'DevTools console: frames[1].postMessage({type:"setRole",role:"admin"},"*"); grep the bundle for addEventListener("message"'
+  expected: Less-trusted features run in sandboxed frames on a separate origin. Receivers check the exact origin, the source window and the message contract, and do not trust null.
+  severity: High
+  test_type:
+  - Manual
+  - Code Review
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A06:2025
+    - A01:2025
+    cheatsheet:
+    - Micro_Frontend_Security_Cheat_Sheet
+    - Web_Frontend_Security_Cheat_Sheet
+    asvs:
+    - V3.5.5
+    cwe:
+    - CWE-346
+    - CWE-79
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Micro_Frontend_Security_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+- id: WEB-MFE-002
+  sheet: WEB
+  category: MFE
+  title: Review how the host loads remote micro-frontend code
+  objective: Find remote code loading where an attacker or a compromised remote can change the running host application.
+  steps:
+  - List all remote entry URLs and the place where each URL is set.
+  - Make sure the URLs come from host configuration and not from a query parameter or user input.
+  - Make sure each remote uses HTTPS and an immutable, reviewed release.
+  - Make sure Subresource Integrity covers the entry script and the dynamic chunks.
+  - Make sure the Content-Security-Policy allows only the approved remote origins.
+  - Make sure the shell and each remote have separate deployment credentials.
+  example: grep -R "remoteEntry" dist/; check webpack ModuleFederation config; curl -sI of the Content-Security-Policy header
+  expected: Only approved HTTPS remotes at fixed releases load. Integrity and CSP controls cover the dynamic chunks. Deployment credentials are separate.
+  severity: High
+  test_type:
+  - Config Review
+  - Code Review
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A03:2025
+    - A08:2025
+    cheatsheet:
+    - Micro_Frontend_Security_Cheat_Sheet
+    asvs:
+    - V3.6.1
+    cwe:
+    - CWE-829
+    - CWE-494
+    other:
+    - 'OWASP DevGuide web app checklist: 02-frameworks-libraries.md'
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Micro_Frontend_Security_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/DevGuide/docs/en/04-design/02-web-app-checklist/02-frameworks-libraries.md

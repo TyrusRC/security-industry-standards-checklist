@@ -1,0 +1,97 @@
+- id: PRIV-NOTICE-001
+  sheet: PRIV
+  category: NOTICE
+  title: Check that the privacy notice lists all required information
+  objective: Finds privacy notices that miss controller identity, purposes, recipients, retention or rights.
+  steps:
+  - Find the privacy notice from the sign-up page and from the footer.
+  - Make a list of the items in the notice.
+  - Compare the list with the items in the checklist.
+  - Mark each missing item.
+  example: 'Checklist items: controller and contact, purposes and legal basis, recipients, third-country transfers, retention period, data subject rights, right to complain, automated decisions.'
+  expected: The notice is easy to find and contains every required item. It is shown when the data is collected.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    privacy_top10:
+    - P5
+    other:
+    - GDPR Art. 12
+    - GDPR Art. 13
+  sources_read: &id001
+  - sources/repos/www-project-top-10-privacy-risks/tab_topprivacy.md
+  - sources/repos/www-project-top-10-privacy-risks/OWASP_Top_10_Privacy_Risks_Countermeasures_v2.0.pdf
+  - sources/extra/gdpr.html
+- id: PRIV-NOTICE-002
+  sheet: PRIV
+  category: NOTICE
+  title: Check that the privacy notice matches the real data flows
+  objective: Finds processing, recipients and trackers that the notice does not mention.
+  steps:
+  - Record all requests of the application with a proxy during a normal session.
+  - List all third-party hosts that receive data.
+  - Compare the hosts and data types with the notice.
+  - Report each recipient that the notice does not list.
+  example: Burp Suite or mitmproxy HAR export; compare hosts with the recipient list in the notice.
+  expected: Every recipient and data category seen in traffic is named in the privacy notice.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    privacy_top10:
+    - P5
+    - P10
+    other:
+    - GDPR Art. 5
+    - GDPR Art. 13
+  sources_read: *id001
+- id: PRIV-NOTICE-003
+  sheet: PRIV
+  category: NOTICE
+  title: Check that the notice is readable and available in the user language
+  objective: Finds notices that non-lawyers cannot read or that exist only in one language.
+  steps:
+  - Open the notice in each supported user language.
+  - Check for a short summary and a long version.
+  - Run a readability score tool on the text.
+  - Look for a change history and a record of the version that each user accepted.
+  example: Readability score tool; compare language list of the product with the language list of the notice.
+  expected: The notice is short, plain and in the user language. A change history and a per-user accepted version exist.
+  severity: Low
+  test_type:
+  - Manual
+  refs:
+    privacy_top10:
+    - P5
+    other:
+    - GDPR Art. 12
+  sources_read: *id001
+- id: PRIV-NOTICE-004
+  sheet: PRIV
+  category: NOTICE
+  title: Check the cookie list, its purposes and the opt-out
+  objective: Finds sites that set cookies and trackers without a list or an opt-out.
+  steps:
+  - Open the site with a clean browser profile.
+  - List all cookies and storage entries before any consent action.
+  - Compare the list with the cookie list in the notice.
+  - Use the opt-out control and list the entries again.
+  example: Browser developer tools Application tab; clear site data between steps.
+  expected: Only necessary cookies exist before consent. The cookie list names each cookie and its purpose. The opt-out removes the others.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    privacy_top10:
+    - P5
+    - P4
+    other:
+    - GDPR Art. 7
+    - GDPR Art. 13
+  sources_read:
+  - sources/repos/www-project-top-10-privacy-risks/tab_topprivacy.md
+  - sources/repos/www-project-top-10-privacy-risks/OWASP_Top_10_Privacy_Risks_Countermeasures_v2.0.pdf
+  - sources/extra/gdpr.html
+  - sources/repos/CheatSheetSeries/cheatsheets/Third_Party_Javascript_Management_Cheat_Sheet.md

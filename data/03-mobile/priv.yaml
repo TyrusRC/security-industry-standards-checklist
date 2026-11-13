@@ -1,0 +1,596 @@
+- id: MOB-PRIV-001
+  sheet: MOB
+  category: PRIV
+  title: Check Android permissions for minimal, justified and revocable access
+  objective: Finds permissions that the app does not need or does not explain to the user.
+  preconditions:
+  - APK and a test device.
+  steps:
+  - 'Android: Read the AndroidManifest.xml and list all declared permissions.'
+  - 'Android: Compare the list with the Android list of dangerous permissions.'
+  - 'Android: Match each dangerous permission to a visible app feature.'
+  - 'Android: Look for permissions that have a less intrusive option, such as coarse location or a picker.'
+  - 'Android: Start the app. Check that it asks for each permission at the time of use and shows a rationale.'
+  - 'Android: Check that the app drops permissions it no longer needs.'
+  example: aapt2 d permissions app.apk ; aapt d permissions app.apk ; adb shell dumpsys package <pkg> | grep -A30 "requested permissions" ; adb shell pm revoke <pkg> <permission>
+  expected: The app declares only permissions that its features need. It asks for each one when needed, explains why, and lets the user revoke it.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  level: MASVS P
+  refs:
+    mobile_top10:
+    - M6:2024
+    masvs:
+    - MASVS-PRIVACY-1
+    mastg:
+    - MASTG-TEST-0254
+    - MASTG-TEST-0255
+    - MASTG-TEST-0256
+    - MASTG-TEST-0257
+    maswe:
+    - MASWE-0066
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-250
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PRIVACY-1.md
+  - sources/mastg/files/tests-beta_android_MASVS-PRIVACY_MASTG-TEST-0254.md
+  - sources/mastg/files/tests-beta_android_MASVS-PRIVACY_MASTG-TEST-0255.md
+  - sources/mastg/files/tests-beta_android_MASVS-PRIVACY_MASTG-TEST-0256.md
+  - sources/mastg/files/tests-beta_android_MASVS-PRIVACY_MASTG-TEST-0257.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PRIVACY_MASWE-0066.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m6-inadequate-privacy-controls.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0117.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0126.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+- id: MOB-PRIV-002
+  sheet: MOB
+  category: PRIV
+  title: Check iOS purpose strings against the protected resources that the app uses
+  objective: Finds access to protected resources without a clear and accurate purpose string.
+  preconditions:
+  - Extracted IPA and a test device.
+  steps:
+  - 'iOS: Read the Info.plist and list all UsageDescription keys with their strings.'
+  - 'iOS: Search the binary for the APIs that request or use each protected resource.'
+  - 'iOS: Flag an API with no matching key, and a string that is vague or wrong.'
+  - 'iOS: Hook the protected resource APIs at runtime. Use all app flows.'
+  - 'iOS: Check that each system prompt shows a purpose string that matches the visible feature.'
+  example: plutil -p Payload/App.app/Info.plist | grep UsageDescription ; r2 -A <app_binary> ; afl~requestAuthorization ; frida -U -f <bundle_id> -l hook_protected_apis.js
+  expected: Each protected resource has a specific and true purpose string. The app asks only when a visible feature needs the resource.
+  severity: Low
+  test_type:
+  - Config Review
+  - Manual
+  level: MASVS P
+  refs:
+    mobile_top10:
+    - M6:2024
+    masvs:
+    - MASVS-PRIVACY-1
+    mastg:
+    - MASTG-TEST-0360
+    - MASTG-TEST-0361
+    maswe:
+    - MASWE-0066
+    cwe:
+    - CWE-250
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PRIVACY-1.md
+  - sources/mastg/files/tests-beta_ios_MASVS-PRIVACY_MASTG-TEST-0360.md
+  - sources/mastg/files/tests-beta_ios_MASVS-PRIVACY_MASTG-TEST-0361.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PRIVACY_MASWE-0066.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m6-inadequate-privacy-controls.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0153.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0154.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0138.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0095.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+- id: MOB-PRIV-003
+  sheet: MOB
+  category: PRIV
+  title: Check iOS entitlements for capabilities that the app does not need
+  objective: Finds signed capabilities that widen data access without a user-visible reason.
+  preconditions:
+  - Extracted IPA and a test device.
+  steps:
+  - 'iOS: Extract the entitlements of the main binary and of each app extension.'
+  - 'iOS: Search the binary for APIs, shared containers and identifiers that relate to each entitlement.'
+  - 'iOS: Hook entitlement-backed APIs at runtime. Use all app flows.'
+  - 'iOS: Match each entitlement to a visible app feature.'
+  - 'iOS: Flag entitlements for health, shared storage, iCloud or associated domains with no use.'
+  example: rabin2 -OC App ; codesign -d --entitlements :- App.app ; frida -U -f <bundle_id> -l hook_entitlement_apis.js
+  expected: Each signed entitlement links to a visible feature. The app signs no entitlement that widens data access without need.
+  severity: Low
+  test_type:
+  - Config Review
+  - Manual
+  level: MASVS P
+  refs:
+    mobile_top10:
+    - M6:2024
+    masvs:
+    - MASVS-PRIVACY-1
+    mastg:
+    - MASTG-TEST-0362
+    - MASTG-TEST-0363
+    maswe:
+    - MASWE-0066
+    cwe:
+    - CWE-250
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PRIVACY-1.md
+  - sources/mastg/files/tests-beta_ios_MASVS-PRIVACY_MASTG-TEST-0362.md
+  - sources/mastg/files/tests-beta_ios_MASVS-PRIVACY_MASTG-TEST-0363.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PRIVACY_MASWE-0066.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m6-inadequate-privacy-controls.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0111.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0095.md
+- id: MOB-PRIV-004
+  sheet: MOB
+  category: PRIV
+  title: Check network traffic for personal data that the app does not declare
+  objective: Finds personal data that leaves the device but is missing from the privacy declarations.
+  preconditions:
+  - Test device with a trusted proxy certificate.
+  - Store privacy declarations of the app.
+  steps:
+  - Write down the sensitive and personal test data that you enter into the app.
+  - Capture and decrypt the HTTPS traffic of the app while you use all workflows.
+  - Search the traffic for the test data, also in background requests.
+  - Compare the found data with the Data Safety section, the Privacy Nutrition Label and the privacy policy.
+  - Find the code that sends each undeclared item.
+  example: 'mitmproxy -s mitm_sensitive_logger.py ; Burp Suite: filter on the test data ; adb shell settings put global http_proxy <host>:8080'
+  expected: All personal data in the traffic matches the store declarations and the privacy policy. The app sends nothing undeclared, also in the background.
+  severity: Medium
+  test_type:
+  - Manual
+  level: MASVS P
+  refs:
+    mobile_top10:
+    - M6:2024
+    masvs:
+    - MASVS-PRIVACY-3
+    - MASVS-PRIVACY-1
+    mastg:
+    - MASTG-TEST-0206
+    maswe:
+    - MASWE-0073
+    cwe:
+    - CWE-359
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PRIVACY-3.md
+  - sources/masvs/controls-master/MASVS-PRIVACY-1.md
+  - sources/mastg/files/tests-beta_android_MASVS-PRIVACY_MASTG-TEST-0206.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PRIVACY_MASWE-0073.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m6-inadequate-privacy-controls.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0005.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0100.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0010.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0062.md
+- id: MOB-PRIV-005
+  sheet: MOB
+  category: PRIV
+  title: Check third-party SDKs for sensitive data sharing and consent
+  objective: Finds SDKs that receive personal data, or start to collect before the user consents.
+  preconditions:
+  - Fresh install with no consent given.
+  steps:
+  - 'Android: List the SDKs in the app. Find the APIs that send user data, such as analytics events and user properties.'
+  - 'Android: Hook these API calls at runtime. Record the arguments and backtraces.'
+  - Start the app for the first time. Capture the traffic before you answer any consent prompt.
+  - Look for SDK requests that carry identifiers or personal data before consent.
+  - Check that each SDK follows the consent signal and the data that the app declares.
+  example: 'jadx -d out app.apk ; grep -rn "logEvent\|setUserProperty\|setUserId" out/ ; frida -U -f <pkg> -l hook_sdk_calls.js ; Burp Suite: capture first-start traffic'
+  expected: SDKs receive only declared data, and only after consent. No SDK collects data before the user decides.
+  severity: Medium
+  test_type:
+  - Manual
+  - Code Review
+  level: MASVS P
+  refs:
+    mobile_top10:
+    - M6:2024
+    - M2:2024
+    masvs:
+    - MASVS-PRIVACY-1
+    - MASVS-PRIVACY-3
+    mastg:
+    - MASTG-TEST-0318
+    - MASTG-TEST-0319
+    maswe:
+    - MASWE-0073
+    cwe:
+    - CWE-359
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PRIVACY-1.md
+  - sources/masvs/controls-master/MASVS-PRIVACY-3.md
+  - sources/mastg/files/tests-beta_android_MASVS-PRIVACY_MASTG-TEST-0318.md
+  - sources/mastg/files/tests-beta_android_MASVS-PRIVACY_MASTG-TEST-0319.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PRIVACY_MASWE-0073.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m6-inadequate-privacy-controls.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m2-inadequate-supply-chain-security.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0043.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0005.md
+- id: MOB-PRIV-006
+  sheet: MOB
+  category: PRIV
+  title: Check that iOS tracking domains appear in the privacy manifests
+  objective: Finds tracking domains that the app contacts but does not declare.
+  preconditions:
+  - Extracted IPA and a test device.
+  steps:
+  - 'iOS: Extract every PrivacyInfo.xcprivacy file of the app, also those from SDKs and frameworks.'
+  - 'iOS: Read NSPrivacyTrackingDomains in each file.'
+  - 'iOS: Search the binary for strings of known tracking domains.'
+  - 'iOS: Capture the traffic during use. List all contacted domains.'
+  - 'iOS: Compare the domains found with a list of known trackers and with the declared domains.'
+  example: find . -name PrivacyInfo.xcprivacy ; plutil -convert json -o PrivacyInfo.json PrivacyInfo.xcprivacy ; jq .NSPrivacyTrackingDomains PrivacyInfo.json ; strings -a App | grep -i -E "doubleclick|facebook|adjust"
+  expected: The privacy manifests declare every tracking domain that the code contains or that the app contacts at runtime.
+  severity: Low
+  test_type:
+  - Config Review
+  - Manual
+  level: MASVS P
+  refs:
+    mobile_top10:
+    - M6:2024
+    masvs:
+    - MASVS-PRIVACY-3
+    mastg:
+    - MASTG-TEST-0281
+    maswe:
+    - MASWE-0074
+    cwe:
+    - CWE-359
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PRIVACY-3.md
+  - sources/mastg/files/tests-beta_ios_MASVS-PRIVACY_MASTG-TEST-0281.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PRIVACY_MASWE-0074.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m6-inadequate-privacy-controls.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0136.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0137.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0138.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/techniques/generic/MASTG-TECH-0071.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0062.md
+- id: MOB-PRIV-007
+  sheet: MOB
+  category: PRIV
+  title: Check use of identifiers for user tracking
+  objective: Finds persistent identifiers that let parties follow users across apps and services.
+  steps:
+  - Search the code and SDKs for the Advertising ID, ANDROID_ID, serial numbers, MAC addresses and identifierForVendor.
+  - Look for non-resettable identifiers and for identifiers that join data from different services.
+  - Check that the app asks for tracking consent where the platform needs it, and respects an opt-out.
+  - Reset the identifier in the device settings. Check that the app does not link the new value to the old one.
+  - Check if privacy-preserving APIs, such as Play Integrity or DeviceCheck, can replace an identifier.
+  example: 'grep -rn "AdvertisingIdClient\|ANDROID_ID\|getSerial\|identifierForVendor\|ASIdentifierManager" out/ ; Burp Suite: look for identifiers in the requests'
+  expected: The app uses resettable or app-scoped identifiers only with consent. It does not link identifiers across services.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS P
+  refs:
+    mobile_top10:
+    - M6:2024
+    masvs:
+    - MASVS-PRIVACY-2
+    maswe:
+    - MASWE-0068
+    cwe:
+    - CWE-359
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PRIVACY-2.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PRIVACY_MASWE-0068.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m6-inadequate-privacy-controls.md
+- id: MOB-PRIV-008
+  sheet: MOB
+  category: PRIV
+  title: Check that the app anonymizes personal data before sharing it
+  objective: Finds personal data that the app sends in a form that identifies the user.
+  steps:
+  - Capture the data that the app sends to its server, to SDKs and to AI services.
+  - Look for user IDs, names, e-mail addresses, precise location and metadata such as Exif.
+  - Check that hashes of identifiers use a secret key and are not plain stable hashes.
+  - Check that the app does not store the key with the pseudonymized data.
+  - Check that the app redacts sensitive fields before it sends data to AI services.
+  example: 'Burp Suite: inspect request bodies ; exiftool uploaded_image.jpg ; sha256sum <identifier> and compare with the sent value'
+  expected: The app removes or transforms identifiers before it collects or shares data. Pseudonyms are keyed, and AI services get redacted data.
+  severity: Medium
+  test_type:
+  - Manual
+  - Code Review
+  level: MASVS P
+  refs:
+    mobile_top10:
+    - M6:2024
+    masvs:
+    - MASVS-PRIVACY-2
+    maswe:
+    - MASWE-0067
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-359
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PRIVACY-2.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PRIVACY_MASWE-0067.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m6-inadequate-privacy-controls.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+- id: MOB-PRIV-009
+  sheet: MOB
+  category: PRIV
+  title: Check for privacy-preserving platform alternatives
+  objective: Finds features that expose more user data than a platform alternative would.
+  steps:
+  - Look for login flows in embedded WebViews. Check if the app uses ASWebAuthenticationSession or Custom Tabs.
+  - Look for broad photo, camera or file permissions where a system picker would work.
+  - Look for user data that goes to a remote AI service when on-device processing is possible.
+  - Check that the app asks for broad access only when the feature needs it.
+  example: grep -rn "ACTION_OPEN_DOCUMENT\|PickVisualMedia\|PHPickerViewController\|ASWebAuthenticationSession\|CustomTabsIntent" out/
+  expected: The app uses system pickers, system authentication sessions and on-device processing where they can support the feature.
+  severity: Low
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS P
+  refs:
+    mobile_top10:
+    - M6:2024
+    masvs:
+    - MASVS-PRIVACY-2
+    maswe:
+    - MASWE-0069
+    - MASWE-0066
+    cwe:
+    - CWE-359
+    - CWE-250
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PRIVACY-2.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PRIVACY_MASWE-0069.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PRIVACY_MASWE-0066.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m6-inadequate-privacy-controls.md
+- id: MOB-PRIV-010
+  sheet: MOB
+  category: PRIV
+  title: Check that privacy-relevant actions show scope and consequences
+  objective: Finds actions that share data without a clear view of what, with whom and for how long.
+  steps:
+  - List actions that share or publish user data, such as share, export, post and invite.
+  - Open each action. Look for the affected data, metadata, destination and audience.
+  - Check that the user can review and confirm the action before it completes.
+  - Check that the app shows the resulting privacy state afterward and allows reversal.
+  example: Manual review with screenshots of each sharing flow
+  expected: Each privacy-relevant action shows the data, the audience and the effect before it completes, and the user can review and undo it.
+  severity: Low
+  test_type:
+  - Manual
+  level: MASVS P
+  refs:
+    mobile_top10:
+    - M6:2024
+    masvs:
+    - MASVS-PRIVACY-2
+    maswe:
+    - MASWE-0070
+    cwe:
+    - CWE-359
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PRIVACY-2.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PRIVACY_MASWE-0070.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m6-inadequate-privacy-controls.md
+- id: MOB-PRIV-011
+  sheet: MOB
+  category: PRIV
+  title: Check that default settings expose the least data
+  objective: Finds defaults that share more data or reach a wider audience than needed.
+  steps:
+  - Install the app fresh. Complete the first run without a change to any setting.
+  - List the defaults for audience, visibility, retention, analytics and recipients.
+  - Compare each default with the narrowest option that still gives the feature.
+  - Check that the app asks the user before it widens an audience or shares more data.
+  example: Manual review of the first-run flow and the privacy settings screen
+  expected: Defaults use the narrowest audience, the least data and the shortest retention that the feature allows.
+  severity: Low
+  test_type:
+  - Manual
+  level: MASVS P
+  refs:
+    mobile_top10:
+    - M6:2024
+    masvs:
+    - MASVS-PRIVACY-2
+    maswe:
+    - MASWE-0071
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PRIVACY-2.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PRIVACY_MASWE-0071.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m6-inadequate-privacy-controls.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+- id: MOB-PRIV-012
+  sheet: MOB
+  category: PRIV
+  title: Check the privacy policy and the privacy labels against app behavior
+  objective: Finds apps with a missing, unclear or wrong privacy policy.
+  steps:
+  - Find the privacy policy in the app and in the store listing. Check that it is easy to reach.
+  - Check that it covers the data practices of this app and not only the company in general.
+  - Compare it with the Data Safety section and the Privacy Nutrition Label.
+  - Compare all three with the traffic and permissions that you saw in other tests.
+  example: Manual review ; compare the store listing with Burp Suite traffic logs
+  expected: The privacy policy is easy to reach and clear. It matches the store declarations and the real behavior of the app.
+  severity: Low
+  test_type:
+  - Manual
+  level: MASVS P
+  refs:
+    mobile_top10:
+    - M6:2024
+    masvs:
+    - MASVS-PRIVACY-3
+    maswe:
+    - MASWE-0072
+    - MASWE-0073
+    cwe:
+    - CWE-359
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PRIVACY-3.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PRIVACY_MASWE-0072.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PRIVACY_MASWE-0073.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m6-inadequate-privacy-controls.md
+- id: MOB-PRIV-013
+  sheet: MOB
+  category: PRIV
+  title: Check that the build is reproducible
+  objective: Finds apps whose published binary cannot be matched to the claimed source code.
+  preconditions:
+  - Source code and build environment of the app.
+  steps:
+  - Find the source, the build scripts and the pinned toolchain versions for the release.
+  - Build the app twice in the same environment. Compare the two outputs.
+  - Look for timestamps, absolute paths and unstable ordering in the artifacts.
+  - Look for published provenance for the release, such as a SLSA statement.
+  - Check if the obfuscation settings give the same result on each build.
+  example: sha256sum build1.apk build2.apk ; diffoscope build1.apk build2.apk
+  expected: Builds of the same source in the same environment give identical binaries. The release has provenance that others can check.
+  severity: Info
+  test_type:
+  - Manual
+  - Config Review
+  level: MASVS P
+  refs:
+    mobile_top10:
+    - M2:2024
+    masvs:
+    - MASVS-PRIVACY-3
+    maswe:
+    - MASWE-0075
+    cheatsheet:
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-1357
+    - CWE-494
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PRIVACY-3.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PRIVACY_MASWE-0075.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m2-inadequate-supply-chain-security.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+- id: MOB-PRIV-014
+  sheet: MOB
+  category: PRIV
+  title: Check that users can delete, export and change their data
+  objective: Finds apps that give users no way to manage their personal data.
+  preconditions:
+  - Test account.
+  steps:
+  - Open the account and privacy settings. Look for delete, export, change and opt-out options.
+  - Delete the account and the data of a test user. Check the backend for remaining data.
+  - Export the data of the test user. Check that the export is complete.
+  - Check that granular opt-outs for data collection and sharing exist.
+  - Check that the app removes data automatically when the retention period ends.
+  example: Manual test with a test account ; compare backend records before and after the deletion
+  expected: Users can delete, export and change their data and opt out of collection from inside the app. The deletion reaches the backend.
+  severity: Medium
+  test_type:
+  - Manual
+  level: MASVS P
+  refs:
+    mobile_top10:
+    - M6:2024
+    masvs:
+    - MASVS-PRIVACY-4
+    maswe:
+    - MASWE-0076
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-359
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PRIVACY-4.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PRIVACY_MASWE-0076.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m6-inadequate-privacy-controls.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+- id: MOB-PRIV-015
+  sheet: MOB
+  category: PRIV
+  title: Check privacy settings for control over data visibility
+  objective: Finds apps that offer no fine control over who sees user data.
+  preconditions:
+  - Two test accounts.
+  steps:
+  - Open the privacy settings. List the controls for location, contacts and profile data.
+  - Check that each data category has its own control.
+  - Change each control. Check with a second test account that the change takes effect.
+  - Check that help text explains each option.
+  example: Manual test with two test accounts
+  expected: Users control each data category on its own, and a change takes effect for other users and for sharing partners.
+  severity: Low
+  test_type:
+  - Manual
+  level: MASVS P
+  refs:
+    mobile_top10:
+    - M6:2024
+    masvs:
+    - MASVS-PRIVACY-4
+    maswe:
+    - MASWE-0077
+    cwe:
+    - CWE-359
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PRIVACY-4.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PRIVACY_MASWE-0077.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m6-inadequate-privacy-controls.md
+- id: MOB-PRIV-016
+  sheet: MOB
+  category: PRIV
+  title: Check that consent is explicit, informed and renewed on change
+  objective: Finds apps that process personal data without clear prior consent.
+  preconditions:
+  - Two app versions where the later one collects more data.
+  steps:
+  - Start a fresh install. Look at each consent prompt before any data collection.
+  - Check that consent is not bundled into the terms of service and is not implied.
+  - Check that the text names the data, the purpose and the effect.
+  - Withdraw consent in the settings. Check that collection stops in the traffic.
+  - Install an update that collects more data. Check that the app asks for consent again.
+  example: 'Burp Suite: capture traffic before and after consent and after withdrawal ; compare two app versions'
+  expected: The app asks for explicit, specific consent before it collects data. Withdrawal stops collection, and new data collection needs new consent.
+  severity: Medium
+  test_type:
+  - Manual
+  level: MASVS P
+  refs:
+    mobile_top10:
+    - M6:2024
+    masvs:
+    - MASVS-PRIVACY-4
+    - MASVS-PRIVACY-1
+    maswe:
+    - MASWE-0078
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-200
+    - CWE-285
+    - CWE-358
+    - CWE-359
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PRIVACY-4.md
+  - sources/masvs/controls-master/MASVS-PRIVACY-1.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PRIVACY_MASWE-0078.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m6-inadequate-privacy-controls.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md

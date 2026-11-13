@@ -1,0 +1,281 @@
+- id: CICD-PBAC-001
+  sheet: CICD
+  category: PBAC
+  title: Check that secrets are scoped to the pipeline, step and environment
+  objective: Finds secrets that every pipeline or every branch can read.
+  preconditions:
+  - Admin read access to the CI settings.
+  steps:
+  - List the secrets at organization, repository and environment level.
+  - Find secrets that all repositories or all branches can read.
+  - Compare each secret with the pipelines that use it.
+  - Make sure production secrets are only in protected environments.
+  example: gh api orgs/ORG/actions/secrets --jq '.secrets[]|{name,visibility}'; gh api repos/ORG/REPO/environments --jq '.environments[].name'; glab api projects/ID/variables
+  expected: Each secret is available only to the pipelines and steps that need it. Production secrets need a protected branch or environment.
+  severity: High
+  test_type: &id001
+  - Manual
+  - Config Review
+  refs:
+    cicd_top10:
+    - CICD-SEC-5
+    - CICD-SEC-6
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Secrets_Management_Cheat_Sheet
+    cwe:
+    - CWE-269
+    - CWE-522
+    attack:
+    - T1552.001
+    nist_800_53:
+    - AC-6
+    other:
+    - SSDF PS.1.1
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-05-Insufficient-PBAC.md
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-06-Insufficient-Credential-Hygiene.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+- id: CICD-PBAC-002
+  sheet: CICD
+  category: PBAC
+  title: Check the default permissions of the job token
+  objective: Finds pipeline tokens that have write access to code or packages by default.
+  preconditions:
+  - Read access to the repository settings.
+  steps:
+  - Read the default token permission of the organization and the repository.
+  - Make sure the default is read-only.
+  - Look at each workflow for a permissions block.
+  - Make sure each write permission is granted only to the job that needs it.
+  example: gh api repos/ORG/REPO/actions/permissions/workflow; zizmor .github/workflows/ ; grep -rn 'permissions:' -A4 .github/workflows
+  expected: The default token is read-only. Each job lists the exact permissions it needs. Write access is granted per job.
+  severity: High
+  test_type:
+  - Config Review
+  - Automated
+  refs:
+    cicd_top10:
+    - CICD-SEC-5
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-250
+    - CWE-269
+    attack:
+    - T1528
+    nist_800_53:
+    - AC-6
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-05-Insufficient-PBAC.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+- id: CICD-PBAC-003
+  sheet: CICD
+  category: PBAC
+  title: Check runner isolation and clean state after each job
+  objective: Finds shared build nodes that keep files, caches or credentials between jobs.
+  preconditions:
+  - Use a test runner. Do not run on production runners.
+  steps:
+  - List the runners and the pipelines that use each one.
+  - Make sure pipelines with different sensitivity do not share a node.
+  - Make sure each job runs on an ephemeral node or a clean container.
+  - Run two jobs one after the other on a test runner and look for left-over files.
+  example: 'gh api repos/ORG/REPO/actions/runners --jq ''.runners[]|{name,labels}''; ls -la "$RUNNER_TEMP" ~/.cache  # in a test job'
+  expected: Nodes are ephemeral or reset after each job. Pipelines with different sensitivity never share a node, cache or workspace.
+  severity: High
+  test_type: *id001
+  refs:
+    cicd_top10:
+    - CICD-SEC-5
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-284
+    capec:
+    - CAPEC-678
+    attack:
+    - T1195.002
+    other:
+    - SSDF PO.5.1
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-05-Insufficient-PBAC.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+- id: CICD-PBAC-004
+  sheet: CICD
+  category: PBAC
+  title: Check the OS rights of the job and the container
+  objective: Finds jobs that run as root, in privileged containers or with access to the Docker socket.
+  preconditions:
+  - Read access to a test runner and its configuration.
+  steps:
+  - Read the runner service account and its OS permissions.
+  - Look for the privileged flag, host mounts and added capabilities in job containers.
+  - Look for a mount of the Docker socket in the job.
+  - Make sure jobs run as a non-root user.
+  example: ps -o user= -C Runner.Listener; grep -rnE 'privileged|docker.sock|cap_add|--cap-add' .github/ docker-compose*.yml; docker inspect --format '{{.HostConfig.Privileged}}' CONTAINER
+  expected: Jobs run as an unprivileged user. Job containers are not privileged and have no Docker socket or broad host mount.
+  severity: High
+  test_type: *id001
+  refs:
+    cicd_top10:
+    - CICD-SEC-5
+    - CICD-SEC-7
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Docker_Security_Cheat_Sheet
+    cwe:
+    - CWE-250
+    attack:
+    - T1525
+    nist_800_53:
+    - AC-6
+    - CM-6
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-05-Insufficient-PBAC.md
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-07-Insecure-System-Configuration.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+- id: CICD-PBAC-005
+  sheet: CICD
+  category: PBAC
+  title: Test outbound network access from build nodes
+  objective: Finds build nodes that can send data to any host on the internet.
+  preconditions:
+  - Use a test job without secrets.
+  steps:
+  - Read the egress rules for the build network.
+  - Start a test job that connects to a harmless external host that is not on the allowlist.
+  - Look at the result of the connection.
+  - Make sure the allowlist holds only the registries and services that the build needs.
+  example: 'curl -sS -m 5 -o /dev/null -w ''%{http_code}\n'' https://example.org  # in a test job'
+  expected: Build nodes can reach only allowlisted hosts. The test connection to an unlisted host fails and the event is logged.
+  severity: High
+  test_type: *id001
+  refs:
+    cicd_top10:
+    - CICD-SEC-5
+    cheatsheet:
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-693
+    attack:
+    - T1195.002
+    nist_800_53:
+    - SC-7
+    other:
+    - SSDF PO.5.1
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-05-Insufficient-PBAC.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+- id: CICD-PBAC-006
+  sheet: CICD
+  category: PBAC
+  title: Check network segmentation and metadata service access from jobs
+  objective: Finds jobs that can reach internal systems or the cloud instance identity service.
+  preconditions:
+  - Use a test job. Do not run on production runners.
+  steps:
+  - List the internal networks and services that the runner network can reach.
+  - Compare the list with the resources the pipelines need.
+  - From a test job, try to reach the cloud metadata address and an unrelated internal host.
+  - Make sure the instance metadata service needs a session token or is blocked.
+  example: 'curl -sS -m 3 -o /dev/null -w ''%{http_code}\n'' http://169.254.169.254/latest/meta-data/  # in a test job; nmap -Pn -p 22,443 INTERNAL_HOST'
+  expected: Runners reach only the systems that the pipelines need. Jobs cannot read the metadata service without a protected session token.
+  severity: High
+  test_type: *id001
+  refs:
+    cicd_top10:
+    - CICD-SEC-5
+    - CICD-SEC-7
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-284
+    attack:
+    - T1552.005
+    nist_800_53:
+    - SC-7
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-05-Insufficient-PBAC.md
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-07-Insecure-System-Configuration.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+- id: CICD-PBAC-007
+  sheet: CICD
+  category: PBAC
+  title: Check what controller access pipeline jobs have
+  objective: Finds jobs that can read other jobs, run on the CI controller or change CI settings.
+  preconditions:
+  - Use a test job.
+  steps:
+  - Make sure no job runs on the CI controller node.
+  - Read the permissions of the job identity on the CI platform.
+  - From a test job, try to list other projects, credentials and nodes.
+  - Make sure the request fails.
+  example: 'curl -s -u JOBTOKEN: https://JENKINS/api/json?tree=jobs[name]; gh api repos/OTHER_ORG/OTHER_REPO/actions/secrets  # with the job token'
+  expected: Jobs run on separate nodes. The job identity cannot list other projects, read stored credentials or change CI settings.
+  severity: High
+  test_type: *id001
+  refs:
+    cicd_top10:
+    - CICD-SEC-5
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-269
+    attack:
+    - T1072
+    nist_800_53:
+    - AC-6
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-05-Insufficient-PBAC.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+- id: CICD-PBAC-008
+  sheet: CICD
+  category: PBAC
+  title: Check that third-party build steps run in a scoped context
+  objective: Finds third-party actions, plugins and scripts that run with the full rights of the job.
+  preconditions:
+  - Use a test branch.
+  steps:
+  - List the third-party actions, plugins, orbs and downloaded scripts that jobs use.
+  - Find the jobs where they run together with secrets or write tokens.
+  - Move the step to a job without secrets on a test branch.
+  - Make sure the step still works with its limited rights.
+  example: 'grep -rnE ''uses: [^./]'' .github/workflows | grep -v ''@[0-9a-f]\{40\}''; zizmor .github/workflows/'
+  expected: Third-party steps run in jobs with minimal secrets, a read-only token and limited egress. They do not share a job with deploy credentials.
+  severity: High
+  test_type: *id001
+  refs:
+    cicd_top10:
+    - CICD-SEC-5
+    - CICD-SEC-8
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-829
+    - CWE-250
+    attack:
+    - T1195.002
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-05-Insufficient-PBAC.md
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-08-Ungoverned-Usage-of-3rd-Party-Services.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md

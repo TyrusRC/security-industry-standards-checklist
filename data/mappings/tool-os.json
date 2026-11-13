@@ -1,0 +1,154 @@
+{
+ "tool_check": {
+  "cac:aide_build_database": [
+   "NET-REV-006"
+  ],
+  "cac:aide_check_audit_tools": [
+   "NET-REV-006"
+  ],
+  "cac:aide_disable_silentreports": [
+   "NET-REV-006"
+  ],
+  "cac:aide_periodic_checking_systemd_timer": [
+   "NET-REV-006"
+  ],
+  "cac:aide_periodic_cron_checking": [
+   "NET-REV-006"
+  ],
+  "cac:aide_scan_notification": [
+   "NET-REV-006"
+  ],
+  "cac:aide_use_fips_hashes": [
+   "NET-REV-006"
+  ],
+  "cac:aide_verify_acls": [
+   "NET-REV-006"
+  ],
+  "cac:aide_verify_ext_attributes": [
+   "NET-REV-006"
+  ],
+  "cac:auditd_audispd_configure_remote_server": [
+   "NET-LOG-002"
+  ],
+  "cac:auditd_audispd_encrypt_sent_records": [
+   "NET-LOG-002"
+  ],
+  "cac:auditd_offload_logs": [
+   "NET-LOG-002"
+  ],
+  "cac:chronyd_client_only": [
+   "NET-SVC-005"
+  ],
+  "cac:chronyd_no_chronyc_network": [
+   "NET-SVC-005"
+  ],
+  "cac:configure_firewalld_ports": [
+   "NET-REV-003"
+  ],
+  "cac:disable_prelink": [
+   "NET-REV-006"
+  ],
+  "cac:dns_server_authenticate_zone_transfers": [
+   "NET-DNS-001"
+  ],
+  "cac:dns_server_disable_zone_transfers": [
+   "NET-DNS-001"
+  ],
+  "cac:ensure_firewall_rules_for_open_ports": [
+   "NET-REV-003"
+  ],
+  "cac:installed_OS_is_vendor_supported": [
+   "NET-VULN-007"
+  ],
+  "cac:ip6tables_rules_for_open_ports": [
+   "NET-REV-003"
+  ],
+  "cac:iptables_rules_for_open_ports": [
+   "NET-REV-003"
+  ],
+  "cac:ntpd_configure_restrictions": [
+   "NET-SVC-005"
+  ],
+  "cac:package_aide_installed": [
+   "NET-REV-006"
+  ],
+  "cac:package_prelink_removed": [
+   "NET-REV-006"
+  ],
+  "cac:rpm_verify_crypto_policies": [
+   "NET-REV-006"
+  ],
+  "cac:rpm_verify_hashes": [
+   "NET-REV-006"
+  ],
+  "cac:rpm_verify_ownership": [
+   "NET-REV-006"
+  ],
+  "cac:rpm_verify_permissions": [
+   "NET-REV-006"
+  ],
+  "cac:rsyslog_encrypt_offload_actionsendstreamdriverauthmode": [
+   "NET-LOG-002"
+  ],
+  "cac:rsyslog_encrypt_offload_actionsendstreamdrivermode": [
+   "NET-LOG-002"
+  ],
+  "cac:rsyslog_encrypt_offload_defaultnetstreamdriver": [
+   "NET-LOG-002"
+  ],
+  "cac:rsyslog_omfwd_authmode": [
+   "NET-LOG-002"
+  ],
+  "cac:rsyslog_omfwd_streamdriver": [
+   "NET-LOG-002"
+  ],
+  "cac:rsyslog_omfwd_tls": [
+   "NET-LOG-002"
+  ],
+  "cac:rsyslog_remote_loghost": [
+   "NET-LOG-002"
+  ],
+  "cac:rsyslog_remote_tls": [
+   "NET-LOG-002"
+  ],
+  "cac:rsyslog_remote_tls_cacert": [
+   "NET-LOG-002"
+  ],
+  "cac:security_patches_up_to_date": [
+   "NET-VULN-004"
+  ],
+  "cac:service_systemd-journal-upload_enabled": [
+   "NET-LOG-002"
+  ],
+  "cac:snmpd_no_rwusers": [
+   "NET-SVC-003"
+  ],
+  "cac:snmpd_not_default_password": [
+   "NET-SVC-003"
+  ],
+  "cac:ssh_keys_passphrase_protected": [
+   "NET-ADM-003"
+  ],
+  "cac:ssh_private_keys_have_passcode": [
+   "NET-ADM-003"
+  ],
+  "cac:susefirewall2_only_required_services": [
+   "NET-REV-003"
+  ],
+  "cac:systemd_journal_upload_server_tls": [
+   "NET-LOG-002"
+  ],
+  "cac:systemd_journal_upload_url": [
+   "NET-LOG-002"
+  ],
+  "cac:ufw_only_required_services": [
+   "NET-REV-003"
+  ],
+  "cac:ufw_rules_for_open_ports": [
+   "NET-REV-003"
+  ],
+  "cac:unnecessary_firewalld_services_ports_disabled": [
+   "NET-REV-003"
+  ]
+ }
+}

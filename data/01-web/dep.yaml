@@ -1,0 +1,228 @@
+- id: WEB-DEP-001
+  sheet: WEB
+  category: DEP
+  title: Review remediation time frames for vulnerable third-party components
+  objective: Find missing or weak rules for how fast vulnerable libraries and components must be updated.
+  steps:
+  - Ask for the documented remediation time frames by risk level.
+  - Check that the rules cover libraries, frameworks, runtimes, the OS and containers.
+  - Check that a process tracks advisories for the components in use, for example CVE, OSV and vendor feeds.
+  - Look at the last three vulnerability fixes and compare the real time with the rule.
+  example: Document review; osv-scanner -r . ; dependency-check --scan . --format JSON
+  expected: Documented time frames exist, cover all component types, and past fixes met them.
+  severity: Medium
+  test_type:
+  - Manual
+  level: ASVS L1
+  refs:
+    asvs:
+    - V15.1.1
+    owasp_top10:
+    - A03:2025
+    cheatsheet:
+    - Vulnerable_Dependency_Management_Cheat_Sheet
+    cwe:
+    - CWE-1395
+    - CWE-1104
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Vulnerable_Dependency_Management_Cheat_Sheet.md
+- id: WEB-DEP-002
+  sheet: WEB
+  category: DEP
+  title: Check the component inventory (SBOM) and the trust of package sources
+  objective: Find unknown components, transitive dependencies and untrusted package repositories.
+  steps:
+  - Generate or request an SBOM for each release, with direct and transitive dependencies.
+  - Compare the SBOM with the lock files and the deployed artifact.
+  - Check that all components come from defined, trusted and maintained repositories.
+  - Check that client-side libraries are in the inventory.
+  example: syft dir:. -o cyclonedx-json > sbom.json; cdxgen -o bom.json .; grype sbom:sbom.json
+  expected: A current SBOM covers all components and their sources. Every component comes from a trusted repository.
+  severity: Medium
+  test_type:
+  - Manual
+  - Automated
+  level: ASVS L2
+  refs:
+    asvs:
+    - V15.1.2
+    owasp_top10:
+    - A03:2025
+    cheatsheet:
+    - Dependency_Graph_SBOM_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-1357
+    - CWE-1104
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Dependency_Graph_SBOM_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+- id: WEB-DEP-003
+  sheet: WEB
+  category: DEP
+  title: Find components with known vulnerabilities, outdated or unsupported versions
+  objective: Find components that break the update time frames or that have known CVEs.
+  steps:
+  - Identify component versions from banners, JavaScript comments, file names and package files.
+  - Scan server-side dependencies with a software composition analysis tool.
+  - Scan client-side libraries with retire.js.
+  - Check support status and end-of-life dates for the OS, runtime, server and database.
+  - Check each finding by hand against the real version.
+  example: retire --js --outputformat json; trivy fs --scanners vuln .; osv-scanner -r .; nuclei -u https://example.com -tags cve,tech
+  expected: No component is vulnerable, unsupported or past the documented update time frame.
+  severity: High
+  test_type:
+  - Automated
+  - Manual
+  level: ASVS L1
+  refs:
+    asvs:
+    - V15.2.1
+    wstg:
+    - WSTG-INFO-08
+    - WSTG-CONF-01
+    owasp_top10:
+    - A03:2025
+    cheatsheet:
+    - Vulnerable_Dependency_Management_Cheat_Sheet
+    cwe:
+    - CWE-1395
+    - CWE-1104
+    - CWE-447
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/01-Information_Gathering/08-Fingerprint_Web_Application_Framework.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/01-Network_Infrastructure_Configuration.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Vulnerable_Dependency_Management_Cheat_Sheet.md
+- id: WEB-DEP-004
+  sheet: WEB
+  category: DEP
+  title: Make sure dependencies come from the expected repository (dependency confusion)
+  objective: Find internal package names that a public repository can supply, and unpinned dependency sources.
+  steps:
+  - List the internal package names and the repository settings in npm, pip, Maven and NuGet.
+  - Check that the public registry has no package with an internal name.
+  - Check that scoped registries or index settings force the internal repository.
+  - Check that lock files pin versions and hashes.
+  example: npm config get registry; pip config list; cat .npmrc pip.conf; npm view @company/internal-lib
+  expected: All dependencies, including transitive ones, resolve from the expected repository. Lock files pin them.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  level: ASVS L3
+  refs:
+    asvs:
+    - V15.2.4
+    owasp_top10:
+    - A03:2025
+    - A08:2025
+    cheatsheet:
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-427
+    - CWE-829
+    capec:
+    - CAPEC-695
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/Top10/2025/docs/en/A08_2025-Software_or_Data_Integrity_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+- id: WEB-DEP-005
+  sheet: WEB
+  category: DEP
+  title: Check integrity of downloaded code, packages and third-party scripts
+  objective: Find code that the application loads or installs without a signature or integrity check.
+  steps:
+  - List external scripts and styles in the pages.
+  - Check for Subresource Integrity attributes with the crossorigin setting.
+  - Check that package installs use signatures or hashes, and the lock file is used.
+  - Check that auto-update and plugin download features check signatures.
+  - Check mappings of company sub-domains to external providers.
+  example: curl -s https://example.com | grep -oE '<script[^>]+src=[^>]+>' | grep -v integrity; npm ci --ignore-scripts; pip install --require-hashes -r requirements.txt
+  expected: External code is loaded only with integrity checks or signatures, and from trusted sources.
+  severity: High
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    owasp_top10:
+    - A08:2025
+    cheatsheet:
+    - Third_Party_Javascript_Management_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-494
+    - CWE-829
+    - CWE-830
+    - CWE-345
+    capec:
+    - CAPEC-185
+    - CAPEC-186
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A08_2025-Software_or_Data_Integrity_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Third_Party_Javascript_Management_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+- id: WEB-DEP-006
+  sheet: WEB
+  category: DEP
+  title: Make sure serialized data from clients is signed or integrity-checked
+  objective: Find serialized objects, cookies and state that the client can change and the server trusts.
+  steps:
+  - Find serialized objects, view-state values and state cookies in requests.
+  - Change a value and send the request again.
+  - Replay an old value after a state change.
+  - Check that a signature or MAC protects the data, and that the server does not deserialize untrusted data.
+  example: 'Burp Repeater: edit the serialized value; ysoserial or marshalsec for Java test payloads in a lab'
+  expected: The server rejects changed or replayed serialized data. It does not deserialize unsigned client data.
+  severity: High
+  test_type:
+  - Manual
+  - Code Review
+  refs:
+    owasp_top10:
+    - A08:2025
+    cwe:
+    - CWE-502
+    - CWE-565
+    - CWE-784
+    - CWE-345
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A08_2025-Software_or_Data_Integrity_Failures.md
+- id: WEB-DEP-007
+  sheet: WEB
+  category: DEP
+  title: Review documented risky components and dangerous functionality and their protections
+  objective: Find risky libraries and dangerous functions with no documentation and no isolation.
+  steps:
+  - Ask for the list of risky third-party components and dangerous functionality.
+  - Find use of eval, system commands, deserialization, XML parsers and file conversion.
+  - Check that each item has sandboxing, containerization or network-level isolation.
+  - Compare the list with a code scan result.
+  example: semgrep --config p/default ./src; grep -rEn 'eval\(|exec\(|Runtime.getRuntime|pickle.loads' ./src
+  expected: Risky components and dangerous functionality are documented and have extra protection.
+  severity: Medium
+  test_type:
+  - Manual
+  - Code Review
+  level: ASVS L3
+  refs:
+    asvs:
+    - V15.1.4
+    - V15.1.5
+    - V15.2.5
+    owasp_top10:
+    - A03:2025
+    cwe:
+    - CWE-749
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md

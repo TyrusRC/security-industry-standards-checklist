@@ -1,0 +1,378 @@
+- id: CICD-CRED-001
+  sheet: CICD
+  category: CRED
+  title: Scan the full repository history for secrets
+  objective: Finds credentials in current files and in old commits that stay readable to all repository users.
+  preconditions:
+  - Read access to the repository. Handle findings as sensitive data.
+  steps:
+  - Clone the repository with its full history, including all branches and tags.
+  - Run two secret scanners on the full history.
+  - Compare the results and remove false positives.
+  - For each real finding, make sure the secret is revoked and rotated.
+  example: gitleaks detect --redact -v; trufflehog git file://. --only-verified; git log --all --oneline | wc -l
+  expected: The history holds no active secrets. Each past finding has a record of revocation and rotation.
+  severity: High
+  test_type:
+  - Automated
+  refs:
+    cicd_top10:
+    - CICD-SEC-6
+    cheatsheet:
+    - Secrets_Management_Cheat_Sheet
+    - CI_CD_Security_Cheat_Sheet
+    - Infrastructure_as_Code_Security_Cheat_Sheet
+    cwe:
+    - CWE-798
+    attack:
+    - T1552.001
+    nist_800_53:
+    - IA-5
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-06-Insufficient-Credential-Hygiene.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Infrastructure_as_Code_Security_Cheat_Sheet.md
+  see:
+  - WEB-SECRET-001
+- id: CICD-CRED-002
+  sheet: CICD
+  category: CRED
+  title: Check that push protection and pre-commit scanning block new secrets
+  objective: Finds repositories where a developer can push a new secret without a warning.
+  preconditions:
+  - Use a test repository and a fake token only.
+  steps:
+  - Read the secret scanning and push protection settings of the organization and repository.
+  - Make sure a pre-commit or IDE check runs on developer machines.
+  - On a test repository, commit a fake token with a known test format.
+  - Make sure the push is blocked or flagged.
+  example: gh api repos/ORG/REPO --jq .security_and_analysis; pre-commit run gitleaks --all-files; gitleaks protect --staged
+  expected: Push protection and pre-commit checks are on. A fake test token is blocked or flagged before it reaches the shared branch.
+  severity: Medium
+  test_type: &id001
+  - Config Review
+  - Automated
+  refs:
+    cicd_top10:
+    - CICD-SEC-6
+    cheatsheet:
+    - Secrets_Management_Cheat_Sheet
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-798
+    attack:
+    - T1552.001
+    other:
+    - SSDF PW.7.1
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-06-Insufficient-Credential-Hygiene.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+- id: CICD-CRED-003
+  sheet: CICD
+  category: CRED
+  title: Look for hard-coded credentials in pipeline and infrastructure files
+  objective: Finds passwords and keys in CI files, scripts, IaC and deployment manifests.
+  preconditions:
+  - Read access to the repository.
+  steps:
+  - List the CI files, build scripts, IaC and deployment manifests.
+  - Search them for passwords, keys, tokens and connection strings.
+  - Look for credentials in default values of pipeline variables.
+  - Make sure each credential comes from the secret store.
+  example: gitleaks detect --no-git -s .github/ ; semgrep scan --config p/secrets .; trivy config --scanners secret .
+  expected: No file in the repository holds a credential. All pipelines read secrets from the secret store at run time.
+  severity: High
+  test_type:
+  - Code Review
+  - Automated
+  refs:
+    cicd_top10:
+    - CICD-SEC-6
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Infrastructure_as_Code_Security_Cheat_Sheet
+    - Secrets_Management_Cheat_Sheet
+    cwe:
+    - CWE-798
+    attack:
+    - T1552.001
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-06-Insufficient-Credential-Hygiene.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Infrastructure_as_Code_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+  see:
+  - WEB-SECRET-001
+- id: CICD-CRED-004
+  sheet: CICD
+  category: CRED
+  title: Check build logs for exposed secrets and masking
+  objective: Finds secrets printed in console output and shipped to log systems.
+  preconditions:
+  - Handle the downloaded logs as sensitive data.
+  steps:
+  - Download the logs of recent builds, including failed and debug builds.
+  - Scan the logs for secrets.
+  - Make sure the platform masks secret values in logs.
+  - Make sure debug and trace mode is off for builds with secrets.
+  example: gh run list --limit 50 --json databaseId --jq '.[].databaseId' | xargs -I{} gh run view {} --log > logs.txt; gitleaks detect --no-git -s logs.txt
+  expected: Build logs hold no secret values. Masking is on. Debug mode is off for jobs with secrets.
+  severity: High
+  test_type: *id001
+  refs:
+    cicd_top10:
+    - CICD-SEC-6
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Secrets_Management_Cheat_Sheet
+    cwe:
+    - CWE-532
+    attack:
+    - T1552.001
+    nist_800_53:
+    - AU-3
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-06-Insufficient-Credential-Hygiene.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+- id: CICD-CRED-005
+  sheet: CICD
+  category: CRED
+  title: Check container image layers and build arguments for secrets
+  objective: Finds images where a secret from the build stays in a layer, a build argument or an environment value.
+  preconditions:
+  - Read access to the image registry.
+  steps:
+  - Search the Dockerfiles for ARG, ENV and COPY that handle credentials.
+  - Make sure the build uses secret mounts.
+  - Scan the final image and all its layers for secrets.
+  - Look at the image history for credential values.
+  example: trivy image --scanners secret IMAGE@sha256:DIGEST; docker history --no-trunc IMAGE; hadolint Dockerfile; trufflehog docker --image IMAGE
+  expected: Images hold no secrets in any layer. Builds pass credentials only through secret mounts that are not saved in the image.
+  severity: High
+  test_type: *id001
+  refs:
+    cicd_top10:
+    - CICD-SEC-6
+    cheatsheet:
+    - Docker_Security_Cheat_Sheet
+    - Secrets_Management_Cheat_Sheet
+    cwe:
+    - CWE-798
+    - CWE-522
+    attack:
+    - T1552.001
+    - T1525
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-06-Insufficient-Credential-Hygiene.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+- id: CICD-CRED-006
+  sheet: CICD
+  category: CRED
+  title: Check built packages and charts for included secrets
+  objective: Finds packages, binaries and charts that contain credentials or environment files.
+  preconditions:
+  - Do not publish during the test. Use dry-run or a local pack.
+  steps:
+  - List the package types that the pipeline publishes.
+  - Create the package without publishing it and list its files.
+  - Scan the package contents for secrets and environment files.
+  - Make sure an allowlist, such as the files property, controls the contents.
+  example: npm publish --dry-run; npm pack && tar -tzf *.tgz; trufflehog filesystem ./package; helm package CHART && gitleaks detect --no-git -s CHART
+  expected: Published packages hold only the intended files and no secrets. An allowlist controls the package contents.
+  severity: High
+  test_type: *id001
+  refs:
+    cicd_top10:
+    - CICD-SEC-6
+    cheatsheet:
+    - NPM_Security_Cheat_Sheet
+    - Secrets_Management_Cheat_Sheet
+    cwe:
+    - CWE-798
+    attack:
+    - T1552.001
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-06-Insufficient-Credential-Hygiene.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/NPM_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+- id: CICD-CRED-007
+  sheet: CICD
+  category: CRED
+  title: Check that pipelines use short-lived federated credentials
+  objective: Finds static cloud keys and long-lived tokens stored in CI variables.
+  preconditions:
+  - Read access to the CI and cloud IAM settings.
+  steps:
+  - List the secrets in the CI platform and mark the cloud keys and long-lived tokens.
+  - Find pipelines that use OIDC federation to get temporary credentials.
+  - Read the trust policy and make sure it limits repository, branch and environment.
+  - Replace static keys on a test pipeline and remove the old key.
+  example: aws iam get-role --role-name ROLE --query Role.AssumeRolePolicyDocument; gh api repos/ORG/REPO/actions/secrets --jq '.secrets[].name'
+  expected: Pipelines get temporary credentials through OIDC. The trust policy names the exact repository, branch or environment. No static cloud key is stored.
+  severity: High
+  test_type: &id002
+  - Manual
+  - Config Review
+  refs:
+    cicd_top10:
+    - CICD-SEC-6
+    - CICD-SEC-5
+    cheatsheet:
+    - Secrets_Management_Cheat_Sheet
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-798
+    - CWE-522
+    attack:
+    - T1552.001
+    - T1078.004
+    nist_800_53:
+    - IA-5
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-06-Insufficient-Credential-Hygiene.md
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-05-Insufficient-PBAC.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+- id: CICD-CRED-008
+  sheet: CICD
+  category: CRED
+  title: Review rotation and expiry of pipeline credentials
+  objective: Finds deploy keys and tokens that stay valid for years.
+  preconditions:
+  - Read access to the CI and cloud IAM settings.
+  steps:
+  - List deploy keys, tokens, service account keys and registry credentials that pipelines use.
+  - Record the creation date and the expiry date of each.
+  - Compare the age with the rotation policy.
+  - Make sure rotation runs without a long outage.
+  example: gh api repos/ORG/REPO/keys --jq '.[]|{title,created_at}'; aws iam list-access-keys --user-name USER; gh api repos/ORG/REPO/actions/secrets --jq '.secrets[]|{name,updated_at}'
+  expected: Each credential has an owner, an expiry date and a rotation date within policy. Rotation is automated or tested.
+  severity: Medium
+  test_type: *id002
+  refs:
+    cicd_top10:
+    - CICD-SEC-6
+    cheatsheet:
+    - Secrets_Management_Cheat_Sheet
+    cwe:
+    - CWE-798
+    nist_800_53:
+    - IA-5
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-06-Insufficient-Credential-Hygiene.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+  see:
+  - WEB-SECRET-002
+- id: CICD-CRED-009
+  sheet: CICD
+  category: CRED
+  title: Check that credentials work only under set conditions
+  objective: Finds stolen pipeline credentials that work from any network or identity.
+  preconditions:
+  - Use a test credential for a test resource.
+  steps:
+  - List the credentials that pipelines use to reach cloud and registry services.
+  - Read the conditions on each, such as source address or identity.
+  - From a host outside the allowed range, use a test credential on a test resource.
+  - Make sure the request is denied.
+  example: aws iam get-user-policy --user-name USER --policy-name POLICY; npm token list
+  expected: Credentials are limited to source addresses or identities of the pipeline. A request from outside is denied and logged.
+  severity: Medium
+  test_type: *id002
+  refs:
+    cicd_top10:
+    - CICD-SEC-6
+    cheatsheet:
+    - Secrets_Management_Cheat_Sheet
+    - NPM_Security_Cheat_Sheet
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-522
+    attack:
+    - T1528
+    nist_800_53:
+    - IA-5
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-06-Insufficient-Credential-Hygiene.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/NPM_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+- id: CICD-CRED-010
+  sheet: CICD
+  category: CRED
+  title: Review the secret inventory, access and exposure response plan
+  objective: Finds secrets without an owner and teams that cannot revoke an exposed secret quickly.
+  preconditions:
+  - Use a test secret for the exercise.
+  steps:
+  - Get the list of secrets stored in CI tools, with purpose and owner.
+  - Look at who can view or change the stored secrets.
+  - Make sure forks and copied jobs do not copy secrets.
+  - Run a tabletop test of revoke, rotate and delete for one exposed test secret.
+  example: gh api orgs/ORG/actions/secrets --jq '.secrets[]|{name,visibility}'; gh api repos/ORG/REPO/collaborators --jq '.[]|select(.permissions.admin)|.login'
+  expected: Every stored secret has a purpose and an owner. Access is reviewed. The team revokes and rotates an exposed secret within the policy time.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    cicd_top10:
+    - CICD-SEC-6
+    cheatsheet:
+    - Secrets_Management_Cheat_Sheet
+    cwe:
+    - CWE-798
+    nist_800_53:
+    - IA-5
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-06-Insufficient-Credential-Hygiene.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+  see:
+  - WEB-SECRET-002
+- id: CICD-CRED-011
+  sheet: CICD
+  category: CRED
+  title: Check that application runtime secrets do not pass through the pipeline
+  objective: Finds production secrets that the pipeline holds when the service could read them itself.
+  preconditions:
+  - Read access to the pipeline and secret manager settings.
+  steps:
+  - List the production application secrets that the pipeline stores or injects.
+  - Find which of them the application could get from a secret manager at run time.
+  - Read the platform identity that the deployed service uses.
+  - Remove the secrets that the pipeline does not need.
+  example: kubectl get sa,rolebinding -n NS; aws secretsmanager list-secrets --query 'SecretList[].Name'; grep -rn 'secrets\.' .github/workflows/deploy*.yml
+  expected: The pipeline deploys with a platform identity. The deployed service reads its own secrets from the secret manager at run time.
+  severity: Medium
+  test_type: *id002
+  refs:
+    cicd_top10:
+    - CICD-SEC-6
+    - CICD-SEC-5
+    cheatsheet:
+    - Secrets_Management_Cheat_Sheet
+    cwe:
+    - CWE-522
+    nist_800_53:
+    - AC-6
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-06-Insufficient-Credential-Hygiene.md
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-05-Insufficient-PBAC.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+  see:
+  - WEB-SECRET-001

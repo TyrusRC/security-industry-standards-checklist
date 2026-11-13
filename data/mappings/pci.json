@@ -1,0 +1,657 @@
+{
+ "pci_dss": {
+  "2.1": [],
+  "2.1.1": [],
+  "2.1.2": [],
+  "2.2": [],
+  "2.2.1": [
+   "NET-REV-004",
+   "WEB-CONF-001",
+   "API-CONF-009",
+   "CLD-CFG-005",
+   "K8S-CMP-001",
+   "K8S-CMP-004",
+   "CICD-CFG-003",
+   "IOT-COMP-004"
+  ],
+  "2.2.2": [
+   "NET-SVC-006",
+   "NET-CRED-001",
+   "WEB-AUTHN-001",
+   "WEB-CONF-007",
+   "DESK-CONF-004",
+   "IOT-DEF-001"
+  ],
+  "2.2.3": [
+   "PCI-CFG-001"
+  ],
+  "2.2.4": [
+   "NET-REV-004",
+   "NET-SVC-001",
+   "NET-DISC-004",
+   "NET-DISC-005",
+   "WEB-CONF-002",
+   "WEB-CONF-009",
+   "API-CONF-006",
+   "IOT-DEF-003"
+  ],
+  "2.2.5": [
+   "NET-ADM-002",
+   "NET-DISC-008"
+  ],
+  "2.2.6": [
+   "WEB-CONF-001",
+   "API-CONF-009",
+   "WEB-ERR-001"
+  ],
+  "2.2.7": [
+   "NET-ADM-002",
+   "NET-ADM-004",
+   "NET-SVC-003",
+   "NET-DISC-008",
+   "WEB-CONF-007"
+  ],
+  "2.3": [],
+  "2.3.1": [
+   "NET-SVC-003",
+   "NET-CRED-001",
+   "NET-WIFI-002",
+   "NET-WIFI-003"
+  ],
+  "2.3.2": [
+   "NET-WIFI-003"
+  ],
+  "3.1": [],
+  "3.1.1": [],
+  "3.1.2": [],
+  "3.2": [],
+  "3.2.1": [
+   "PCI-DATA-001",
+   "WEB-DATA-008"
+  ],
+  "3.3": [],
+  "3.3.1": [
+   "PCI-DATA-002"
+  ],
+  "3.3.1.1": [
+   "PCI-DATA-003"
+  ],
+  "3.3.1.2": [
+   "PCI-DATA-004"
+  ],
+  "3.3.1.3": [
+   "PCI-DATA-005"
+  ],
+  "3.3.2": [
+   "PCI-DATA-006"
+  ],
+  "3.3.3": [],
+  "3.4": [],
+  "3.4.1": [
+   "PCI-DATA-007",
+   "WEB-DATA-007"
+  ],
+  "3.4.2": [
+   "PCI-DATA-008"
+  ],
+  "3.5": [],
+  "3.5.1": [
+   "PCI-DATA-009",
+   "PCI-DATA-010",
+   "WEB-DATA-013",
+   "CLD-CFG-004"
+  ],
+  "3.5.1.1": [
+   "PCI-DATA-011"
+  ],
+  "3.5.1.2": [
+   "PCI-DATA-012"
+  ],
+  "3.5.1.3": [
+   "PCI-DATA-013"
+  ],
+  "3.6": [],
+  "3.6.1": [
+   "PCI-KEY-001",
+   "WEB-CRYPTO-001",
+   "WEB-SECRET-001",
+   "CLD-SEC-004"
+  ],
+  "3.6.1.1": [
+   "PCI-KEY-002"
+  ],
+  "3.6.1.2": [
+   "PCI-KEY-003",
+   "WEB-CRYPTO-018",
+   "CLD-SEC-004"
+  ],
+  "3.6.1.3": [
+   "PCI-KEY-004"
+  ],
+  "3.6.1.4": [
+   "PCI-KEY-005"
+  ],
+  "3.7": [],
+  "3.7.1": [
+   "PCI-KEY-006",
+   "WEB-CRYPTO-001",
+   "WEB-CRYPTO-015"
+  ],
+  "3.7.2": [
+   "PCI-KEY-007",
+   "WEB-CRYPTO-001"
+  ],
+  "3.7.3": [
+   "PCI-KEY-003",
+   "WEB-CRYPTO-001",
+   "WEB-SECRET-001"
+  ],
+  "3.7.4": [
+   "PCI-KEY-008",
+   "WEB-CRYPTO-001",
+   "WEB-SECRET-002",
+   "CLD-SEC-003",
+   "CLD-SEC-004"
+  ],
+  "3.7.5": [
+   "PCI-KEY-009",
+   "WEB-CRYPTO-001"
+  ],
+  "3.7.6": [
+   "PCI-KEY-010"
+  ],
+  "3.7.7": [
+   "PCI-KEY-011"
+  ],
+  "3.7.8": [],
+  "3.7.9": [
+   "PCI-KEY-012"
+  ],
+  "4.1": [],
+  "4.1.1": [],
+  "4.1.2": [],
+  "4.2": [],
+  "4.2.1": [
+   "NET-REV-005",
+   "NET-TLS-001",
+   "NET-TLS-004",
+   "NET-TLS-005",
+   "WEB-TLS-001",
+   "WEB-TLS-002",
+   "WEB-TLS-003",
+   "WEB-TLS-004",
+   "WEB-TLS-005",
+   "WEB-TLS-006",
+   "WEB-TLS-007",
+   "WEB-TLS-010",
+   "API-CONF-001",
+   "CLD-NET-005"
+  ],
+  "4.2.1.1": [
+   "PCI-TRANS-001"
+  ],
+  "4.2.1.2": [
+   "NET-WIFI-002"
+  ],
+  "4.2.2": [
+   "PCI-TRANS-002"
+  ],
+  "6.1": [],
+  "6.1.1": [],
+  "6.1.2": [],
+  "6.2": [],
+  "6.2.1": [
+   "PCI-SWDEV-001"
+  ],
+  "6.2.2": [],
+  "6.2.3": [
+   "PCI-SWDEV-002",
+   "CICD-FLOW-001",
+   "CICD-VULN-006"
+  ],
+  "6.2.3.1": [
+   "PCI-SWDEV-003"
+  ],
+  "6.2.4": [
+   "PCI-SWDEV-004",
+   "WEB-INJ-001",
+   "WEB-INJ-003",
+   "WEB-INJ-004",
+   "WEB-INJ-012",
+   "WEB-INJ-014",
+   "WEB-INJ-020",
+   "WEB-XSS-001",
+   "WEB-XSS-002",
+   "WEB-XSS-006",
+   "WEB-VAL-005",
+   "WEB-CRYPTO-009",
+   "WEB-CRYPTO-003",
+   "WEB-BIZ-001",
+   "WEB-BIZ-005",
+   "WEB-AUTHZ-004",
+   "WEB-AUTHZ-009",
+   "WEB-SESS-030"
+  ],
+  "6.3": [],
+  "6.3.1": [
+   "NET-PEN-003",
+   "NET-VULN-003",
+   "PCI-SWDEV-005",
+   "WEB-DEP-001",
+   "WEB-DEP-003",
+   "CICD-VULN-003"
+  ],
+  "6.3.2": [
+   "PCI-SWDEV-006",
+   "WEB-DEP-002",
+   "CICD-ART-004",
+   "DESK-DEP-001",
+   "IOT-COMP-001"
+  ],
+  "6.3.3": [
+   "NET-VULN-004",
+   "WEB-DEP-001",
+   "WEB-DEP-003",
+   "CLD-SUP-003",
+   "K8S-CMP-003",
+   "CICD-VULN-001",
+   "CICD-VULN-004"
+  ],
+  "6.4": [],
+  "6.4.1": [
+   "PCI-SWDEV-007"
+  ],
+  "6.4.2": [
+   "PCI-SWDEV-008",
+   "CLD-NET-006"
+  ],
+  "6.4.3": [
+   "PCI-SWDEV-009",
+   "WEB-CLIENT-018",
+   "WEB-CLIENT-012",
+   "WEB-HDR-002",
+   "WEB-DEP-005"
+  ],
+  "6.5": [],
+  "6.5.1": [
+   "PCI-CHG-001",
+   "CICD-CFG-007",
+   "CICD-FLOW-004",
+   "CICD-FLOW-001"
+  ],
+  "6.5.2": [
+   "PCI-CHG-002"
+  ],
+  "6.5.3": [
+   "PCI-CHG-003",
+   "CICD-CFG-009"
+  ],
+  "6.5.4": [
+   "CICD-FLOW-007"
+  ],
+  "6.5.5": [
+   "PCI-CHG-004",
+   "API-INV-009"
+  ],
+  "6.5.6": [
+   "PCI-CHG-005",
+   "WEB-AUTHN-001",
+   "WEB-CONF-002",
+   "DESK-CODE-005"
+  ],
+  "7.1": [],
+  "7.1.1": [],
+  "7.1.2": [],
+  "7.2.1": [
+   "WEB-AUTHZ-001",
+   "WEB-AUTHZ-002",
+   "WEB-AUTHZ-003"
+  ],
+  "7.2.2": [
+   "WEB-AUTHZ-004",
+   "WEB-AUTHZ-001",
+   "WEB-IDM-001",
+   "API-BFLA-004",
+   "CLD-IAM-001"
+  ],
+  "7.2.3": [
+   "PCI-ACC-001"
+  ],
+  "7.2.4": [
+   "PCI-ACC-002",
+   "CLD-IAM-004",
+   "CICD-IAM-002"
+  ],
+  "7.2.5": [
+   "PCI-ACC-003",
+   "WEB-ARCH-003",
+   "K8S-RBAC-008",
+   "K8S-WRK-007",
+   "CICD-PBAC-002"
+  ],
+  "7.2.5.1": [
+   "PCI-ACC-003"
+  ],
+  "7.2.6": [
+   "PCI-ACC-004"
+  ],
+  "7.3": [],
+  "7.3.1": [
+   "WEB-AUTHZ-009",
+   "WEB-AUTHZ-004"
+  ],
+  "7.3.2": [
+   "WEB-AUTHZ-009",
+   "WEB-AUTHZ-011",
+   "API-BFLA-004"
+  ],
+  "7.3.3": [
+   "WEB-AUTHZ-017",
+   "API-BFLA-005"
+  ],
+  "8.1.1": [],
+  "8.1.2": [],
+  "8.2": [],
+  "8.2.1": [
+   "PCI-AUTH-001"
+  ],
+  "8.2.2": [
+   "PCI-AUTH-002",
+   "CICD-IAM-007"
+  ],
+  "8.2.3": [
+   "PCI-AUTH-003"
+  ],
+  "8.2.4": [
+   "WEB-IDM-003"
+  ],
+  "8.2.5": [
+   "PCI-AUTH-004",
+   "WEB-IDM-003",
+   "WEB-SESS-021",
+   "CICD-IAM-002"
+  ],
+  "8.2.6": [
+   "PCI-AUTH-005",
+   "CICD-IAM-002",
+   "CLD-IAM-004"
+  ],
+  "8.2.7": [
+   "PCI-AUTH-006",
+   "CICD-IAM-006"
+  ],
+  "8.2.8": [
+   "PCI-AUTH-007",
+   "WEB-SESS-019",
+   "WEB-SESS-020",
+   "DESK-AUTH-002"
+  ],
+  "8.3": [],
+  "8.3.1": [
+   "WEB-AUTHN-009",
+   "WEB-AUTHN-008"
+  ],
+  "8.3.2": [
+   "NET-SVC-004",
+   "NET-CRED-004",
+   "NET-CRED-005",
+   "WEB-PWD-012",
+   "WEB-CRYPTO-013",
+   "WEB-TLS-006",
+   "WEB-MFA-007"
+  ],
+  "8.3.3": [
+   "WEB-PWD-004",
+   "WEB-SESS-025",
+   "API-AUTHN-005",
+   "WEB-MFA-014",
+   "WEB-MFA-016"
+  ],
+  "8.3.4": [
+   "NET-CRED-002",
+   "NET-CRED-003",
+   "PCI-AUTH-008",
+   "WEB-AUTHN-002",
+   "WEB-AUTHN-003",
+   "API-AUTHN-003"
+  ],
+  "8.3.5": [
+   "WEB-PWD-016"
+  ],
+  "8.3.6": [
+   "NET-CRED-002",
+   "NET-CRED-004",
+   "PCI-AUTH-009"
+  ],
+  "8.3.7": [
+   "PCI-AUTH-010"
+  ],
+  "8.3.8": [],
+  "8.3.9": [
+   "PCI-AUTH-011"
+  ],
+  "8.3.10": [
+   "PCI-AUTH-012"
+  ],
+  "8.3.10.1": [
+   "PCI-AUTH-012"
+  ],
+  "8.3.11": [
+   "PCI-AUTH-013"
+  ],
+  "8.4": [],
+  "8.4.1": [
+   "WEB-MFA-001",
+   "WEB-AUTHZ-013",
+   "CLD-IAM-003",
+   "CICD-IAM-003"
+  ],
+  "8.4.2": [
+   "NET-ADM-001",
+   "WEB-MFA-001",
+   "WEB-MFA-002",
+   "CLD-IAM-003",
+   "CICD-IAM-003"
+  ],
+  "8.4.3": [
+   "NET-ADM-001",
+   "NET-ADM-004",
+   "NET-SVC-002",
+   "WEB-MFA-001",
+   "CLD-IAM-003"
+  ],
+  "8.5": [],
+  "8.5.1": [
+   "WEB-MFA-001",
+   "WEB-MFA-002",
+   "WEB-MFA-004",
+   "WEB-MFA-010",
+   "WEB-MFA-015"
+  ],
+  "8.6": [],
+  "8.6.1": [
+   "PCI-AUTH-014"
+  ],
+  "8.6.2": [
+   "NET-BKP-003",
+   "NET-CRED-005",
+   "WEB-CRYPTO-018",
+   "WEB-SECRET-001",
+   "CICD-CRED-003",
+   "CICD-CRED-001",
+   "CICD-CRED-005",
+   "CLD-SEC-002",
+   "CLD-SEC-005",
+   "K8S-SEC-001"
+  ],
+  "8.6.3": [
+   "WEB-SECRET-002",
+   "CICD-CRED-008",
+   "CLD-SEC-003",
+   "K8S-SEC-005"
+  ],
+  "10.1": [],
+  "10.1.1": [],
+  "10.1.2": [],
+  "10.2": [],
+  "10.2.1": [
+   "NET-LOG-002",
+   "NET-LOG-005",
+   "WEB-LOG-001",
+   "CLD-LOG-001",
+   "K8S-LOG-001",
+   "CICD-LOG-002",
+   "DESK-LOG-001"
+  ],
+  "10.2.1.1": [
+   "PCI-LOG-001"
+  ],
+  "10.2.1.2": [
+   "PCI-LOG-002"
+  ],
+  "10.2.1.3": [
+   "PCI-LOG-003"
+  ],
+  "10.2.1.4": [
+   "WEB-LOG-007",
+   "WEB-LOG-008",
+   "WEB-AUTHN-025",
+   "WEB-AUTHZ-018"
+  ],
+  "10.2.1.5": [
+   "PCI-LOG-004"
+  ],
+  "10.2.1.6": [
+   "PCI-LOG-005"
+  ],
+  "10.2.1.7": [
+   "PCI-LOG-006"
+  ],
+  "10.2.2": [
+   "WEB-LOG-002",
+   "CLD-LOG-001",
+   "DESK-LOG-001"
+  ],
+  "10.3": [],
+  "10.3.1": [
+   "WEB-LOG-012",
+   "DESK-LOG-002",
+   "CLD-LOG-002",
+   "K8S-LOG-003"
+  ],
+  "10.3.2": [
+   "WEB-LOG-012",
+   "CLD-LOG-002",
+   "CICD-LOG-007",
+   "DESK-LOG-002",
+   "K8S-LOG-003"
+  ],
+  "10.3.3": [
+   "NET-LOG-002",
+   "WEB-LOG-013",
+   "K8S-LOG-003",
+   "CICD-LOG-003",
+   "CLD-LOG-002"
+  ],
+  "10.3.4": [
+   "PCI-LOG-007"
+  ],
+  "10.4": [],
+  "10.4.1": [
+   "NET-LOG-001",
+   "PCI-LOG-008"
+  ],
+  "10.4.1.1": [
+   "PCI-LOG-009"
+  ],
+  "10.4.2": [
+   "PCI-LOG-010"
+  ],
+  "10.4.2.1": [
+   "PCI-LOG-010"
+  ],
+  "10.4.3": [
+   "PCI-LOG-011"
+  ],
+  "10.5": [],
+  "10.5.1": [
+   "NET-LOG-003",
+   "PCI-LOG-012",
+   "CLD-LOG-002",
+   "CICD-LOG-005"
+  ],
+  "10.6": [],
+  "10.6.1": [
+   "NET-LOG-003",
+   "NET-SVC-005",
+   "WEB-LOG-003",
+   "CLD-LOG-005"
+  ],
+  "10.6.2": [
+   "PCI-LOG-013"
+  ],
+  "10.6.3": [
+   "PCI-LOG-014"
+  ],
+  "10.7": [],
+  "10.7.1": [
+   "PCI-LOG-015"
+  ],
+  "10.7.2": [
+   "PCI-LOG-015"
+  ],
+  "10.7.3": [
+   "PCI-LOG-016"
+  ],
+  "11.3.1": [
+   "NET-PLAN-004",
+   "NET-VULN-001",
+   "NET-VULN-006",
+   "CLD-SUP-004",
+   "K8S-IMG-003"
+  ],
+  "11.3.1.1": [
+   "NET-VULN-003"
+  ],
+  "11.3.1.2": [
+   "NET-VULN-001"
+  ],
+  "11.3.1.3": [
+   "PCI-SCAN-001"
+  ],
+  "11.3.2": [
+   "NET-PLAN-004",
+   "NET-VULN-001",
+   "PCI-SCAN-002"
+  ],
+  "11.3.2.1": [
+   "PCI-SCAN-001"
+  ],
+  "11.4.1": [
+   "NET-PEN-001",
+   "NET-PLAN-004"
+  ],
+  "11.4.2": [
+   "NET-PEN-002"
+  ],
+  "11.4.3": [
+   "NET-PEN-001"
+  ],
+  "11.4.4": [
+   "NET-PEN-001",
+   "NET-PEN-002",
+   "NET-PEN-003"
+  ],
+  "11.4.5": [
+   "NET-SEG-005"
+  ],
+  "11.4.6": [],
+  "11.4.7": [],
+  "11.6.1": [
+   "PCI-SWDEV-010"
+  ],
+  "12.3.1": [
+   "PCI-RISK-001"
+  ]
+ }
+}

@@ -1,0 +1,26 @@
+- id: CICD-LOG-008
+  sheet: CICD
+  category: LOG
+  title: Check that token exchange and role use trace to pipeline runs
+  objective: Finds federated access that the team cannot trace to a pipeline run.
+  steps:
+  - Make sure cloud audit events for token exchange and role use are on.
+  - Run a test deployment. Find its token exchange event in the cloud log.
+  - Look at the identity fields that the event records.
+  - Make sure the team can link the event to the CI/CD run record.
+  example: aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,AttributeValue=AssumeRoleWithWebIdentity
+  expected: Each token exchange and role use is logged. The log lets the team find the pipeline run that made it.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    cicd_top10:
+    - CICD-SEC-10
+    cheatsheet:
+    - Workload_Identity_Federation_Cheat_Sheet
+    nist_800_53:
+    - AU-2
+    - AU-12
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Workload_Identity_Federation_Cheat_Sheet.md

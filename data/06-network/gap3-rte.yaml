@@ -1,0 +1,102 @@
+- id: NET-RTE-001
+  sheet: NET
+  category: RTE
+  title: 'Check that BGP sessions are protected: ACL, TTL security and TCP-AO'
+  objective: Finds BGP speakers that accept session packets from unknown or spoofed sources.
+  preconditions:
+  - Read access to the router configuration. Do not run on production without a change window.
+  steps:
+  - List the BGP neighbors from the router configuration.
+  - Make sure an ACL on the control plane allows TCP port 179 only from the listed neighbors.
+  - Make sure each directly connected peering uses TTL security (GTSM). Make sure the TTL check value is set on both ends.
+  - Make sure each peering has TCP-AO, or at least an MD5 key that is not a default value.
+  - Send a TCP SYN to port 179 from an unlisted address. Make sure the router does not answer.
+  example: show ip bgp neighbors | include TTL|MD5|TCP-AO ; show ip access-lists (permit tcp host <peer> any eq 179) ; nmap -Pn -p179 router
+  expected: Only listed neighbors reach port 179. Direct peerings use GTSM. Each session has TCP-AO or a strong MD5 key.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    nist_800_53:
+    - SC-7
+    - SC-23
+    capec:
+    - CAPEC-584
+    cwe:
+    - CWE-290
+    attack:
+    - T1557
+    other: RFC 7454 sections 4, 5.1 and 5.2; RFC 5082; RFC 5925; https://www.rfc-editor.org/rfc/rfc7454
+  sources_read:
+  - sources/extra/gap3-C/rfc7454.txt
+  - sources/extra/gap3-C/rfc5082.txt
+  - sources/extra/gap3-C/rfc5925.txt
+  - sources/capec/capec_latest.xml
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  see:
+  - NET-SEG-006
+- id: NET-RTE-002
+  sheet: NET
+  category: RTE
+  title: Check BGP prefix filters and the maximum prefix limit on each peering
+  objective: Finds peerings that accept wrong, bogon or too many routes, which allows route leaks and hijacks.
+  steps:
+  - List the inbound and outbound route policies of each peer.
+  - Make sure customer peers can announce only their own prefixes and AS paths.
+  - Make sure bogon, special-purpose and too-specific prefixes are rejected.
+  - Make sure each peer has a maximum prefix limit with a warning threshold.
+  - Make sure the router does not announce routes learned from one upstream to another upstream.
+  example: show ip bgp neighbors <peer> policy ; show ip prefix-list ; show route-map ; show ip bgp neighbors | include maximum-prefix
+  expected: Inbound and outbound filters limit each peer to approved prefixes. A maximum prefix limit exists on every peering.
+  severity: High
+  test_type:
+  - Config Review
+  refs:
+    nist_800_53:
+    - SC-7
+    - CM-7
+    capec:
+    - CAPEC-584
+    cwe:
+    - CWE-923
+    attack:
+    - T1599
+    other: RFC 7454 sections 6, 8 and 9; https://www.rfc-editor.org/rfc/rfc7454
+  sources_read:
+  - sources/extra/gap3-C/rfc7454.txt
+  - sources/capec/capec_latest.xml
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-RTE-003
+  sheet: NET
+  category: RTE
+  title: Check that OSPF uses cryptographic authentication and passive interfaces
+  objective: Finds routing domains where an attacker on a user network can inject routes.
+  preconditions:
+  - Do not run on production. Use a lab for the adjacency test.
+  steps:
+  - List the OSPF interfaces on each router.
+  - Make sure user-facing interfaces are passive, so that they send no hello packets.
+  - Make sure each other interface uses cryptographic authentication with HMAC-SHA. Plain text and null authentication are not allowed.
+  - Make sure keys are not the same on all routers and have a rollover plan.
+  - Connect a test router to a user port. Make sure it does not form an adjacency.
+  example: show ip ospf interface | include Passive|auth ; show ip ospf neighbor ; show run | section router ospf
+  expected: User-facing interfaces are passive. All adjacencies use HMAC-SHA authentication. A test router forms no adjacency.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    nist_800_53:
+    - SC-7
+    - IA-3
+    cwe:
+    - CWE-306
+    attack:
+    - T1557
+    other: RFC 5709; RFC 9099 section 2.5.2 for OSPFv3; https://www.rfc-editor.org/rfc/rfc5709
+  sources_read:
+  - sources/extra/gap3-C/rfc5709.txt
+  - sources/extra/gap3-C/rfc9099.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  notes: Source covers OSPF only. EIGRP, HSRP and VRRP have no source in sources/ and are not tested here.

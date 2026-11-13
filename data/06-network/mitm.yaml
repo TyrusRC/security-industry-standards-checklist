@@ -1,0 +1,126 @@
+- id: NET-MITM-001
+  sheet: NET
+  category: MITM
+  title: Test whether ARP poisoning is blocked or detected on the LAN
+  objective: Finds segments where an attacker can put a host between two others and read or change their traffic.
+  preconditions:
+  - Written approval and a test window. Use two test hosts that you own.
+  - Do not run on production.
+  steps:
+  - Put a test client, a test server and an attacker host on the same segment.
+  - Send spoofed ARP replies from the attacker host to the client and to the server.
+  - Look at the ARP table of the client and the server.
+  - Look at the traffic that the attacker host can see.
+  - Look at the switch and monitoring alerts for the ARP packets.
+  example: 'arpspoof -i eth0 -t <client> <server> ; ettercap -T -M arp:remote /<client>// /<server>// ; arp -a ; Wireshark filter arp'
+  expected: The network drops the spoofed ARP packets or raises an alert. The attacker host cannot see the traffic between client and server.
+  severity: High
+  test_type: Manual
+  refs:
+    attack:
+    - T1557
+    - T1557.002
+    capec:
+    - CAPEC-94
+    - CAPEC-158
+    cheatsheet:
+    - Denial_of_Service_Cheat_Sheet
+    nist_800_53:
+    - SC-7
+    - SI-4
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Denial_of_Service_Cheat_Sheet.md
+  - sources/extra/nist800-115.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-MITM-002
+  sheet: NET
+  category: MITM
+  title: Test whether switches resist MAC flooding
+  objective: Finds switches that send all traffic to all ports when the MAC table is full.
+  preconditions:
+  - Written approval and a test window on a test switch or an isolated segment.
+  - Do not run on production.
+  steps:
+  - Put a sniffer host on a port of the test switch.
+  - Send frames with many different source MAC addresses from the attacker host.
+  - Send traffic between two other hosts on the switch.
+  - Look at the sniffer to see if it receives the traffic of the other hosts.
+  - Look at the switch for port security alerts or port shutdown.
+  example: 'macof -i eth0 -n 100000 ; show mac address-table count ; Wireshark on the sniffer port'
+  expected: The switch limits the MAC addresses on each port or blocks the port. It never forwards the traffic of other hosts to the sniffer.
+  severity: Medium
+  test_type: Manual
+  refs:
+    cheatsheet:
+    - Denial_of_Service_Cheat_Sheet
+    capec:
+    - CAPEC-158
+    cwe:
+    - CWE-770
+    nist_800_53:
+    - SC-5
+    - SC-7
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Denial_of_Service_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-MITM-003
+  sheet: NET
+  category: MITM
+  title: Test whether rogue DHCP servers are blocked on the access network
+  objective: Finds networks where a rogue host can give clients false addresses, gateways or DNS servers.
+  preconditions:
+  - Written approval and a test window on an isolated test segment.
+  - Do not run on production.
+  steps:
+  - Get the list of approved DHCP servers.
+  - Start a test DHCP server on a host in a test segment.
+  - Connect a test client and look at the lease that it gets.
+  - Look at the switch and monitoring alerts for the rogue server.
+  example: 'dnsmasq --no-daemon --dhcp-range=192.0.2.100,192.0.2.150 (test segment only) ; nmap --script broadcast-dhcp-discover ; Wireshark filter bootp'
+  expected: The test client gets a lease only from an approved server. The network drops the replies of the rogue server and raises an alert.
+  severity: High
+  test_type: Manual
+  refs:
+    attack:
+    - T1557
+    - T1557.003
+    capec:
+    - CAPEC-94
+    nist_800_53:
+    - SC-7
+    - SI-4
+    - CM-8
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-MITM-004
+  sheet: NET
+  category: MITM
+  title: Look for broadcast name resolution that an attacker can answer
+  objective: Finds clients that ask the local network for names and accept replies from any host.
+  preconditions:
+  - Written approval for traffic capture and for test replies on a test segment.
+  - Do not run on production.
+  steps:
+  - Capture the traffic of a client segment for a business cycle.
+  - Look for multicast and broadcast name queries, and for NetBIOS name queries.
+  - On a test segment, answer one query from a test host with a test address.
+  - Look at what the client sends to the test host.
+  example: 'tshark -r seg.pcap -Y "llmnr || nbns || mdns" ; Responder -I eth0 -A (analyze mode only) ; Wireshark filter nbns'
+  expected: Clients do not use broadcast or multicast name resolution for company names. Clients send no credentials to a host that answers a query.
+  severity: High
+  test_type: Manual
+  refs:
+    attack:
+    - T1557
+    - T1557.001
+    capec:
+    - CAPEC-94
+    nist_800_53:
+    - SC-7
+    - CM-7
+    other:
+    - NIST SP 800-115 sections 3.5 and 5.2.1 (network sniffing and NetBIOS enumeration)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json

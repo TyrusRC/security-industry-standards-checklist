@@ -1,0 +1,163 @@
+- id: IOT-DEF-001
+  sheet: IOT
+  category: DEF
+  title: Review the out-of-box configuration of the device
+  objective: Finds insecure defaults such as open services, debug mode and weak encryption.
+  steps:
+  - Reset a lab unit to factory state.
+  - Scan ports and read the default settings.
+  - List all features that are on by default.
+  - Compare with the minimum needed.
+  example: nmap -p- after reset; export of the default config.
+  expected: Defaults are secure. Unneeded features are off, encryption is on and setup forces a new credential.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    other:
+    - UK Code of Practice for Consumer IoT Security provision 12, as listed in iot_map.md
+    cwe:
+    - CWE-1188
+    - CWE-1392
+    cheatsheet:
+    - Secure_Product_Design_Cheat_Sheet
+    iot_top10:
+    - I9
+  see:
+  - MOB-PRIV-011
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Product_Design_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: IOT-DEF-002
+  sheet: IOT
+  category: DEF
+  title: Check who can change security settings on the device
+  objective: Finds devices that do not let operators harden them or that let users weaken them.
+  steps:
+  - List the security settings in the interface.
+  - Change each setting as owner and as a limited user.
+  - Check that a limited user cannot weaken them.
+  - Check the audit entry for each change.
+  example: Web interface review; API calls with low-privilege tokens.
+  expected: Operators can raise security settings. Only authorized roles can change them and each change is logged.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    other:
+    - GSMA CLP12_8.4
+    cwe:
+    - CWE-269
+    - CWE-732
+    cheatsheet:
+    - Secure_Product_Design_Cheat_Sheet
+    iot_top10:
+    - I9
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Product_Design_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: IOT-DEF-003
+  sheet: IOT
+  category: DEF
+  title: Check that debug interfaces and test features are off in production
+  objective: Finds enabled UART consoles, JTAG, test accounts and debug services.
+  steps:
+  - Open the case of a lab unit.
+  - Find UART and JTAG pads.
+  - Connect a logic adapter and watch the boot output.
+  - Try to get a shell or debug access.
+  example: Identify pins with a multimeter; screen /dev/ttyUSB0 115200; OpenOCD on a lab unit only.
+  expected: Production units give no shell or debug access on UART or JTAG without authentication. Debug services are off.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    other:
+    - GSMA CLP13_8.2
+    cwe:
+    - CWE-489
+    - CWE-1191
+    - CWE-1244
+    cheatsheet:
+    - Automotive_Security_Cheat_Sheet
+    iot_top10:
+    - I9
+    - I10
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Automotive_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+  - sources/repos/www-project-internet-of-things/tab_validate_and_test.md
+- id: IOT-DEF-004
+  sheet: IOT
+  category: DEF
+  title: Test secure boot and image signing
+  objective: Finds devices that boot unsigned code.
+  steps:
+  - Read the boot chain description.
+  - Write a changed image to a lab unit.
+  - Boot the unit.
+  - Check that the first stage is in ROM or locked.
+  example: Programmer or bootloader console on a lab unit; read the fuse state if documented.
+  expected: Each boot stage checks the signature of the next. The device refuses to boot a changed image.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    other:
+    - GSMA CLP13_6.15
+    - GSMA CLP13_6.3
+    - UK Code of Practice for Consumer IoT Security provision 7, as listed in iot_map.md
+    cwe:
+    - CWE-345
+    - CWE-347
+    cheatsheet:
+    - Drone_Security_Cheat_Sheet
+    - Automotive_Security_Cheat_Sheet
+    attack:
+    - T1693.001
+    iot_top10:
+    - I9
+    - I10
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Drone_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Automotive_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+  - sources/attack/ics-attack.json
+- id: IOT-DEF-005
+  sheet: IOT
+  category: DEF
+  title: Check removable media and autorun behavior
+  objective: Finds devices that run or import code from USB or SD cards.
+  steps:
+  - Insert a USB drive or SD card with a harmless marker script.
+  - Watch the device.
+  - Check import and update from media.
+  - Check for signature checks on media content.
+  example: Marker script that only writes a file; serial console log.
+  expected: The device does not run code from media. Updates from media need a valid signature.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    cheatsheet:
+    - Drone_Security_Cheat_Sheet
+    attack:
+    - T0895
+    - T0847
+    iot_top10:
+    - I9
+    - I10
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Drone_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+  - sources/attack/ics-attack.json

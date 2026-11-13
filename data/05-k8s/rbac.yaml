@@ -1,0 +1,318 @@
+- id: K8S-RBAC-001
+  sheet: K8S
+  category: RBAC
+  title: Check that RBAC is on and no other authorizer widens access
+  objective: Finds clusters where the authorization mode is not RBAC or where a second authorizer adds hidden rights.
+  steps:
+  - Read the authorization-mode flag of the API server or the managed service setting.
+  - List all configured authorizers, including webhook authorizers.
+  - Make sure AlwaysAllow is not in the list.
+  - Review the rights that each non-RBAC authorizer grants.
+  example: kubectl -n kube-system get pod -l component=kube-apiserver -o yaml | grep authorization-mode; kube-bench run --targets master
+  expected: The API server uses RBAC, and Node if needed. AlwaysAllow is off. Rights from each other authorizer are listed and reviewed.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K02
+    cloud_native_top10:
+    - CNAS-3
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-284
+    - CWE-862
+    attack:
+    - T1078
+    nist_800_53:
+    - AC-3
+    - AC-6
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K02-Overly-Permissive-Authorization-Configurations.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x03_improper_auth.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-RBAC-002
+  sheet: K8S
+  category: RBAC
+  title: Find unneeded cluster-admin bindings
+  objective: Finds users and service accounts with unlimited cluster rights.
+  steps:
+  - List all ClusterRoleBindings and RoleBindings that grant cluster-admin.
+  - List the subjects of each binding.
+  - Find service accounts and groups such as system:authenticated in these bindings.
+  - Ask the owner to justify each subject.
+  example: kubectl get clusterrolebindings -o json | jq ".items[] | select(.roleRef.name==\"cluster-admin\") | .subjects"
+  expected: Only a few named break-glass or admin subjects hold cluster-admin. No service account or broad group has it.
+  severity: Critical
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K02
+    cloud_native_top10:
+    - CNAS-3
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-269
+    - CWE-272
+    attack:
+    - T1078
+    - T1098.006
+    nist_800_53:
+    - AC-6
+    - AC-2
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K02-Overly-Permissive-Authorization-Configurations.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x03_improper_auth.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-RBAC-003
+  sheet: K8S
+  category: RBAC
+  title: Find wildcard rules and wide built-in roles
+  objective: Finds roles with verb or resource wildcards and use of the broad view and edit roles.
+  steps:
+  - List all Roles and ClusterRoles that use * in verbs, resources or apiGroups.
+  - List the bindings to the built-in roles admin, edit and view.
+  - Compare the granted rights to the needs of each subject.
+  - Replace wide roles with narrow custom roles.
+  example: kubectl get clusterroles,roles -A -o json | jq ".items[] | select(.rules[]? | (.verbs[]==\"*\") or (.resources[]?==\"*\")) | .metadata.name"; kubectl auth can-i --list --as=<user>
+  expected: No custom role uses wildcards without a written reason. Built-in broad roles are bound only where the full rights are needed.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K02
+    cloud_native_top10:
+    - CNAS-3
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-272
+    - CWE-269
+    attack:
+    - T1078
+    nist_800_53:
+    - AC-6
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K02-Overly-Permissive-Authorization-Configurations.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x03_improper_auth.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-RBAC-004
+  sheet: K8S
+  category: RBAC
+  title: Check who can read secrets through get, list or watch
+  objective: Finds subjects that can read secret values, including by the list and watch verbs.
+  steps:
+  - List all roles with get, list or watch on secrets.
+  - Find roles that give secrets access cluster-wide.
+  - Check that the rights of each subject are scoped to named secrets where possible.
+  - Test list on secrets with a low-rights account.
+  example: kubectl auth can-i list secrets -A --as=<subject>; kubectl get clusterroles -o json | jq ".items[] | select(.rules[]? | .resources[]?==\"secrets\") | .metadata.name"
+  expected: Only a few named subjects can get, list or watch secrets. Access is limited to the namespace and the secret names that the workload needs.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K02
+    - K03
+    cloud_native_top10:
+    - CNAS-3
+    - CNAS-5
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-732
+    - CWE-200
+    attack:
+    - T1552.007
+    - T1078
+    nist_800_53:
+    - AC-6
+    - AC-3
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K02-Overly-Permissive-Authorization-Configurations.md
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K03-Secrets-Management-Failures.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x03_improper_auth.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x05_insecure_secrets.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-RBAC-005
+  sheet: K8S
+  category: RBAC
+  title: Find escalate, bind, impersonate and node proxy rights
+  objective: Finds rights that let a subject skip privilege checks, impersonate users, or reach the Kubelet API.
+  steps:
+  - List roles with the verbs escalate, bind or impersonate.
+  - List roles with access to nodes/proxy.
+  - List roles that can create pods in kube-system or create rolebindings.
+  - Check that impersonation is limited to named resources.
+  example: kubectl get clusterroles -o json | jq ".items[] | select(.rules[]? | .verbs[]? | IN(\"escalate\",\"bind\",\"impersonate\")) | .metadata.name"; kubectl auth can-i get nodes/proxy --as=<subject>
+  expected: Few trusted subjects hold escalate, bind, impersonate or nodes/proxy. Impersonation is limited to named users or groups.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K02
+    cloud_native_top10:
+    - CNAS-3
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-269
+    - CWE-266
+    attack:
+    - T1548
+    - T1098.006
+    nist_800_53:
+    - AC-6
+    - AC-6(1)
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K02-Overly-Permissive-Authorization-Configurations.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x03_improper_auth.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-RBAC-006
+  sheet: K8S
+  category: RBAC
+  title: Check who can patch namespaces and change policy labels
+  objective: Finds subjects that can edit namespace labels and so weaken Pod Security Admission or network policies.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - List subjects with patch or update rights on namespaces.
+  - In a test namespace, change the pod-security.kubernetes.io/enforce label with a low-rights account.
+  - Try to add a label that a NetworkPolicy selector uses.
+  - Revert the labels.
+  example: kubectl auth can-i patch namespaces --as=<subject>; kubectl label ns <test-ns> pod-security.kubernetes.io/enforce=privileged --overwrite --as=<subject>
+  expected: Only cluster administrators can change namespace labels. A policy rule blocks label changes that lower the Pod Security level.
+  severity: High
+  test_type: Manual
+  refs:
+    k8s_top10:
+    - K02
+    - K04
+    cloud_native_top10:
+    - CNAS-1
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-863
+    attack:
+    - T1548
+    nist_800_53:
+    - AC-6
+    - CM-5
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K02-Overly-Permissive-Authorization-Configurations.md
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K04-Lack-Of-Cluster-Level-Policy-Enforcement.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-RBAC-007
+  sheet: K8S
+  category: RBAC
+  title: Review rights from Helm charts, operators and role aggregation
+  objective: Finds third-party packages that install wide roles or extend built-in roles without notice.
+  steps:
+  - List ClusterRoles and ClusterRoleBindings created by Helm charts and operators.
+  - Find roles with wildcard verbs or resources from these packages.
+  - Check ClusterRoles that carry aggregation labels for admin, edit or view.
+  - Compare the rights to the documented needs of the package.
+  example: 'kubectl get clusterroles -l rbac.authorization.k8s.io/aggregate-to-admin=true; helm template <chart> | grep -B2 -A8 "kind: ClusterRole"'
+  expected: Each third-party role has only the rights its function needs. No package adds rights to admin, edit or view without review.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K02
+    cloud_native_top10:
+    - CNAS-3
+    - CNAS-8
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-272
+    - CWE-1357
+    attack:
+    - T1098.006
+    nist_800_53:
+    - AC-6
+    - CM-3
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K02-Overly-Permissive-Authorization-Configurations.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x03_improper_auth.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x08_asset_mgmt.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-RBAC-008
+  sheet: K8S
+  category: RBAC
+  title: Check that the default service account has no extra rights
+  objective: Finds workloads that inherit API rights through the default service account of a namespace.
+  steps:
+  - List RoleBindings and ClusterRoleBindings for the default service account in each namespace.
+  - Check the rights of the default service account.
+  - Check that each workload uses its own service account.
+  - Test a request from a pod with the default token.
+  example: kubectl get rolebindings,clusterrolebindings -A -o json | jq ".items[] | select(.subjects[]? | .name==\"default\" and .kind==\"ServiceAccount\")"; kubectl auth can-i --list --as=system:serviceaccount:<ns>:default
+  expected: The default service account has no bindings. Each workload that needs API access uses a dedicated service account with minimal rights.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K02
+    - K09
+    cloud_native_top10:
+    - CNAS-3
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-272
+    attack:
+    - T1078
+    nist_800_53:
+    - AC-6
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K02-Overly-Permissive-Authorization-Configurations.md
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K09-Broken-Authentication-Mechanisms.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x03_improper_auth.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-RBAC-009
+  sheet: K8S
+  category: RBAC
+  title: Check that elevated access is temporary and recorded
+  objective: Finds standing admin access with no approval, expiry or record.
+  preconditions:
+  - Interview the cluster owner.
+  steps:
+  - Find the process to request elevated access for debug or one-off changes.
+  - Check that grants expire without manual removal.
+  - Check that each grant has a record of the approver and reason.
+  - Make sure the API audit log shows the grant and use.
+  example: kubectl get clusterrolebindings -o json | jq ".items[] | {n:.metadata.name, c:.metadata.creationTimestamp}"; kubectl --as=<user> --as-group=<group> get pods
+  expected: Admin access is time-bound, approved and logged. Day-to-day accounts have low rights and use impersonation or short-lived grants for admin work.
+  severity: Medium
+  test_type: Manual
+  refs:
+    k8s_top10:
+    - K02
+    cloud_native_top10:
+    - CNAS-3
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-269
+    attack:
+    - T1548.005
+    nist_800_53:
+    - AC-2
+    - AC-6
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K02-Overly-Permissive-Authorization-Configurations.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x03_improper_auth.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md

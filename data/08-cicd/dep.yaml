@@ -1,0 +1,369 @@
+- id: CICD-DEP-001
+  sheet: CICD
+  category: DEP
+  title: Check that build clients pull packages only through the internal proxy
+  objective: Finds build jobs and workstations that fetch packages directly from public registries.
+  preconditions:
+  - Read access to the repository and a test runner.
+  steps:
+  - List the package managers that the pipeline uses.
+  - Read the registry setting of each package manager in the repository and on the runner.
+  - Make sure each setting points to the internal proxy or repository.
+  - Block direct internet access for the runner on a test job and run the build.
+  example: npm config get registry; pip config list; mvn help:effective-settings | grep -i mirror; cat .npmrc pip.conf .yarnrc.yml
+  expected: All package managers resolve through the internal proxy. The build fails when the proxy is not reachable. Direct registry access is blocked.
+  severity: High
+  test_type: &id001
+  - Manual
+  - Config Review
+  refs:
+    owasp_top10:
+    - A03:2025
+    - A08:2025
+    cicd_top10:
+    - CICD-SEC-3
+    cheatsheet:
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    - NPM_Security_Cheat_Sheet
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-829
+    - CWE-427
+    capec:
+    - CAPEC-538
+    attack:
+    - T1195.001
+    nist_800_53:
+    - SR-3
+    other:
+    - SSDF PW.4.1
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-03-Dependency-Chain-Abuse.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/Top10/2025/docs/en/A08_2025-Software_or_Data_Integrity_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/NPM_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+  see:
+  - WEB-DEP-004
+- id: CICD-DEP-002
+  sheet: CICD
+  category: DEP
+  title: Check for dependency confusion on internal package names
+  objective: Finds internal package names that a public registry can supply instead.
+  preconditions:
+  - Do not publish packages to a public registry during the test.
+  steps:
+  - List the names of internal packages from the manifests and the internal registry.
+  - Look up each name on the matching public registry.
+  - Make sure private packages use the organization scope or namespace.
+  - Make sure clients fetch the scope only from the internal registry.
+  example: npm view @org/internal-lib; pip download --no-deps internal-lib --index-url https://pypi.org/simple 2>&1 | tail -2; grep -n '@org:registry' .npmrc
+  expected: Public registries have no package with an internal name, or the name is reserved. Scoped packages come only from the internal registry.
+  severity: High
+  test_type: *id001
+  refs:
+    owasp_top10:
+    - A03:2025
+    cicd_top10:
+    - CICD-SEC-3
+    cheatsheet:
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    - CI_CD_Security_Cheat_Sheet
+    - NPM_Security_Cheat_Sheet
+    cwe:
+    - CWE-427
+    - CWE-829
+    capec:
+    - CAPEC-538
+    attack:
+    - T1195.001
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-03-Dependency-Chain-Abuse.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/NPM_Security_Cheat_Sheet.md
+  see:
+  - WEB-DEP-004
+- id: CICD-DEP-003
+  sheet: CICD
+  category: DEP
+  title: Make sure the pipeline installs exactly the locked dependency versions
+  objective: Finds builds that resolve dependencies again and pull versions that nobody reviewed.
+  preconditions:
+  - Use a test branch.
+  steps:
+  - Make sure a lockfile exists for each package manager and is in the repository.
+  - Find the install command in the pipeline.
+  - Make sure the command stops when the manifest and lockfile differ.
+  - Change a version in the manifest only, on a test branch, and run the pipeline.
+  example: npm ci; yarn install --frozen-lockfile; pip install --require-hashes -r requirements.txt; mvn -B dependency:resolve
+  expected: The pipeline uses frozen lockfile installs. A build fails when the manifest and the lockfile do not match.
+  severity: Medium
+  test_type: *id001
+  refs:
+    owasp_top10:
+    - A03:2025
+    cicd_top10:
+    - CICD-SEC-3
+    cheatsheet:
+    - NPM_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-1357
+    - CWE-829
+    attack:
+    - T1195.001
+    other:
+    - SSDF PW.4.1
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-03-Dependency-Chain-Abuse.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/NPM_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+  see:
+  - WEB-DEP-002
+- id: CICD-DEP-004
+  sheet: CICD
+  category: DEP
+  title: Check checksum and signature verification of pulled packages
+  objective: Finds package installs that do not compare hashes or signatures with known good values.
+  preconditions:
+  - Use a test branch.
+  steps:
+  - Read the lockfiles for integrity hashes of each package.
+  - Make sure the pipeline does not turn off hash or signature checks.
+  - Change one hash in a lockfile copy on a test branch.
+  - Run the build and look at the result.
+  example: grep -c integrity package-lock.json; pip install --require-hashes -r requirements.txt; npm audit signatures
+  expected: Every package has a hash in the lockfile. The build fails when a hash or signature does not match.
+  severity: Medium
+  test_type: *id001
+  refs:
+    owasp_top10:
+    - A03:2025
+    - A08:2025
+    cicd_top10:
+    - CICD-SEC-3
+    - CICD-SEC-9
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - NPM_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-494
+    - CWE-353
+    attack:
+    - T1195.001
+    nist_800_53:
+    - SI-7
+    other:
+    - SSDF PW.4.4
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-03-Dependency-Chain-Abuse.md
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-09-Improper-Artifact-Integrity-Validation.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/Top10/2025/docs/en/A08_2025-Software_or_Data_Integrity_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/NPM_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+  see:
+  - WEB-DEP-005
+- id: CICD-DEP-005
+  sheet: CICD
+  category: DEP
+  title: Check that package install scripts run without access to secrets
+  objective: Finds installs where lifecycle scripts of third-party packages can read pipeline secrets.
+  preconditions:
+  - Read access to the pipeline configuration.
+  steps:
+  - Find the install step of each pipeline and the secrets that are in scope there.
+  - Make sure lifecycle scripts are off or limited to an allowlist.
+  - Make sure the install step runs in a job without secrets and without write tokens.
+  - Look at the environment of the install step.
+  example: npm config get ignore-scripts; grep -rn 'ignore-scripts' .npmrc .github/ ; npm ci --ignore-scripts
+  expected: Install scripts are off, or only allowlisted packages run them. The install step has no access to secrets or deploy tokens.
+  severity: High
+  test_type: *id001
+  refs:
+    owasp_top10:
+    - A03:2025
+    cicd_top10:
+    - CICD-SEC-3
+    - CICD-SEC-5
+    cheatsheet:
+    - NPM_Security_Cheat_Sheet
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-829
+    - CWE-250
+    capec:
+    - CAPEC-538
+    attack:
+    - T1195.001
+    - T1552.001
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-03-Dependency-Chain-Abuse.md
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-05-Insufficient-PBAC.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/NPM_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+- id: CICD-DEP-006
+  sheet: CICD
+  category: DEP
+  title: Make sure the repository contains its package manager configuration
+  objective: Finds projects that depend on the insecure default configuration of a client.
+  preconditions:
+  - Read access to the repository.
+  steps:
+  - Look for .npmrc, pip.conf, settings.xml or the same file for each package manager in the repository.
+  - Read the registry, scope and integrity settings in these files.
+  - Make sure the file does not point to a public mirror that you do not control.
+  - Make sure no credentials are in the file.
+  example: git ls-files | grep -E '(^|/)(\.npmrc|pip\.conf|settings\.xml|\.yarnrc\.yml|nuget\.config)$'; gitleaks detect --no-git -s .npmrc
+  expected: Each project holds its own package manager configuration with the internal registry and scopes. The files hold no credentials.
+  severity: Medium
+  test_type: &id002
+  - Code Review
+  refs:
+    owasp_top10:
+    - A03:2025
+    cicd_top10:
+    - CICD-SEC-3
+    cheatsheet:
+    - NPM_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-427
+    - CWE-798
+    attack:
+    - T1195.001
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-03-Dependency-Chain-Abuse.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/NPM_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+- id: CICD-DEP-007
+  sheet: CICD
+  category: DEP
+  title: Check new dependency names for typosquatting and slopsquatting
+  objective: Finds newly added packages whose names copy popular packages or names an AI tool made up.
+  preconditions:
+  - Read access to the repository history.
+  steps:
+  - List the dependencies added in the last release.
+  - Compare each name with the intended package name.
+  - Look at the age, download count, maintainers and repository link of each new package.
+  - Make sure each new package passed a documented review.
+  example: npm view PACKAGE time.created maintainers repository.url dist.tarball; git diff HEAD~50 -- package.json
+  expected: Each new dependency has the intended name, a known maintainer and a review record. No package name is unknown or very new without a reason.
+  severity: Medium
+  test_type: *id001
+  refs:
+    owasp_top10:
+    - A03:2025
+    cicd_top10:
+    - CICD-SEC-3
+    cheatsheet:
+    - NPM_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-1357
+    capec:
+    - CAPEC-538
+    attack:
+    - T1195.001
+    other:
+    - SSDF PW.4.1
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-03-Dependency-Chain-Abuse.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/NPM_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+- id: CICD-DEP-008
+  sheet: CICD
+  category: DEP
+  title: Find dependencies that come from outside the registry
+  objective: Finds git URL, tarball and local path dependencies that skip registry controls.
+  preconditions:
+  - Read access to the repository.
+  steps:
+  - Search the manifests and lockfiles for git URLs, tarball URLs and file or link paths.
+  - Check where each source resolves.
+  - Make sure each source is pinned to a commit hash or checksum.
+  - Make sure each source has an owner and a review record.
+  example: grep -nE '"(git\+|https?://|file:|link:)' package.json package-lock.json; grep -nE '^(-e )?git\+|@ https?://' requirements*.txt
+  expected: No dependency comes from an unpinned URL or path. Each exception is pinned, reviewed and has an owner.
+  severity: Medium
+  test_type: *id002
+  refs:
+    owasp_top10:
+    - A03:2025
+    - A08:2025
+    cicd_top10:
+    - CICD-SEC-3
+    cheatsheet:
+    - NPM_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-829
+    - CWE-494
+    attack:
+    - T1195.001
+    other:
+    - SSDF PW.4.4
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-03-Dependency-Chain-Abuse.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/Top10/2025/docs/en/A08_2025-Software_or_Data_Integrity_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/NPM_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+- id: CICD-DEP-009
+  sheet: CICD
+  category: DEP
+  title: Check that base images and tool versions are pinned
+  objective: Finds floating tags such as latest that change the build without a reviewed change.
+  preconditions:
+  - Read access to the repository.
+  steps:
+  - Search Dockerfiles, pipeline files and install scripts for latest tags and open version ranges.
+  - Make sure base images are pinned by digest or exact version.
+  - Make sure OS package and tool versions are pinned.
+  - Make sure an update process changes pinned versions in a reviewed pull request.
+  example: hadolint Dockerfile; grep -rnE 'FROM .*(:latest|[^@:]$)' Dockerfile*; grep -rn 'latest' .github/workflows
+  expected: No build input uses a floating tag. Pinned versions change only through reviewed pull requests.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Automated
+  refs:
+    owasp_top10:
+    - A03:2025
+    cicd_top10:
+    - CICD-SEC-3
+    cheatsheet:
+    - Docker_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-1357
+    - CWE-829
+    attack:
+    - T1195.002
+    other:
+    - SSDF PW.4.1
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-03-Dependency-Chain-Abuse.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt

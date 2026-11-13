@@ -1,0 +1,71 @@
+- id: WEB-BOT-001
+  sheet: WEB
+  category: BOT
+  title: Test rate-limit key design for login and recovery endpoints
+  objective: Find rate limits that an attacker passes by changing the IP address, the username form or the request timing.
+  steps:
+  - 'Find out which keys the limit uses: IP, session, username or a mix.'
+  - Send many attempts against one username from many source IP addresses.
+  - Send many usernames from one source IP address.
+  - Change the username case and add spaces or encoding to reach a new bucket.
+  - Add X-Forwarded-For and similar headers with new values.
+  - Send attempts at the end and the start of a time window.
+  - Make sure the limit answer is a generic 429 without detail.
+  example: ffuf or Burp Intruder with a rotating X-Forwarded-For; one username with 50 attempts from proxies; compare 429 bodies
+  expected: Separate limits apply per username and per source. Header changes and username variants do not reset the counters. Bursts at window edges are blocked.
+  severity: High
+  test_type:
+  - Manual
+  - Automated
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A07:2025
+    cheatsheet:
+    - Bot_Management_and_Anti-Automation_Cheat_Sheet
+    asvs:
+    - V2.4.1
+    cwe:
+    - CWE-307
+    - CWE-799
+    capec:
+    - CAPEC-112
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Bot_Management_and_Anti-Automation_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+- id: WEB-BOT-002
+  sheet: WEB
+  category: BOT
+  title: Test signup, card testing and inventory flows for velocity limits
+  objective: Find business flows that let bots create fake accounts, test stolen cards or hold stock.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - 'List the flows at risk: signup, low-value purchase, cart hold and coupon check.'
+  - Create many accounts with one device and one email domain.
+  - Try many small payments with different test card numbers.
+  - Add items to the cart and keep them without payment.
+  - Look for limits, verification steps and queues in each flow.
+  - Look at the logs for alerts on these patterns.
+  example: Burp Turbo Intruder on POST /signup and POST /checkout in a test environment; review the fraud alerts
+  expected: Each flow has velocity limits per identity, device and payment data. Cart holds expire. The team gets alerts for the patterns.
+  severity: Medium
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A06:2025
+    cheatsheet:
+    - Bot_Management_and_Anti-Automation_Cheat_Sheet
+    wstg:
+    - WSTG-BUSL-05
+    asvs:
+    - V2.4.1
+    cwe:
+    - CWE-799
+    - CWE-770
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Bot_Management_and_Anti-Automation_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/10-Business_Logic/05-Number_of_Times_a_Function_Can_Be_Used_Limits.md

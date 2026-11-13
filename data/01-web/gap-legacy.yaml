@@ -1,0 +1,127 @@
+- id: WEB-LEGACY-001
+  sheet: WEB
+  category: LEGACY
+  title: Check the inventory and risk assessment of legacy applications
+  objective: Finds unknown or unassessed legacy applications that keep running.
+  steps:
+  - Ask for the inventory of legacy applications.
+  - Make sure each entry has the version, production date, configuration, owner and end-of-life status.
+  - Make sure each entry has a risk assessment and a threat model.
+  - Make sure the assessment states the data handled, known vulnerabilities, business impact and pivot risk.
+  example: Asset inventory export; compare with network scan results
+  expected: Every legacy application is in the inventory with version, owner and a current risk assessment.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    cheatsheet:
+    - Legacy_Application_Management_Cheat_Sheet
+    cwe:
+    - CWE-1104
+    nist_800_53:
+    - CM-8
+    - RA-3
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Legacy_Application_Management_Cheat_Sheet.md
+- id: WEB-LEGACY-002
+  sheet: WEB
+  category: LEGACY
+  title: Check access restrictions around a legacy application
+  objective: Finds legacy applications that anyone on the network can reach or use with high-risk features.
+  steps:
+  - Find the network location of the application. Make sure it sits in a restricted subnet.
+  - Make sure IP allow-lists or a gateway limit who can connect.
+  - Scan the hosts. Make sure only needed ports are open.
+  - Make sure only authenticated users can use it, by the application or by an IdP.
+  - Make sure high-risk features are off for users who do not need them.
+  example: nmap -sV -p- HOST; curl -i https://HOST/ without credentials
+  expected: Only needed ports are open and only allowed users and networks reach the application. Unused risky features are off.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    cheatsheet:
+    - Legacy_Application_Management_Cheat_Sheet
+    cwe:
+    - CWE-284
+    - CWE-306
+    nist_800_53:
+    - AC-6
+    - SC-7
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Legacy_Application_Management_Cheat_Sheet.md
+- id: WEB-LEGACY-003
+  sheet: WEB
+  category: LEGACY
+  title: Check scanning, patching and compensating controls for legacy applications
+  objective: Finds legacy applications with known vulnerabilities and no plan to patch or contain them.
+  steps:
+  - Make sure a vulnerability scan of the application and its hosts runs on a schedule.
+  - Take the last scan results. Make sure each finding has a patch or a recorded compensating control.
+  - Make sure patch priority uses the risk of the application.
+  - For findings with no patch, make sure the control, an owner and a review date exist.
+  example: nessus or qualys scan report; patch ticket history
+  expected: Scans run regularly. Each finding has a patch or a compensating control with an owner and a review date.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    cheatsheet:
+    - Legacy_Application_Management_Cheat_Sheet
+    cwe:
+    - CWE-1104
+    nist_800_53:
+    - RA-5
+    - SI-2
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Legacy_Application_Management_Cheat_Sheet.md
+- id: WEB-LEGACY-004
+  sheet: WEB
+  category: LEGACY
+  title: Check monitoring and incident response for legacy applications
+  objective: Finds legacy applications whose attacks go unseen because logs do not reach the security tools.
+  steps:
+  - Find how application logs reach the security monitoring system.
+  - If the format is not supported, look for a converter or a script that reports indicators of compromise.
+  - Make sure network traffic of the legacy environment is monitored for anomalies.
+  - Make sure the incident response plan lists the legacy application as a priority system.
+  example: SIEM search for the legacy host; incident response plan
+  expected: Legacy logs or indicator reports reach the monitoring system. The incident response plan names the system as a priority.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    cheatsheet:
+    - Legacy_Application_Management_Cheat_Sheet
+    cwe:
+    - CWE-778
+    nist_800_53:
+    - SI-4
+    - IR-4
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Legacy_Application_Management_Cheat_Sheet.md
+- id: WEB-LEGACY-005
+  sheet: WEB
+  category: LEGACY
+  title: Check the maintainability and migration plan of legacy applications
+  objective: Finds legacy applications that nobody can fix or replace.
+  steps:
+  - Ask who can troubleshoot and reconfigure the application. Make sure at least two people can.
+  - Make sure troubleshooting guides exist for common failures.
+  - Read the migration plan. Make sure it has steps, an expected completion date and an owner.
+  - Make sure the plan covers budget, expertise and urgency from the risk profile.
+  example: Runbooks; migration plan document
+  expected: More than one person can maintain the application. A migration plan with steps, date and owner exists.
+  severity: Low
+  test_type:
+  - Manual
+  refs:
+    cheatsheet:
+    - Legacy_Application_Management_Cheat_Sheet
+    cwe:
+    - CWE-1104
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Legacy_Application_Management_Cheat_Sheet.md

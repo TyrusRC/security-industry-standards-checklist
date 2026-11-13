@@ -1,0 +1,141 @@
+- id: NET-L2-001
+  sheet: NET
+  category: L2
+  title: Test that access ports cannot form trunks or reach other VLANs
+  objective: Finds access ports that form a trunk with an attacker and allow VLAN hopping.
+  preconditions:
+  - Written permission and a lab or test port. Do not run on production.
+  - Test host with a tool for 802.1Q frames (scapy or yersinia).
+  steps:
+  - List the switch ports that connect to users and printers. Look at the configured mode of each port.
+  - Make sure each access port is fixed as access mode and has trunk negotiation off.
+  - From a test host on one access port, try to form a trunk with a negotiation frame.
+  - Send a frame with a second VLAN tag to a host in another VLAN. Look for a reply.
+  - Make sure no trunk comes up and no frame reaches the other VLAN.
+  example: 'show interfaces trunk ; show run interface Gi1/0/1 (switchport mode access, switchport nonegotiate) ; scapy: Dot1Q(vlan=1)/Dot1Q(vlan=20)/IP(dst=target)/ICMP()'
+  expected: Every access port is a fixed access port with negotiation off. The test host cannot form a trunk or reach another VLAN.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    cheatsheet:
+    - Network_Segmentation_Cheat_Sheet
+    nist_800_53:
+    - SC-7
+    - AC-4
+    pci_dss:
+    - 1.4.1
+    cwe:
+    - CWE-284
+    attack:
+    - T1599
+    other: VLAN hopping by switch spoofing and double tagging; vendor hardening guide for the switch model
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Network_Segmentation_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-L2-002
+  sheet: NET
+  category: L2
+  title: Check that unused switch ports are off and in a dead-end VLAN
+  objective: Finds open wall and rack ports where an attacker can plug in and join the network.
+  preconditions:
+  - Access to the switch configuration in read-only mode.
+  steps:
+  - Get the list of all ports and their state from each access switch.
+  - Compare the list with the port inventory and the patch panel records.
+  - Make sure each unused port is in the shutdown state.
+  - Make sure each unused port is in a VLAN that has no route and no gateway.
+  - Plug a test laptop into one unused port. Make sure it gets no address.
+  example: show interfaces status ; show vlan brief ; show run | section interface
+  expected: All unused ports are shut down and in a dead-end VLAN. A device on an unused port gets no network access.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    cheatsheet:
+    - Network_Segmentation_Cheat_Sheet
+    nist_800_53:
+    - CM-7
+    - SC-7
+    pci_dss:
+    - 1.4.1
+    attack:
+    - T1200
+    other: NET-DISC-003 for rogue device detection
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Network_Segmentation_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+  see:
+  - NET-DISC-003
+- id: NET-L2-003
+  sheet: NET
+  category: L2
+  title: Check that the native VLAN is not used for users or management
+  objective: Finds trunks where untagged frames land in a user or management VLAN.
+  steps:
+  - List all trunk ports and the native VLAN of each trunk.
+  - Make sure both ends of each trunk use the same native VLAN.
+  - Make sure the native VLAN is an unused VLAN. No user port and no management interface may be in it.
+  - Make sure each trunk allows only the VLANs it needs.
+  - Make sure VLAN 1 has no user port and no management address.
+  example: show interfaces trunk ; show vlan id 1 ; show run interface Po1 (switchport trunk native vlan 999, switchport trunk allowed vlan ...)
+  expected: Each trunk uses an unused native VLAN. The allowed VLAN list is limited. No user or management interface is in the native VLAN or VLAN 1.
+  severity: Medium
+  test_type:
+  - Config Review
+  refs:
+    cheatsheet:
+    - Network_Segmentation_Cheat_Sheet
+    nist_800_53:
+    - SC-7
+    - CM-7
+    pci_dss:
+    - 1.4.1
+    other: Native VLAN and double-tag hopping; vendor hardening guide
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Network_Segmentation_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-L2-004
+  sheet: NET
+  category: L2
+  title: Test that wired ports need 802.1X or MAB before they give access
+  objective: Finds wired ports where an unknown device gets full access without authentication.
+  preconditions:
+  - Written permission. Do not run on production.
+  - Test laptop that the NAC team knows about.
+  steps:
+  - Find out which ports are in scope for port-based access control. Get the policy from the NAC team.
+  - Connect an unknown test laptop to a user port. Look at the VLAN and address it gets.
+  - Make sure the laptop gets no access, or only a restricted guest VLAN, before it authenticates.
+  - Connect a laptop with a valid certificate or account. Make sure it gets the right VLAN.
+  - Look at the MAB list. Make sure it holds only approved MAC addresses and the devices are in a limited VLAN.
+  example: show authentication sessions ; show dot1x all ; wpa_supplicant / ip addr on the test laptop
+  expected: An unknown device gets no access or only guest access. An authenticated device gets the correct VLAN. MAB is limited to listed devices.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    cheatsheet:
+    - Network_Segmentation_Cheat_Sheet
+    nist_800_53:
+    - IA-3
+    - SC-7
+    pci_dss:
+    - 1.4.1
+    cwe:
+    - CWE-306
+    attack:
+    - T1200
+    other: IEEE 802.1X-2020 (name only; the standard is not in sources)
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Network_Segmentation_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+  see:
+  - NET-DISC-003
+  notes: MAC spoofing can defeat MAB. Mark MAB devices as low trust and limit their VLAN.

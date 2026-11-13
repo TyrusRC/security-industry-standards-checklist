@@ -1,0 +1,124 @@
+- id: DESK-DEP-001
+  sheet: DESK
+  category: DEP
+  title: Build a component inventory and find known vulnerable versions
+  objective: Finds outdated libraries, runtimes and frameworks.
+  steps:
+  - List all libraries, runtimes and frameworks in the install.
+  - Make a software bill of materials.
+  - Check each version against vulnerability databases.
+  - Include transitive dependencies.
+  example: syft dir:. -o cyclonedx-json; grype sbom:./sbom.json; dependency-check; NVD search.
+  expected: The inventory is complete. No component has a known high or critical vulnerability without a fix plan.
+  severity: High
+  test_type:
+  - Automated
+  refs:
+    cwe:
+    - CWE-1395
+    - CWE-1104
+    cheatsheet:
+    - Vulnerable_Dependency_Management_Cheat_Sheet
+    - Dependency_Graph_SBOM_Cheat_Sheet
+    asvs:
+    - V15.1.2
+    desktop_top10:
+    - DA9
+  see:
+  - WEB-DEP-002
+  - WEB-DEP-003
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Vulnerable_Dependency_Management_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Dependency_Graph_SBOM_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-DEP-002
+  sheet: DESK
+  category: DEP
+  title: Check bundled Electron, Chromium and runtime versions
+  objective: Finds bundled engines that miss security fixes.
+  steps:
+  - Find the bundled runtime and web engine versions.
+  - Compare them with the current supported versions.
+  - Check the update process for engines.
+  - Look for unsupported components.
+  example: About dialog; package.json; file properties of the runtime DLLs.
+  expected: Bundled engines and runtimes are supported versions with current patches.
+  severity: Medium
+  test_type:
+  - Automated
+  - Manual
+  refs:
+    cwe:
+    - CWE-1104
+    - CWE-1395
+    cheatsheet:
+    - Vulnerable_Dependency_Management_Cheat_Sheet
+    desktop_top10:
+    - DA9
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Vulnerable_Dependency_Management_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-DEP-003
+  sheet: DESK
+  category: DEP
+  title: Test the update mechanism for signed packages on a secure channel
+  objective: Finds updates that a network attacker can replace.
+  steps:
+  - Find the update URL and the update file format.
+  - Capture an update check.
+  - Check that the channel uses TLS with certificate checks.
+  - Serve a changed package from a lab server and look at the result.
+  example: mitmproxy in a lab; look for a signature check in the code before install.
+  expected: The client installs only packages with a valid vendor signature. A changed package is rejected.
+  severity: Critical
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-494
+    - CWE-347
+    cheatsheet:
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    desktop_top10:
+    - DA9
+    - DA8
+  see:
+  - WEB-DEP-005
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-DEP-004
+  sheet: DESK
+  category: DEP
+  title: Review the supported platforms and the patch policy of the vendor
+  objective: Finds clients that need an unsupported OS or old runtime.
+  steps:
+  - Read the system requirements.
+  - Find any OS or runtime that is out of support.
+  - Ask for the patch time frames.
+  - Look for an end-of-support notice for the product.
+  example: 'Document review: support matrix and patch policy.'
+  expected: The product runs on supported platforms. A patch policy with time frames exists.
+  severity: Low
+  test_type:
+  - Config Review
+  refs:
+    cwe:
+    - CWE-1104
+    cheatsheet:
+    - Vulnerable_Dependency_Management_Cheat_Sheet
+    desktop_top10:
+    - DA9
+  see:
+  - WEB-DEP-001
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Vulnerable_Dependency_Management_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip

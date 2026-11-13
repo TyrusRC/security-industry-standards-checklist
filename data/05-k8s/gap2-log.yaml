@@ -1,0 +1,145 @@
+- id: K8S-LOG-008
+  sheet: K8S
+  category: LOG
+  title: Check audit log retention, rotation and access on the API server
+  objective: Finds audit logs that expire too fast or that many users can read.
+  steps:
+  - Read the audit log path, maximum age, maximum backups and maximum size flags.
+  - Compare the retention to the policy and to the time needed for investigations.
+  - Read the mode and owner of the audit log files and of the audit policy.
+  - Check if audit events also go to a webhook backend or to a remote store.
+  example: kubectl -n kube-system get pod -l component=kube-apiserver -o yaml | grep audit; ls -l /var/log/kubernetes/audit
+  expected: Audit logs are kept for at least 30 days or the policy time. Rotation is set, and only administrators and the log agent can read the files.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K10
+    cloud_native_top10:
+    - CNAS-10
+    cwe:
+    - CWE-778
+    attack:
+    - T1070
+    nist_800_53:
+    - AU-9
+    - AU-11
+    tool_check:
+    - kubescape:C-0130
+    - kubescape:C-0131
+    - kubescape:C-0132
+    - kubescape:C-0133
+    - prowler:kubernetes:apiserver_audit_log_path_set
+    - prowler:kubernetes:apiserver_audit_log_maxage_set
+    - prowler:kubernetes:apiserver_audit_log_maxbackup_set
+    - prowler:kubernetes:apiserver_audit_log_maxsize_set
+    other:
+    - 'Kubernetes docs: security-checklist.md'
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Audit Logging and Threat Detection, Kubernetes native audit logging configuration
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0130-ensurethattheapiserverauditlogpathargumentisset.json
+  - sources/repos/regolibrary/controls/C-0131-ensurethattheapiserverauditlogmaxageargumentissetto30orasappropriate.json
+  - sources/repos/regolibrary/controls/C-0132-ensurethattheapiserverauditlogmaxbackupargumentissetto10orasappropriate.json
+  - sources/repos/regolibrary/controls/C-0133-ensurethattheapiserverauditlogmaxsizeargumentissetto100orasappropriate.json
+  - sources/repos/k8s-website/content/en/docs/concepts/security/security-checklist.md
+  - sources/nsa_k8s/nsa_k8s_hardening.md
+- id: K8S-LOG-009
+  sheet: K8S
+  category: LOG
+  title: Check that logs cover all layers of the environment
+  objective: Finds layers with no logs, so that incident responders cannot follow an attack.
+  steps:
+  - 'List the log sources: hosts, applications, containers, container engine, registry, API server and cloud.'
+  - Find sources that do not send logs to the central service.
+  - Check that the node agent runs on each node, for example as a DaemonSet.
+  - Check that kubelet and runtime logs go to journald or syslog and then to the central store.
+  example: kubectl get ds -A | grep -Ei "fluent|vector|promtail|filebeat"; journalctl -u kubelet --since "1 hour ago" | head
+  expected: Every layer sends logs to one central service. The logging agent runs on every node.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K10
+    cloud_native_top10:
+    - CNAS-10
+    cwe:
+    - CWE-778
+    nist_800_53:
+    - AU-2
+    other:
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Audit Logging and Threat Detection, Logging
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Audit Logging and Threat Detection, Worker node and container logging
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Audit Logging and Threat Detection, Syslog
+  sources_read:
+  - sources/nsa_k8s/nsa_k8s_hardening.md
+- id: K8S-LOG-010
+  sheet: K8S
+  category: LOG
+  title: Check alerts for anonymous requests, new mounts, root pods and new CronJobs
+  objective: Finds attack steps that no alert rule detects.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Read the alert rules of the monitoring system.
+  - Make an anonymous request to the API in a test cluster.
+  - Create a test pod that runs as root with a hostPath mount and create a test CronJob.
+  - Check that each action creates an alert and that the alert reaches an owner.
+  - Check for alerts on low disk space and on a log service that is down.
+  example: kubectl --as=system:anonymous get pods -n default; kubectl apply -f root-hostpath-pod.yaml
+  expected: Anonymous requests, risky volume mounts, root pods and new CronJobs raise alerts. Alerts also cover low disk space and log service failure.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K10
+    cloud_native_top10:
+    - CNAS-10
+    cwe:
+    - CWE-778
+    attack:
+    - T1053.007
+    - T1610
+    nist_800_53:
+    - SI-4
+    - AU-6
+    tool_check:
+    - kubescape:C-0026
+    - kubescape:C-0031
+    other:
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Audit Logging and Threat Detection, Threat Detection
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Audit Logging and Threat Detection, Alerting
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0026-kubernetescronjob.json
+  - sources/repos/regolibrary/controls/C-0031-deletekubernetesevents.json
+  - sources/nsa_k8s/nsa_k8s_hardening.md
+- id: K8S-LOG-011
+  sheet: K8S
+  category: LOG
+  title: Check automatic response and intrusion detection for compromised pods
+  objective: Finds clusters that detect an attack but do not limit it.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Find the intrusion detection or runtime tool and the response rules.
+  - Check the rule for a pod IP listed as the source of a pod creation request.
+  - In a test namespace, trigger a rule and watch the response, such as eviction of the pod.
+  - Check that a clean pod starts from the original image after the response.
+  - Check who reviews each automatic response.
+  example: falco -r rules.yaml; kubectl get events -A --field-selector reason=Evicted
+  expected: Rules for suspect pods exist and work. The response limits the damage, a clean pod replaces the old one, and logs stay available for review.
+  severity: Low
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K10
+    cloud_native_top10:
+    - CNAS-10
+    cwe:
+    - CWE-778
+    nist_800_53:
+    - SI-4
+    other:
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Audit Logging and Threat Detection, Threat Detection
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Audit Logging and Threat Detection, Tools
+  sources_read:
+  - sources/nsa_k8s/nsa_k8s_hardening.md

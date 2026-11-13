@@ -1,0 +1,217 @@
+- id: K8S-NET-001
+  sheet: K8S
+  category: NET
+  title: Check that the CNI plugin enforces network policies
+  objective: Finds clusters where network policies exist but the network plugin ignores them.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify the CNI plugin in use.
+  - Check the vendor documentation for NetworkPolicy support.
+  - Create a deny policy in a test namespace.
+  - Test that traffic to the pod is blocked.
+  example: kubectl get pods -n kube-system -o wide | grep -iE "calico|cilium|flannel|weave"; kubectl run -n <test-ns> curl --image=curlimages/curl -- curl -m 3 <pod-ip>
+  expected: The CNI plugin supports NetworkPolicy. The test deny policy blocks the traffic.
+  severity: High
+  test_type: Manual
+  refs:
+    k8s_top10:
+    - K05
+    cloud_native_top10:
+    - CNAS-6
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-923
+    attack:
+    - T1046
+    nist_800_53:
+    - SC-7
+    - AC-4
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K05-Missing-Network-Segmentation-Controls.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x06_over_permissive_network.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-NET-002
+  sheet: K8S
+  category: NET
+  title: Check default deny network policies in every namespace
+  objective: Finds namespaces where all pods can talk to all other pods.
+  steps:
+  - List NetworkPolicy objects for each namespace.
+  - Find namespaces without a default deny policy for ingress and egress.
+  - From a test pod, connect to a pod in another namespace.
+  - Check that allow rules exist only for needed flows.
+  example: kubectl get networkpolicy -A; kubectl get ns -o name | while read n; do kubectl get networkpolicy -n ${n#namespace/} -o name | wc -l; done
+  expected: Each namespace has default deny for ingress and egress. Allow rules cover only documented flows, and the cross-namespace test connection fails.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K05
+    cloud_native_top10:
+    - CNAS-6
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    - Network_Segmentation_Cheat_Sheet
+    cwe:
+    - CWE-923
+    - CWE-668
+    attack:
+    - T1046
+    nist_800_53:
+    - SC-7
+    - AC-4
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K05-Missing-Network-Segmentation-Controls.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x06_over_permissive_network.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Network_Segmentation_Cheat_Sheet.md
+- id: K8S-NET-003
+  sheet: K8S
+  category: NET
+  title: Check egress rules to the Internet and to the control plane
+  objective: Finds pods that can send data out of the cluster or reach node and control plane services.
+  steps:
+  - From a test pod, connect to an external host.
+  - From the pod, connect to the API server and to node ports.
+  - Review the egress rules for the namespace.
+  - Check that DNS is the only egress allowed by default.
+  example: kubectl exec <pod> -- curl -m 3 https://example.com; kubectl exec <pod> -- curl -k -m 3 https://kubernetes.default.svc/version
+  expected: Egress is limited to named destinations. Pods without need cannot reach the Internet, the node ports or the API server.
+  severity: Medium
+  test_type: Manual
+  refs:
+    k8s_top10:
+    - K05
+    cloud_native_top10:
+    - CNAS-6
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    - Network_Segmentation_Cheat_Sheet
+    cwe:
+    - CWE-923
+    attack:
+    - T1048
+    - T1071
+    nist_800_53:
+    - SC-7
+    - AC-4
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K05-Missing-Network-Segmentation-Controls.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x06_over_permissive_network.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Network_Segmentation_Cheat_Sheet.md
+- id: K8S-NET-004
+  sheet: K8S
+  category: NET
+  title: Find pods that use host networking
+  objective: Finds pods that bypass network policy and reach services bound to the node loopback.
+  steps:
+  - List pods with hostNetwork set to true.
+  - Ask the owner to justify each case.
+  - Check that these pods are limited to system components such as the CNI.
+  - From such a pod, try a connection to localhost services of the node.
+  example: kubectl get pods -A -o json | jq ".items[] | select(.spec.hostNetwork==true) | .metadata.namespace+\"/\"+.metadata.name"
+  expected: Only system components such as the CNI use host networking. Application pods use the pod network.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K05
+    - K01
+    cloud_native_top10:
+    - CNAS-1
+    - CNAS-6
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-668
+    attack:
+    - T1611
+    nist_800_53:
+    - SC-7
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K05-Missing-Network-Segmentation-Controls.md
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K01-Insecure-Workload-Configurations.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x06_over_permissive_network.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-NET-005
+  sheet: K8S
+  category: NET
+  title: Check encryption and mutual authentication between services
+  objective: Finds service traffic in plaintext or with no caller identity inside the cluster.
+  steps:
+  - List the services and their ports.
+  - Capture traffic between two test pods.
+  - Check if a service mesh or application TLS gives mutual authentication.
+  - Send a request to a service without a valid client identity.
+  example: istioctl x describe pod <pod> (if Istio); kubectl exec <pod> -- tcpdump -i any -A port <port>; curl -v http://<service>:<port>
+  expected: Service-to-service traffic uses TLS with mutual authentication. A request with no valid identity is rejected.
+  severity: Medium
+  test_type: Manual
+  refs:
+    k8s_top10:
+    - K05
+    cloud_native_top10:
+    - CNAS-6
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    - Microservices_Security_Cheat_Sheet
+    cwe:
+    - CWE-319
+    - CWE-306
+    attack:
+    - T1071
+    nist_800_53:
+    - SC-8
+    - IA-3
+  see:
+  - API-MSVC-004
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K05-Missing-Network-Segmentation-Controls.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x06_over_permissive_network.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Microservices_Security_Cheat_Sheet.md
+- id: K8S-NET-006
+  sheet: K8S
+  category: NET
+  title: Check that internal services have no public route
+  objective: Finds internal microservices that the ingress or a load balancer exposes by mistake.
+  steps:
+  - List all Ingress rules and public Services.
+  - Map each route to a service and its owner.
+  - From an outside network, request the paths of internal services.
+  - Check that internal-only services use ClusterIP.
+  example: kubectl get ingress -A -o wide; kubectl get svc -A | grep LoadBalancer; curl -sI https://<public-host>/<internal-path>
+  expected: Only intended services have public routes. Requests for internal paths fail from outside.
+  severity: High
+  test_type: Manual
+  refs:
+    k8s_top10:
+    - K05
+    - K06
+    cloud_native_top10:
+    - CNAS-6
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    - Network_Segmentation_Cheat_Sheet
+    cwe:
+    - CWE-668
+    attack:
+    - T1190
+    nist_800_53:
+    - SC-7
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K05-Missing-Network-Segmentation-Controls.md
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K06-Overly-Exposed-Kubernetes-Components.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x06_over_permissive_network.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Network_Segmentation_Cheat_Sheet.md

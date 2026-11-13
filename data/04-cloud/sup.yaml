@@ -1,0 +1,148 @@
+- id: CLD-SUP-001
+  sheet: CLD
+  category: SUP
+  title: Check cloud container registries for access, source and transport
+  objective: Finds registries that allow anonymous or wide push and pull, or that accept images from untrusted sources.
+  steps:
+  - List the container registries and repositories.
+  - Check the access policy for each repository.
+  - Try an anonymous pull and push.
+  - Check that only the build system can push and that transfers use TLS.
+  example: aws ecr describe-repositories; aws ecr get-repository-policy --repository-name <r>; az acr list; az acr repository list -n <acr>; gcloud artifacts repositories list
+  expected: Registries need authentication. Only build identities can push, pull rights follow need, and all transfers use TLS.
+  severity: High
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-4
+    cheatsheet:
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    - Docker_Security_Cheat_Sheet
+    cwe:
+    - CWE-284
+    - CWE-319
+    attack:
+    - T1525
+    - T1195.002
+    nist_800_53:
+    - AC-3
+    - SR-3
+  see:
+  - K8S-IMG-005
+  - CICD-ART-007
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x04_cicd_ssc_flaws.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+- id: CLD-SUP-002
+  sheet: CLD
+  category: SUP
+  title: Check that only trusted and current images run in cloud services
+  objective: Finds services that run untrusted, unsigned or stale images.
+  steps:
+  - List images used by container services and functions.
+  - Find images from public or unknown sources.
+  - Check the age of each image and its last rebuild.
+  - Check the rule that blocks untrusted images at deploy.
+  example: aws ecs list-task-definitions; aws lambda list-functions --query "Functions[?PackageType==\`Image\`]"; az containerapp list; gcloud run services list
+  expected: Services run only images from approved registries with known digests. Images are rebuilt on a set schedule.
+  severity: High
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-4
+    - CNAS-7
+    cheatsheet:
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    - Docker_Security_Cheat_Sheet
+    cwe:
+    - CWE-494
+    - CWE-829
+    attack:
+    - T1204.003
+    - T1195.002
+    nist_800_53:
+    - SR-3
+    - SR-11
+    - SI-7
+  see:
+  - K8S-IMG-001
+  - CICD-ART-002
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x04_cicd_ssc_flaws.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x07_vuln_components.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+- id: CLD-SUP-003
+  sheet: CLD
+  category: SUP
+  title: Check patching of self-managed hosts, images and managed service versions
+  objective: Finds VMs, machine images and managed services that run versions with known flaws.
+  steps:
+  - List VM images, instance OS versions and managed service engine versions.
+  - Compare them to the current advisories and support dates.
+  - Check the patch and image rebuild process.
+  - Find services at end of life.
+  example: aws ssm describe-instance-patch-states; aws inspector2 list-findings; az vm list -d; gcloud compute images list; aws rds describe-db-instances --query "DBInstances[].[DBInstanceIdentifier,EngineVersion]"
+  expected: Hosts and images are patched on a set schedule. No service runs an unsupported version without a written plan.
+  severity: High
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-7
+    cheatsheet:
+    - Secure_Cloud_Architecture_Cheat_Sheet
+    - Vulnerable_Dependency_Management_Cheat_Sheet
+    cwe:
+    - CWE-1104
+    - CWE-1395
+    attack:
+    - T1190
+    nist_800_53:
+    - SI-2
+    - RA-5
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x07_vuln_components.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Cloud_Architecture_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Vulnerable_Dependency_Management_Cheat_Sheet.md
+- id: CLD-SUP-004
+  sheet: CLD
+  category: SUP
+  title: Check vulnerability scanning for cloud workloads and dependencies
+  objective: Finds workloads that run vulnerable libraries or images that no scan covers.
+  steps:
+  - 'List all workloads: VMs, containers and functions.'
+  - Check that each has a scan for images, packages and dependencies.
+  - Review open findings for age and exposure.
+  - Check the process to fix or accept each finding.
+  example: trivy image <image>; trivy fs <path>; grype <image>; aws inspector2 list-findings; dependency-check --scan <path>
+  expected: All workloads have regular scans. High findings are fixed in the agreed time or accepted in writing.
+  severity: High
+  test_type: Automated
+  refs:
+    cloud_native_top10:
+    - CNAS-7
+    cheatsheet:
+    - Vulnerable_Dependency_Management_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-1395
+    - CWE-1104
+    attack:
+    - T1190
+    - T1195.002
+    nist_800_53:
+    - RA-5
+    - SI-2
+  see:
+  - CICD-VULN-001
+  - CICD-VULN-002
+  - CICD-VULN-003
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x07_vuln_components.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Vulnerable_Dependency_Management_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md

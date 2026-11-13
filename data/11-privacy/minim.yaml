@@ -1,0 +1,126 @@
+- id: PRIV-MINIM-001
+  sheet: PRIV
+  category: MINIM
+  title: Compare the collected personal data with the documented purposes
+  objective: Finds fields and telemetry that the stated purposes do not need.
+  steps:
+  - Ask for the list of purposes and the data inventory.
+  - Open each form and API request that collects data.
+  - List each field and map it to one purpose.
+  - Mark each field with no purpose.
+  example: 'Data map: field, purpose, legal basis, retention. Tools: Burp Suite, API schema review.'
+  expected: Every collected field maps to a documented purpose. No field exists only in case it is useful later.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    privacy_top10:
+    - P10
+    other:
+    - GDPR Art. 5
+    - GDPR Art. 25
+  sources_read: &id001
+  - sources/repos/www-project-top-10-privacy-risks/tab_topprivacy.md
+  - sources/repos/www-project-top-10-privacy-risks/OWASP_Top_10_Privacy_Risks_Countermeasures_v2.0.pdf
+  - sources/extra/gdpr.html
+- id: PRIV-MINIM-002
+  sheet: PRIV
+  category: MINIM
+  title: Make sure the server accepts forms with only needed fields
+  objective: Finds required fields that the service does not need.
+  steps:
+  - Open each registration and profile form.
+  - Send the form with only the fields that the interface marks as required.
+  - Send the form again with each required field removed one by one.
+  - Check that the server accepts the minimum set.
+  example: 'Burp Repeater: remove one parameter at a time and compare responses.'
+  expected: The server accepts a request that has only the data needed for the purpose. Each field shows its reason.
+  severity: Low
+  test_type:
+  - Manual
+  refs:
+    privacy_top10:
+    - P10
+    other:
+    - GDPR Art. 5
+    - GDPR Art. 25
+  sources_read: *id001
+- id: PRIV-MINIM-003
+  sheet: PRIV
+  category: MINIM
+  title: Check that a new data purpose needs a new notice
+  objective: Finds reuse of data for new purposes, such as marketing, without notice or consent.
+  steps:
+  - Ask for the list of data uses that were added after launch.
+  - Compare the list with the purposes in the notice.
+  - Look for a change record that shows a notice or consent step.
+  - Check that users were told before the new use.
+  example: 'Document review: change log, DPIA update, notice versions.'
+  expected: Each new use of data has a documented purpose, a legal basis and a notice to the users before it starts.
+  severity: Medium
+  test_type:
+  - Config Review
+  refs:
+    privacy_top10:
+    - P10
+    - P4
+    other:
+    - GDPR Art. 5
+    - GDPR Art. 6
+    - GDPR Art. 13
+  sources_read: *id001
+- id: PRIV-MINIM-004
+  sheet: PRIV
+  category: MINIM
+  title: Check that test and analytics systems hold no clear personal data
+  objective: Finds real personal data in test, analytics and marketing copies.
+  steps:
+  - List all systems that hold copies of production data.
+  - Look at a sample of rows in each test and analytics system.
+  - Look for names, e-mail addresses and identifiers in clear form.
+  - Check the masking or pseudonymisation job and who holds the key.
+  example: Database sample query; masking tool configuration; key access list.
+  expected: Test and analytics systems hold masked or pseudonymised data. The re-identification key is kept apart with limited access.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    privacy_top10:
+    - P2
+    - P10
+    other:
+    - GDPR Art. 25
+    - GDPR Art. 32
+    cwe:
+    - CWE-359
+  sources_read:
+  - sources/repos/www-project-top-10-privacy-risks/tab_topprivacy.md
+  - sources/repos/www-project-top-10-privacy-risks/OWASP_Top_10_Privacy_Risks_Countermeasures_v2.0.pdf
+  - sources/extra/gdpr.html
+  - sources/cwe/cwec_latest.xml.zip
+- id: PRIV-MINIM-005
+  sheet: PRIV
+  category: MINIM
+  title: Check that the default settings collect the least data
+  objective: Finds privacy-invasive defaults for tracking, profiling and visibility.
+  steps:
+  - Create a new account.
+  - List all privacy-relevant settings and their defaults.
+  - Look at profile visibility and data sharing defaults.
+  - Record each setting that is more open than the purpose needs.
+  example: Screenshot every settings page after fresh sign-up.
+  expected: Defaults collect and share the minimum data. Personalised advertising and public profile visibility are off.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    privacy_top10:
+    - P10
+    - P4
+    other:
+    - GDPR Art. 25
+  see:
+  - MOB-PRIV-011
+  sources_read: *id001

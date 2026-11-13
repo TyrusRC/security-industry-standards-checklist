@@ -1,0 +1,205 @@
+- id: CLD-CFG-001
+  sheet: CLD
+  category: CFG
+  title: Check object storage for public access at account level
+  objective: Finds buckets and containers that anyone on the Internet can list or read.
+  steps:
+  - List all storage buckets and containers in each account and region.
+  - Check public access blocks and policies at account and bucket level.
+  - Try an anonymous list and read request on each bucket.
+  - Check that signed URLs have short lifetimes and narrow scope.
+  example: aws s3api get-public-access-block --bucket <b>; aws s3api get-bucket-policy-status --bucket <b>; az storage account show -n <a> --query allowBlobPublicAccess; gsutil iam get gs://<b>; prowler aws --services s3
+  expected: No bucket is public unless it holds only public, non-sensitive files by design. An anonymous request returns an access denied error.
+  severity: High
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    cheatsheet:
+    - Secure_Cloud_Architecture_Cheat_Sheet
+    cwe:
+    - CWE-732
+    - CWE-668
+    attack:
+    - T1530
+    - T1619
+    nist_800_53:
+    - AC-3
+    - AC-6
+  see:
+  - WEB-CONF-012
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Cloud_Architecture_Cheat_Sheet.md
+- id: CLD-CFG-002
+  sheet: CLD
+  category: CFG
+  title: Check that data stores sit in private subnets with no public address
+  objective: Finds databases, file systems and backend servers that have a public IP or a route from the Internet.
+  steps:
+  - List databases, caches, queues and backend instances.
+  - Check each one for a public IP address or endpoint.
+  - Check the subnet route tables for a route to an internet gateway.
+  - Try a connection from an outside host.
+  example: aws rds describe-db-instances --query "DBInstances[].[DBInstanceIdentifier,PubliclyAccessible]"; az sql server show -n <s> -g <rg> --query publicNetworkAccess; gcloud sql instances list --format="value(name,ipAddresses)"; scout aws
+  expected: Data stores have no public address and sit in private subnets. They accept connections only from approved application tiers.
+  severity: High
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    - CNAS-6
+    cheatsheet:
+    - Secure_Cloud_Architecture_Cheat_Sheet
+    - Network_Segmentation_Cheat_Sheet
+    cwe:
+    - CWE-668
+    attack:
+    - T1190
+    - T1133
+    nist_800_53:
+    - SC-7
+    - AC-4
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x06_over_permissive_network.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Cloud_Architecture_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Network_Segmentation_Cheat_Sheet.md
+- id: CLD-CFG-003
+  sheet: CLD
+  category: CFG
+  title: Check firewall and security group rules for open admin and database ports
+  objective: Finds rules that allow any source to reach SSH, RDP, database or admin ports.
+  steps:
+  - Export all security groups, firewall rules and network ACLs.
+  - Find rules with source 0.0.0.0/0 or ::/0.
+  - List the ports and the attached resources for each rule.
+  - Ask the owner to justify each open rule.
+  example: aws ec2 describe-security-groups --filters Name=ip-permission.cidr,Values=0.0.0.0/0; az network nsg rule list --nsg-name <n> -g <rg>; gcloud compute firewall-rules list --filter="sourceRanges:0.0.0.0/0"
+  expected: Only reviewed public ports for load balancers or gateways are open to all sources. Admin and data ports accept only named networks.
+  severity: High
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    - CNAS-6
+    cheatsheet:
+    - Secure_Cloud_Architecture_Cheat_Sheet
+    cwe:
+    - CWE-668
+    - CWE-1327
+    attack:
+    - T1190
+    - T1133
+    nist_800_53:
+    - SC-7
+    - CM-7
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x06_over_permissive_network.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Cloud_Architecture_Cheat_Sheet.md
+- id: CLD-CFG-004
+  sheet: CLD
+  category: CFG
+  title: Check encryption at rest for storage, databases and volumes
+  objective: Finds data stores that hold data in plaintext or use keys that the account owner cannot control.
+  steps:
+  - List storage buckets, volumes, snapshots and databases.
+  - Check the encryption setting of each one.
+  - Check which key protects each data store and who can use it.
+  - Check that backups and snapshots use encryption.
+  example: aws ec2 describe-volumes --query "Volumes[?Encrypted==\`false\`]"; aws s3api get-bucket-encryption --bucket <b>; az storage account show -n <a> --query encryption; gcloud kms keys list --location <l> --keyring <k>
+  expected: All data stores, volumes, snapshots and backups use encryption at rest. Key use is limited to named roles and services.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    - CNAS-5
+    cheatsheet:
+    - Secure_Cloud_Architecture_Cheat_Sheet
+    - Secrets_Management_Cheat_Sheet
+    cwe:
+    - CWE-311
+    - CWE-312
+    attack:
+    - T1530
+    nist_800_53:
+    - SC-28
+    - SC-12
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x05_insecure_secrets.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Cloud_Architecture_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+- id: CLD-CFG-005
+  sheet: CLD
+  category: CFG
+  title: Run a cloud posture scan and review failed checks
+  objective: Finds insecure defaults and drift across accounts, subscriptions and projects.
+  preconditions:
+  - Read-only audit role on all accounts in scope.
+  steps:
+  - Give a read-only audit role to the scan tool in each account.
+  - Run the scan for all regions and services in scope.
+  - Rank the failed checks by risk and exposure.
+  - Fix each finding or record an accepted risk with an owner.
+  example: prowler aws; prowler azure --az-cli-auth; prowler gcp; scout aws; scout azure --cli; scout gcp --user-account
+  expected: The scan runs on a set schedule. High findings are fixed or accepted by the owner in writing.
+  severity: Medium
+  test_type: Automated
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    cheatsheet:
+    - Secure_Cloud_Architecture_Cheat_Sheet
+    - Infrastructure_as_Code_Security_Cheat_Sheet
+    cwe:
+    - CWE-1188
+    attack:
+    - T1580
+    - T1526
+    nist_800_53:
+    - CM-6
+    - CA-7
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Cloud_Architecture_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Infrastructure_as_Code_Security_Cheat_Sheet.md
+- id: CLD-CFG-006
+  sheet: CLD
+  category: CFG
+  title: Check that each managed service is configured within the shared responsibility model
+  objective: Finds services where the team assumed that the provider handles authentication, logging or patching.
+  preconditions:
+  - Interview the service owners.
+  steps:
+  - 'List the cloud services in use and their type: IaaS, PaaS, SaaS or serverless.'
+  - For each type, list the duties that the customer holds.
+  - Check that authentication, logging, patching and code security have an owner.
+  - Record gaps with an owner and a date.
+  example: 'Review provider documentation: AWS Lambda security, GCP Cloud Functions securing, Azure Functions app security'
+  expected: Each service has a written list of provider and customer duties. Every customer duty has an owner and a control.
+  severity: Medium
+  test_type: Manual
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    - CNAS-7
+    cheatsheet:
+    - Secure_Cloud_Architecture_Cheat_Sheet
+    cwe:
+    - CWE-693
+    nist_800_53:
+    - CM-2
+    - CA-7
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x07_vuln_components.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Cloud_Architecture_Cheat_Sheet.md

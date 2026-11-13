@@ -1,0 +1,174 @@
+- id: NET-SMTP-001
+  sheet: NET
+  category: SMTP
+  title: Check that MTA-STS is published and enforced for each mail domain
+  objective: Finds mail domains where a downgrade or MX spoof lets an attacker read mail in transit.
+  steps:
+  - Get the TXT record at _mta-sts.<domain>. Make sure one record starts with v=STSv1 and has an id.
+  - Get the policy file from https://mta-sts.<domain>/.well-known/mta-sts.txt.
+  - Make sure the HTTPS certificate is valid for the mta-sts host name.
+  - Make sure the policy has mode enforce and a max_age of at least one week.
+  - Compare the mx lines of the policy with the real MX records of the domain.
+  example: dig +short TXT _mta-sts.example.com ; curl -sv https://mta-sts.example.com/.well-known/mta-sts.txt ; dig +short MX example.com
+  expected: The TXT record and the policy file exist. The certificate is valid. The mode is enforce. The mx lines match the MX records. The max_age is long.
+  severity: Medium
+  test_type:
+  - Automated
+  - Config Review
+  refs:
+    nist_800_53:
+    - SC-8
+    cwe:
+    - CWE-319
+    attack:
+    - T1557
+    other: RFC 8461 sections 3.1, 3.2 and 5; https://www.rfc-editor.org/rfc/rfc8461
+  sources_read:
+  - sources/extra/gap3-C/rfc8461.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  notes: A mode of testing is a finding when the policy has run in testing mode for a long time.
+- id: NET-SMTP-002
+  sheet: NET
+  category: SMTP
+  title: Check that a TLS-RPT record is published and the report address works
+  objective: Finds mail domains that cannot see STARTTLS or MTA-STS failures that other senders report.
+  steps:
+  - Get the TXT record at _smtp._tls.<domain>.
+  - Make sure exactly one record starts with v=TLSRPTv1;.
+  - 'Make sure the rua value is a mailto: or https: address under the control of the domain owner.'
+  - Ask the mail team for a TLS-RPT report that arrived in the last 30 days.
+  - Make sure someone reads the reports and acts on policy failures.
+  example: dig +short TXT _smtp._tls.example.com
+  expected: One valid TLS-RPT record exists. The rua address belongs to the domain owner. Reports arrive and the team reviews them.
+  severity: Low
+  test_type:
+  - Automated
+  - Manual
+  refs:
+    nist_800_53:
+    - SC-8
+    - SI-4
+    other: RFC 8460 section 3; https://www.rfc-editor.org/rfc/rfc8460
+  sources_read:
+  - sources/extra/gap3-C/rfc8460.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-SMTP-003
+  sheet: NET
+  category: SMTP
+  title: Check DANE TLSA records for the MX hosts of DNSSEC-signed domains
+  objective: Finds MX hosts where a TLSA record is missing, not signed or does not match the certificate.
+  steps:
+  - Find out if the zone and the MX host zone have DNSSEC. Skip the test if they do not.
+  - Get the TLSA record at _25._tcp.<mx-host> with DNSSEC validation. Make sure the answer is secure.
+  - Make sure the record uses usage 3 or 2. Prefer 3 1 1.
+  - Connect with STARTTLS. Make sure the server certificate matches the TLSA data.
+  - Make sure the TLSA record is updated before each certificate key change.
+  example: dig +dnssec TLSA _25._tcp.mx.example.com ; openssl s_client -starttls smtp -connect mx.example.com:25 -dane -verify 3 -verify_return_error
+  expected: Each MX host has a DNSSEC-validated TLSA record that matches its certificate. Usage 3 or 2 is in use.
+  severity: Low
+  test_type:
+  - Automated
+  - Config Review
+  refs:
+    nist_800_53:
+    - SC-8
+    - SC-12
+    cwe:
+    - CWE-295
+    attack:
+    - T1557
+    other: RFC 7672 sections 2.2 and 3.1; https://www.rfc-editor.org/rfc/rfc7672
+  sources_read:
+  - sources/extra/gap3-C/rfc7672.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-SMTP-004
+  sheet: NET
+  category: SMTP
+  title: Test that the mail server does not relay outside-to-outside mail
+  objective: Finds open relays that spammers use to hide the origin of mail.
+  preconditions:
+  - Written permission for the mail server in scope.
+  - Use only mailboxes that you own as the target recipients.
+  steps:
+  - Connect from an outside address to port 25 of the mail server.
+  - Send MAIL FROM and RCPT TO with two external domains that you control.
+  - Make sure the server rejects the RCPT command with a 5yz code.
+  - Try a source-routed forward-path and a RCPT TO with a percent sign in the local part.
+  - Try the same checks on port 587 without authentication.
+  example: nmap -p25 --script smtp-open-relay mail.example.com ; swaks --to a@external-test.example --from b@external-test2.example --server mail.example.com
+  expected: The server rejects every outside-to-outside recipient. No message is queued. Port 587 needs authentication.
+  severity: High
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    nist_800_53:
+    - SC-7
+    - CM-7
+    cwe:
+    - CWE-284
+    attack:
+    - T1190
+    other: RFC 5321 sections 4.1.1.3 and 7.9; https://www.rfc-editor.org/rfc/rfc5321
+  sources_read:
+  - sources/extra/gap3-C/rfc5321.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  see:
+  - NET-SVC-014
+- id: NET-SMTP-005
+  sheet: NET
+  category: SMTP
+  title: Check that VRFY and EXPN do not reveal valid addresses to outsiders
+  objective: Finds mail servers that let outsiders list valid users or members of a mailing list.
+  steps:
+  - Connect to port 25 from an outside address and send EHLO.
+  - Look at the EHLO reply. Make sure EXPN is not listed as an extension.
+  - Send VRFY with a valid local user and with an unknown user.
+  - Send EXPN with a mailing list name.
+  - Compare the replies.
+  example: nmap -p25 --script smtp-commands,smtp-enum-users --script-args smtp-enum-users.methods={VRFY,EXPN} mail.example.com ; printf "VRFY root\r\nEXPN staff\r\nQUIT\r\n" | nc mail.example.com 25
+  expected: VRFY gives the same 252 reply for valid and unknown users, or needs authentication. EXPN is off for outsiders.
+  severity: Low
+  test_type:
+  - Automated
+  - Manual
+  refs:
+    nist_800_53:
+    - CM-7
+    cwe:
+    - CWE-204
+    attack:
+    - T1589.002
+    other: RFC 5321 sections 3.5.2 and 7.3; https://www.rfc-editor.org/rfc/rfc5321
+  sources_read:
+  - sources/extra/gap3-C/rfc5321.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-SMTP-006
+  sheet: NET
+  category: SMTP
+  title: Test that the mail server accepts only CRLF.CRLF as end of data
+  objective: Finds mail servers that treat a bare line feed as end of data, which allows SMTP smuggling.
+  preconditions:
+  - Use only mailboxes that you own. Do not run on production.
+  steps:
+  - Send DATA to the mail server from a test client that you control.
+  - Send a message that has the line <LF>.<LF> inside the body, followed by a second MAIL FROM command.
+  - Make sure the server does not end the message at the bare <LF>.<LF>.
+  - Send the same test with <CR>.<CR>.
+  - Look at the delivered mail. Make sure it is one message and not two.
+  example: Use a raw socket script (python3 socket) that sends "\n.\n" inside DATA, then "MAIL FROM:<x@test>" ; read the delivered messages in the test mailbox
+  expected: The server ends data only at <CRLF>.<CRLF>. A bare line feed or carriage return does not start a new mail transaction.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    nist_800_53:
+    - SC-7
+    cwe:
+    - CWE-444
+    attack:
+    - T1566
+    other: RFC 5321 section 4.1.1.4; https://www.rfc-editor.org/rfc/rfc5321
+  sources_read:
+  - sources/extra/gap3-C/rfc5321.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json

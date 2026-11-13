@@ -1,0 +1,44 @@
+- id: MOB-TASK-001
+  sheet: MOB
+  category: TASK
+  title: Check Android activities for task affinity and task reparenting hijack
+  objective: Find activities with a task affinity or reparenting setting that lets another app move its screen into the task of the app.
+  preconditions:
+  - The app package or its decoded AndroidManifest.xml.
+  - For the live test, a test device and a test app that sets a taskAffinity equal to the package name of the app. Use Android 10 or lower for the live test.
+  steps:
+  - Decode the manifest. List all activities with the taskAffinity, allowTaskReparenting and launchMode attributes.
+  - Find the attribute allowTaskReparenting set to true on the application or on an activity. Examine the reason.
+  - Make sure the activities that show login or sensitive screens use the default task affinity and no custom value.
+  - Make sure no activity uses a launch mode that places it in a task of another app without need.
+  - Read minSdkVersion. Note if it is lower than 30. Only Android 11 and later fix version 2 of the attack.
+  - On a test device, install the test app that sets the same taskAffinity. Start the target app and look for the screen of the test app on top.
+  - Make sure the user does not see a foreign screen when the app opens or when a sensitive activity ends.
+  example: 'apktool d app.apk -o out; grep -nE "taskAffinity|allowTaskReparenting|launchMode" out/AndroidManifest.xml; aapt dump badging app.apk | grep sdkVersion; adb shell dumpsys activity activities | grep -A3 "Task id"'
+  expected: No activity sets allowTaskReparenting to true or a custom taskAffinity without a reason. The target app opens its own screens only, and minSdkVersion is 30 or higher.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M8:2024
+    masvs:
+    - MASVS-PLATFORM-3
+    maswe:
+    - MASWE-0039
+    cwe:
+    - CWE-1021
+    - CWE-451
+    capec:
+    - CAPEC-501
+    other:
+    - 'Android StrandHogg guide: https://developer.android.com/privacy-and-security/risks/strandhogg'
+  see:
+  - MOB-UI-005
+  - MOB-CODE-001
+  - MOB-IPC-001
+  sources_read:
+  - sources/extra/gap3-A/strandhogg.md
+  - sources/repos/mastg/Document/0x05a-Platform-Overview.md

@@ -1,0 +1,314 @@
+- id: CICD-FLOW-001
+  sheet: CICD
+  category: FLOW
+  title: Check branch protection on every production branch
+  objective: Finds production branches where one account can push or merge code without review.
+  preconditions:
+  - Read access to the SCM settings of the repository.
+  steps:
+  - List the branches that build, release or deploy to production.
+  - Read the branch protection rules or rulesets for each branch.
+  - Make sure pull requests and at least one approving review are required.
+  - Make sure administrators and bots are not on a bypass list.
+  - Make sure force pushes and branch deletion are blocked.
+  example: gh api repos/ORG/REPO/branches/main/protection; gh api repos/ORG/REPO/rulesets; scorecard --repo=github.com/ORG/REPO --checks=Branch-Protection,Code-Review
+  expected: Every production branch requires a reviewed pull request. No user, team or app can bypass the rule. Force pushes are blocked.
+  severity: High
+  test_type:
+  - Config Review
+  - Automated
+  refs:
+    owasp_top10:
+    - A08:2025
+    cicd_top10:
+    - CICD-SEC-1
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-284
+    - CWE-693
+    capec:
+    - CAPEC-443
+    attack:
+    - T1195.002
+    nist_800_53:
+    - CM-3
+    - CM-5
+    other:
+    - SSDF PS.1.1
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-01-Insufficient-Flow-Control-Mechanisms.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/Top10/2025/docs/en/A08_2025-Software_or_Data_Integrity_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+- id: CICD-FLOW-002
+  sheet: CICD
+  category: FLOW
+  title: Check that unreviewed pushers cannot trigger deployment pipelines
+  objective: Finds accounts that may push unreviewed code and also start a deployment.
+  preconditions:
+  - Read access to the SCM and CI settings.
+  steps:
+  - List the users, teams and apps that may push to a protected branch without review.
+  - List the users and apps that may start or approve the deployment pipelines of the same repository.
+  - Compare the two lists.
+  - Look at any account that appears in both lists.
+  example: gh api repos/ORG/REPO/branches/main/protection/restrictions; gh api repos/ORG/REPO/collaborators --jq '.[]|{login,permissions}'
+  expected: No account that may push unreviewed code can also trigger or approve a production deployment pipeline.
+  severity: High
+  test_type: &id001
+  - Manual
+  - Config Review
+  refs:
+    cicd_top10:
+    - CICD-SEC-1
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-269
+    nist_800_53:
+    - AC-5
+    - AC-6
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-01-Insufficient-Flow-Control-Mechanisms.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+- id: CICD-FLOW-003
+  sheet: CICD
+  category: FLOW
+  title: Review auto-merge rules for bypass and third-party code
+  objective: Finds auto-merge rules that can merge unreviewed code into a protected branch.
+  preconditions:
+  - Read access to the repository and CI configuration.
+  steps:
+  - List all auto-merge rules and bots in the SCM and the CI.
+  - Read the code and conditions of each rule.
+  - Check that the rule applies to the smallest possible set of files and users.
+  - Make sure the rule does not import third-party code.
+  - Make sure the rule cannot be bypassed with a crafted change.
+  example: gh api repos/ORG/REPO --jq .allow_auto_merge; grep -rn 'auto-merge\|automerge\|dependabot' .github/
+  expected: Auto-merge is off, or it applies to minimal contexts. The rule code is reviewed, has no third-party code and cannot be bypassed.
+  severity: High
+  test_type:
+  - Code Review
+  - Config Review
+  refs:
+    cicd_top10:
+    - CICD-SEC-1
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-693
+    attack:
+    - T1195.002
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-01-Insufficient-Flow-Control-Mechanisms.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+- id: CICD-FLOW-004
+  sheet: CICD
+  category: FLOW
+  title: Check approval gates before production deployment
+  objective: Finds production deployments that start without a second person approving them.
+  preconditions:
+  - Do not run on production. Use a test environment with the same settings.
+  steps:
+  - List the pipelines and jobs that deploy to production.
+  - Read the environment or stage protection settings of each job.
+  - Make sure a person other than the author must approve the deployment.
+  - Try to start the production job from a branch that has no approval, on a test copy.
+  example: gh api repos/ORG/REPO/environments/production --jq '.protection_rules'; glab api projects/ID/protected_environments
+  expected: A production deployment needs approval from a required reviewer who is not the author. No account can skip the approval gate.
+  severity: High
+  test_type: *id001
+  refs:
+    owasp_top10:
+    - A08:2025
+    cicd_top10:
+    - CICD-SEC-1
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-284
+    nist_800_53:
+    - CM-3
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-01-Insufficient-Flow-Control-Mechanisms.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/Top10/2025/docs/en/A08_2025-Software_or_Data_Integrity_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+- id: CICD-FLOW-005
+  sheet: CICD
+  category: FLOW
+  title: Make sure only artifacts from the CI service account reach deployment
+  objective: Finds deploy stages that accept artifacts uploaded by people or other accounts.
+  preconditions:
+  - Write access to a non-production artifact path.
+  steps:
+  - Find the artifact repositories that the deploy stage reads from.
+  - List the accounts that can upload to these repositories.
+  - Upload a test artifact with a personal account to a non-production path.
+  - Make sure the deploy stage rejects the test artifact.
+  example: cosign verify --certificate-identity-regexp '^https://github.com/ORG/REPO/.github/workflows/release.yml@' --certificate-oidc-issuer https://token.actions.githubusercontent.com IMAGE@sha256:DIGEST
+  expected: The deploy stage accepts only artifacts that the approved CI identity created. Artifacts from other accounts need a second review.
+  severity: High
+  test_type: *id001
+  refs:
+    owasp_top10:
+    - A08:2025
+    cicd_top10:
+    - CICD-SEC-1
+    - CICD-SEC-9
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-345
+    capec:
+    - CAPEC-446
+    attack:
+    - T1195.002
+    nist_800_53:
+    - SR-11
+    other:
+    - SSDF PS.2.1
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-01-Insufficient-Flow-Control-Mechanisms.md
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-09-Improper-Artifact-Integrity-Validation.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/Top10/2025/docs/en/A08_2025-Software_or_Data_Integrity_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+- id: CICD-FLOW-006
+  sheet: CICD
+  category: FLOW
+  title: Look for drift between production and its CI/CD origin
+  objective: Finds production changes that did not come from the reviewed pipeline.
+  preconditions:
+  - Read access to production state.
+  steps:
+  - Pick the code, images and infrastructure that run in production.
+  - Compare their digests or state with the last pipeline build.
+  - Look for resources that no signed template or pipeline created.
+  - Make sure each difference has a ticket and a fix.
+  example: terraform plan -detailed-exitcode; kubectl diff -f manifests/; aws lambda get-function --function-name NAME --query Configuration.CodeSha256
+  expected: Production matches its pipeline origin. Detected drift is reported and corrected. Unmanaged resources are removed or brought under code.
+  severity: Medium
+  test_type: *id001
+  refs:
+    cicd_top10:
+    - CICD-SEC-1
+    - CICD-SEC-9
+    cheatsheet:
+    - Infrastructure_as_Code_Security_Cheat_Sheet
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-1269
+    nist_800_53:
+    - CM-3
+    - CM-6
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-01-Insufficient-Flow-Control-Mechanisms.md
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-09-Improper-Artifact-Integrity-Validation.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Infrastructure_as_Code_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+- id: CICD-FLOW-007
+  sheet: CICD
+  category: FLOW
+  title: Check separation of duties from code change to production
+  objective: Finds paths where one person can write code and promote it to production alone.
+  preconditions:
+  - Read access to the SCM and CI settings.
+  steps:
+  - Draw the path from commit to production for one service.
+  - Mark each step where a second person must approve.
+  - Look for steps that one account can complete alone, such as self-approval or a direct deploy.
+  - Make sure the author of a change cannot approve it.
+  example: 'gh api repos/ORG/REPO/branches/main/protection --jq ''.required_pull_request_reviews''  # look at require_last_push_approval and dismiss_stale_reviews'
+  expected: No single account can write code and promote it to production. Self-approval is blocked at each gate.
+  severity: High
+  test_type: *id001
+  refs:
+    owasp_top10:
+    - A08:2025
+    cicd_top10:
+    - CICD-SEC-1
+    cheatsheet:
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-269
+    nist_800_53:
+    - AC-5
+    other:
+    - SSDF PS.1.1
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-01-Insufficient-Flow-Control-Mechanisms.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/Top10/2025/docs/en/A08_2025-Software_or_Data_Integrity_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+- id: CICD-FLOW-008
+  sheet: CICD
+  category: FLOW
+  title: Check direct write access to production outside the pipeline
+  objective: Finds people and tools that can change production code or infrastructure without a pipeline run.
+  preconditions:
+  - Read access to cloud audit logs and IAM.
+  steps:
+  - List the roles with write access to production cloud accounts and clusters.
+  - Look at the audit log for changes made outside the pipeline in the last 90 days.
+  - Make sure a break-glass process with approval and logging exists for such access.
+  - Make sure the process raises an alert when someone uses it.
+  example: aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,AttributeValue=UpdateFunctionCode; kubectl auth can-i --list --as=USER
+  expected: Production changes come only from the pipeline identity. Direct access needs approval, is logged and raises an alert.
+  severity: High
+  test_type: *id001
+  refs:
+    cicd_top10:
+    - CICD-SEC-1
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Infrastructure_as_Code_Security_Cheat_Sheet
+    cwe:
+    - CWE-284
+    attack:
+    - T1078
+    nist_800_53:
+    - AC-6
+    - CM-5
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-01-Insufficient-Flow-Control-Mechanisms.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Infrastructure_as_Code_Security_Cheat_Sheet.md
+- id: CICD-FLOW-009
+  sheet: CICD
+  category: FLOW
+  title: Check staged rollout of new releases
+  objective: Finds deployments that reach all systems at once, so one bad release hits everything.
+  preconditions:
+  - Read access to deployment configuration.
+  steps:
+  - Read the deployment configuration of one production service.
+  - Make sure the release goes first to a canary or small group.
+  - Make sure a health check or approval gates the next stage.
+  - Make sure the pipeline can stop and roll back the release.
+  example: kubectl rollout status deploy/NAME; argocd app get NAME; grep -rn 'canary\|strategy' deploy/
+  expected: New releases roll out in stages with a gate between stages. The pipeline can stop and roll back a release.
+  severity: Low
+  test_type: *id001
+  refs:
+    cheatsheet:
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-1357
+  sources_read:
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md

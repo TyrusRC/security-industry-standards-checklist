@@ -1,0 +1,248 @@
+- id: CICD-LOG-001
+  sheet: CICD
+  category: LOG
+  title: Build an inventory of all CI/CD systems and instances
+  objective: Finds CI/CD systems that nobody monitors, such as self-managed servers run by one team.
+  preconditions:
+  - Get approval before network scans.
+  steps:
+  - List the SCM, CI, registry, package manager, CD and orchestration systems.
+  - Search the network and cloud for additional instances of each.
+  - Record the owner and the log status of each instance.
+  - Add unknown instances to the inventory.
+  example: nmap -p 8080,443 -sV --script http-title CIDR; aws ec2 describe-instances --filters Name=tag:role,Values=ci; shodan-style search of own domains
+  expected: The inventory covers every CI/CD instance. Each has an owner and a log status.
+  severity: Medium
+  test_type: &id001
+  - Manual
+  - Config Review
+  refs:
+    cicd_top10:
+    - CICD-SEC-10
+    - CICD-SEC-7
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-778
+    nist_800_53:
+    - CM-8
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-10-Insufficient-Logging-And-Visibility.md
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-07-Insecure-System-Configuration.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+- id: CICD-LOG-002
+  sheet: CICD
+  category: LOG
+  title: Check that audit logs are on for human and programmatic access
+  objective: Finds systems that do not log logins, permission changes and token use.
+  preconditions:
+  - Admin read access. Use a harmless test change.
+  steps:
+  - For each CI/CD system, read the audit log settings.
+  - Make sure logs cover user creation, login, permission changes and token creation.
+  - Make sure logs cover access by apps, service accounts and tokens.
+  - Run a test change and look for it in the log.
+  example: gh api orgs/ORG/audit-log?per_page=5; curl -s https://JENKINS/manage/log/; glab api audit_events
+  expected: Audit logging is on in each system. A test change appears in the log with the actor, time and source.
+  severity: High
+  test_type: *id001
+  refs:
+    cicd_top10:
+    - CICD-SEC-10
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    - Secrets_Management_Cheat_Sheet
+    cwe:
+    - CWE-778
+    attack:
+    - T1078
+    nist_800_53:
+    - AU-2
+    - AU-12
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-10-Insufficient-Logging-And-Visibility.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+- id: CICD-LOG-003
+  sheet: CICD
+  category: LOG
+  title: Check that pipeline events go to a central log system
+  objective: Finds push, build and upload events that stay in local systems where an attacker can erase them.
+  preconditions:
+  - Read access to the SIEM.
+  steps:
+  - 'List the events that matter: pushes, builds, artifact uploads, deployments.'
+  - Find the log forwarder or export setting for each system.
+  - Search the SIEM for a test push, build and upload.
+  - Make sure events from different systems can be matched.
+  example: 'gh api orgs/ORG/audit-log/streams; logger -p auth.info ''cicd-test''; SIEM search: source=ci AND repo=TEST'
+  expected: Audit and application events of all CI/CD systems arrive in the central log system within the set delay.
+  severity: High
+  test_type: *id001
+  refs:
+    cicd_top10:
+    - CICD-SEC-10
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-778
+    capec:
+    - CAPEC-571
+    attack:
+    - T1195.002
+    nist_800_53:
+    - AU-6
+    - AU-12
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-10-Insufficient-Logging-And-Visibility.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+- id: CICD-LOG-004
+  sheet: CICD
+  category: LOG
+  title: Test alerts for attacks on the CI/CD pipeline
+  objective: Finds attacks on the pipeline that raise no alert.
+  preconditions:
+  - Use a test repository only. Do not run on production.
+  steps:
+  - List the alert rules for CI/CD, such as branch protection changes, new tokens and workflow file changes.
+  - On a test repository, change a branch protection rule and create a test token.
+  - Wait for the alert time and look for the alerts.
+  - Add rules for the events that raised no alert.
+  example: 'gh api -X DELETE repos/ORG/TEST/branches/main/protection  # test repository only; SIEM search for action:protected_branch.destroy'
+  expected: Alerts exist for changes to protection rules, new tokens, new workflows, odd secret reads and odd outbound traffic. A test change raises an alert.
+  severity: High
+  test_type: *id001
+  refs:
+    cicd_top10:
+    - CICD-SEC-10
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Secrets_Management_Cheat_Sheet
+    cwe:
+    - CWE-778
+    attack:
+    - T1195.002
+    nist_800_53:
+    - AU-6
+    - SI-4
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-10-Insufficient-Logging-And-Visibility.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+- id: CICD-LOG-005
+  sheet: CICD
+  category: LOG
+  title: Check log content, format and retention
+  objective: Finds logs that hold secrets, cannot be parsed or are kept too short for an investigation.
+  preconditions:
+  - Handle exported logs as sensitive data.
+  steps:
+  - Read the log policy for CI/CD systems.
+  - Make sure logs use a parsable format such as JSON or syslog.
+  - Search logs for secrets and personal data.
+  - Make sure the retention period fits investigation and legal needs.
+  example: gitleaks detect --no-git -s exported-audit-log.json; jq . exported-audit-log.json | head
+  expected: Logs are parsable, hold no secrets and are kept for the set period. Audit logs cannot be changed by pipeline users.
+  severity: Medium
+  test_type: *id001
+  refs:
+    cicd_top10:
+    - CICD-SEC-10
+    - CICD-SEC-6
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Secrets_Management_Cheat_Sheet
+    cwe:
+    - CWE-532
+    - CWE-778
+    nist_800_53:
+    - AU-11
+    - AU-9
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-10-Insufficient-Logging-And-Visibility.md
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-06-Insufficient-Credential-Hygiene.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+- id: CICD-LOG-006
+  sheet: CICD
+  category: LOG
+  title: Check that secret manager requests trace back to the pipeline run
+  objective: Finds secret reads that cannot be tied to the user, commit or job that caused them.
+  preconditions:
+  - Use a test secret.
+  steps:
+  - Run a test pipeline that reads one test secret.
+  - Find the read event in the secret manager log.
+  - Make sure the event holds the workflow identity, repository, branch or run.
+  - Make sure unusual reads raise an alert.
+  example: aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,AttributeValue=GetSecretValue; vault audit list
+  expected: Each secret read shows which pipeline run, commit or user caused it. Unusual reads raise an alert.
+  severity: Medium
+  test_type: *id001
+  refs:
+    cicd_top10:
+    - CICD-SEC-10
+    - CICD-SEC-6
+    cheatsheet:
+    - Secrets_Management_Cheat_Sheet
+    cwe:
+    - CWE-778
+    nist_800_53:
+    - AU-3
+    - AU-12
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-10-Insufficient-Logging-And-Visibility.md
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-06-Insufficient-Credential-Hygiene.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+- id: CICD-LOG-007
+  sheet: CICD
+  category: LOG
+  title: Check tamper evidence of build records
+  objective: Finds build logs and records that an attacker with build access could change without trace.
+  preconditions:
+  - Use a test record.
+  steps:
+  - Find where build logs and records are stored.
+  - List the accounts that can change or delete them.
+  - Make sure a copy goes to write-once or separate storage.
+  - Try to change a test record and look for the change event.
+  example: aws s3api get-bucket-versioning --bucket LOGS; aws s3api get-object-lock-configuration --bucket LOGS
+  expected: Build logs are tamper-evident. Pipeline users cannot change or delete them. Changes raise an event.
+  severity: Medium
+  test_type: *id001
+  refs:
+    owasp_top10:
+    - A08:2025
+    cicd_top10:
+    - CICD-SEC-10
+    - CICD-SEC-9
+    cheatsheet:
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-778
+    capec:
+    - CAPEC-81
+    - CAPEC-93
+    attack:
+    - T1195.002
+    nist_800_53:
+    - AU-9
+    - SR-9
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-10-Insufficient-Logging-And-Visibility.md
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-09-Improper-Artifact-Integrity-Validation.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/Top10/2025/docs/en/A08_2025-Software_or_Data_Integrity_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md

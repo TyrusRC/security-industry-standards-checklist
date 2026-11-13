@@ -1,0 +1,212 @@
+- id: K8S-EXP-001
+  sheet: K8S
+  category: EXP
+  title: Check that the API server is not open to the Internet
+  objective: Finds API servers that any host on the Internet can reach.
+  preconditions:
+  - Written approval for the scan of the listed addresses.
+  steps:
+  - Find the public address of the API server from DNS, kubeconfig and cloud settings.
+  - Connect to port 6443 from an outside network.
+  - Read the authorized network list of the managed service.
+  - Make sure only trusted source ranges are allowed.
+  example: nmap -p 6443 <api-host>; curl -k https://<api-host>:6443/version; aws eks describe-cluster --name <c> --query cluster.resourcesVpcConfig; az aks show -n <c> -g <rg> --query apiServerAccessProfile; gcloud container clusters describe <c> --format="value(masterAuthorizedNetworksConfig)"
+  expected: The API server is reachable only from trusted networks or a private endpoint. An outside host cannot connect to port 6443.
+  severity: High
+  test_type: Manual
+  refs:
+    k8s_top10:
+    - K06
+    cloud_native_top10:
+    - CNAS-3
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-668
+    - CWE-1327
+    attack:
+    - T1190
+    - T1133
+    nist_800_53:
+    - SC-7
+    - AC-17
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K06-Overly-Exposed-Kubernetes-Components.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x03_improper_auth.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-EXP-002
+  sheet: K8S
+  category: EXP
+  title: Check version and certificate details that the API shows to outsiders
+  objective: Finds information leaks from the version endpoint and from certificate names.
+  steps:
+  - Send an unauthenticated request to the /version path.
+  - Read the Subject Alternative Names of the API server certificate.
+  - Look for private addresses and internal host names in the SAN list.
+  - Check if the response gives the exact release.
+  example: curl -k https://<api-host>:6443/version; openssl s_client -connect <api-host>:6443 </dev/null | openssl x509 -noout -ext subjectAltName
+  expected: The version path is not reachable from outside or needs authentication. The certificate shows no private addresses or internal names.
+  severity: Low
+  test_type: Manual
+  refs:
+    k8s_top10:
+    - K06
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-200
+    attack:
+    - T1190
+    nist_800_53:
+    - SC-7
+    - CM-7
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K06-Overly-Exposed-Kubernetes-Components.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-EXP-003
+  sheet: K8S
+  category: EXP
+  title: Check that kubelet and etcd ports are closed to untrusted hosts
+  objective: Finds node and control plane ports that expose the kubelet, etcd or other components.
+  preconditions:
+  - Written approval for the scan of the listed addresses.
+  steps:
+  - List the open ports on a control plane node and a worker node from a pod network host.
+  - Check ports 10250, 10255, 2379, 2380, 10257 and 10259.
+  - Check that only the API server can reach the kubelet and etcd.
+  - Compare the result with the firewall and security group rules.
+  example: nmap -p 2379,2380,6443,10248-10260,30000-32767 <node-ip>; kubectl get nodes -o wide
+  expected: Only the API server and named hosts reach the kubelet and etcd ports. Read-only kubelet port 10255 is closed.
+  severity: Critical
+  test_type: Manual
+  refs:
+    k8s_top10:
+    - K06
+    - K07
+    cloud_native_top10:
+    - CNAS-6
+    - CNAS-3
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-668
+    - CWE-306
+    attack:
+    - T1190
+    - T1046
+    nist_800_53:
+    - SC-7
+    - CM-7
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K06-Overly-Exposed-Kubernetes-Components.md
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K07-Misconfigured-And-Vulnerable-Cluster-Components.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x06_over_permissive_network.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x03_improper_auth.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-EXP-004
+  sheet: K8S
+  category: EXP
+  title: Check that etcd needs client certificates and is isolated
+  objective: Finds etcd servers that accept unauthenticated clients or serve other components.
+  steps:
+  - Try to connect to etcd without a client certificate.
+  - Check the etcd peer and client TLS settings.
+  - Check that only API servers hold etcd client certificates.
+  - Check that no other component uses the main etcd keyspace.
+  example: etcdctl --endpoints=https://<etcd>:2379 get / --prefix --keys-only; ps aux | grep etcd | tr " " "\n" | grep -E "client-cert-auth|peer-client-cert-auth"
+  expected: An etcd request with no valid client certificate fails. Only the API servers can connect, and etcd is behind a firewall.
+  severity: Critical
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K06
+    - K07
+    cloud_native_top10:
+    - CNAS-3
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-306
+    - CWE-319
+    attack:
+    - T1190
+    nist_800_53:
+    - SC-7
+    - IA-3
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K06-Overly-Exposed-Kubernetes-Components.md
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K07-Misconfigured-And-Vulnerable-Cluster-Components.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x03_improper_auth.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-EXP-005
+  sheet: K8S
+  category: EXP
+  title: Find exposed dashboards and web UIs for cluster management
+  objective: Finds management web interfaces that give cluster rights to outsiders or to anyone in the network.
+  steps:
+  - List Services and Ingresses for dashboard, monitoring and admin tools.
+  - Open each address from an untrusted network.
+  - Check the rights of the service account of each tool.
+  - Check that an authenticating proxy sits in front.
+  example: kubectl get svc,ingress -A | grep -iE "dashboard|admin|grafana|prometheus|argo"; kubectl get clusterrolebindings -o wide | grep -i dashboard
+  expected: No management interface is public without strong authentication. The service account of each tool has minimal rights.
+  severity: High
+  test_type: Manual
+  refs:
+    k8s_top10:
+    - K06
+    - K02
+    cloud_native_top10:
+    - CNAS-3
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-306
+    - CWE-668
+    attack:
+    - T1190
+    - T1133
+    nist_800_53:
+    - SC-7
+    - AC-6
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K06-Overly-Exposed-Kubernetes-Components.md
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K02-Overly-Permissive-Authorization-Configurations.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x03_improper_auth.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-EXP-006
+  sheet: K8S
+  category: EXP
+  title: Check NodePort and LoadBalancer services for unwanted exposure
+  objective: Finds internal services that are public through NodePort or cloud load balancers.
+  steps:
+  - List all Services of type NodePort and LoadBalancer.
+  - Check the source ranges and security groups of each.
+  - Check the nodes for services in the 30000-32767 range.
+  - Ask the owner to justify each public service.
+  example: kubectl get svc -A -o wide | grep -E "NodePort|LoadBalancer"; nmap -p 30000-32767 <node-ip>
+  expected: Only reviewed services are public. Other services use ClusterIP, and each public service has restricted source ranges.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K06
+    cloud_native_top10:
+    - CNAS-6
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-668
+    attack:
+    - T1190
+    nist_800_53:
+    - SC-7
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K06-Overly-Exposed-Kubernetes-Components.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x06_over_permissive_network.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md

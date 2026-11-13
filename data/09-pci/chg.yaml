@@ -1,0 +1,133 @@
+- id: PCI-CHG-001
+  sheet: PCI
+  category: CHG
+  title: Check that production changes follow the change control procedure
+  objective: Find changes to production systems that skip reason, security impact, approval, testing or a back-out plan.
+  preconditions:
+  - Access to the change records
+  steps:
+  - Ask for the change control procedure.
+  - Pick ten recent changes to production systems and software.
+  - Make sure each change has a reason, a description, a security impact record and an approval by authorized parties.
+  - Make sure each change has a test record that shows no negative security impact. For bespoke software, make sure the tests cover 6.2.4.
+  - Make sure each change has a procedure to return to a secure state.
+  example: Change tickets; pipeline approval records; test reports; roll-back plans
+  expected: Every change has a reason, a security impact record, an authorized approval, a test result and a way to return to a secure state.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    pci_dss:
+    - 6.5.1
+    nist_800_53:
+    - CM-3
+    - CM-4
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-CHG-002
+  sheet: PCI
+  category: CHG
+  title: Check that PCI DSS controls are confirmed after significant changes
+  objective: Find new or changed systems that go live with no check of the PCI DSS controls.
+  preconditions:
+  - Access to the change records
+  steps:
+  - Ask for the definition of a significant change.
+  - Pick two significant changes from the last 12 months.
+  - Find the record that confirms that the applicable PCI DSS requirements are in place on the new or changed systems.
+  - Make sure the scope, the network and data flow diagrams and the inventories were updated.
+  - Make sure the change closed only after the confirmation.
+  example: Post-change review checklist; updated data flow diagram; scan and test results after the change
+  expected: After each significant change, the applicable requirements are confirmed in place and the documentation is updated.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    pci_dss:
+    - 6.5.2
+    nist_800_53:
+    - CM-3
+    - CA-6
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-CHG-003
+  sheet: PCI
+  category: CHG
+  title: Check that access control enforces the split of pre-production and production
+  objective: Find pre-production systems that reach or share accounts with production.
+  preconditions:
+  - Test account in pre-production
+  steps:
+  - List the pre-production and production environments.
+  - Examine the network rules between them. Make sure they allow only approved flows.
+  - Make sure the accounts, keys and secrets of the two environments are different.
+  - Log in with a pre-production account. Try to reach a production system and its data.
+  - Examine the access control lists of each environment.
+  example: Network and cloud account review; try an SSH or API call from a staging host to production
+  expected: Access controls enforce the split. Pre-production accounts and credentials cannot reach production.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 6.5.3
+    nist_800_53:
+    - CM-2
+    - SC-7
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-CHG-004
+  sheet: PCI
+  category: CHG
+  title: Check that live PANs are not in pre-production environments
+  objective: Find real card numbers in test and development data.
+  preconditions:
+  - Read access to pre-production data
+  steps:
+  - Ask whether any pre-production environment is part of the cardholder data environment.
+  - If not, search the test databases, files, logs and backups for PAN values that pass a Luhn check.
+  - Check each hit against known test card ranges.
+  - Ask how the test data is made. Make sure no live data is copied from production.
+  - Make sure a process removes found live PANs.
+  example: PAN discovery tool run on the staging database; compare BIN ranges with the test card list
+  expected: No live PAN exists in pre-production unless that environment is in the cardholder data environment and fully protected.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 6.5.5
+    cwe:
+    - CWE-359
+    nist_800_53:
+    - SA-3
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-CHG-005
+  sheet: PCI
+  category: CHG
+  title: Check that test data and test accounts are removed before go-live
+  objective: Find test accounts, test data and test code that stay in production.
+  preconditions:
+  - Access to the production listings
+  steps:
+  - Ask for the process that removes test data and test accounts before a system goes live.
+  - List all accounts on a new production system. Find test, demo and vendor accounts.
+  - Search the production database for test records and test card numbers.
+  - Look at the last release record for a clean-up step.
+  - Try to log in with known test credentials on a test copy of the release.
+  example: SELECT user FROM users WHERE name LIKE 'test%'; check for demo and qa accounts in the identity provider
+  expected: No test account, test data or test card number exists on a production system. A release step removes them.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 6.5.6
+    cwe:
+    - CWE-489
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md

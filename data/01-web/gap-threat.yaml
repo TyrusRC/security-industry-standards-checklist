@@ -1,0 +1,85 @@
+- id: WEB-THREAT-001
+  sheet: WEB
+  category: THREAT
+  title: Check the system model with data flows and trust boundaries
+  objective: Finds systems whose threat model is missing, out of date or without trust boundaries.
+  steps:
+  - Ask for the data flow diagram or a comparable system model.
+  - Make sure it shows trust boundaries, data flows, data stores, processes and external entities.
+  - Compare the diagram with the real system. Look for missing components and flows.
+  - For cloud systems, make sure the model shows IAM roles, managed services, storage and the shared responsibility split.
+  example: Data flow diagram in a format that the team can update, such as a threat model file in the repository
+  expected: The model matches the real system and shows trust boundaries. The team stores it in an updatable form.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    cheatsheet:
+    - Threat_Modeling_Cheat_Sheet
+    cwe:
+    - CWE-1059
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Threat_Modeling_Cheat_Sheet.md
+- id: WEB-THREAT-002
+  sheet: WEB
+  category: THREAT
+  title: Check that threat identification uses a fitting technique for each component
+  objective: Finds threat models that skip components or use a technique that does not fit the scope.
+  steps:
+  - Read the threat list. Make sure each threat names the affected component, data flow or trust boundary.
+  - Make sure the team used STRIDE or another fitting technique and wrote why it fits.
+  - Pick three components. Make sure all six STRIDE categories were examined for each.
+  - Make sure each threat has a rank based on likelihood and impact.
+  example: 'Threat register with columns: id, component, STRIDE category, likelihood, impact, response'
+  expected: Every component has threats from a fitting technique. Each threat has a rank and an affected element.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    cheatsheet:
+    - Threat_Modeling_Cheat_Sheet
+    cwe:
+    - CWE-1059
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Threat_Modeling_Cheat_Sheet.md
+- id: WEB-THREAT-003
+  sheet: WEB
+  category: THREAT
+  title: Check that each threat has a response and a testable security requirement
+  objective: Finds threats that stay without an owner, a response or a way to test the mitigation.
+  steps:
+  - Take ten threats from the register.
+  - 'Make sure each has one response: mitigate, eliminate, transfer or accept.'
+  - For mitigations, make sure a security requirement and an implementation record exist.
+  - For accepted risks, make sure the reason and an approver are on record.
+  - Make sure a test can show whether each requirement is met.
+  example: Threat register linked to the issue tracker and to test cases
+  expected: Every threat has a response. Mitigations map to testable requirements. Accepted risks have an approver and a reason.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    cheatsheet:
+    - Threat_Modeling_Cheat_Sheet
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Threat_Modeling_Cheat_Sheet.md
+- id: WEB-THREAT-004
+  sheet: WEB
+  category: THREAT
+  title: Check stakeholder review and updates of the threat model
+  objective: Finds threat models that nobody reviewed or that the team never updated after design changes.
+  steps:
+  - Make sure the review included development, security and other stakeholders.
+  - Make sure the review checked the diagram, the threat list, the responses and the documents.
+  - Compare the date of the last update with the last major design change.
+  - Make sure the team stores the artifacts so that only people with need to know can read them.
+  example: Review minutes; access list of the threat model repository
+  expected: Stakeholders reviewed the model. The team updates it after design changes. Access to it is limited.
+  severity: Low
+  test_type:
+  - Manual
+  refs:
+    cheatsheet:
+    - Threat_Modeling_Cheat_Sheet
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Threat_Modeling_Cheat_Sheet.md

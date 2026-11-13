@@ -1,0 +1,363 @@
+- id: WEB-VAL-001
+  sheet: WEB
+  category: VAL
+  title: Test LaTeX processing for command injection
+  objective: Finds LaTeX rendering features that run with shell escape enabled or accept unrestricted commands.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Find a feature that renders user-supplied LaTeX, such as a math editor or document export.
+  - Submit a LaTeX command that would call the shell if shell-escape is enabled.
+  - Submit a command outside the documented allowlist and confirm it is rejected.
+  example: \write18{id} payload, which only runs if pdflatex is called with --shell-escape
+  expected: LaTeX is rendered without the shell-escape flag and only an allowlist of safe commands is permitted.
+  severity: Critical
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V1.2.8
+    cwe:
+    - CWE-94
+    capec:
+    - CAPEC-242
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-VAL-002
+  sheet: WEB
+  category: VAL
+  title: Test potentially dangerous input sinks for length and character limits
+  objective: Finds sinks that accept oversized or unrestricted character input before passing it to a risky context.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify a sink that forwards input to a risky context, such as a shell, template or report engine.
+  - Submit an input far longer than the field appears to allow.
+  - Submit input containing characters outside the expected character class for that field.
+  example: Submit a 100000-character string, and a field expecting digits with input such as '<script>' or '; rm -rf'
+  expected: The sink enforces an explicit length limit and an allowlist of safe characters before use.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V1.3.3
+    cwe:
+    - CWE-20
+    - CWE-1284
+    capec: []
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-VAL-003
+  sheet: WEB
+  category: VAL
+  title: Test JNDI lookup parameters for JNDI injection
+  objective: Finds application code that builds a JNDI name or lookup from untrusted input.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Find inputs that influence a JNDI lookup name, such as a datasource or LDAP resource identifier.
+  - Submit a JNDI URI pointing to an attacker-controlled LDAP or RMI server.
+  - Confirm whether the application attempts to connect to the attacker server from the lookup.
+  example: Submit ldap://collaborator-host/a as the JNDI lookup name and watch for an outbound connection
+  expected: JNDI lookups are restricted to a fixed, trusted set of names and remote codebases are disabled.
+  severity: Critical
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V1.3.8
+    cwe:
+    - CWE-74
+    capec:
+    - CAPEC-242
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-VAL-004
+  sheet: WEB
+  category: VAL
+  title: Test memcache key and value input for injection
+  objective: Finds data sent to a memcache server that is not sanitized against protocol injection.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Find inputs that are stored in or used as a key for a memcache lookup.
+  - Submit memcache protocol control characters, such as a carriage return and line feed, in the input.
+  - Observe whether the memcache protocol is disrupted or a second command is injected.
+  example: Memcache key probe containing \r\n followed by a second protocol command
+  expected: Input sent to memcache is sanitized of protocol control characters before being used as a key or value.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V1.3.9
+    cwe:
+    - CWE-93
+    capec: []
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-VAL-005
+  sheet: WEB
+  category: VAL
+  title: Test memory-unsafe native components for overflow conditions
+  objective: Finds native code components that lack memory-safe string and pointer handling.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify any native, C or C++ component that processes untrusted input, such as an image or document parser.
+  - Submit oversized and boundary-length input to the native component.
+  - Review build flags and source for memory-safe string functions and bounds checks.
+  example: Fuzz the native parser with AFL or a long crafted file and monitor for a crash or ASAN report
+  expected: Native components use memory-safe string and pointer functions and reject input causing an overflow.
+  severity: Critical
+  test_type: Code Review
+  level: ASVS L2
+  refs:
+    asvs:
+    - V1.4.1
+    cwe:
+    - CWE-119
+    - CWE-787
+    - CWE-120
+    - CWE-121
+    - CWE-122
+    - CWE-125
+    capec:
+    - CAPEC-100
+    wstg:
+    - WSTG-INJT-13
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-VAL-006
+  sheet: WEB
+  category: VAL
+  title: Test numeric input handling for integer overflow
+  objective: Finds numeric fields that wrap or overflow instead of rejecting out-of-range values.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Find numeric input fields that affect business logic, such as quantity or amount.
+  - Submit a value at the boundary of the integer type, such as 2147483647 plus one.
+  - Submit a negative value where only positive values should be allowed.
+  - Observe whether the stored or displayed result wraps to an unexpected value.
+  example: quantity=2147483648 ; quantity=-1 ; amount=9999999999999999999
+  expected: Numeric input is range- and sign-checked server-side and rejected before it can overflow or wrap.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V1.4.2
+    cwe:
+    - CWE-190
+    capec:
+    - CAPEC-128
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-VAL-007
+  sheet: WEB
+  category: VAL
+  title: Test resource cleanup for use-after-free and dangling references
+  objective: Finds native components that fail to null out freed pointers, risking use-after-free exploitation.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify a native component that allocates and frees memory for each request.
+  - Send concurrent or malformed requests designed to trigger an early free followed by reuse.
+  - Monitor for a crash or memory corruption using a sanitizer build.
+  example: Run the native component under AddressSanitizer while sending malformed and concurrent requests
+  expected: Freed memory and pointers are set to null or removed immediately, and no use-after-free is observed under a sanitizer.
+  severity: Critical
+  test_type: Code Review
+  level: ASVS L2
+  refs:
+    asvs:
+    - V1.4.3
+    cwe:
+    - CWE-416
+    capec: []
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-VAL-008
+  sheet: WEB
+  category: VAL
+  title: Test multiple parsers for consistent interpretation of the same input
+  objective: Finds mismatched JSON, XML or URL parsing between components that attackers can exploit.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify where the same raw input, such as a URL or JSON document, is parsed by more than one component.
+  - Submit an input with an ambiguous encoding, such as a duplicate key or an unusual Unicode form.
+  - Compare how each parser interprets the value and look for a disagreement that bypasses a security check.
+  example: Duplicate JSON key {"user":"admin","user":"guest"} parsed differently by the front-end proxy and the backend; URL with %2e%2e%2f parsed differently by two components
+  expected: All components that parse the same data use the same library, configuration and character encoding so interpretation never diverges.
+  severity: High
+  test_type: Manual
+  level: ASVS L3
+  refs:
+    asvs:
+    - V1.5.3
+    cwe:
+    - CWE-436
+    capec:
+    - CAPEC-267
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-VAL-009
+  sheet: WEB
+  category: VAL
+  title: Review input validation documentation for defined data formats
+  objective: Confirms the application documents expected data formats for structured input fields.
+  steps:
+  - Request the application design or API documentation.
+  - Check whether input validation rules are documented for common data formats such as email, phone or credit card.
+  - Check whether an internal data format used by the application is documented with its validation rule.
+  example: Review API specification or developer wiki for a documented validation rule per field
+  expected: Documentation defines the validation rule for every structured input field, including common and internal formats.
+  severity: Info
+  test_type: Config Review
+  level: ASVS L1
+  refs:
+    asvs:
+    - V2.1.1
+    cwe: []
+    capec: []
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-VAL-010
+  sheet: WEB
+  category: VAL
+  title: Review documentation for cross-field logical consistency rules
+  objective: Confirms the application documents how related fields must be consistent with each other.
+  steps:
+  - Request the application design documentation for fields that must be logically related, such as suburb and postal code.
+  - Check whether the documentation defines the expected relationship and the validation rule applied.
+  example: Review documentation for a rule such as "postal code must match the selected suburb"
+  expected: Documentation defines the logical and contextual consistency rule for every related group of input fields.
+  severity: Info
+  test_type: Config Review
+  level: ASVS L2
+  refs:
+    asvs:
+    - V2.1.2
+    cwe: []
+    capec: []
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-VAL-011
+  sheet: WEB
+  category: VAL
+  title: Review documentation for business logic limits
+  objective: Confirms per-user and global business logic limits are documented before they are tested.
+  steps:
+  - Request the application design documentation for business logic limits, such as maximum order size or rate limits.
+  - Check whether both per-user and global limits are defined for each relevant function.
+  example: Review documentation for a stated per-user and global limit on a function, such as daily transfer amount
+  expected: Documentation defines both per-user and global business logic limits for every relevant function.
+  severity: Info
+  test_type: Config Review
+  level: ASVS L2
+  refs:
+    asvs:
+    - V2.1.3
+    cwe: []
+    capec: []
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-VAL-012
+  sheet: WEB
+  category: VAL
+  title: Test business-critical input against positive allowlist validation
+  objective: Finds business- or security-decision input validated only by a blocklist instead of a positive allowlist.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify an input used to make a business or security decision, such as a discount code or role selection.
+  - Submit a value outside the documented allowlist of values, patterns or ranges.
+  - Submit a value that a blocklist filter was not designed to catch, such as an unexpected encoding.
+  example: role=superadmin where only user and manager are valid roles; discount=%00OVERRIDE
+  expected: The input is checked with positive allowlist validation against documented values, patterns or ranges, not a blocklist.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A06:2025
+    wstg:
+    - WSTG-BUSL-01
+    asvs:
+    - V2.2.1
+    cheatsheet:
+    - Input_Validation_Cheat_Sheet
+    cwe:
+    - CWE-20
+    - CWE-184
+    capec:
+    - CAPEC-137
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/10-Business_Logic/01-Business_Logic_Data_Validation.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Input_Validation_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A06_2025-Insecure_Design.md
+- id: WEB-VAL-013
+  sheet: WEB
+  category: VAL
+  title: Test that client-side validation is enforced again server-side
+  objective: Finds input validation that exists only in client-side JavaScript and can be bypassed with a direct request.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify a field with client-side validation, such as a maximum length or regex pattern.
+  - Disable JavaScript or use a proxy to submit a request that violates the client-side rule directly to the server.
+  - Observe whether the server accepts the value that the client would have rejected.
+  example: 'Burp Repeater: resend the request with an out-of-range or malformed value, bypassing the browser form entirely'
+  expected: The server enforces the same validation rule independently of the client, rejecting the bypassed value.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    wstg:
+    - WSTG-BUSL-01
+    asvs:
+    - V2.2.2
+    cheatsheet:
+    - Input_Validation_Cheat_Sheet
+    cwe:
+    - CWE-602
+    capec:
+    - CAPEC-137
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/10-Business_Logic/01-Business_Logic_Data_Validation.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Input_Validation_Cheat_Sheet.md
+- id: WEB-VAL-014
+  sheet: WEB
+  category: VAL
+  title: Test related input fields for combined-value consistency
+  objective: Finds endpoints that accept individually valid fields whose combination is logically inconsistent.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify fields whose combination must be logically consistent, such as a start date and an end date.
+  - Submit a combination that is individually valid for each field but inconsistent together.
+  - Observe whether the application accepts or rejects the inconsistent combination.
+  example: start_date=2026-05-01&end_date=2026-01-01 ; discount=50&subtotal=10 making the discount exceed the subtotal
+  expected: The server validates that combinations of related fields are logically consistent and rejects the inconsistent request.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-BUSL-01
+    asvs:
+    - V2.2.3
+    cheatsheet:
+    - Business_Logic_Security_Cheat_Sheet
+    cwe:
+    - CWE-1288
+    capec: []
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/10-Business_Logic/01-Business_Logic_Data_Validation.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Business_Logic_Security_Cheat_Sheet.md

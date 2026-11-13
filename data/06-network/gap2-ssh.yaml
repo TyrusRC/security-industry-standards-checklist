@@ -1,0 +1,289 @@
+- id: NET-SSH-001
+  sheet: NET
+  category: SSH
+  title: Check that the SSH daemon blocks root login and weak authentication
+  objective: Finds SSH settings that allow direct root login, empty passwords or trust based on host names.
+  preconditions: &id001
+  - Root or sudo read access to the host in scope.
+  - Do not change settings on a production host without a change window.
+  steps:
+  - Print the effective SSH daemon configuration with sshd -T.
+  - Look at PermitRootLogin, PermitEmptyPasswords, HostbasedAuthentication and IgnoreRhosts.
+  - Look at PubkeyAuthentication, GSSAPIAuthentication, KerberosAuthentication and UsePAM.
+  - Look at PermitUserEnvironment, StrictModes and IgnoreUserKnownHosts.
+  - Try to log in as root and with an empty password. Make sure both fail.
+  example: sshd -T | grep -iE "permitrootlogin|permitemptypasswords|hostbasedauthentication|ignorerhosts|pubkeyauthentication|gssapiauthentication|kerberosauthentication|usepam|permituserenvironment|strictmodes|ignoreuserknownhosts"
+    ; ssh -o PreferredAuthentications=password root@<host>
+  expected: Root cannot log in over SSH with a password. Empty passwords and host-based trust are off. Only the needed authentication methods are on.
+  severity: High
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:disable_host_auth
+    - cac:sshd_allow_only_protocol2
+    - cac:sshd_disable_empty_passwords
+    - cac:sshd_disable_gssapi_auth
+    - cac:sshd_disable_kerb_auth
+    - cac:sshd_disable_pubkey_auth
+    - cac:sshd_disable_rhosts
+    - cac:sshd_disable_rhosts_rsa
+    - cac:sshd_disable_root_login
+    - cac:sshd_disable_root_password_login
+    - cac:sshd_disable_user_known_hosts
+    - cac:sshd_do_not_permit_user_env
+    - cac:sshd_enable_gssapi_auth
+    - cac:sshd_enable_pam
+    - cac:sshd_enable_pubkey_auth
+    - cac:sshd_enable_strictmodes
+    - cac:sshd_limit_user_access
+    - cac:sshd_set_allow_groups
+    nist_800_53:
+    - CM-7
+    - AC-17
+    - CM-6
+    - AC-3
+    pci_dss:
+    - 2.2.4
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/ssh_server/disable_host_auth/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/ssh_server/sshd_disable_kerb_auth/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/ssh_server/sshd_disable_root_password_login/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/ssh_server/sshd_enable_pam/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/ssh_server/sshd_set_allow_groups/rule.yml
+- id: NET-SSH-002
+  sheet: NET
+  category: SSH
+  title: Check the ciphers, MACs and key exchange of the SSH daemon
+  objective: Finds SSH services that accept weak ciphers, weak MACs, weak key exchange or compression before login.
+  preconditions: *id001
+  steps:
+  - Print the Ciphers, MACs, KexAlgorithms and Compression values with sshd -T.
+  - Compare the lists with the approved algorithms of the organization.
+  - Look for the include line of the system crypto policy in sshd_config.
+  - Look at the RekeyLimit value and the SSH_USE_STRONG_RNG setting.
+  - Scan the port with a tool that lists the offered algorithms.
+  example: sshd -T | grep -iE "^(ciphers|macs|kexalgorithms|compression|rekeylimit)" ; grep -rn "crypto-policies" /etc/ssh/sshd_config /etc/ssh/sshd_config.d/ ; nmap -p22 --script ssh2-enum-algos <host>
+    ; ssh-audit <host>
+  expected: The daemon offers only the approved strong ciphers, MACs and key exchange algorithms. Compression is off or delayed. Session keys renew at the set limit.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Automated
+  refs:
+    tool_check:
+    - cac:sshd_disable_compression
+    - cac:sshd_include_crypto_policy
+    - cac:sshd_rekey_limit
+    - cac:sshd_use_approved_ciphers
+    - cac:sshd_use_approved_ciphers_ordered_stig
+    - cac:sshd_use_approved_kex_ordered_stig
+    - cac:sshd_use_approved_macs
+    - cac:sshd_use_approved_macs_ordered_stig
+    - cac:sshd_use_strong_ciphers
+    - cac:sshd_use_strong_kex
+    - cac:sshd_use_strong_macs
+    - cac:sshd_use_strong_rng
+    nist_800_53:
+    - AC-17
+    - SC-12
+    - CM-6
+    - CM-7
+    pci_dss:
+    - '2.3'
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/ssh_server/sshd_disable_compression/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/ssh_server/sshd_use_approved_ciphers/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/ssh_server/sshd_use_approved_macs/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/ssh_server/sshd_use_strong_kex/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/ssh_server/sshd_use_strong_rng/rule.yml
+- id: NET-SSH-003
+  sheet: NET
+  category: SSH
+  title: Check SSH forwarding, X11 and warning banner settings
+  objective: Finds SSH settings that let users tunnel traffic past the firewall or log in with no legal notice.
+  preconditions: *id001
+  steps:
+  - Print the effective SSH daemon configuration with sshd -T.
+  - Look at DisableForwarding, AllowTcpForwarding, X11Forwarding and X11UseLocalhost.
+  - Look at the Banner path and read the file.
+  - Try to open a port forward with ssh -L from a test account. Make sure it fails.
+  example: sshd -T | grep -iE "disableforwarding|allowtcpforwarding|x11forwarding|x11uselocalhost|banner" ; ssh -L 8080:127.0.0.1:80 testuser@<host>
+  expected: Forwarding is off unless a written need exists. X11 forwarding is off or bound to the loopback address. The banner file shows the approved notice.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:sshd_disable_forwarding
+    - cac:sshd_disable_tcp_forwarding
+    - cac:sshd_disable_x11_forwarding
+    - cac:sshd_enable_warning_banner
+    - cac:sshd_enable_warning_banner_net
+    - cac:sshd_enable_x11_forwarding
+    - cac:sshd_x11_use_localhost
+    nist_800_53:
+    - CM-6
+    - AC-8
+    - AC-17
+    pci_dss:
+    - 2.2.4
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/ssh_server/sshd_disable_forwarding/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/ssh_server/sshd_disable_tcp_forwarding/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/ssh_server/sshd_enable_warning_banner/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/ssh_server/sshd_enable_x11_forwarding/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/ssh_server/sshd_x11_use_localhost/rule.yml
+- id: NET-SSH-004
+  sheet: NET
+  category: SSH
+  title: Check SSH session limits, logging and privilege separation
+  objective: Finds SSH services that allow unlimited guessing, keep idle sessions or log too little.
+  preconditions: *id001
+  steps:
+  - Print the effective SSH daemon configuration with sshd -T.
+  - Look at MaxAuthTries, LoginGraceTime, MaxSessions and MaxStartups.
+  - Look at ClientAliveInterval and ClientAliveCountMax.
+  - Look at LogLevel and PrintLastLog.
+  - Make sure privilege separation is on and the AllowGroups or AllowUsers rule limits access.
+  example: sshd -T | grep -iE "maxauthtries|logingracetime|maxsessions|maxstartups|clientalive|loglevel|printlastlog|useprivilegeseparation|allowgroups|allowusers"
+  expected: Authentication tries, grace time and open sessions have limits that meet the standard. Idle sessions end. LogLevel is INFO or VERBOSE. Only approved groups can log in.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:firewalld_sshd_port_enabled
+    - cac:sshd_print_last_log
+    - cac:sshd_set_idle_timeout
+    - cac:sshd_set_keepalive
+    - cac:sshd_set_keepalive_0
+    - cac:sshd_set_login_grace_time
+    - cac:sshd_set_loglevel_info
+    - cac:sshd_set_loglevel_verbose
+    - cac:sshd_set_max_auth_tries
+    - cac:sshd_set_max_sessions
+    - cac:sshd_set_maxstartups
+    - cac:sshd_use_directory_configuration
+    - cac:sshd_use_priv_separation
+    nist_800_53:
+    - AC-17
+    - CM-6
+    - AC-2
+    - AC-12
+    pci_dss:
+    - 2.2.4
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/ssh_server/firewalld_sshd_port_enabled/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/ssh_server/sshd_set_keepalive/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/ssh_server/sshd_set_loglevel_info/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/ssh_server/sshd_set_max_sessions/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/ssh_server/sshd_use_priv_separation/rule.yml
+- id: NET-SSH-005
+  sheet: NET
+  category: SSH
+  title: Check the owner and mode of SSH daemon files and host keys
+  objective: Finds SSH configuration files and host private keys that other users can read or change.
+  preconditions: *id001
+  steps:
+  - List /etc/ssh/sshd_config, /etc/ssh/sshd_config.d and the vendor drop-in files.
+  - List the host private keys /etc/ssh/ssh_host_*_key.
+  - List the host public keys /etc/ssh/ssh_host_*_key.pub.
+  - Make sure root owns each file and the modes are not wider than the standard allows.
+  example: stat -c "%U:%G %a %n" /etc/ssh/sshd_config /etc/ssh/sshd_config.d/* /etc/ssh/ssh_host_*_key /etc/ssh/ssh_host_*_key.pub
+  expected: Root owns all SSH daemon files. Configuration files have a mode of 0600 or 0644, private keys 0600 or 0640, and public keys 0644 or stricter.
+  severity: High
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:directory_groupowner_sshd_config_d
+    - cac:directory_owner_sshd_config_d
+    - cac:directory_permissions_sshd_config_d
+    - cac:file_groupowner_sshd_config
+    - cac:file_groupowner_sshd_drop_in_config
+    - cac:file_groupownership_sshd_private_key
+    - cac:file_groupownership_sshd_pub_key
+    - cac:file_owner_sshd_config
+    - cac:file_owner_sshd_drop_in_config
+    - cac:file_ownership_sshd_private_key
+    - cac:file_ownership_sshd_pub_key
+    - cac:file_permissions_sshd_config
+    - cac:file_permissions_sshd_config_not_modified
+    - cac:file_permissions_sshd_drop_in_config
+    - cac:file_permissions_sshd_private_key
+    - cac:file_permissions_sshd_pub_key
+    - cac:file_sshd_50_redhat_exists
+    nist_800_53:
+    - AC-17
+    - CM-6
+    - AC-6
+    pci_dss:
+    - 2.2.4
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/directory_groupowner_sshd_config_d/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/file_groupowner_sshd_drop_in_config/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/file_owner_sshd_drop_in_config/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/file_permissions_sshd_config_not_modified/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/file_sshd_50_redhat_exists/rule.yml
+- id: NET-SSH-006
+  sheet: NET
+  category: SSH
+  title: Check the SSH package, service and firewall state against the host role
+  objective: Finds hosts where the SSH server is on without a need, or is needed but blocked.
+  preconditions: *id001
+  steps:
+  - Look for the OpenSSH server and client packages.
+  - Look at the sshd service state.
+  - Look at the firewall rule for the SSH service.
+  - Compare the result with the role of the host.
+  example: rpm -q openssh-server openssh-clients || dpkg -l openssh-server ; systemctl is-enabled sshd ; firewall-cmd --list-services ; ss -tlnp | grep :22
+  expected: The SSH server is on only where the host role needs it. The firewall allows the port only from approved sources.
+  severity: Low
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:firewalld_sshd_disabled
+    - cac:iptables_sshd_disabled
+    - cac:package_openssh-clients_installed
+    - cac:package_openssh-server_installed
+    - cac:package_openssh-server_removed
+    - cac:package_openssh_installed
+    - cac:package_openssh_removed
+    - cac:service_sshd_disabled
+    - cac:service_sshd_enabled
+    nist_800_53:
+    - SC-8
+    - CM-6
+    - CM-3
+    - IA-2
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/firewalld_sshd_disabled/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/package_openssh-clients_installed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/package_openssh-server_removed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/package_openssh_removed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/service_sshd_enabled/rule.yml
+- id: NET-SSH-007
+  sheet: NET
+  category: SSH
+  title: Check SSH client settings for ciphers, MACs and entropy
+  objective: Finds SSH clients that connect with weak algorithms or weak random number sources.
+  preconditions: *id001
+  steps:
+  - Print the effective client configuration with ssh -G.
+  - Look at the Ciphers, MACs and RekeyLimit values.
+  - Compare the lists with the approved algorithms.
+  - Look at the SSH_USE_STRONG_RNG variable in the shell profile files.
+  example: ssh -G <host> | grep -iE "^(ciphers|macs|rekeylimit)" ; grep -rn SSH_USE_STRONG_RNG /etc/profile.d/ /etc/profile /etc/csh.cshrc
+  expected: The client offers only approved ciphers and MACs. The client uses a strong random source for the seed.
+  severity: Low
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:ssh_client_rekey_limit
+    - cac:ssh_client_use_approved_ciphers_ordered_stig
+    - cac:ssh_client_use_strong_rng_csh
+    - cac:ssh_client_use_strong_rng_sh
+    - cac:ssh_use_approved_macs_ordered_stig
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/ssh_client/ssh_client_rekey_limit/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/ssh_client/ssh_client_use_approved_ciphers_ordered_stig/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/ssh_client/ssh_client_use_strong_rng_csh/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/ssh_client/ssh_client_use_strong_rng_sh/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/services/ssh/ssh_client/ssh_use_approved_macs_ordered_stig/rule.yml

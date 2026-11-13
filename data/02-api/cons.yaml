@@ -1,0 +1,169 @@
+- id: API-CONS-001
+  sheet: API
+  category: CONS
+  title: Send hostile data from a mocked third-party API
+  objective: Finds code that trusts data from other APIs and passes it to databases or downstream systems.
+  steps:
+  - Find the third-party APIs that the service calls and the fields it stores or uses.
+  - Put a mock between the service and the provider. Return injection test strings in each field.
+  - Check the database, logs and downstream calls for the strings.
+  - Return unexpected types, extra fields and very long values.
+  example: mitmproxy reverse mode or WireMock as the provider; strings for SQL, NoSQL and HTML in the mocked JSON.
+  expected: The service validates data from other APIs like user input. Test strings are rejected or handled as data.
+  severity: High
+  test_type: Manual
+  refs:
+    api_top10:
+    - API10:2023
+    cheatsheet:
+    - Input_Validation_Cheat_Sheet
+    cwe:
+    - CWE-20
+    - CWE-89
+    attack:
+    - T1190
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xaa-unsafe-consumption-of-apis.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Input_Validation_Cheat_Sheet.md
+- id: API-CONS-002
+  sheet: API
+  category: CONS
+  title: Test if the service follows redirects from third-party APIs
+  objective: Finds clients that repeat sensitive requests to a new host after a redirect.
+  steps:
+  - Set a mock provider that answers a POST request with 308 and a Location of another host.
+  - Send a request that holds test data.
+  - Look at the second host for the same request body and headers.
+  - Read the redirect option of the HTTP client.
+  example: 'WireMock stub returning 308 with Location: https://collector.test/; code search for follow_redirects and FollowRedirects.'
+  expected: The service does not follow redirects, or it follows them only to an allowlist and removes secrets from the new request.
+  severity: High
+  test_type: Manual
+  refs:
+    api_top10:
+    - API10:2023
+    cheatsheet:
+    - Server_Side_Request_Forgery_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-601
+    - CWE-200
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xaa-unsafe-consumption-of-apis.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md
+- id: API-CONS-003
+  sheet: API
+  category: CONS
+  title: Check TLS and certificate checks on calls to partner and provider APIs
+  objective: Finds outbound calls to other APIs that use clear text or skip certificate checks.
+  steps:
+  - List all outbound API calls and the SDK defaults of each provider from the code and the configuration.
+  - Look for http:// URLs and options that turn off certificate checks.
+  - Run the service against a mock with an untrusted certificate. Check that the call fails.
+  - Try to register a partner callback URL that uses http://.
+  example: grep -rn 'verify=False\|InsecureSkipVerify\|rejectUnauthorized' src/; mitmproxy with a self-signed certificate.
+  expected: All calls to other APIs use TLS and check the server certificate. A call with a bad certificate fails. Callback URLs must use https://.
+  severity: High
+  test_type:
+  - Code Review
+  - Manual
+  level: ASVS L2
+  refs:
+    api_top10:
+    - API10:2023
+    asvs:
+    - V12.3.2
+    cheatsheet:
+    - Web_Service_Security_Cheat_Sheet
+    cwe:
+    - CWE-319
+    - CWE-295
+  see:
+  - WEB-TLS-010
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xaa-unsafe-consumption-of-apis.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Web_Service_Security_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: API-CONS-004
+  sheet: API
+  category: CONS
+  title: Test timeouts and size limits for third-party responses
+  objective: Finds services that hang or use much memory when a provider is slow or sends large data.
+  preconditions:
+  - Test environment only.
+  steps:
+  - Make a mock provider that answers after a long delay.
+  - Make the mock send a very large response body.
+  - Watch the threads, memory and response time of the service.
+  - Check the circuit breaker and the fallback.
+  example: toxiproxy with a latency toxic; WireMock fixed delay; a 1 GB response stream from the mock.
+  expected: Every outbound call has a timeout and a size limit. The service stays available and fails in a safe way.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    api_top10:
+    - API10:2023
+    - API4:2023
+    asvs:
+    - V16.5.2
+    cwe:
+    - CWE-400
+    - CWE-770
+  see:
+  - WEB-ERR-003
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xaa-unsafe-consumption-of-apis.md
+  - sources/repos/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: API-CONS-005
+  sheet: API
+  category: CONS
+  title: Check that inbound callbacks and partner messages are authenticated
+  objective: Finds endpoints that trust calls from partners and do not check who sent them.
+  steps:
+  - List the endpoints that third parties call, such as webhooks and callbacks.
+  - Send a call with no signature, a wrong signature and an old timestamp.
+  - Replay a valid call.
+  - Check the payload against the schema.
+  example: curl -X POST https://api.example/hooks/payment with a changed X-Signature header; Postman pre-request script for HMAC.
+  expected: The service accepts only signed and fresh calls from known partners. It validates the payload like user input.
+  severity: High
+  test_type: Manual
+  refs:
+    api_top10:
+    - API10:2023
+    cheatsheet:
+    - Web_Service_Security_Cheat_Sheet
+    cwe:
+    - CWE-345
+    - CWE-20
+  see:
+  - WEB-HTTP-003
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xaa-unsafe-consumption-of-apis.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Web_Service_Security_Cheat_Sheet.md
+- id: API-CONS-006
+  sheet: API
+  category: CONS
+  title: Review the security of providers and the data sent to them
+  objective: Finds integrations added without a check of the provider or of the data shared.
+  steps:
+  - List the providers and the data fields sent to each.
+  - 'Read the provider assessment: transport, authentication, validation and cost limits.'
+  - Make sure the service sends only needed fields.
+  - Check where the provider keys are stored and who can read them.
+  example: Review of vendor questionnaires; secret store audit; data field list per provider.
+  expected: Each provider has a security assessment. The service sends only the data that the provider needs.
+  severity: Low
+  test_type: Config Review
+  refs:
+    api_top10:
+    - API10:2023
+    - API9:2023
+    cwe:
+    - CWE-200
+  see:
+  - WEB-DATA-004
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xaa-unsafe-consumption-of-apis.md
+  - sources/repos/API-Security/editions/2023/en/0xa9-improper-inventory-management.md

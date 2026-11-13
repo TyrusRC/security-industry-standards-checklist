@@ -1,0 +1,127 @@
+- id: DESK-LOG-001
+  sheet: DESK
+  category: LOG
+  title: Check that security events are logged with who, when, where and what
+  objective: Finds missing audit logs for login, access denial and admin actions.
+  steps:
+  - List the security events of the product.
+  - Cause a failed login, a denied action and a config change.
+  - Find the log entries.
+  - Check each entry for user, time, source and action.
+  example: Windows Event Viewer; client log folder; event list from the Logging Cheat Sheet.
+  expected: Each security event creates a log entry with user, time, source and action.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-778
+    cheatsheet:
+    - Logging_Cheat_Sheet
+    asvs:
+    - V16.2.1
+    - V16.3.1
+    - V16.3.2
+    desktop_top10:
+    - DA10
+  see:
+  - WEB-LOG-007
+  - WEB-LOG-002
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-LOG-002
+  sheet: DESK
+  category: LOG
+  title: Check access rights on log files and the audit trail
+  objective: Finds logs that normal users can read or change.
+  steps:
+  - Find the log folders and files.
+  - Read the access rights.
+  - Try to edit and delete a log entry as a normal user.
+  - Check for forwarding to a central system.
+  example: icacls on the log folder; compare local logs with the central copy.
+  expected: Normal users cannot read or change audit logs. Logs go to a central system.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-732
+    - CWE-538
+    cheatsheet:
+    - Logging_Cheat_Sheet
+    desktop_top10:
+    - DA10
+    - DA5
+  see:
+  - WEB-LOG-012
+  - WEB-LOG-013
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-LOG-003
+  sheet: DESK
+  category: LOG
+  title: Test log injection through user-supplied values
+  objective: Finds log entries that a user can forge.
+  steps:
+  - Find input values that the client writes to logs.
+  - Send a value with a line break and a made-up log entry.
+  - Open the log file.
+  - Check that the log shows the value as one encoded field.
+  example: 'Test value: a name followed by a line break and a made-up entry text.'
+  expected: Log writers encode or remove control characters. A user value cannot make a new log entry.
+  severity: Low
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-117
+    cheatsheet:
+    - Logging_Cheat_Sheet
+    asvs:
+    - V16.4.1
+    desktop_top10:
+    - DA10
+  see:
+  - WEB-LOG-011
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-LOG-004
+  sheet: DESK
+  category: LOG
+  title: Check that monitoring raises alerts for client abuse
+  objective: Finds missing detection for repeated failed logins and tamper events.
+  steps:
+  - List the alert rules for the client and its back end.
+  - Make 10 failed logins in a test.
+  - Change a protected file in a test.
+  - Check that alerts reach the responders.
+  example: SIEM rule list; test alert timestamps.
+  expected: Abuse events create alerts that the responders receive within the agreed time.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    cwe:
+    - CWE-778
+    cheatsheet:
+    - Logging_Cheat_Sheet
+    desktop_top10:
+    - DA10
+  see:
+  - WEB-LOG-014
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip

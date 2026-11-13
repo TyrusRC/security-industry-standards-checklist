@@ -1,0 +1,925 @@
+- id: WEB-OAUTH-001
+  sheet: WEB
+  category: OAUTH
+  title: Check that tokens go only to components that need them
+  objective: Finds access and refresh tokens exposed to browser code or other components.
+  steps:
+  - Map which components hold access and refresh tokens.
+  - Look in browser storage and page scripts for tokens.
+  - For browser apps, check whether a back-end-for-frontend keeps the tokens.
+  example: 'DevTools > Application > Storage; Burp: search the history for access_token and refresh_token.'
+  expected: Tokens are available only to the components that need them. Browser code does not hold refresh tokens.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-ATHZ-05
+    asvs:
+    - V10.1.1
+    cheatsheet:
+    - OAuth2_Cheat_Sheet
+    cwe:
+    - CWE-922
+    - CWE-200
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05-OAuth_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.1-OAuth_Authorization_Server_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.2-OAuth_Client_Weaknesses.md
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md
+- id: WEB-OAUTH-002
+  sheet: WEB
+  category: OAUTH
+  title: Check that the client binds responses to its own request
+  objective: Finds clients that accept a code or ID token from a flow they did not start.
+  steps:
+  - Start a login and save state, nonce and code_verifier.
+  - Check that the values are random and tied to the browser session.
+  - Send a callback with a code from another session.
+  - Send a callback with a missing or wrong state.
+  example: 'Burp: replay GET /callback?code=<code of session A>&state=<state of A> in the session of B.'
+  expected: The client accepts a response only for a flow started by the same browser session. Values are unpredictable.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-ATHZ-05
+    asvs:
+    - V10.1.2
+    cheatsheet:
+    - OAuth2_Cheat_Sheet
+    cwe:
+    - CWE-352
+    - CWE-330
+    capec:
+    - CAPEC-62
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05-OAuth_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.1-OAuth_Authorization_Server_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.2-OAuth_Client_Weaknesses.md
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md
+- id: WEB-OAUTH-003
+  sheet: WEB
+  category: OAUTH
+  title: Check the state parameter and PKCE in the client
+  objective: Finds clients with no protection against forged callbacks.
+  steps:
+  - Capture the authorization request.
+  - Check for PKCE with S256 or a one-time state value.
+  - Send the callback without state and with a changed state.
+  - Test the consent page in the same way.
+  example: 'Burp Repeater: GET /callback?code=<code> without the state parameter.'
+  expected: The client uses PKCE or checks state. Callbacks with a missing or changed value are rejected.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-ATHZ-05
+    asvs:
+    - V10.2.1
+    cheatsheet:
+    - OAuth2_Cheat_Sheet
+    cwe:
+    - CWE-352
+    capec:
+    - CAPEC-62
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05-OAuth_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.1-OAuth_Authorization_Server_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.2-OAuth_Client_Weaknesses.md
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-OAUTH-004
+  sheet: WEB
+  category: OAUTH
+  title: Check mix-up protection when the client uses several servers
+  objective: Finds clients that confuse responses from different authorization servers.
+  steps:
+  - List the authorization servers of the client.
+  - Check for the iss parameter in the response.
+  - Send a response that names another issuer.
+  - Check that the client compares iss with the server it started the flow with.
+  example: Edit the iss parameter in the callback URL with Burp Repeater.
+  expected: The client checks the issuer of every response and rejects a response from another server.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-ATHZ-05
+    asvs:
+    - V10.2.2
+    cheatsheet:
+    - OAuth2_Cheat_Sheet
+    cwe:
+    - CWE-345
+    - CWE-346
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05-OAuth_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.1-OAuth_Authorization_Server_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.2-OAuth_Client_Weaknesses.md
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md
+- id: WEB-OAUTH-005
+  sheet: WEB
+  category: OAUTH
+  title: Check that the client asks only for needed scopes
+  objective: Finds clients that request more permission than they use.
+  steps:
+  - Capture the authorization request.
+  - List the scope values and other authorization parameters.
+  - Compare them with the features of the client.
+  example: 'Burp history: filter for /authorize and read the scope parameter.'
+  expected: The client requests only the scopes and parameters its features need.
+  severity: Low
+  test_type: Manual
+  level: ASVS L3
+  refs:
+    wstg:
+    - WSTG-ATHZ-05
+    asvs:
+    - V10.2.3
+    cheatsheet:
+    - OAuth2_Cheat_Sheet
+    cwe:
+    - CWE-272
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05-OAuth_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.1-OAuth_Authorization_Server_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.2-OAuth_Client_Weaknesses.md
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md
+- id: WEB-OAUTH-006
+  sheet: WEB
+  category: OAUTH
+  title: Check that the resource server checks the audience of access tokens
+  objective: Finds resource servers that accept tokens meant for other services.
+  steps:
+  - Get an access token for service A.
+  - Send it to service B.
+  - Check the aud claim or introspection result in the code.
+  example: 'curl -H ''Authorization: Bearer <token for A>'' https://service-b/api/data'
+  expected: A resource server accepts only tokens meant for itself.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A07:2025
+    asvs:
+    - V10.3.1
+    cheatsheet:
+    - OAuth2_Cheat_Sheet
+    - JSON_Web_Token_Cheat_Sheet
+    cwe:
+    - CWE-345
+    - CWE-863
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/JSON_Web_Token_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-OAUTH-007
+  sheet: WEB
+  category: OAUTH
+  title: Check that the resource server enforces scope and claims
+  objective: Finds APIs that ignore scope, sub or authorization_details.
+  steps:
+  - Get a token with a small scope.
+  - Call functions that need a larger scope.
+  - Call data of another subject.
+  - Read the code for checks of scope, sub and authorization_details.
+  example: 'curl -X DELETE -H ''Authorization: Bearer <read-only token>'' https://target/api/items/1'
+  expected: The API decides access from the delegated claims in the token. A small scope cannot do larger actions.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A01:2025
+    wstg:
+    - WSTG-ATHZ-05
+    asvs:
+    - V10.3.2
+    cheatsheet:
+    - OAuth2_Cheat_Sheet
+    cwe:
+    - CWE-863
+    - CWE-285
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05-OAuth_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.1-OAuth_Authorization_Server_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.2-OAuth_Client_Weaknesses.md
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A01_2025-Broken_Access_Control.md
+- id: WEB-OAUTH-008
+  sheet: WEB
+  category: OAUTH
+  title: Check that users are identified by issuer and subject
+  objective: Finds APIs that identify users by claims that can be reused or reassigned.
+  steps:
+  - Read the claim that the API uses to find the user.
+  - Check that it uses iss and sub together.
+  - Check that email or name are not the key.
+  example: grep -rn "claims\[.email.\]\|preferred_username" src/
+  expected: The API identifies users by iss plus sub, not by changeable claims.
+  severity: Medium
+  test_type: Code Review
+  level: ASVS L2
+  refs:
+    asvs:
+    - V10.3.3
+    cheatsheet:
+    - OAuth2_Cheat_Sheet
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-290
+    - CWE-639
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+- id: WEB-OAUTH-009
+  sheet: WEB
+  category: OAUTH
+  title: Check that the resource server checks authentication strength
+  objective: Finds APIs that need strong or recent login but ignore acr, amr and auth_time.
+  steps:
+  - List functions that need strong or recent login.
+  - Call them with a token from a weak login.
+  - Check the acr, amr and auth_time checks in the code.
+  example: jwt_tool <access token> to read acr and amr; call the sensitive API with it.
+  expected: The API checks the strength, method and age of the login before it allows the function.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V10.3.4
+    cheatsheet:
+    - OAuth2_Cheat_Sheet
+    cwe:
+    - CWE-308
+    - CWE-304
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md
+- id: WEB-OAUTH-010
+  sheet: WEB
+  category: OAUTH
+  title: Check sender-constrained tokens
+  objective: Finds bearer tokens that anyone can replay when stolen.
+  steps:
+  - Check if access tokens are bound by DPoP or mTLS.
+  - Send a valid token from another client without the proof.
+  - Check that the server rejects it.
+  example: 'curl -H ''Authorization: DPoP <token>'' https://target/api/me without the DPoP header.'
+  expected: A token works only with the proof of the client that it is bound to.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L3
+  refs:
+    asvs:
+    - V10.3.5
+    - V10.4.14
+    cheatsheet:
+    - OAuth2_Cheat_Sheet
+    cwe:
+    - CWE-294
+    - CWE-522
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md
+- id: WEB-OAUTH-011
+  sheet: WEB
+  category: OAUTH
+  title: Check redirect URI validation
+  objective: Finds authorization servers that send codes or tokens to unregistered URIs.
+  steps:
+  - Start the flow and pause at the authorization request.
+  - Change redirect_uri to a different host, path and port.
+  - Try a prefix, subdomain and encoding change of the registered URI.
+  - Check that http URIs are not allowed.
+  example: 'ZAP: change redirect_uri=https%3A%2F%2Fclient.example.com%2F to a value outside the registered list.'
+  expected: The server compares redirect_uri with the registered list by exact string. It shows an error and does not redirect.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A01:2025
+    wstg:
+    - WSTG-ATHZ-05
+    asvs:
+    - V10.4.1
+    cheatsheet:
+    - OAuth2_Cheat_Sheet
+    cwe:
+    - CWE-601
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05-OAuth_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.1-OAuth_Authorization_Server_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.2-OAuth_Client_Weaknesses.md
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A01_2025-Broken_Access_Control.md
+- id: WEB-OAUTH-012
+  sheet: WEB
+  category: OAUTH
+  title: Check that authorization codes work once and live shortly
+  objective: Finds codes that can be replayed or that live too long.
+  steps:
+  - Complete a flow and save the code.
+  - Exchange the code twice.
+  - Check that the second try fails and that issued tokens are revoked.
+  - Exchange a code after 10 minutes.
+  - Try a code with another client_id, user or redirect_uri.
+  example: curl -X POST https://as.example.com/oauth/token -d grant_type=authorization_code -d code=<code> -d client_id=c -d redirect_uri=<uri> (twice)
+  expected: A code works once, lives 10 minutes or less, and is bound to client, user and redirect URI. Reuse revokes the tokens.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    wstg:
+    - WSTG-ATHZ-05
+    asvs:
+    - V10.4.2
+    - V10.4.3
+    cheatsheet:
+    - OAuth2_Cheat_Sheet
+    cwe:
+    - CWE-294
+    - CWE-324
+    capec:
+    - CAPEC-60
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05-OAuth_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.1-OAuth_Authorization_Server_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.2-OAuth_Client_Weaknesses.md
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md
+- id: WEB-OAUTH-013
+  sheet: WEB
+  category: OAUTH
+  title: Check which grant types a client may use
+  objective: Finds allowed implicit, password or other grants that the client does not need.
+  steps:
+  - Read the client registration.
+  - Send token requests with other grant types.
+  - Look for response_type=token in the authorization request.
+  - Check that implicit and password grants are off.
+  example: curl -X POST https://as.example.com/oauth/token -d grant_type=password -d username=t -d password=t -d client_id=c
+  expected: Each client can use only the grants it needs. Implicit and password grants are not used.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    wstg:
+    - WSTG-ATHZ-05
+    asvs:
+    - V10.4.4
+    cheatsheet:
+    - OAuth2_Cheat_Sheet
+    cwe:
+    - CWE-287
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05-OAuth_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.1-OAuth_Authorization_Server_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.2-OAuth_Client_Weaknesses.md
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md
+- id: WEB-OAUTH-014
+  sheet: WEB
+  category: OAUTH
+  title: Check refresh token replay protection
+  objective: Finds refresh tokens of public clients that can be replayed.
+  steps:
+  - Get a refresh token.
+  - Use it and save the new refresh token.
+  - Use the old token again.
+  - Check that the server revokes the token family or uses DPoP or mTLS.
+  example: curl -X POST https://as.example.com/token -d grant_type=refresh_token -d refresh_token=<old> -d client_id=c (twice)
+  expected: A refresh token is sender-bound or rotated. Reuse of an old token invalidates the whole family.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    wstg:
+    - WSTG-ATHZ-05
+    asvs:
+    - V10.4.5
+    cheatsheet:
+    - OAuth2_Cheat_Sheet
+    cwe:
+    - CWE-294
+    capec:
+    - CAPEC-60
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05-OAuth_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.1-OAuth_Authorization_Server_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.2-OAuth_Client_Weaknesses.md
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md
+- id: WEB-OAUTH-015
+  sheet: WEB
+  category: OAUTH
+  title: Check that PKCE is required and cannot be downgraded
+  objective: Finds servers that accept codes without a valid code challenge.
+  steps:
+  - Send the authorization request without code_challenge.
+  - Send it with an empty value and with method plain.
+  - Send the token request without code_verifier and with a wrong one.
+  - Use a valid verifier from another code.
+  example: 'ZAP: remove code_challenge and code_challenge_method from GET /authorize.'
+  expected: The server requires S256 PKCE and checks the verifier. All downgrade forms fail.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-ATHZ-05
+    asvs:
+    - V10.4.6
+    cheatsheet:
+    - OAuth2_Cheat_Sheet
+    cwe:
+    - CWE-303
+    - CWE-345
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05-OAuth_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.1-OAuth_Authorization_Server_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.2-OAuth_Client_Weaknesses.md
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md
+- id: WEB-OAUTH-016
+  sheet: WEB
+  category: OAUTH
+  title: Check dynamic client registration controls
+  objective: Finds open registration that allows malicious clients.
+  preconditions:
+  - Test environment.
+  steps:
+  - Find the registration endpoint in the metadata.
+  - Register a client without authentication in a test environment.
+  - Check the validation of redirect URIs and metadata.
+  - Check the consent warning for unknown clients.
+  example: curl https://as.example.com/.well-known/openid-configuration | jq .registration_endpoint
+  expected: Open registration validates client data, asks the user for consent and warns about untrusted clients.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V10.4.7
+    cheatsheet:
+    - OAuth2_Cheat_Sheet
+    cwe:
+    - CWE-287
+    - CWE-601
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md
+- id: WEB-OAUTH-017
+  sheet: WEB
+  category: OAUTH
+  title: Check refresh token lifetime and token expiry
+  objective: Finds tokens that never expire.
+  steps:
+  - Read the lifetime of access tokens.
+  - Use refresh tokens over time and with sliding expiry.
+  - Check for an absolute end of life.
+  - Use an access token after expiry.
+  example: 'curl -H ''Authorization: Bearer <token>'' https://target/userinfo after 5, 10 and 30 minutes.'
+  expected: Access tokens are short lived. Refresh tokens have an absolute expiry, also with sliding expiry.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-ATHZ-05
+    asvs:
+    - V10.4.8
+    cheatsheet:
+    - OAuth2_Cheat_Sheet
+    cwe:
+    - CWE-324
+    - CWE-287
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05-OAuth_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.1-OAuth_Authorization_Server_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.2-OAuth_Client_Weaknesses.md
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md
+- id: WEB-OAUTH-018
+  sheet: WEB
+  category: OAUTH
+  title: Check that users can revoke tokens and consents
+  objective: Finds no way to stop a malicious client or stolen token.
+  steps:
+  - Open the authorization server account page.
+  - List granted clients and tokens.
+  - Revoke a refresh token.
+  - Use the revoked token.
+  example: POST /oauth/revoke token=<refresh token> then call /token with it.
+  expected: The user can review, change and revoke consents, refresh tokens and reference access tokens. Revoked tokens fail.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V10.4.9
+    - V10.7.3
+    cheatsheet:
+    - OAuth2_Cheat_Sheet
+    cwe:
+    - CWE-287
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md
+- id: WEB-OAUTH-019
+  sheet: WEB
+  category: OAUTH
+  title: Check client authentication at the back channel
+  objective: Finds token, PAR and revocation endpoints that work without client authentication.
+  steps:
+  - Send a token request for a confidential client without credentials.
+  - Do the same for the PAR and revocation endpoints.
+  - Check that the client secret is not in client code.
+  example: curl -X POST https://as.example.com/oauth/token -d grant_type=client_credentials -d client_id=c
+  expected: Confidential clients must authenticate at every back-channel endpoint.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-ATHZ-05
+    asvs:
+    - V10.4.10
+    cheatsheet:
+    - OAuth2_Cheat_Sheet
+    cwe:
+    - CWE-306
+    - CWE-287
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05-OAuth_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.1-OAuth_Authorization_Server_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.2-OAuth_Client_Weaknesses.md
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md
+- id: WEB-OAUTH-020
+  sheet: WEB
+  category: OAUTH
+  title: Check scopes assigned to each client
+  objective: Finds clients with scopes they do not need.
+  steps:
+  - List registered clients and their scopes.
+  - Compare them with client features.
+  - Request a scope that is not assigned.
+  example: curl 'https://as.example.com/authorize?client_id=c&scope=admin&response_type=code'
+  expected: A client can get only the scopes assigned to it.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-ATHZ-05
+    asvs:
+    - V10.4.11
+    cheatsheet:
+    - OAuth2_Cheat_Sheet
+    cwe:
+    - CWE-272
+    - CWE-269
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05-OAuth_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.1-OAuth_Authorization_Server_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.2-OAuth_Client_Weaknesses.md
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md
+- id: WEB-OAUTH-021
+  sheet: WEB
+  category: OAUTH
+  title: Check allowed response_mode values
+  objective: Finds clients that can use a response mode they do not need.
+  steps:
+  - Read the registration of each client.
+  - Send a request with a different response_mode.
+  - Check for PAR or JAR use.
+  example: GET /authorize?...&response_mode=fragment vs web_message.
+  expected: The server accepts only the response modes registered for the client.
+  severity: Low
+  test_type: Manual
+  level: ASVS L3
+  refs:
+    asvs:
+    - V10.4.12
+    cheatsheet:
+    - OAuth2_Cheat_Sheet
+    cwe:
+    - CWE-345
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md
+- id: WEB-OAUTH-022
+  sheet: WEB
+  category: OAUTH
+  title: Check PAR and protected authorization details
+  objective: Finds requests whose parameters a user can change.
+  steps:
+  - Check that the code flow uses PAR for L3 systems.
+  - Change authorization_details in the browser request.
+  - Check that the server takes the value from the client back end.
+  example: curl -X POST https://as.example.com/par -u client:secret -d 'response_type=code&client_id=c&...'
+  expected: The code grant is used with PAR. Users cannot change authorization_details.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L3
+  refs:
+    asvs:
+    - V10.4.13
+    - V10.4.15
+    cheatsheet:
+    - OAuth2_Cheat_Sheet
+    cwe:
+    - CWE-345
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md
+- id: WEB-OAUTH-023
+  sheet: WEB
+  category: OAUTH
+  title: Check strong client authentication
+  objective: Finds clients that use shared secrets where stronger methods are needed.
+  steps:
+  - Read the client authentication method.
+  - Check for tls_client_auth, self_signed_tls_client_auth or private_key_jwt.
+  - Check that the client is confidential.
+  example: curl https://as.example.com/.well-known/openid-configuration | jq .token_endpoint_auth_methods_supported
+  expected: Clients use public-key based authentication that resists replay.
+  severity: Medium
+  test_type: Config Review
+  level: ASVS L3
+  refs:
+    asvs:
+    - V10.4.16
+    cheatsheet:
+    - OAuth2_Cheat_Sheet
+    cwe:
+    - CWE-287
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md
+- id: WEB-OAUTH-024
+  sheet: WEB
+  category: OAUTH
+  title: Check the ID token nonce
+  objective: Finds clients that accept replayed ID tokens.
+  steps:
+  - Start a login and note the nonce.
+  - Replay an old ID token in a new login.
+  - Check that the client compares the nonce claim.
+  example: jwt_tool <ID token> to read nonce; replay it at /callback.
+  expected: The client rejects an ID token whose nonce does not match the request.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V10.5.1
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    - OAuth2_Cheat_Sheet
+    cwe:
+    - CWE-294
+    capec:
+    - CAPEC-60
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md
+- id: WEB-OAUTH-025
+  sheet: WEB
+  category: OAUTH
+  title: Check user identity and audience in ID tokens
+  objective: Finds clients that identify users by reusable claims or accept tokens for other clients.
+  steps:
+  - Read the sub, iss and aud claims.
+  - Check that the account key is iss plus sub.
+  - Send an ID token with another aud.
+  - Check that aud equals the client_id.
+  example: jwt_tool <ID token> ; replay a token from client B at client A.
+  expected: The client uses sub with iss to find users. It rejects tokens whose aud is not its own client_id.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A07:2025
+    asvs:
+    - V10.5.2
+    - V10.5.4
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    - OAuth2_Cheat_Sheet
+    cwe:
+    - CWE-290
+    - CWE-345
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-OAUTH-026
+  sheet: WEB
+  category: OAUTH
+  title: Check authorization server metadata handling
+  objective: Finds clients that trust metadata with another issuer.
+  preconditions:
+  - Test environment.
+  steps:
+  - Read the pre-configured issuer URL.
+  - Serve test metadata with another issuer URL.
+  - Check that the client rejects it.
+  example: Point the discovery URL to a test server with a different issuer value.
+  expected: The client rejects metadata when the issuer is not exactly the configured one.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V10.5.3
+    cheatsheet:
+    - OAuth2_Cheat_Sheet
+    cwe:
+    - CWE-346
+    - CWE-345
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md
+- id: WEB-OAUTH-027
+  sheet: WEB
+  category: OAUTH
+  title: Check OIDC back-channel logout token handling
+  objective: Finds logout flows that allow forced logout or token confusion.
+  steps:
+  - Send a logout token with wrong typ.
+  - Send one with a nonce claim, and one without the events claim.
+  - Check expiry and signature checks.
+  example: curl -X POST https://client.example.com/backchannel-logout -d logout_token=<test token>
+  expected: The client accepts only logout+jwt tokens with the correct event claim, no nonce and a short life.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V10.5.5
+    cheatsheet:
+    - OAuth2_Cheat_Sheet
+    cwe:
+    - CWE-345
+    - CWE-347
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md
+- id: WEB-OAUTH-028
+  sheet: WEB
+  category: OAUTH
+  title: Check the response types of the OpenID Provider
+  objective: Finds providers that allow implicit flow responses.
+  steps:
+  - Read the response_types_supported metadata.
+  - Request response_type=token and id_token token.
+  - Check that only code, ciba, id_token and id_token code work.
+  example: curl https://op.example.com/.well-known/openid-configuration | jq .response_types_supported
+  expected: The provider does not allow response types that return access tokens in the front channel.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V10.6.1
+    cheatsheet:
+    - OAuth2_Cheat_Sheet
+    cwe:
+    - CWE-522
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md
+- id: WEB-OAUTH-029
+  sheet: WEB
+  category: OAUTH
+  title: Check forced logout protection at the OpenID Provider
+  objective: Finds logout endpoints that end sessions without user consent.
+  steps:
+  - Open the logout URL from another site with no id_token_hint.
+  - Check for a confirmation page.
+  - Check the checks of id_token_hint and the redirect URI.
+  example: Open https://op.example.com/logout from a cross-site page.
+  expected: The provider asks the user to confirm or validates the logout request parameters.
+  severity: Low
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V10.6.2
+    cheatsheet:
+    - OAuth2_Cheat_Sheet
+    cwe:
+    - CWE-352
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md
+- id: WEB-OAUTH-030
+  sheet: WEB
+  category: OAUTH
+  title: Check user consent and the information shown
+  objective: Finds missing or unclear consent for authorization requests.
+  steps:
+  - Start a flow with a new client.
+  - Check that consent is asked for each request, always when the client is unknown.
+  - Check that the page names the client, scopes and lifetime.
+  - Check the consent page for CSRF and framing.
+  example: curl -I https://as.example.com/consent | grep -i 'x-frame-options\|frame-ancestors'
+  expected: The user gives clear consent for each request. The page cannot be framed, and a changed state is rejected.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-ATHZ-05
+    asvs:
+    - V10.7.1
+    - V10.7.2
+    cheatsheet:
+    - OAuth2_Cheat_Sheet
+    cwe:
+    - CWE-352
+    - CWE-1021
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05-OAuth_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.1-OAuth_Authorization_Server_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.2-OAuth_Client_Weaknesses.md
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md
+- id: WEB-OAUTH-031
+  sheet: WEB
+  category: OAUTH
+  title: Check the types of grant in use and leaks of OAuth credentials
+  objective: Finds deprecated grants and tokens or codes exposed in URLs and Referer.
+  steps:
+  - Find the grant type of each flow from the token and authorize requests.
+  - Look for tokens or codes in URLs.
+  - Look at the Referer header sent to other sites.
+  - Check for the Referrer-Policy header.
+  example: 'ZAP history: search the Referer header for code= and access_token=.'
+  expected: Public clients use code with PKCE. Secrets are not in URLs. Referrer-Policy limits leaks.
+  severity: Medium
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-ATHZ-05
+    cheatsheet:
+    - OAuth2_Cheat_Sheet
+    cwe:
+    - CWE-598
+    - CWE-200
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05-OAuth_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.1-OAuth_Authorization_Server_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.2-OAuth_Client_Weaknesses.md
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md
+- id: WEB-OAUTH-032
+  sheet: WEB
+  category: OAUTH
+  title: Check for exposed client secrets and token storage in the client
+  objective: Finds client secrets in public clients and tokens kept in local storage.
+  steps:
+  - Search the client code for client_secret.
+  - Look at the authorization traffic for secrets.
+  - Look at where tokens are stored.
+  - For implicit flows, check for access token injection.
+  example: 'DevTools Debugger: Ctrl+Shift+F for client_secret; Application tab for tokens.'
+  expected: Public clients have no secret. Tokens are not stored in local storage. Injected tokens are rejected.
+  severity: High
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-ATHZ-05
+    cheatsheet:
+    - OAuth2_Cheat_Sheet
+    cwe:
+    - CWE-798
+    - CWE-922
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05-OAuth_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.1-OAuth_Authorization_Server_Weaknesses.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/05.2-OAuth_Client_Weaknesses.md
+  - sources/repos/CheatSheetSeries/cheatsheets/OAuth2_Cheat_Sheet.md

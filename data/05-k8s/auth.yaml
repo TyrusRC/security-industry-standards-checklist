@@ -1,0 +1,210 @@
+- id: K8S-AUTH-001
+  sheet: K8S
+  category: AUTH
+  title: Check that users sign in through an external identity provider
+  objective: Finds clusters where human users rely on built-in credentials with no revocation or audit.
+  steps:
+  - List the authentication methods in use on the API server.
+  - Check that users authenticate through OIDC or the managed cloud identity service.
+  - Find static token files, basic auth files and long-lived client certificates for users.
+  - Check that the identity provider enforces MFA.
+  example: kubectl -n kube-system get pod -l component=kube-apiserver -o yaml | grep -E "oidc|token-auth-file|client-ca"; kubectl config view --raw | grep -E "client-certificate|token"
+  expected: Users sign in with short-lived tokens from an external identity provider with MFA. No static token file exists and no user certificates are valid for years.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K09
+    cloud_native_top10:
+    - CNAS-3
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-287
+    - CWE-798
+    attack:
+    - T1078
+    nist_800_53:
+    - IA-2
+    - IA-5
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K09-Broken-Authentication-Mechanisms.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x03_improper_auth.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-AUTH-002
+  sheet: K8S
+  category: AUTH
+  title: Check that anonymous API access is off or has no rights
+  objective: Finds API servers that serve anonymous requests with rights.
+  steps:
+  - Send a request to the API without credentials.
+  - Send requests to resource paths as system:anonymous.
+  - List ClusterRoleBindings for system:anonymous and system:unauthenticated.
+  - On self-managed clusters, read the anonymous-auth flag.
+  example: curl -k https://<api>:6443/api/v1/namespaces; curl -k https://<api>:6443/version; kubectl get clusterrolebindings -o json | jq ".items[] | select(.subjects[]?.name | IN(\"system:anonymous\",\"system:unauthenticated\"))"
+  expected: Requests with no credentials get HTTP 401 or 403. No role grants rights to system:anonymous or system:unauthenticated beyond the minimum.
+  severity: High
+  test_type: Manual
+  refs:
+    k8s_top10:
+    - K09
+    - K06
+    cloud_native_top10:
+    - CNAS-3
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-306
+    - CWE-287
+    attack:
+    - T1190
+    nist_800_53:
+    - IA-2
+    - AC-3
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K09-Broken-Authentication-Mechanisms.md
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K06-Overly-Exposed-Kubernetes-Components.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x03_improper_auth.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-AUTH-003
+  sheet: K8S
+  category: AUTH
+  title: Check that service account tokens are not used outside the cluster
+  objective: Finds long-lived service account tokens that people or external systems use.
+  steps:
+  - Find Secrets of type service-account-token.
+  - Search the audit log for requests from service accounts with source IPs outside the cluster.
+  - Check CI and external tools for stored cluster tokens.
+  - Check the expiry of each token.
+  example: kubectl get secrets -A --field-selector type=kubernetes.io/service-account-token; kubectl create token <sa> --duration 1h
+  expected: No external system uses a long-lived service account token. External tools use short-lived tokens from TokenRequest or a federated identity.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K09
+    cloud_native_top10:
+    - CNAS-3
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-798
+    attack:
+    - T1528
+    - T1550.001
+    nist_800_53:
+    - IA-5
+    - IA-2
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K09-Broken-Authentication-Mechanisms.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x03_improper_auth.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-AUTH-004
+  sheet: K8S
+  category: AUTH
+  title: Check use of client certificates for user access
+  objective: Finds user client certificates that cannot be revoked and last for a long time.
+  steps:
+  - List user kubeconfig entries that use client certificates.
+  - Check the validity period of each certificate.
+  - Check the break-glass process for certificate use.
+  - Check that the cluster CA is not shared between environments.
+  example: openssl x509 -in <client.crt> -noout -dates -subject; kubectl get csr
+  expected: User client certificates are used only for break-glass access. They are short-lived, listed, and the process to re-key the cluster is documented.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K09
+    cloud_native_top10:
+    - CNAS-3
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-287
+    attack:
+    - T1078
+    nist_800_53:
+    - IA-5
+    - SC-12
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K09-Broken-Authentication-Mechanisms.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x03_improper_auth.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-AUTH-005
+  sheet: K8S
+  category: AUTH
+  title: Check that kubelets reject anonymous requests
+  objective: Finds kubelets that accept unauthenticated calls and so allow command execution on pods.
+  preconditions:
+  - Network access to a test node.
+  steps:
+  - Send a request to port 10250 of a node without credentials.
+  - Send a request to the read-only port 10255.
+  - Read the kubelet configuration for anonymous auth and authorization mode.
+  - Check that webhook authorization is on.
+  example: curl -k https://<node>:10250/pods; curl http://<node>:10255/pods; grep -A3 -E "anonymous|authorization" /var/lib/kubelet/config.yaml
+  expected: The kubelet returns 401 or 403 for anonymous requests. Anonymous auth is off, authorization mode is Webhook, and port 10255 is closed.
+  severity: Critical
+  test_type: Manual
+  refs:
+    k8s_top10:
+    - K09
+    - K06
+    cloud_native_top10:
+    - CNAS-3
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-306
+    attack:
+    - T1609
+    - T1613
+    nist_800_53:
+    - IA-2
+    - AC-3
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K09-Broken-Authentication-Mechanisms.md
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K06-Overly-Exposed-Kubernetes-Components.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x03_improper_auth.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-AUTH-006
+  sheet: K8S
+  category: AUTH
+  title: Check that nodes join the cluster only with controlled credentials
+  objective: Finds clusters where an unknown host can join as a node and gain access to workloads.
+  steps:
+  - List the bootstrap tokens and their expiry.
+  - Check the approval rules for certificate signing requests from nodes.
+  - Test a join with an expired token.
+  example: kubeadm token list; kubectl get csr; kubectl -n kube-system get pod -l component=kube-apiserver -o yaml | grep authorization-mode
+  expected: Bootstrap tokens expire in a short time. Node certificate requests need approval, and unknown hosts cannot join the cluster.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K09
+    - K07
+    cloud_native_top10:
+    - CNAS-3
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-287
+    - CWE-306
+    attack:
+    - T1078
+    nist_800_53:
+    - IA-3
+    - IA-5
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K09-Broken-Authentication-Mechanisms.md
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K07-Misconfigured-And-Vulnerable-Cluster-Components.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x03_improper_auth.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md

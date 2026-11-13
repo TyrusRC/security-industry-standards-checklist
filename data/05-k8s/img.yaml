@@ -1,0 +1,238 @@
+- id: K8S-IMG-001
+  sheet: K8S
+  category: IMG
+  title: Check that the cluster admits only approved and signed images
+  objective: Finds clusters that run images from unknown registries or with no proof of origin.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - List all images in the cluster with their registries.
+  - Find images from public or unknown registries.
+  - Check the admission rule that limits registries and checks signatures.
+  - Try to start a pod from an unapproved registry in a test namespace.
+  example: kubectl get pods -A -o jsonpath="{range .items[*]}{.spec.containers[*].image}{"\n"}{end}" | sort -u; kubectl run t --image=docker.io/library/nginx -n <test-ns>; cosign verify <image> --key <pub> (if signing is used)
+  expected: Only images from approved registries, with a valid signature or known digest, start in the cluster. The unapproved test pod is rejected.
+  severity: High
+  test_type: Manual
+  refs:
+    k8s_top10:
+    - K04
+    cloud_native_top10:
+    - CNAS-4
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    - Docker_Security_Cheat_Sheet
+    cwe:
+    - CWE-494
+    - CWE-829
+    attack:
+    - T1610
+    - T1204.003
+    - T1195.002
+    nist_800_53:
+    - SR-4
+    - SR-11
+    - SI-7
+  see:
+  - CICD-ART-002
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K04-Lack-Of-Cluster-Level-Policy-Enforcement.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x04_cicd_ssc_flaws.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+- id: K8S-IMG-002
+  sheet: K8S
+  category: IMG
+  title: Check image tags, digests and use of stale images
+  objective: Finds workloads that use mutable tags or old images that miss fixes.
+  steps:
+  - List images that use the latest tag or no tag.
+  - Compare running image digests to the registry.
+  - Check the build date of each image.
+  - Check the policy for maximum image age.
+  example: kubectl get pods -A -o json | jq -r ".items[].spec.containers[].image" | sort -u | grep -E ":latest$|^[^:]+$"; docker inspect <image> --format "{{.Created}}"
+  expected: Images use fixed tags or digests. No image is older than the policy age, and base images are rebuilt on a set schedule.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K04
+    - K07
+    cloud_native_top10:
+    - CNAS-4
+    - CNAS-7
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    - Docker_Security_Cheat_Sheet
+    cwe:
+    - CWE-1104
+    attack:
+    - T1195.002
+    nist_800_53:
+    - SI-2
+    - CM-2
+  see:
+  - CICD-DEP-009
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K04-Lack-Of-Cluster-Level-Policy-Enforcement.md
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K07-Misconfigured-And-Vulnerable-Cluster-Components.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x04_cicd_ssc_flaws.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x07_vuln_components.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+- id: K8S-IMG-003
+  sheet: K8S
+  category: IMG
+  title: Scan running images for known vulnerabilities
+  objective: Finds deployed images that contain components with known vulnerabilities, including new ones found after the build.
+  steps:
+  - List all images that run in the cluster.
+  - Scan each image for vulnerabilities with a scanner.
+  - Check if the cluster is scanned on a schedule, not only at build.
+  - Rank the findings by severity and by exposure of the workload.
+  example: trivy image <image>; trivy k8s --report summary cluster; grype <image>
+  expected: Running images have no unfixed critical or high vulnerabilities without a written exception. The cluster is scanned on a set schedule.
+  severity: High
+  test_type: Automated
+  refs:
+    k8s_top10:
+    - K07
+    cloud_native_top10:
+    - CNAS-7
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    - Vulnerable_Dependency_Management_Cheat_Sheet
+    - Docker_Security_Cheat_Sheet
+    cwe:
+    - CWE-1395
+    - CWE-1104
+    attack:
+    - T1190
+    nist_800_53:
+    - RA-5
+    - SI-2
+  see:
+  - CICD-VULN-002
+  - CICD-VULN-003
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K07-Misconfigured-And-Vulnerable-Cluster-Components.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x07_vuln_components.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Vulnerable_Dependency_Management_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+- id: K8S-IMG-004
+  sheet: K8S
+  category: IMG
+  title: Check that images are minimal and hold no shells or package tools
+  objective: Finds images with extra tools that help an attacker after a breach.
+  steps:
+  - List the base image of each workload.
+  - Check for a shell, package manager and compilers in the image.
+  - Try to start a shell in a test pod.
+  - Check for distroless or minimal base images.
+  example: kubectl exec <pod> -- sh; docker run --rm --entrypoint sh <image> -c "which apt apk curl"; trivy image --list-all-pkgs <image>
+  expected: Production images use minimal or distroless bases. They hold no shell, package manager or network tools without need.
+  severity: Low
+  test_type: Manual
+  refs:
+    k8s_top10:
+    - K01
+    cloud_native_top10:
+    - CNAS-7
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    - Docker_Security_Cheat_Sheet
+    cwe:
+    - CWE-1188
+    attack:
+    - T1609
+    nist_800_53:
+    - CM-7
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K01-Insecure-Workload-Configurations.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x07_vuln_components.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+- id: K8S-IMG-005
+  sheet: K8S
+  category: IMG
+  title: Check registry access control and the transport to registries
+  objective: Finds registries that allow anonymous push, wide pull rights or plain HTTP.
+  steps:
+  - List the registries that the cluster uses.
+  - Check who can push and pull for each repository.
+  - Check that every pull uses TLS.
+  - Check the image pull secrets in each namespace.
+  example: kubectl get secrets -A --field-selector type=kubernetes.io/dockerconfigjson; curl -sI http://<registry>/v2/; check the registry access policy in the provider
+  expected: Registries need authentication for push and pull. Only build systems can push. All transfers use TLS and pull secrets are limited per namespace.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K04
+    cloud_native_top10:
+    - CNAS-4
+    cheatsheet:
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    - Kubernetes_Security_Cheat_Sheet
+    cwe:
+    - CWE-319
+    - CWE-284
+    attack:
+    - T1525
+    - T1195.002
+    nist_800_53:
+    - AC-3
+    - SC-8
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K04-Lack-Of-Cluster-Level-Policy-Enforcement.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x04_cicd_ssc_flaws.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+- id: K8S-IMG-006
+  sheet: K8S
+  category: IMG
+  title: Check an SBOM and provenance for each deployed image
+  objective: Finds images that cannot be traced to a source, a build and a list of components.
+  steps:
+  - Pick three running images.
+  - Find the SBOM and provenance record of each.
+  - Check that the SBOM matches the image digest.
+  - Make sure the admission policy uses the provenance.
+  example: cosign verify-attestation <image> --type slsaprovenance --key <pub>; trivy sbom <file>; syft <image>
+  expected: Each image links to an SBOM and provenance that match its digest. The cluster rejects images without them.
+  severity: Medium
+  test_type: Manual
+  refs:
+    k8s_top10:
+    - K04
+    cloud_native_top10:
+    - CNAS-4
+    - CNAS-7
+    cheatsheet:
+    - Docker_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-345
+    attack:
+    - T1195.002
+    nist_800_53:
+    - SR-4
+    - SR-11
+  see:
+  - CICD-ART-003
+  - CICD-ART-004
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K04-Lack-Of-Cluster-Level-Policy-Enforcement.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x04_cicd_ssc_flaws.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x07_vuln_components.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md

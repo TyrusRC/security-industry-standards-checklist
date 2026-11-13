@@ -1,0 +1,140 @@
+- id: CLD-QTA-001
+  sheet: CLD
+  category: QTA
+  title: Check service quotas and budget limits per account
+  objective: Finds accounts where one resource or attacker can use up quotas or run up large cost.
+  steps:
+  - List service quotas and current use for compute, storage and network.
+  - Check budget limits and cost alerts for each account.
+  - Check who can raise quotas or create large resources.
+  - Check for alerts when use passes a set share of the limit.
+  example: aws service-quotas list-service-quotas --service-code ec2; aws budgets describe-budgets --account-id <id>; az consumption budget list; gcloud alpha billing budgets list --billing-account <id>
+  expected: Each account has quotas and budgets with alerts. Few identities can raise quotas or create large resources.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-9
+    cheatsheet:
+    - Secure_Cloud_Architecture_Cheat_Sheet
+    - Denial_of_Service_Cheat_Sheet
+    cwe:
+    - CWE-770
+    attack:
+    - T1496
+    - T1499
+    nist_800_53:
+    - SC-5
+    - SC-6
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x09_compute_resources.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Cloud_Architecture_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Denial_of_Service_Cheat_Sheet.md
+- id: CLD-QTA-002
+  sheet: CLD
+  category: QTA
+  title: Test rate limits and throttling on public APIs and gateways
+  objective: Finds gateways that accept unlimited requests from one caller.
+  preconditions:
+  - Use a test environment.
+  - Do not run on production.
+  steps:
+  - List the rate and burst settings of each gateway stage and route.
+  - Send requests above the limit from one test client.
+  - Check that the gateway returns a throttling response.
+  - Check that limits apply per caller, not only in total.
+  example: aws apigateway get-usage-plans; hey -n 1000 -c 50 https://<api>/<path>; az apim api show; gcloud api-gateway api-configs list
+  expected: Each route has rate and burst limits per caller. Requests above the limit get HTTP 429 and the backend stays healthy.
+  severity: Medium
+  test_type: Manual
+  refs:
+    cloud_native_top10:
+    - CNAS-9
+    cheatsheet:
+    - Denial_of_Service_Cheat_Sheet
+    - Secure_Cloud_Architecture_Cheat_Sheet
+    cwe:
+    - CWE-770
+    - CWE-799
+    attack:
+    - T1499
+    nist_800_53:
+    - SC-5
+  see:
+  - API-RES-001
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x09_compute_resources.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Denial_of_Service_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Cloud_Architecture_Cheat_Sheet.md
+- id: CLD-QTA-003
+  sheet: CLD
+  category: QTA
+  title: Check autoscaling limits and scale-out protection
+  objective: Finds autoscaling groups with no upper limit or with no alert, so a flood causes cost and instability.
+  steps:
+  - List autoscaling groups, container services and function settings.
+  - Find groups with no maximum size.
+  - Check the metrics and alarms that start scale-out.
+  - Check that scale limits match the budget.
+  example: aws autoscaling describe-auto-scaling-groups --query "AutoScalingGroups[].[AutoScalingGroupName,MaxSize]"; az monitor autoscale list -g <rg>; gcloud compute instance-groups managed list
+  expected: Every scaling group has a maximum size that fits the budget, with alarms for scale-out events.
+  severity: Low
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-9
+    cheatsheet:
+    - Denial_of_Service_Cheat_Sheet
+    - Secure_Cloud_Architecture_Cheat_Sheet
+    cwe:
+    - CWE-770
+    attack:
+    - T1496
+    nist_800_53:
+    - SC-5
+    - SC-6
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x09_compute_resources.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Denial_of_Service_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Cloud_Architecture_Cheat_Sheet.md
+- id: CLD-QTA-004
+  sheet: CLD
+  category: QTA
+  title: Check CPU, memory and storage limits on cloud container services
+  objective: Finds container tasks and VM workloads with no resource limits.
+  steps:
+  - List container tasks, jobs and services.
+  - Check the CPU and memory limits in each definition.
+  - Find tasks with no limit.
+  - Check the disk and log growth limits.
+  example: aws ecs describe-task-definition --task-definition <t> --query "taskDefinition.[cpu,memory]"; az container show -n <c> -g <rg> --query containers[].resources; gcloud run services describe <s>
+  expected: Every container task sets CPU and memory limits and storage and log growth limits.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-9
+    - CNAS-1
+    cheatsheet:
+    - Docker_Security_Cheat_Sheet
+    - Denial_of_Service_Cheat_Sheet
+    cwe:
+    - CWE-770
+    attack:
+    - T1499
+    - T1496
+    nist_800_53:
+    - SC-5
+    - SC-6
+  see:
+  - K8S-WRK-007
+  - API-RES-009
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x09_compute_resources.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x01_insecure_cco_config.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Denial_of_Service_Cheat_Sheet.md

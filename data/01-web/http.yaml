@@ -1,0 +1,259 @@
+- id: WEB-HTTP-001
+  sheet: WEB
+  category: HTTP
+  title: Make sure every response has a correct Content-Type with charset
+  objective: Find responses with a missing or wrong Content-Type that lead to MIME sniffing or XSS.
+  steps:
+  - Request each page type, API response, download and error page with curl -I.
+  - Look at the Content-Type header and the charset on text types.
+  - Compare the type with the real body, for example JSON that is sent as text/html.
+  - 'Look for X-Content-Type-Options: nosniff on the same responses.'
+  example: curl -sI https://example.com/ https://example.com/api/me | grep -i '^content-type'
+  expected: Each response with a body has a Content-Type that matches the body, with a charset on text types.
+  severity: Low
+  test_type:
+  - Manual
+  - Automated
+  level: ASVS L1
+  refs:
+    asvs:
+    - V4.1.1
+    cheatsheet:
+    - HTTP_Headers_Cheat_Sheet
+    cwe:
+    - CWE-436
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/CheatSheetSeries/cheatsheets/HTTP_Headers_Cheat_Sheet.md
+- id: WEB-HTTP-002
+  sheet: WEB
+  category: HTTP
+  title: Make sure only user-facing endpoints redirect from HTTP to HTTPS
+  objective: Find API and service endpoints that redirect HTTP to HTTPS and so hide clients that send data in clear text.
+  steps:
+  - Send an HTTP request to the user-facing site and to each API or service host.
+  - Look at the status code. A browser endpoint redirects with 301 or 308.
+  - Make sure API and service endpoints refuse plain HTTP, or do not listen on port 80.
+  - Make sure the redirect target sends the HSTS header.
+  example: curl -si http://example.com/; curl -si http://api.example.com/v1/status
+  expected: User-facing endpoints redirect to HTTPS. API and service endpoints do not redirect HTTP and give an error or no answer.
+  severity: Low
+  test_type:
+  - Manual
+  - Automated
+  level: ASVS L2
+  refs:
+    asvs:
+    - V4.1.2
+    wstg:
+    - WSTG-CRYP-03
+    cwe:
+    - CWE-319
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/09-Weak_Cryptography/03-Sensitive_Information_Sent_via_Unencrypted_Channels.md
+- id: WEB-HTTP-003
+  sheet: WEB
+  category: HTTP
+  title: Make sure message signatures protect highly sensitive requests
+  objective: Find high-value transactions that rely on transport security alone and have no per-message signature.
+  steps:
+  - List the requests that are highly sensitive or pass through several systems.
+  - Read the design for the per-message signature method, for example HTTP Message Signatures or JWS.
+  - Change one field in a signed request and send it again.
+  - Replay a signed request after its validity time.
+  example: 'Burp Repeater: edit the signed body, keep the Signature header, send, and look for a 401 or 400 answer.'
+  expected: The server rejects changed and replayed signed messages. Signatures cover the sensitive request parts.
+  severity: Info
+  test_type:
+  - Manual
+  - Code Review
+  level: ASVS L3
+  refs:
+    asvs:
+    - V4.1.5
+    cwe:
+    - CWE-345
+    - CWE-347
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+- id: WEB-HTTP-004
+  sheet: WEB
+  category: HTTP
+  title: Test the HTTP request framing for request smuggling
+  objective: Find disagreement between front-end and back-end servers on where an HTTP message ends.
+  preconditions:
+  - Do not run smuggling tests on shared production systems without approval.
+  steps:
+  - Run the Burp HTTP Request Smuggler or smuggler.py against the main host.
+  - Send CL.TE, TE.CL and TE.TE test requests with timing detection.
+  - Send HTTP/2 requests with a Content-Length that differs from the DATA frame length.
+  - Review that every component in the chain uses Transfer-Encoding before Content-Length in HTTP/1.x.
+  - Review that the application never sends a Content-Length that conflicts with the framing.
+  example: 'python3 smuggler.py -u https://example.com/ ; Burp extension: HTTP Request Smuggler > Smuggle probe'
+  expected: All components agree on message boundaries. Conflicting Content-Length and Transfer-Encoding requests are rejected.
+  severity: High
+  test_type:
+  - Manual
+  - Automated
+  level: ASVS L2
+  refs:
+    asvs:
+    - V4.2.1
+    - V4.2.2
+    cwe:
+    - CWE-444
+    capec:
+    - CAPEC-33
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  see:
+  - WEB-INJ-018
+- id: WEB-HTTP-005
+  sheet: WEB
+  category: HTTP
+  title: Make sure HTTP/2 and HTTP/3 messages carry no connection-specific headers or CRLF
+  objective: Find HTTP/2 or HTTP/3 downgrade and header injection through Transfer-Encoding and CR, LF or CRLF in header values.
+  steps:
+  - Send an HTTP/2 request with a Transfer-Encoding header.
+  - Send HTTP/2 header names and values that contain CR, LF and CRLF.
+  - Look for the response header that the application sets from user input and test the same.
+  - Make sure the application does not send connection-specific headers in HTTP/2 responses.
+  example: 'nghttp -v -H ''transfer-encoding: chunked'' https://example.com/; Burp Repeater (HTTP/2) with %0d%0a in a header value'
+  expected: The server rejects HTTP/2 and HTTP/3 messages with connection-specific headers or CR, LF or CRLF in field names or values.
+  severity: Medium
+  test_type:
+  - Manual
+  - Automated
+  level: ASVS L3
+  refs:
+    asvs:
+    - V4.2.3
+    - V4.2.4
+    cwe:
+    - CWE-113
+    - CWE-93
+    capec:
+    - CAPEC-34
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+- id: WEB-HTTP-006
+  sheet: WEB
+  category: HTTP
+  title: Make sure outgoing URIs and headers stay within length limits
+  objective: Find backend calls that build very long URIs or headers that the receiving component rejects or handles in an unsafe way.
+  steps:
+  - Find backend calls that put user input in a URI, Authorization header or Cookie header.
+  - Send very long input to these fields.
+  - Look for error responses, truncated values or a bypass of security headers from the receiver.
+  - Review the code for length checks before a request is built.
+  example: python3 -c "print('A'*70000)" | xargs -I{} curl -si 'https://example.com/search?q={}'
+  expected: The application checks the length of user input used in URIs and headers and returns a controlled error.
+  severity: Low
+  test_type:
+  - Manual
+  - Code Review
+  level: ASVS L3
+  refs:
+    asvs:
+    - V4.2.5
+    cwe:
+    - CWE-20
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+- id: WEB-HTTP-007
+  sheet: WEB
+  category: HTTP
+  title: Make sure GraphQL cost and depth limits protect against expensive queries
+  objective: Find GraphQL endpoints that accept deeply nested or very costly queries.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Find the GraphQL endpoint and send a query that nests the same relation to ten levels.
+  - Send a query with many aliases and a large list size.
+  - Send a batch of queries in one request.
+  - Look for rejection by depth limit, cost analysis, amount limit or query allowlist.
+  - Look at the response time and the server load.
+  example: 'curl -s https://example.com/graphql -H ''Content-Type: application/json'' -d ''{"query":"{a:user{friends{friends{friends{friends{name}}}}}}"}'''
+  expected: The server rejects over-deep or over-costly queries with a clear limit error. The service stays responsive.
+  severity: Medium
+  test_type:
+  - Manual
+  - Automated
+  level: ASVS L2
+  refs:
+    asvs:
+    - V4.3.1
+    wstg:
+    - WSTG-APIT-99
+    cwe:
+    - CWE-400
+    - CWE-770
+    capec:
+    - CAPEC-130
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/99-GraphQL.md
+- id: WEB-HTTP-008
+  sheet: WEB
+  category: HTTP
+  title: Make sure GraphQL introspection and field suggestions are off in production
+  objective: Find GraphQL schemas that leak to users through introspection or Did you mean hints.
+  steps:
+  - Send an introspection query to the GraphQL endpoint.
+  - Send a query with a misspelled field name and read the error text.
+  - Look for GraphiQL, Playground or Voyager pages on the host.
+  - Look at the schema for sensitive fields such as passwordHash or apiKey.
+  example: 'curl -s https://example.com/graphql -H ''Content-Type: application/json'' -d ''{"query":"{__schema{types{name}}}"}''; clairvoyance -u https://example.com/graphql'
+  expected: Introspection is off and errors give no field suggestions, unless the API is for outside parties.
+  severity: Low
+  test_type:
+  - Manual
+  - Automated
+  level: ASVS L2
+  refs:
+    asvs:
+    - V4.3.2
+    wstg:
+    - WSTG-APIT-99
+    owasp_top10:
+    - A02:2025
+    cwe:
+    - CWE-200
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/99-GraphQL.md
+  - sources/repos/Top10/2025/docs/en/A02_2025-Security_Misconfiguration.md
+- id: WEB-HTTP-009
+  sheet: WEB
+  category: HTTP
+  title: Test WebSocket transport, origin checking and session tokens
+  objective: Find WebSocket endpoints that use ws://, accept any Origin or use weak tokens.
+  steps:
+  - Find WebSocket URLs in the traffic and the JavaScript.
+  - Make sure each URL uses wss://.
+  - Open the WebSocket handshake from a page on another origin, or with a changed Origin header.
+  - Look at how the connection is authenticated. Dedicated tokens must follow session rules.
+  - Make sure the token comes from the authenticated HTTPS session and cannot be reused after logout.
+  example: 'wscat -c wss://example.com/ws -H ''Origin: https://evil.example''; Burp WebSocket history > Repeater'
+  expected: All WebSocket connections use WSS. The handshake accepts only allowed origins. Tokens come from the authenticated HTTPS session.
+  severity: High
+  test_type:
+  - Manual
+  level: ASVS L1
+  refs:
+    asvs:
+    - V4.4.1
+    - V4.4.2
+    - V4.4.3
+    - V4.4.4
+    cheatsheet:
+    - WebSocket_Security_Cheat_Sheet
+    cwe:
+    - CWE-1385
+    - CWE-319
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/CheatSheetSeries/cheatsheets/WebSocket_Security_Cheat_Sheet.md
+  see:
+  - WEB-CLIENT-004

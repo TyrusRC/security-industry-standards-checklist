@@ -1,0 +1,665 @@
+- id: WEB-PWD-001
+  sheet: WEB
+  category: PWD
+  title: Check the minimum password length
+  objective: Finds weak minimum length rules that allow short passwords.
+  steps:
+  - Register a new account with passwords of 4, 7, 8, 14 and 15 characters.
+  - Change the password of a test account to the same lengths.
+  - Look at the rule in the documentation. Compare it with what the server accepts.
+  - Send the short password directly to the API and skip client-side checks.
+  example: 'curl -s -X POST https://target/api/register -H ''Content-Type: application/json'' -d ''{"email":"t1@test.example","password":"Ab1!xyz"}'' -i'
+  expected: The server rejects passwords shorter than 8 characters. The application sets 15 characters where MFA is not used. Client-side checks are not the only control.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-ATHN-07
+    asvs:
+    - V6.2.1
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-521
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/07-Weak_Authentication_Methods.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-PWD-002
+  sheet: WEB
+  category: PWD
+  title: Check that long passwords and passphrases are accepted
+  objective: Finds a low maximum password length that blocks passphrases.
+  steps:
+  - Set a password of 64 characters, then 128 characters.
+  - Log in with each password.
+  - Use spaces and Unicode characters in a long password.
+  - 'Look for silent cut-off: change only the last character and log in.'
+  example: python3 -c "print('a'*63+'X')" | xargs -I{} curl -s -d 'password={}&new=1' https://target/change
+  expected: Passwords of at least 64 characters are accepted and fully used. The application sets a sane upper limit and shows an error if it is exceeded.
+  severity: Low
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-ATHN-07
+    asvs:
+    - V6.2.9
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-521
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/07-Weak_Authentication_Methods.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+- id: WEB-PWD-003
+  sheet: WEB
+  category: PWD
+  title: Check that the password is used exactly as the user typed it
+  objective: Finds truncation, case change or other changes to the password before it is checked.
+  steps:
+  - Set a password with upper-case letters and 80 characters.
+  - Log in with the same password in lower case.
+  - Log in with only the first 72 characters and with only the first 64 characters.
+  - Log in with the first 8 characters.
+  example: 'Burp Repeater: login with password = first 72 chars of the set value; then with the value in lower case.'
+  expected: Only the exact password is accepted. The application does not truncate or change the case of the password.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    wstg:
+    - WSTG-ATHN-04
+    asvs:
+    - V6.2.8
+    cheatsheet:
+    - Password_Storage_Cheat_Sheet
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-303
+    - CWE-521
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/04-Bypassing_Authentication_Schema.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Password_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+- id: WEB-PWD-004
+  sheet: WEB
+  category: PWD
+  title: Test the change password function
+  objective: Finds password change that works without the current password or the right user.
+  steps:
+  - Log in and change the password with the correct current password.
+  - Send the change request without the current password.
+  - Send it with a wrong current password.
+  - Change the user or ID parameter to another account.
+  - Make sure the old password no longer works.
+  example: curl -i -b 'session=<id>' -d 'new=Passw0rd-long-and-new&confirm=Passw0rd-long-and-new' https://target/account/password
+  expected: The user can change the password. The server needs the current and the new password and acts only on the session user.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-ATHN-09
+    asvs:
+    - V6.2.2
+    - V6.2.3
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-620
+    - CWE-639
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/09-Weak_Password_Change_or_Reset_Functionalities.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-PWD-005
+  sheet: WEB
+  category: PWD
+  title: Check new passwords against a list of common passwords
+  objective: Finds acceptance of the most common passwords.
+  steps:
+  - Try to register with 10 passwords from the top 3000 list that meet the length rule.
+  - Try the same passwords on the change function.
+  - Try Password1, 123456789012345 and qwertyuiopasdfg.
+  example: 'ffuf -w 10k-most-common.txt -X POST -d ''{"email":"u@test.example","password":"FUZZ"}'' -H ''Content-Type: application/json'' -u https://target/api/register -mc 200,201'
+  expected: The application rejects every password from the top 3000 list at registration and at change.
+  severity: Medium
+  test_type: Automated
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-ATHN-07
+    asvs:
+    - V6.2.4
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-521
+    - CWE-1391
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/07-Weak_Authentication_Methods.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-PWD-006
+  sheet: WEB
+  category: PWD
+  title: Check new passwords against breached passwords
+  objective: Finds missing checks against known leaked passwords.
+  steps:
+  - Pick a password that is in Pwned Passwords but meets the length rule.
+  - Try to register with it. Then try to change a password to it.
+  - Read the code or documentation for the data source.
+  example: 'Check candidate hash prefix: curl https://api.pwnedpasswords.com/range/21BD1 ; then POST the plain password to /register.'
+  expected: The application rejects breached passwords at registration and at password change.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A07:2025
+    asvs:
+    - V6.2.12
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-521
+    - CWE-1391
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-PWD-007
+  sheet: WEB
+  category: PWD
+  title: Check the list of context-specific words for passwords
+  objective: Finds missing documentation or missing use of words such as company and product names.
+  steps:
+  - Get the documented list of context-specific words.
+  - Make sure it holds the organization, product, project and department names.
+  - Try to set passwords built from these words.
+  - Make sure the application rejects them.
+  example: Registration with password 'AcmeWidgetPortal2024!' and the documented words in Burp Repeater.
+  expected: The list is documented. The application rejects passwords that are built from these words.
+  severity: Low
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V6.1.2
+    - V6.2.11
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-521
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+- id: WEB-PWD-008
+  sheet: WEB
+  category: PWD
+  title: Check that no composition rules limit password characters
+  objective: Finds rules that force or ban character types and so reduce password quality.
+  steps:
+  - Set a password of only lower-case letters and 20 characters.
+  - Set a password with spaces, Unicode and symbols.
+  - Read the registration help text for composition rules.
+  example: POST /register password='correct horse battery staple' (no digits or symbols); then password with emoji and tab.
+  expected: Passwords of any composition are accepted if they meet the length rule. No minimum count of any character type is required.
+  severity: Info
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    wstg:
+    - WSTG-ATHN-07
+    asvs:
+    - V6.2.5
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-521
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/07-Weak_Authentication_Methods.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+- id: WEB-PWD-009
+  sheet: WEB
+  category: PWD
+  title: Check the password field masking and paste support
+  objective: Finds password fields that show the text or block paste and password managers.
+  steps:
+  - Look at the HTML of the login, registration and change forms.
+  - Make sure the field is type=password.
+  - Paste a value into the password and MFA fields.
+  - Use a browser or external password manager to fill the form.
+  example: 'DevTools console: [...document.querySelectorAll(''input'')].map(i=>[i.name,i.type,i.onpaste]) '
+  expected: Password fields use type=password. Paste and password managers work. The user can show the value on purpose.
+  severity: Info
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    asvs:
+    - V6.2.6
+    - V6.2.7
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-549
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+- id: WEB-PWD-010
+  sheet: WEB
+  category: PWD
+  title: Check that the application does not force password rotation
+  objective: Finds forced periodic password change, which weakens passwords.
+  steps:
+  - Read the password policy and the application settings.
+  - Look for an expiry period in the user store.
+  - Log in with an account that has an old password.
+  example: grep -rn 'password.*expire\|maxAge\|rotation' config/ ; ldapsearch for pwdMaxAge on the user store.
+  expected: A password stays valid until it is found compromised or the user changes it. No periodic rotation is required.
+  severity: Info
+  test_type: Config Review
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-ATHN-07
+    asvs:
+    - V6.2.10
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-262
+    - CWE-263
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/07-Weak_Authentication_Methods.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-PWD-011
+  sheet: WEB
+  category: PWD
+  title: Check that the password policy is the same everywhere
+  objective: Finds weaker password rules in reset, change or admin flows.
+  steps:
+  - Set a weak password at registration and note the error.
+  - Try the same password on change, reset and admin create-user.
+  - Try to reuse the last password and change the password five times in a row.
+  - Try to use the user name in the password.
+  example: Run the same short password with Burp Intruder against /register, /account/password and /reset/confirm.
+  expected: Registration, change, reset and admin flows apply the same rules. The server enforces them.
+  severity: Medium
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-ATHN-07
+    - WSTG-ATHN-09
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    - Forgot_Password_Cheat_Sheet
+    cwe:
+    - CWE-521
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/07-Weak_Authentication_Methods.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/09-Weak_Password_Change_or_Reset_Functionalities.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Forgot_Password_Cheat_Sheet.md
+- id: WEB-PWD-012
+  sheet: WEB
+  category: PWD
+  title: Check how passwords are stored
+  objective: Finds plain text, reversible or fast-hash storage of passwords.
+  preconditions:
+  - Read access to code or database.
+  steps:
+  - Read the code or database for the password column.
+  - Make sure it holds a hash made with Argon2id, scrypt, bcrypt or PBKDF2.
+  - Check the cost settings against the cheat sheet minimum.
+  - Make sure each hash has its own random salt.
+  - Look for logs and backups with plain passwords.
+  example: SELECT password FROM users LIMIT 3; hashid '<hash>'; grep -rn 'md5(\|sha1(\|bcrypt\|argon2' src/
+  expected: Passwords are hashed with a slow, salted algorithm at the recommended cost. No plain text or reversible form exists.
+  severity: High
+  test_type: Code Review
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-ATHN-04
+    cheatsheet:
+    - Password_Storage_Cheat_Sheet
+    cwe:
+    - CWE-256
+    - CWE-257
+    - CWE-916
+    - CWE-328
+    - CWE-261
+    capec:
+    - CAPEC-55
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/04-Bypassing_Authentication_Schema.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Password_Storage_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-PWD-013
+  sheet: WEB
+  category: PWD
+  title: Check the safe comparison of password hashes
+  objective: Finds timing leaks and type confusion in the password check.
+  steps:
+  - Read the code that compares the hash.
+  - Make sure it uses a library function with constant time.
+  - Make sure the function has an input length limit and fixed types.
+  - Measure response time for users with a correct and a wrong first character.
+  example: grep -rn "hash_equals\|timingSafeEqual\|compare_digest\|ConstantTimeCompare" src/ ; ab or Burp Intruder timing for 200 requests.
+  expected: The code uses a constant-time function with fixed types and length limits.
+  severity: Low
+  test_type: Code Review
+  refs:
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-208
+    - CWE-1287
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+- id: WEB-PWD-014
+  sheet: WEB
+  category: PWD
+  title: Check that security questions and hints are absent
+  objective: Finds knowledge-based recovery that attackers can guess or look up.
+  steps:
+  - Open registration, profile and password recovery pages.
+  - Look for security questions, hints and secret answers.
+  - Look at the account recovery API for question fields.
+  example: grep -rni 'security question\|secret question\|maiden' templates/ ; Burp search for 'question' in proxy history.
+  expected: No password hints or security questions exist for authentication or recovery.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-ATHN-08
+    asvs:
+    - V6.4.2
+    cheatsheet:
+    - Choosing_and_Using_Security_Questions_Cheat_Sheet
+    - Forgot_Password_Cheat_Sheet
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-640
+    capec:
+    - CAPEC-50
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/08-Weak_Security_Question_Answer.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Choosing_and_Using_Security_Questions_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Forgot_Password_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-PWD-015
+  sheet: WEB
+  category: PWD
+  title: Test weak security questions if they still exist
+  objective: Finds guessable questions, self-written questions and answers without brute-force limits.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - List all pre-set questions. Mark questions with public, short-list or guessable answers.
+  - Create a custom question such as What is 1+1.
+  - Send 100 wrong answers and look for a lockout.
+  - Check how many questions the recovery needs.
+  example: Burp Intruder with a first-name wordlist on the answer parameter of POST /recover/question.
+  expected: No question has a guessable answer. Users cannot write their own question. Wrong answers trigger a lockout or delay. Remove the function if possible.
+  severity: Medium
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-ATHN-08
+    cheatsheet:
+    - Choosing_and_Using_Security_Questions_Cheat_Sheet
+    cwe:
+    - CWE-640
+    - CWE-307
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/08-Weak_Security_Question_Answer.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Choosing_and_Using_Security_Questions_Cheat_Sheet.md
+- id: WEB-PWD-016
+  sheet: WEB
+  category: PWD
+  title: Check initial passwords and activation codes
+  objective: Finds predictable, reusable or long-lived system-generated initial secrets.
+  preconditions:
+  - Mail catcher or test mailbox.
+  steps:
+  - Create five accounts quickly and collect the initial passwords or codes.
+  - Look for patterns, shared strings, hashes of user data or time links.
+  - Use a code twice and after its lifetime.
+  - Check if the user must change the initial password.
+  - Check that the initial password follows the policy.
+  example: for i in 1 2 3 4 5; do curl -s -d "email=u$i@test.example" https://target/invite; done ; then compare the mails in the mail catcher.
+  expected: Initial secrets are random, follow the password policy, and expire quickly or after first use. The user must set a new password.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-ATHN-02
+    asvs:
+    - V6.4.1
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    - Forgot_Password_Cheat_Sheet
+    cwe:
+    - CWE-330
+    - CWE-338
+    - CWE-1393
+    - CWE-521
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/02-Default_Credentials.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Forgot_Password_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-PWD-017
+  sheet: WEB
+  category: PWD
+  title: Check that password reset gives no account enumeration
+  objective: Finds different messages or times for known and unknown accounts in the reset form.
+  steps:
+  - Request a reset for a known email address. Save message, status, length and time.
+  - Request a reset for an unknown address. Compare all values.
+  - Send 20 requests for each case and compare the average time.
+  - Repeat on the SMS or phone reset path.
+  example: for u in known@test.example nobody@test.example; do curl -s -o /dev/null -w "$u %{http_code} %{size_download} %{time_total}\n" -d "email=$u" https://target/forgot; done
+  expected: The response is the same for known and unknown accounts, in message, status and time.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L3
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-ATHN-09
+    asvs:
+    - V6.3.8
+    cheatsheet:
+    - Forgot_Password_Cheat_Sheet
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-204
+    - CWE-208
+    capec:
+    - CAPEC-50
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/09-Weak_Password_Change_or_Reset_Functionalities.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Forgot_Password_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-PWD-018
+  sheet: WEB
+  category: PWD
+  title: 'Check the reset token: randomness, life, single use and storage'
+  objective: Finds reset tokens that are guessable, reusable, long lived or stored in plain text.
+  preconditions:
+  - Test mailbox.
+  - Do not run on production.
+  steps:
+  - Request five reset links. Examine the tokens for patterns and length.
+  - Use a token once and then again.
+  - Wait for the lifetime to pass. Use the token.
+  - Request a new token. Check that the old token stops working.
+  - Read the code or database for plain-text token storage.
+  - Send many token guesses and look for a rate limit.
+  example: Burp Sequencer on the token from the reset mail; ffuf -w tokens.txt -u 'https://target/reset?token=FUZZ' -mc 200
+  expected: Tokens are random and long, single use, and short lived. A new request cancels the old token. The server stores only hashes and rate limits guesses.
+  severity: High
+  test_type: Manual
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-ATHN-09
+    cheatsheet:
+    - Forgot_Password_Cheat_Sheet
+    cwe:
+    - CWE-640
+    - CWE-330
+    - CWE-331
+    - CWE-620
+    capec:
+    - CAPEC-50
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/09-Weak_Password_Change_or_Reset_Functionalities.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Forgot_Password_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-PWD-019
+  sheet: WEB
+  category: PWD
+  title: Test reset link for Host header injection and token leak
+  objective: Finds reset links built from the Host header and tokens that leak by Referer.
+  preconditions:
+  - Test mailbox.
+  steps:
+  - Send the reset request with a changed Host or X-Forwarded-Host header.
+  - Read the link in the mail.
+  - Open the reset link and look at requests to other domains.
+  - Look for the token in the Referer header and for a Referrer-Policy header.
+  - Change a user ID parameter in the reset link.
+  example: 'curl -i https://target/forgot -H ''Host: evil.example'' -H ''X-Forwarded-Host: evil.example'' -d ''email=victim@test.example'''
+  expected: Reset links use a fixed trusted host and HTTPS. The reset page sends no token to third parties and sets Referrer-Policy. The token alone selects the user.
+  severity: High
+  test_type: Manual
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-ATHN-09
+    cheatsheet:
+    - Forgot_Password_Cheat_Sheet
+    cwe:
+    - CWE-640
+    - CWE-200
+    - CWE-598
+    capec:
+    - CAPEC-50
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/09-Weak_Password_Change_or_Reset_Functionalities.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Forgot_Password_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-PWD-020
+  sheet: WEB
+  category: PWD
+  title: Check what happens after a password reset
+  objective: Finds resets that leave old sessions alive, log the user in, or send the password.
+  steps:
+  - Log in on two browsers with the same account.
+  - Reset the password in one browser.
+  - Check if the other session still works.
+  - Look at the reset mail and the response for the new password.
+  - Check that the user must log in with the new password.
+  example: 'Browser A: reset flow. Browser B: curl -b ''session=<old>'' https://target/account -i'
+  expected: The reset does not send the password or log in the user. The user gets a notice and old sessions end or can be ended.
+  severity: Medium
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-ATHN-09
+    cheatsheet:
+    - Forgot_Password_Cheat_Sheet
+    cwe:
+    - CWE-620
+    - CWE-384
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/09-Weak_Password_Change_or_Reset_Functionalities.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Forgot_Password_Cheat_Sheet.md
+- id: WEB-PWD-021
+  sheet: WEB
+  category: PWD
+  title: Check that admins cannot set a user password
+  objective: Finds admin functions that let staff choose or learn a user password.
+  steps:
+  - Log in as administrator and open the user management page.
+  - Find the reset function for a user.
+  - Check if the administrator can type the new password.
+  - Check that the function only starts the reset flow for the user.
+  example: 'Burp: POST /admin/users/42/reset with a ''password'' parameter added; watch if the value is accepted.'
+  expected: Administrators can start a reset for the user but cannot set or see the password.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L3
+  refs:
+    asvs:
+    - V6.4.6
+    cheatsheet:
+    - Forgot_Password_Cheat_Sheet
+    cwe:
+    - CWE-620
+    - CWE-269
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Forgot_Password_Cheat_Sheet.md
+- id: WEB-PWD-022
+  sheet: WEB
+  category: PWD
+  title: Check reminders before authentication factors expire
+  objective: Finds expiring credentials, certificates or tokens with no reminder.
+  steps:
+  - 'List the factors that expire: passwords, certificates, tokens.'
+  - Read the reminder rules.
+  - Create a test factor that is near expiry.
+  - Check that the user gets reminders in time to renew.
+  example: Set the certificate notAfter to 7 days from now on a test user; read the mail catcher the next day.
+  expected: Users get automatic reminders early enough to renew a factor before it expires.
+  severity: Low
+  test_type: Config Review
+  level: ASVS L3
+  refs:
+    asvs:
+    - V6.4.5
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-324
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md

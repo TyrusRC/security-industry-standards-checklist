@@ -1,0 +1,180 @@
+- id: NET-WIFI-001
+  sheet: NET
+  category: WIFI
+  title: Scan passively for rogue access points and unauthorized wireless networks
+  objective: Finds access points and ad hoc networks that the organization did not approve.
+  preconditions:
+  - Written approval for wireless scans of the site.
+  - A passive scan sends no data. Do not scan the devices of neighbors or visitors actively.
+  steps:
+  - Get the inventory of authorized access points with MAC addresses and SSIDs.
+  - Walk the site slowly with a wireless analyzer in passive mode on all channels.
+  - Record the SSID, channel, MAC address, vendor and signal strength of each network.
+  - Compare the list with the inventory and find unknown MAC addresses, vendors and SSIDs.
+  - Use the signal strength to find the location of each unknown device.
+  - Repeat the scan at least each three months.
+  example: 'airodump-ng wlan0mon --band abg -w site-scan ; kismet -c wlan0mon ; Wireshark with monitor mode and filter wlan.fc.type_subtype==8'
+  expected: Every access point in range is in the inventory. Unknown devices are found, located and handled by the rogue device process.
+  severity: High
+  test_type: Manual
+  refs:
+    attack:
+    - T1016.002
+    - T1557.004
+    nist_800_53:
+    - AC-18
+    - SI-4
+    - CM-8
+    pci_dss:
+    - '11.2.1'
+    other:
+    - NIST SP 800-115 sections 4.4.1 and 4.4.3 (passive scanning and device location)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-WIFI-002
+  sheet: NET
+  category: WIFI
+  title: Check the authentication and encryption settings of authorized wireless networks
+  objective: Finds company wireless networks with weak or no authentication and encryption.
+  preconditions:
+  - Written approval to test the authorized access points. Do not test devices that the organization does not own.
+  steps:
+  - Look at the beacon of each authorized SSID for the authentication and encryption mode.
+  - Look at the wireless configuration standard of the organization.
+  - Try to join each network with no credentials and with a guest account.
+  - Make sure the access point uses a strong key or per-user authentication.
+  - Make sure the administration interface of the access point is not open to the wireless clients.
+  example: 'airodump-ng wlan0mon --essid <ssid> ; iw dev wlan0 scan | grep -E "SSID|RSN|WPA" ; nmap -Pn -p 22,23,80,443,161 <ap-ip>'
+  expected: Each network needs authentication and uses strong encryption as the standard says. Open networks give no access to internal systems.
+  severity: High
+  test_type: Manual
+  refs:
+    nist_800_53:
+    - AC-18
+    - SC-40
+    pci_dss:
+    - '4.2.1.2'
+    - '2.3.1'
+    other:
+    - NIST SP 800-115 section 4.4.2 (active wireless scanning)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-WIFI-003
+  sheet: NET
+  category: WIFI
+  title: Check wireless vendor defaults and the change of wireless keys
+  objective: Finds access points that keep vendor keys, admin passwords or SNMP defaults.
+  preconditions:
+  - Written approval to test the authorized access points.
+  steps:
+  - List the access point models in use.
+  - Try the vendor default wireless key and the default admin account on each model.
+  - Look for default SNMP community strings on the access points.
+  - Look at the key management documents to see when the wireless keys change.
+  example: 'nmap -sU -p 161 --script snmp-info <ap-ip> ; hydra -C ap-defaults.txt <ap-ip> http-get / ; onesixtyone -c community.txt <ap-ip>'
+  expected: No vendor default key, password or SNMP community works. Wireless keys change as the key management process says.
+  severity: High
+  test_type: Automated
+  refs:
+    attack:
+    - T1078.001
+    capec:
+    - CAPEC-70
+    cwe:
+    - CWE-1188
+    nist_800_53:
+    - IA-5
+    - CM-6
+    pci_dss:
+    - '2.3.1'
+    - '2.3.2'
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-WIFI-004
+  sheet: NET
+  category: WIFI
+  title: Make sure a firewall separates wireless networks from internal and sensitive networks
+  objective: Finds wireless networks that have direct access to servers or the cardholder data zone.
+  preconditions:
+  - Written approval for scans from the wireless network.
+  steps:
+  - Join each wireless network with a test client.
+  - Scan the internal and sensitive ranges from the test client.
+  - Compare the result with the firewall rules between the wireless network and the other zones.
+  example: 'nmap -Pn -sS -p- --open <internal-range> from the wireless test client ; traceroute -n <internal-host>'
+  expected: A firewall sits between each wireless network and the sensitive zone. All traffic from wireless to the sensitive zone is denied by default.
+  severity: High
+  test_type: Automated
+  refs:
+    cheatsheet:
+    - Network_Segmentation_Cheat_Sheet
+    nist_800_53:
+    - SC-7
+    - AC-18
+    pci_dss:
+    - '1.3.3'
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Network_Segmentation_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-WIFI-005
+  sheet: NET
+  category: WIFI
+  title: Check that wireless intrusion detection finds rogue devices and sends alerts
+  objective: Finds sites where a rogue access point or an evil twin goes unseen.
+  preconditions:
+  - Written approval and notice to the wireless administrators. Do not run on production without notice.
+  steps:
+  - Tell the wireless administrators about the test time.
+  - Start a test access point with a new SSID in the authorized area.
+  - Start a second test access point with the SSID of an authorized network.
+  - Look at the wireless intrusion detection console and alerts.
+  - Stop the test access points at the end of the test.
+  example: 'hostapd with a test config ; Wireshark/Kismet to see the beacons ; check the WIDPS alert log'
+  expected: The system detects both test access points, finds their location and sends an alert to the responders in the agreed time.
+  severity: Medium
+  test_type: Manual
+  refs:
+    attack:
+    - T1557.004
+    nist_800_53:
+    - SI-4
+    pci_dss:
+    - '11.2.1'
+    other:
+    - NIST SP 800-115 section 4.4.2 (monitoring WIDPS during active scans)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-WIFI-006
+  sheet: NET
+  category: WIFI
+  title: Scan for Bluetooth devices and check the security mode of company devices
+  objective: Finds rogue or weak Bluetooth devices and access points.
+  preconditions:
+  - Written approval. Do not scan personal devices actively.
+  steps:
+  - Scan passively for Bluetooth devices in public areas and in a sample of other areas.
+  - Repeat the scan at different times of the day.
+  - Compare the devices with the inventory.
+  - Try an active scan only on devices that the organization owns.
+  - Look at the security mode, the PIN strength and the power setting of those devices.
+  example: 'hcitool scan ; bluetoothctl scan on ; btscanner'
+  expected: Only approved Bluetooth devices are present. Company devices use a strong security mode and PIN, and the lowest power setting that works.
+  severity: Low
+  test_type: Manual
+  refs:
+    nist_800_53:
+    - AC-18
+    - CM-8
+    other:
+    - NIST SP 800-115 section 4.4.4 (Bluetooth scanning)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json

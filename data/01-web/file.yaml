@@ -1,0 +1,370 @@
+- id: WEB-FILE-001
+  sheet: WEB
+  category: FILE
+  title: Review documentation for permitted upload types, extensions and size
+  objective: Confirms upload features document the allowed file types, extensions, maximum size and safety handling.
+  steps:
+  - Request the application design documentation for each upload feature.
+  - Check that permitted file types, extensions and maximum unpacked size are documented.
+  - Check that the documentation states how a detected malicious file is handled.
+  example: Review upload feature specification for the stated allowlist, size limit and malicious-file handling
+  expected: Every upload feature documents its permitted types, extensions, size limit and how malicious files are handled.
+  severity: Info
+  test_type: Config Review
+  level: ASVS L2
+  refs:
+    asvs:
+    - V5.1.1
+    cheatsheet:
+    - File_Upload_Cheat_Sheet
+    cwe: []
+    capec: []
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/File_Upload_Cheat_Sheet.md
+- id: WEB-FILE-002
+  sheet: WEB
+  category: FILE
+  title: Test file upload size limits for denial of service
+  objective: Finds upload endpoints that accept files larger than the application can safely process.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify an upload endpoint and its stated size limit.
+  - Upload a file just under, at, and over the stated limit.
+  - Upload a very large file and monitor server resource use and response time.
+  example: curl -F "file=@bigfile_1gb.bin" https://target/upload and monitor CPU, memory and response time
+  expected: The server enforces the documented size limit before processing and rejects oversized files without resource exhaustion.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    asvs:
+    - V5.2.1
+    cheatsheet:
+    - Denial_of_Service_Cheat_Sheet
+    cwe:
+    - CWE-400
+    capec:
+    - CAPEC-130
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Denial_of_Service_Cheat_Sheet.md
+- id: WEB-FILE-003
+  sheet: WEB
+  category: FILE
+  title: Test file type validation against extension, Content-Type and magic bytes
+  objective: Finds uploads validated only by extension or Content-Type instead of actual file content.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - 'Identify how the upload feature checks file type: client-side script, Content-Type header, or extension.'
+  - Upload a file with a disallowed extension renamed to an allowed one, keeping its original magic bytes.
+  - Upload a file with an allowed extension but a Content-Type header for a disallowed type.
+  - Upload a polyglot or mismatched-signature file to see if magic byte checks are enforced.
+  example: 'Rename shell.php to shell.jpg while keeping PHP content, and set Content-Type: image/jpeg on a PHP file'
+  expected: The server validates the true file content, including magic bytes, against the expected type for every upload, not only the extension or header.
+  severity: Critical
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    wstg:
+    - WSTG-BUSL-08
+    asvs:
+    - V5.2.2
+    cheatsheet:
+    - File_Upload_Cheat_Sheet
+    cwe:
+    - CWE-434
+    - CWE-646
+    capec:
+    - CAPEC-650
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/10-Business_Logic/08-Upload_of_Unexpected_File_Types.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/File_Upload_Cheat_Sheet.md
+- id: WEB-FILE-004
+  sheet: WEB
+  category: FILE
+  title: Test compressed file uploads for decompression bomb limits
+  objective: Finds archive extraction that does not cap uncompressed size or file count before extracting.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify an upload or import feature that accepts a compressed file such as zip, gz, docx or odt.
+  - Create an archive with an extreme compression ratio, for example a zip bomb.
+  - Create an archive containing an extremely large number of files.
+  - Upload each archive and monitor storage and resource use during extraction.
+  example: Create a 42.zip-style nested zip bomb or a zip with 100000 tiny files, then upload and monitor disk and CPU use
+  expected: The application checks the uncompressed size and file count against a maximum before extracting any archive.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V5.2.3
+    cheatsheet:
+    - File_Upload_Cheat_Sheet
+    - Denial_of_Service_Cheat_Sheet
+    cwe:
+    - CWE-409
+    - CWE-400
+    capec:
+    - CAPEC-197
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/File_Upload_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Denial_of_Service_Cheat_Sheet.md
+- id: WEB-FILE-005
+  sheet: WEB
+  category: FILE
+  title: Test per-user file and storage quota enforcement
+  objective: Finds upload features missing a per-user limit on file count or total storage.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify the stated quota for file count and total storage size per user.
+  - Upload files repeatedly as a single user until the stated quota should be reached.
+  - Confirm whether the application rejects uploads once the quota is exceeded.
+  example: Loop curl -F "file=@1mb.bin" https://target/upload past the documented per-user quota and check for rejection
+  expected: The application enforces a per-user file count and storage quota and rejects uploads once the quota is exceeded.
+  severity: Low
+  test_type: Automated
+  level: ASVS L3
+  refs:
+    asvs:
+    - V5.2.4
+    cwe:
+    - CWE-770
+    capec:
+    - CAPEC-130
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-FILE-006
+  sheet: WEB
+  category: FILE
+  title: Test archive uploads for symlink inclusion
+  objective: Finds archive extraction that preserves symbolic links pointing outside the intended directory.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Create a symbolic link to a sensitive file, for example /etc/passwd.
+  - Package the symlink into an archive and upload it.
+  - Check whether the extracted symlink is preserved and whether reading the linked file discloses its content.
+  example: ln -s /etc/passwd link.txt; tar -czf malicious.tar.gz link.txt; upload malicious.tar.gz and request link.txt
+  expected: The extraction process rejects or strips symbolic links unless an explicit allowlist of symlink targets is enforced.
+  severity: High
+  test_type: Manual
+  level: ASVS L3
+  refs:
+    wstg:
+    - WSTG-BUSL-09
+    asvs:
+    - V5.2.5
+    cheatsheet:
+    - File_Upload_Cheat_Sheet
+    cwe:
+    - CWE-61
+    - CWE-59
+    capec:
+    - CAPEC-132
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/10-Business_Logic/09-Upload_of_Malicious_Files.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/File_Upload_Cheat_Sheet.md
+- id: WEB-FILE-007
+  sheet: WEB
+  category: FILE
+  title: Test image upload for pixel flood attacks
+  objective: Finds image processing features missing a maximum pixel dimension check.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify an image upload feature that processes or resizes images server-side.
+  - Create an image file with an extreme pixel width and height but a small file size.
+  - Upload the image and monitor memory and CPU use during processing.
+  example: Craft a PNG with declared dimensions of 65000x65000 pixels and a tiny compressed size, then upload it
+  expected: The application rejects images above a maximum pixel size before decoding or processing them.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L3
+  refs:
+    asvs:
+    - V5.2.6
+    cwe:
+    - CWE-400
+    capec:
+    - CAPEC-130
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-FILE-008
+  sheet: WEB
+  category: FILE
+  title: Test uploaded files for malicious content and web shells
+  objective: Finds upload features missing malware scanning that would allow a web shell or malware to be stored and executed.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify an upload feature and the folder files are stored in.
+  - Upload the EICAR anti-malware test file and confirm it is detected and quarantined.
+  - If the server may execute uploaded code, upload a minimal web shell with a random filename and request it directly.
+  - Remove the web shell immediately after confirming execution.
+  example: Upload the EICAR string X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H* ; then upload a minimal <?php system($_GET["cmd"]); ?> shell with a random name
+  expected: Uploaded files are scanned for malware and files stored in a public folder are never executed as server-side code.
+  severity: Critical
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    wstg:
+    - WSTG-BUSL-09
+    asvs:
+    - V5.3.1
+    cheatsheet:
+    - File_Upload_Cheat_Sheet
+    cwe:
+    - CWE-434
+    capec:
+    - CAPEC-650
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/10-Business_Logic/09-Upload_of_Malicious_Files.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/File_Upload_Cheat_Sheet.md
+- id: WEB-FILE-009
+  sheet: WEB
+  category: FILE
+  title: Test archive extraction for zip slip path traversal
+  objective: Finds archive extraction code that writes entries to attacker-chosen paths outside the target directory.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify a feature that extracts an uploaded archive, such as zip, on the server.
+  - Create an archive containing an entry with a path traversal sequence in its name.
+  - Upload the archive and check whether a file is written outside the intended extraction directory.
+  example: zip test.zip base ../../../traversed to create an entry whose name escapes the target directory on extraction
+  expected: The extraction code validates each entry path against the target directory and ignores or rejects path traversal sequences.
+  severity: Critical
+  test_type: Manual
+  level: ASVS L3
+  refs:
+    asvs:
+    - V5.3.3
+    cheatsheet:
+    - File_Upload_Cheat_Sheet
+    cwe:
+    - CWE-22
+    capec:
+    - CAPEC-126
+    - CAPEC-139
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/File_Upload_Cheat_Sheet.md
+- id: WEB-FILE-010
+  sheet: WEB
+  category: FILE
+  title: Test served filenames for validation and Content-Disposition handling
+  objective: Finds downloads that trust a client-submitted filename for the response or storage path.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify a download or export feature that accepts a filename from the client, including in JSON or a URL parameter.
+  - Submit a filename containing path traversal characters or an unexpected extension.
+  - Check that the response sets a safe Content-Disposition filename regardless of the submitted value.
+  example: filename=../../etc/passwd submitted in a JSON body or URL parameter to a download endpoint
+  expected: The server ignores or strictly validates a client-submitted filename and always sets its own safe filename in Content-Disposition.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V5.4.1
+    cheatsheet:
+    - File_Upload_Cheat_Sheet
+    cwe:
+    - CWE-22
+    - CWE-641
+    capec:
+    - CAPEC-126
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/File_Upload_Cheat_Sheet.md
+- id: WEB-FILE-011
+  sheet: WEB
+  category: FILE
+  title: Test served filenames for header and injection safety
+  objective: Finds filenames reflected in response headers or email attachments without encoding against injection.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Upload a file whose name contains CRLF sequences or special characters.
+  - Download the file and inspect the Content-Disposition header for injected header fields.
+  - If files are emailed as attachments, check the attachment filename for the same encoding.
+  example: 'filename="normal.txt\r\nX-Injected: true" uploaded then downloaded to inspect the response header'
+  expected: Served filenames are encoded or sanitized following RFC 6266 so they cannot inject headers or break document structure.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V5.4.2
+    cwe:
+    - CWE-93
+    - CWE-113
+    capec:
+    - CAPEC-34
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-FILE-012
+  sheet: WEB
+  category: FILE
+  title: Test files from untrusted sources for antivirus scanning
+  objective: Finds files obtained from third parties or users that are served without malware scanning.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify files obtained from an untrusted source, such as a partner feed or a public upload area.
+  - Confirm whether an antivirus or content-scanning step runs before the file is made available to other users.
+  - Upload the EICAR test file through the untrusted-source path and confirm detection.
+  example: Upload the EICAR string through a partner-integration or public upload path and confirm it is scanned before being served
+  expected: All files from untrusted sources are scanned by an antivirus engine before being served to other users.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V5.4.3
+    cheatsheet:
+    - File_Upload_Cheat_Sheet
+    cwe:
+    - CWE-434
+    capec:
+    - CAPEC-650
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/File_Upload_Cheat_Sheet.md
+- id: WEB-FILE-013
+  sheet: WEB
+  category: FILE
+  title: Test rejection of unexpected file types at upload
+  objective: Finds upload features that accept file types outside the documented allowlist.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Review the documentation for file types the feature should reject.
+  - Prepare files of disallowed types, including an HTML file containing a script and an executable.
+  - Upload each disallowed file type and confirm it is rejected, not merely hidden from the UI.
+  example: Upload a .jsp, .exe and an HTML file containing <script>alert(1)</script> to an image-only upload feature
+  expected: The server rejects every file type outside the documented allowlist, independent of any client-side check.
+  severity: High
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-BUSL-08
+    cheatsheet:
+    - File_Upload_Cheat_Sheet
+    cwe:
+    - CWE-434
+    capec:
+    - CAPEC-650
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/10-Business_Logic/08-Upload_of_Unexpected_File_Types.md
+  - sources/repos/CheatSheetSeries/cheatsheets/File_Upload_Cheat_Sheet.md

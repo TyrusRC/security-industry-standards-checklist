@@ -1,0 +1,167 @@
+- id: CLD-SEC-001
+  sheet: CLD
+  category: SEC
+  title: Check access control and audit records of the cloud secret store
+  objective: Finds secret stores where many identities can read all secrets and reads leave no record.
+  steps:
+  - List the identities that can read, write or delete secrets.
+  - Check that each workload can read only its own secrets.
+  - Read a test secret and find the audit record.
+  - Check for an alert when a secret is read from an unexpected source.
+  example: aws secretsmanager list-secrets; aws secretsmanager get-resource-policy --secret-id <id>; az keyvault show -n <v> --query properties.enableRbacAuthorization; gcloud secrets get-iam-policy <s>; query the audit log for the read event
+  expected: Access is scoped per secret and per workload. Each read is logged with identity and source, and unusual reads raise an alert.
+  severity: High
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-5
+    - CNAS-3
+    cheatsheet:
+    - Secrets_Management_Cheat_Sheet
+    cwe:
+    - CWE-284
+    - CWE-522
+    attack:
+    - T1555.006
+    nist_800_53:
+    - AC-6
+    - AU-2
+  see:
+  - K8S-SEC-008
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x05_insecure_secrets.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x03_improper_auth.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+- id: CLD-SEC-002
+  sheet: CLD
+  category: SEC
+  title: Find secrets in function settings, instance data and environment variables
+  objective: Finds credentials stored in platform configuration where many readers and tools can see them.
+  steps:
+  - List environment variables of functions, containers and VM templates.
+  - List instance user data and startup scripts.
+  - Search them for passwords, tokens and keys.
+  - Check that code fetches secrets from a vault at run time.
+  example: aws lambda get-function-configuration --function-name <f> --query Environment; aws ec2 describe-instance-attribute --instance-id <i> --attribute userData; az functionapp config appsettings list; gcloud functions describe <f>
+  expected: Platform configuration holds no secret values. Code fetches secrets at run time from a secret store with a short-lived identity.
+  severity: High
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-5
+    cheatsheet:
+    - Serverless_FaaS_Security_Cheat_Sheet
+    - Secrets_Management_Cheat_Sheet
+    cwe:
+    - CWE-798
+    - CWE-312
+    attack:
+    - T1552.001
+    - T1552.005
+    nist_800_53:
+    - IA-5
+    - SC-28
+  see:
+  - CICD-CRED-003
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x05_insecure_secrets.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Serverless_FaaS_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+- id: CLD-SEC-003
+  sheet: CLD
+  category: SEC
+  title: Check secret rotation, expiry and revocation
+  objective: Finds credentials that never rotate and so stay valid after a leak.
+  steps:
+  - List secrets with their creation and last rotation date.
+  - Find secrets that exceed the rotation period.
+  - Check that rotation runs automatically.
+  - Revoke a test secret and check that its use fails.
+  example: aws secretsmanager describe-secret --secret-id <id> --query "[RotationEnabled,LastRotatedDate]"; az keyvault secret list --vault-name <v> --query "[].attributes.expires"; gcloud secrets versions list <s>
+  expected: Secrets rotate on a set schedule and carry an expiry date. A revoked secret stops working in the agreed time.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-5
+    cheatsheet:
+    - Secrets_Management_Cheat_Sheet
+    cwe:
+    - CWE-798
+    attack:
+    - T1552.001
+    nist_800_53:
+    - IA-5
+    - SC-12
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x05_insecure_secrets.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+- id: CLD-SEC-004
+  sheet: CLD
+  category: SEC
+  title: Check key management and envelope encryption for stored data
+  objective: Finds keys with broad use rights, no rotation or no separation from the data owners.
+  steps:
+  - List the encryption keys and their policies.
+  - Find keys that many identities can use or manage.
+  - Check key rotation settings.
+  - Check that key administration and key use are held by different roles.
+  example: aws kms list-keys; aws kms get-key-policy --key-id <k> --policy-name default; aws kms get-key-rotation-status --key-id <k>; az keyvault key list --vault-name <v>; gcloud kms keys list --keyring <r> --location <l>
+  expected: Keys have narrow policies, automatic rotation, and separate roles for administration and use.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-5
+    cheatsheet:
+    - Secrets_Management_Cheat_Sheet
+    cwe:
+    - CWE-311
+    attack:
+    - T1552.004
+    nist_800_53:
+    - SC-12
+    - SC-13
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x05_insecure_secrets.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+- id: CLD-SEC-005
+  sheet: CLD
+  category: SEC
+  title: Scan repositories, storage and images for secrets
+  objective: Finds credentials that leaked into code, buckets, logs or images.
+  steps:
+  - Scan the repositories and their history for secrets.
+  - Scan storage buckets for key files, backups and config files.
+  - Scan images and logs for tokens.
+  - Revoke and rotate each credential found.
+  example: gitleaks detect --source <repo>; trufflehog git file://<repo>; trivy image --scanners secret <image>; aws s3 sync s3://<b> ./copy (scan the copy)
+  expected: No live credential is found. Each credential found is revoked and rotated, and its source is fixed.
+  severity: High
+  test_type: Automated
+  refs:
+    cloud_native_top10:
+    - CNAS-5
+    cheatsheet:
+    - Secrets_Management_Cheat_Sheet
+    - Infrastructure_as_Code_Security_Cheat_Sheet
+    cwe:
+    - CWE-798
+    attack:
+    - T1552.001
+    - T1530
+    nist_800_53:
+    - IA-5
+    - RA-5
+  see:
+  - CICD-CRED-001
+  - CICD-CRED-005
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x05_insecure_secrets.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Infrastructure_as_Code_Security_Cheat_Sheet.md

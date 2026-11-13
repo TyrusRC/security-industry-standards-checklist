@@ -1,0 +1,65 @@
+- id: WEB-EMAIL-001
+  sheet: WEB
+  category: EMAIL
+  title: Test email address normalization for duplicate and look-alike accounts
+  objective: Find identity flows that treat one email address in different ways, which allows duplicate, merged or spoofed accounts.
+  steps:
+  - Register an account with a mixed-case domain and then register again with a lowercase domain.
+  - Register with a different case in the local part and with plus tags and dots.
+  - Register with a Cyrillic or other look-alike character in the local part and in the domain.
+  - Use the variants in login, password reset and account linking and look at which account answers.
+  - Make sure the stored address keeps the original form and the comparison policy is the same in every flow.
+  example: user@Example.com vs user@example.com; usеr@example.com (Cyrillic e); user+tag@example.com; xn-- punycode domain
+  expected: The application applies one documented comparison policy in all flows. Look-alike and equivalent addresses cannot take over or merge with another account.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    owasp_top10:
+    - A07:2025
+    cheatsheet:
+    - Email_Validation_and_Verification_Cheat_Sheet
+    wstg:
+    - WSTG-IDNT-04
+    cwe:
+    - CWE-289
+    - CWE-180
+    other:
+    - 'OWASP DevGuide web app checklist: 06-digital-identity.md'
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Email_Validation_and_Verification_Cheat_Sheet.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/03-Identity_Management/04-Account_Enumeration_and_Guessable_User_Account.md
+  - sources/repos/DevGuide/docs/en/04-design/02-web-app-checklist/06-digital-identity.md
+- id: WEB-EMAIL-002
+  sheet: WEB
+  category: EMAIL
+  title: Test email ownership verification and the email change workflow
+  objective: Find flows that let an attacker use or take over an account with an email address that the attacker does not own.
+  steps:
+  - Register and try to use the account before you open the verification link.
+  - Examine the verification tokens for randomness, single use, and expiry.
+  - Change the email address and check that the new address needs confirmation before it becomes active.
+  - Check that the old address gets a notice and that re-authentication is needed.
+  - Change the address in the request to another user address and look at the result.
+  - Look in logs for full addresses and for tokens in URLs.
+  example: Burp Repeater on POST /account/email; compare token values from three registrations; open the same link twice
+  expected: The account stays inactive until the address is verified. Tokens are random, single-use and expire. A change needs re-authentication and confirmation, and the old address gets a notice.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    owasp_top10:
+    - A07:2025
+    cheatsheet:
+    - Email_Validation_and_Verification_Cheat_Sheet
+    wstg:
+    - WSTG-IDNT-02
+    cwe:
+    - CWE-640
+    - CWE-620
+    other:
+    - 'OWASP DevGuide web app checklist: 06-digital-identity.md'
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Email_Validation_and_Verification_Cheat_Sheet.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/03-Identity_Management/02-User_Registration_Process.md
+  - sources/repos/DevGuide/docs/en/04-design/02-web-app-checklist/06-digital-identity.md

@@ -1,0 +1,393 @@
+- id: NET-AD-001
+  sheet: NET
+  category: AD
+  title: Review membership of privileged and operator groups in Active Directory
+  objective: Finds accounts, service accounts and nested groups that hold domain-wide admin or operator rights without need.
+  preconditions: &id001
+  - Read access to Active Directory (a standard domain user is enough for most steps).
+  - Read-only review. Do not reset passwords or change group membership on production.
+  steps:
+  - List the members of Domain Admins, Enterprise Admins, Schema Admins and Administrators. Include nested groups.
+  - List the members of Server Operators, Backup Operators, Print Operators and Account Operators.
+  - Note each service account and each stale account (no logon for 90 days) in these groups.
+  - Ask the owner of each account for a written reason.
+  - Make sure each privileged person uses a separate admin account.
+  example: Get-ADGroupMember "Domain Admins" -Recursive | Select SamAccountName,objectClass ; Get-ADGroupMember "Backup Operators" -Recursive ; Get-ADUser -Filter {ServicePrincipalName -like "*"} -Properties MemberOf,LastLogonDate
+  expected: Privileged groups hold only named admin accounts with a recorded reason. Operator groups are empty or hold documented members. No service account or stale account is a member.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1078.002
+    capec:
+    - CAPEC-122
+    nist_800_53:
+    - AC-6
+    - AC-6(5)
+    - AC-2
+    other:
+    - https://learn.microsoft.com/defender-for-identity/security-posture-assessments/accounts
+    - 'MDI assessments: service accounts in privileged groups, operator groups'
+  sources_read:
+  - sources/extra/gap3-B/mdi-accounts-posture.md
+- id: NET-AD-002
+  sheet: NET
+  category: AD
+  title: Check that admin accounts belong to Protected Users and tier limits
+  objective: Finds admin accounts that can leave NTLM, RC4 or unlimited-lifetime tickets on member hosts.
+  preconditions: *id001
+  steps:
+  - List the members of the Protected Users group.
+  - Compare the list with the members of the privileged groups.
+  - Make sure no service account or computer account is in Protected Users.
+  - Make sure the domain functional level is Windows Server 2012 R2 or higher.
+  - Look at authentication policies and silos in Active Directory Administrative Center. Note the TGT lifetime and the allowed devices for admin accounts.
+  - Note that the built-in Administrator (RID 500) is exempt from authentication policies.
+  example: Get-ADGroupMember "Protected Users" ; (Get-ADDomain).DomainMode ; Get-ADAuthenticationPolicy -Filter * ; Get-ADAuthenticationPolicySilo -Filter *
+  expected: Interactive admin accounts are in Protected Users, or an authentication policy limits where they sign in. Service and computer accounts are not members.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1550.002
+    - T1003.001
+    capec:
+    - CAPEC-644
+    nist_800_53:
+    - AC-6(5)
+    - IA-2
+    other:
+    - https://learn.microsoft.com/windows-server/security/credentials-protection-and-management/protected-users-security-group
+    - https://learn.microsoft.com/windows-server/security/credentials-protection-and-management/how-to-configure-protected-accounts
+  sources_read:
+  - sources/extra/gap3-B/protected-users-security-group.md
+  - sources/extra/gap3-B/how-to-configure-protected-accounts.md
+- id: NET-AD-003
+  sheet: NET
+  category: AD
+  title: Check that privileged accounts have the sensitive-and-cannot-be-delegated flag
+  objective: Finds privileged accounts that a service can impersonate through Kerberos delegation.
+  preconditions: *id001
+  steps:
+  - List all members of the privileged groups.
+  - Read the UserAccountControl value of each account.
+  - Look for the NOT_DELEGATED flag (0x100000).
+  - Do the same for privileged computer accounts.
+  example: Get-ADUser -Filter * -Properties AccountNotDelegated,MemberOf | Where {$_.AccountNotDelegated -eq $false} ; Get-ADGroupMember "Domain Admins" -Recursive | Get-ADUser -Properties AccountNotDelegated
+  expected: Every Domain Admin, Enterprise Admin and privileged service account has "Account is sensitive and cannot be delegated" set, or is in Protected Users.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1558
+    - T1134
+    nist_800_53:
+    - AC-6(5)
+    other:
+    - https://learn.microsoft.com/defender-for-identity/security-posture-assessments/accounts#ensure-privileged-accounts-are-not-delegated
+    - https://learn.microsoft.com/windows-server/security/credentials-protection-and-management/how-to-configure-protected-accounts
+  sources_read:
+  - sources/extra/gap3-B/mdi-accounts-posture.md
+  - sources/extra/gap3-B/how-to-configure-protected-accounts.md
+  - sources/extra/gap3-B/protected-users-security-group.md
+- id: NET-AD-004
+  sheet: NET
+  category: AD
+  title: Find unconstrained, constrained and resource-based delegation on non-DC objects
+  objective: Finds servers and accounts that can act for any user, including a domain admin, towards other services.
+  preconditions: *id001
+  steps:
+  - Search for computers and users with the TrustedForDelegation flag. Ignore domain controllers.
+  - Search for objects that have a value in msDS-AllowedToDelegateTo.
+  - Look for the protocol transition flag (TrustedToAuthForDelegation) on these objects.
+  - Search for objects that have a value in msDS-AllowedToActOnBehalfOfOtherIdentity.
+  - Note any entry that points to a sensitive service, such as a domain controller.
+  - Make sure each remaining entry has a business owner.
+  example: Get-ADComputer -Filter {TrustedForDelegation -eq $true} ; Get-ADUser -Filter {TrustedForDelegation -eq $true} ; Get-ADObject -LDAPFilter "(msDS-AllowedToDelegateTo=*)" -Properties msDS-AllowedToDelegateTo ; Get-ADComputer -Filter * -Properties PrincipalsAllowedToDelegateToAccount
+  expected: Only domain controllers use unconstrained delegation. Each constrained or resource-based entry has an owner and does not point to a sensitive service or user.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1558
+    - T1134
+    capec:
+    - CAPEC-122
+    nist_800_53:
+    - AC-6
+    - AC-3
+    other:
+    - https://learn.microsoft.com/defender-for-identity/security-posture-assessments/accounts#unsecure-kerberos-delegation
+    - https://learn.microsoft.com/windows-server/security/kerberos/kerberos-constrained-delegation-overview
+  sources_read:
+  - sources/extra/gap3-B/mdi-accounts-posture.md
+  - sources/extra/gap3-B/kerberos-constrained-delegation-overview.md
+- id: NET-AD-005
+  sheet: NET
+  category: AD
+  title: Check service accounts with SPNs for gMSA use and password age
+  objective: Finds user accounts with an SPN whose weak or old password an attacker can crack offline.
+  preconditions: *id001
+  steps:
+  - List all user accounts that have a ServicePrincipalName.
+  - Note the password last set date and the password policy of each account.
+  - Note the accounts that are not gMSA, sMSA or dMSA.
+  - Look for privileged accounts in this list.
+  - Look at the supported Kerberos encryption types of each account.
+  - Ask the owner whether the service can use a managed service account.
+  example: Get-ADUser -Filter {ServicePrincipalName -like "*"} -Properties ServicePrincipalName,PasswordLastSet,msDS-SupportedEncryptionTypes,MemberOf ; Get-ADServiceAccount -Filter * ; Get-ADDefaultDomainPasswordPolicy
+  expected: Services use managed service accounts. Each remaining SPN account has a long random password, no privileged group membership and AES encryption types.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1558.003
+    capec:
+    - CAPEC-509
+    - CAPEC-652
+    cwe:
+    - CWE-521
+    nist_800_53:
+    - IA-5
+    - AC-6
+    other:
+    - https://learn.microsoft.com/defender-for-identity/security-posture-assessments/accounts
+    - https://learn.microsoft.com/windows-server/identity/ad-ds/manage/understand-service-accounts
+    - CAPEC-509 mitigations
+  sources_read:
+  - sources/extra/gap3-B/mdi-accounts-posture.md
+  - sources/extra/gap3-B/understand-service-accounts.md
+  - sources/capec/capec_latest.xml
+  see:
+  - NET-CRED-004
+- id: NET-AD-006
+  sheet: NET
+  category: AD
+  title: Find account attributes that weaken Kerberos or password protection
+  objective: Finds accounts with no pre-authentication, DES, reversible encryption or no password requirement.
+  preconditions: *id001
+  steps:
+  - Search for accounts with the flag Do not require Kerberos preauthentication.
+  - Search for accounts with Use Kerberos DES encryption types.
+  - Search for accounts with Store password using reversible encryption.
+  - Search for accounts with Password not required.
+  - Search for user accounts that have no AES encryption type set.
+  - Note the accounts that fail and the privilege of each.
+  example: Get-ADUser -Filter {DoesNotRequirePreAuth -eq $true} ; Get-ADUser -Filter {UseDESKeyOnly -eq $true} ; Get-ADUser -Filter {AllowReversiblePasswordEncryption -eq $true} ; Get-ADUser -Filter {PasswordNotRequired -eq $true}
+  expected: No account has these attributes. Every account that uses Kerberos has AES enabled.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1558.004
+    - T1558.003
+    capec:
+    - CAPEC-509
+    cwe:
+    - CWE-257
+    - CWE-327
+    nist_800_53:
+    - IA-5
+    - SC-13
+    other:
+    - https://learn.microsoft.com/defender-for-identity/security-posture-assessments/accounts#unsecure-account-attributes
+  sources_read:
+  - sources/extra/gap3-B/mdi-accounts-posture.md
+  - sources/capec/capec_latest.xml
+- id: NET-AD-007
+  sheet: NET
+  category: AD
+  title: Check the krbtgt and built-in Administrator password age
+  objective: Finds a krbtgt key that is old enough for an attacker to reuse stolen keys to forge tickets.
+  preconditions: *id001
+  steps:
+  - Read the PasswordLastSet value of the krbtgt account in each domain.
+  - Compare it to the limit of 180 days.
+  - Read the PasswordLastSet value of the built-in Administrator account.
+  - Ask the owner for the date of the last double reset of krbtgt.
+  example: Get-ADUser krbtgt -Properties PasswordLastSet ; Get-ADUser -Filter {SamAccountName -eq "Administrator"} -Properties PasswordLastSet
+  expected: The krbtgt password changed in the last 180 days, with two resets at least 10 hours apart. The built-in Administrator password is current.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1558.001
+    nist_800_53:
+    - IA-5
+    other:
+    - https://learn.microsoft.com/defender-for-identity/security-posture-assessments/accounts#change-password-for-krbtgt-account
+  sources_read:
+  - sources/extra/gap3-B/mdi-accounts-posture.md
+- id: NET-AD-008
+  sheet: NET
+  category: AD
+  title: Check that Windows LAPS manages local administrator passwords on all hosts
+  objective: Finds hosts that share one local administrator password, which allows lateral movement.
+  preconditions: *id001
+  steps:
+  - List the computer objects in the domain. Read the Windows LAPS attributes for each.
+  - Note the hosts with no LAPS password or with a password older than the policy age.
+  - 'Read the LAPS policy: account name, password age, length and complexity.'
+  - Make sure domain controllers back up the DSRM password.
+  - Look for the legacy LAPS client extension on hosts that use native Windows LAPS.
+  example: Get-ADComputer -Filter * -Properties msLAPS-PasswordExpirationTime,ms-Mcs-AdmPwdExpirationTime | Where {-not $_."msLAPS-PasswordExpirationTime" -and -not $_."ms-Mcs-AdmPwdExpirationTime"} ; Get-LapsADPassword -Identity <host> (read only for the test host) ; gpresult /h gp.html
+  expected: Every managed host has a unique password with a future expiry. The policy sets a length and a rotation age. Domain controllers back up the DSRM password.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1078.003
+    - T1550.002
+    capec:
+    - CAPEC-644
+    cwe:
+    - CWE-798
+    nist_800_53:
+    - IA-5
+    - AC-6
+    other:
+    - https://learn.microsoft.com/windows-server/identity/laps/laps-overview
+    - https://learn.microsoft.com/defender-for-identity/security-posture-assessments/accounts#microsoft-laps-usage
+  sources_read:
+  - sources/extra/gap3-B/laps-overview.md
+  - sources/extra/gap3-B/mdi-accounts-posture.md
+  see:
+  - NET-CRED-001
+- id: NET-AD-009
+  sheet: NET
+  category: AD
+  title: Review who can read or reset Windows LAPS passwords
+  objective: Finds accounts that can read local administrator passwords and so become local admins everywhere.
+  preconditions: *id001
+  steps:
+  - Read the ACL on each OU that holds managed computers. Find the extended right to read the LAPS password attributes.
+  - List the principals that hold this right.
+  - Make sure password encryption is on in the LAPS policy and that only named groups can decrypt.
+  - Look for the event log entries that record password reads.
+  example: Find-LapsADExtendedRights -Identity "OU=Servers,DC=corp,DC=example" ; Get-LapsAADPassword is for Entra ID ; Get-WinEvent -LogName "Microsoft-Windows-LAPS/Operational"
+  expected: Only named admin groups can read or reset LAPS passwords. Password encryption is on. Reads leave an audit event.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1078.003
+    cwe:
+    - CWE-732
+    nist_800_53:
+    - AC-6
+    - AC-3
+    - IA-5
+    other:
+    - https://learn.microsoft.com/windows-server/identity/laps/laps-overview
+  sources_read:
+  - sources/extra/gap3-B/laps-overview.md
+- id: NET-AD-010
+  sheet: NET
+  category: AD
+  title: Find non-admin accounts that hold directory replication rights
+  objective: Finds accounts that can copy password hashes from a domain controller (DCSync).
+  preconditions: *id001
+  steps:
+  - Read the ACL on the domain root object.
+  - Find the rights Replicating Directory Changes and Replicating Directory Changes All.
+  - List each principal that holds both rights.
+  - Note each principal that is not a domain controller, Domain Admin or Enterprise Admin.
+  - Note service accounts, such as sync accounts, and the owner of each.
+  example: (Get-Acl "AD:DC=corp,DC=example").Access | Where {$_.ObjectType -in "1131f6aa-9c07-11d1-f79f-00c04fc2dcd2","1131f6ad-9c07-11d1-f79f-00c04fc2dcd2"} | Select IdentityReference,ObjectType
+  expected: Only domain controllers and a short list of documented admin groups hold the two replication rights.
+  severity: Critical
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1003.006
+    cwe:
+    - CWE-732
+    nist_800_53:
+    - AC-6
+    - AC-3
+    other:
+    - https://learn.microsoft.com/defender-for-identity/security-posture-assessments/accounts#remove-non-admin-accounts-with-dcsync-permissions
+  sources_read:
+  - sources/extra/gap3-B/mdi-accounts-posture.md
+- id: NET-AD-011
+  sheet: NET
+  category: AD
+  title: Find non-admin write rights on sensitive groups and AdminSDHolder
+  objective: Finds identities that can change membership or ACLs of privileged groups.
+  preconditions: *id001
+  steps:
+  - Read the ACL of Domain Admins, Enterprise Admins and Administrators.
+  - Look for WriteDACL, WriteOwner, GenericAll and member write rights held by non-admin identities.
+  - Read the ACL of the AdminSDHolder object in the System container.
+  - Note any non-sensitive account on this ACL.
+  - Look for the event that records a change to AdminSDHolder.
+  example: (Get-Acl "AD:CN=AdminSDHolder,CN=System,DC=corp,DC=example").Access ; (Get-Acl "AD:CN=Domain Admins,CN=Users,DC=corp,DC=example").Access | Where {$_.ActiveDirectoryRights -match "WriteDacl|WriteOwner|GenericAll|WriteProperty"}
+  expected: Only privileged groups and system principals hold write rights on sensitive groups and on AdminSDHolder.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1222.001
+    - T1098
+    cwe:
+    - CWE-732
+    nist_800_53:
+    - AC-6
+    - AC-3
+    other:
+    - https://learn.microsoft.com/defender-for-identity/security-posture-assessments/accounts#remove-access-rights-on-suspicious-accounts-with-the-admin-sdholder-permission
+    - https://learn.microsoft.com/defender-for-identity/security-posture-assessments/accounts#ensure-non-admin-identities-cannot-have-writedacl-permissions-on-sensitive-groups
+  sources_read:
+  - sources/extra/gap3-B/mdi-accounts-posture.md
+- id: NET-AD-012
+  sheet: NET
+  category: AD
+  title: 'Review admin sign-in restrictions: log on rights and authentication policy silos'
+  objective: Finds admin accounts that can sign in to low-trust hosts and leave credentials there.
+  preconditions: *id001
+  steps:
+  - Read the user rights "Deny log on locally" and "Deny access to this computer from the network".
+  - Note whether the privileged groups are in these deny lists for hosts of a lower tier.
+  - Read the authentication policies and silos for admin accounts.
+  - Read the Log On To restriction of privileged service accounts.
+  example: gpresult /h gp.html ; secedit /export /cfg sec.inf (read SeDenyInteractiveLogonRight and SeDenyNetworkLogonRight) ; Get-ADAuthenticationPolicy -Filter * | fl
+  expected: Domain admin accounts cannot sign in to workstations or member servers outside their tier. Authentication policies or deny rights enforce this.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    attack:
+    - T1078.002
+    - T1003.001
+    nist_800_53:
+    - AC-6
+    - AC-6(1)
+    other:
+    - https://learn.microsoft.com/windows-server/security/credentials-protection-and-management/how-to-configure-protected-accounts
+    - https://learn.microsoft.com/defender-for-identity/security-posture-assessments/accounts#identify-service-accounts-in-privileged-groups
+  sources_read:
+  - sources/extra/gap3-B/how-to-configure-protected-accounts.md
+  - sources/extra/gap3-B/mdi-accounts-posture.md

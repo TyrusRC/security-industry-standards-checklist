@@ -1,0 +1,158 @@
+- id: DESK-COMM-001
+  sheet: DESK
+  category: COMM
+  title: Capture client traffic and find clear-text protocols
+  objective: Finds HTTP, FTP, Telnet, MQTT or plain database traffic.
+  steps:
+  - Start Wireshark on the client interface.
+  - Use all main functions.
+  - List all protocols and ports in the capture.
+  - Look for credentials and data in clear text.
+  example: Wireshark display filter !tls && !ssh; tshark -r cap.pcap -q -z conv,tcp.
+  expected: All client traffic uses TLS or another encrypted protocol. No credentials or data appear in clear text.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-319
+    cheatsheet:
+    - Transport_Layer_Security_Cheat_Sheet
+    asvs:
+    - V12.3.1
+    wstg:
+    - WSTG-CRYP-03
+    desktop_top10:
+    - DA7
+  see:
+  - WEB-TLS-006
+  - WEB-TLS-005
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Transport_Layer_Security_Cheat_Sheet.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/09-Weak_Cryptography/03-Sensitive_Information_Sent_via_Unencrypted_Channels.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-COMM-002
+  sheet: DESK
+  category: COMM
+  title: Check TLS versions and cipher suites of all client endpoints
+  objective: Finds old protocol versions and weak ciphers.
+  steps:
+  - List all server hosts and ports from the capture.
+  - Scan each endpoint for protocol versions and ciphers.
+  - Check the database connection for TLS.
+  - Compare with the approved list.
+  example: nmap --script ssl-enum-ciphers -p 443,1433 host; testssl.sh host:port.
+  expected: All endpoints accept only TLS 1.2 and TLS 1.3 with strong ciphers.
+  severity: Medium
+  test_type:
+  - Automated
+  refs:
+    cwe:
+    - CWE-327
+    cheatsheet:
+    - Transport_Layer_Security_Cheat_Sheet
+    asvs:
+    - V12.1.1
+    desktop_top10:
+    - DA7
+  see:
+  - WEB-TLS-001
+  - WEB-TLS-002
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Transport_Layer_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-COMM-003
+  sheet: DESK
+  category: COMM
+  title: Test certificate validation in the client with an untrusted certificate
+  objective: Finds clients that accept wrong, expired or self-signed certificates.
+  steps:
+  - Route the client through a proxy with its own CA.
+  - Start the client without the CA in the trust store.
+  - Watch if the client connects.
+  - Repeat with an expired certificate and a wrong host name.
+  example: Burp Suite or mitmproxy with a fresh CA; look for certificate errors in the client log.
+  expected: The client refuses all untrusted, expired and wrong-host certificates and sends no data.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-295
+    - CWE-297
+    cheatsheet:
+    - Pinning_Cheat_Sheet
+    - Transport_Layer_Security_Cheat_Sheet
+    asvs:
+    - V12.3.2
+    desktop_top10:
+    - DA7
+  see:
+  - WEB-TLS-010
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Pinning_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Transport_Layer_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-COMM-004
+  sheet: DESK
+  category: COMM
+  title: Check certificate pinning for critical hosts
+  objective: Finds high-risk clients without a pin for the update or API host.
+  steps:
+  - Find the hosts that carry updates and credentials.
+  - Look in the code for pin checks or custom validation callbacks.
+  - Install a trusted proxy CA and try to read the traffic.
+  - Make sure no callback returns true for all.
+  example: ILSpy search for ServerCertificateValidationCallback that returns true; Electron setCertificateVerifyProc.
+  expected: The client pins keys for critical hosts or validates the full chain. No callback accepts every certificate.
+  severity: Medium
+  test_type:
+  - Manual
+  - Code Review
+  refs:
+    cwe:
+    - CWE-295
+    cheatsheet:
+    - Pinning_Cheat_Sheet
+    desktop_top10:
+    - DA7
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Pinning_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-COMM-005
+  sheet: DESK
+  category: COMM
+  title: Check database connections for encryption and least privilege
+  objective: Finds clients that use a shared database account over a plain channel.
+  steps:
+  - Find the connection string in the config or code.
+  - Capture the database traffic.
+  - Look for TLS in the handshake.
+  - Check the rights of the database account.
+  example: 'Wireshark on port 1433, 3306 or 5432; SQL: SELECT * FROM fn_my_permissions(NULL,NULL).'
+  expected: The connection uses TLS. Each user or the service has an account with the least rights. The client holds no admin database account.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-319
+    - CWE-250
+    asvs:
+    - V13.2.2
+    desktop_top10:
+    - DA7
+    - DA3
+    - DA5
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/cwe/cwec_latest.xml.zip

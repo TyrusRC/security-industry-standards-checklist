@@ -1,0 +1,29 @@
+- id: CICD-TPS-007
+  sheet: CICD
+  category: TPS
+  title: Check actions for impostor commits and a delay before updates
+  objective: Finds pinned actions whose commit comes from a fork and update tools that adopt new releases at once.
+  steps:
+  - List each third-party action and reusable workflow with its pinned commit hash.
+  - Make sure each commit belongs to the named organization and repository.
+  - Read the Dependabot or Renovate configuration for actions.
+  - Make sure the configuration has a delay between a release and its adoption.
+  example: 'zizmor --pedantic .github/workflows/  # impostor-commit rule; cat .github/dependabot.yml  # cooldown'
+  expected: Each pinned commit exists in the named repository. Automatic updates wait a defined number of days before they adopt a release.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    cicd_top10:
+    - CICD-SEC-3
+    - CICD-SEC-8
+    cheatsheet:
+    - GitHub_Actions_Security_Cheat_Sheet
+    cwe:
+    - CWE-829
+    - CWE-494
+    attack:
+    - T1195.002
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/GitHub_Actions_Security_Cheat_Sheet.md

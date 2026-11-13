@@ -1,0 +1,63 @@
+- id: K8S-SEC-009
+  sheet: K8S
+  category: SEC
+  title: Check etcd disposal, swap use and secret scope in pods
+  objective: Finds places where secret data stays on disk or reaches containers that do not need it.
+  steps:
+  - Check if old etcd storage is wiped or shredded when it is no longer in use.
+  - Check the swap setting of each node and the encryption of swap space.
+  - List pods with several containers and check which containers mount each secret.
+  - Check that secret manifests are not in source repositories.
+  example: swapon --show; kubectl get pods -A -o json | jq ".items[] | select(.spec.containers|length>1) | .metadata.name"
+  expected: Old etcd storage is wiped. Swap is off or encrypted, and each secret is mounted only in the containers that need it.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K03
+    cloud_native_top10:
+    - CNAS-5
+    cwe:
+    - CWE-312
+    nist_800_53:
+    - SC-28
+    other:
+    - 'Kubernetes docs: secrets-good-practices.md'
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Network separation and hardening, Secrets
+  sources_read:
+  - sources/repos/k8s-website/content/en/docs/concepts/security/secrets-good-practices.md
+  - sources/nsa_k8s/nsa_k8s_hardening.md
+- id: K8S-SEC-010
+  sheet: K8S
+  category: SEC
+  title: Check the KMS provider setup for the Secret encryption key
+  objective: Finds clusters where the key for Secret encryption sits on the same node as the data.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Read the encryption configuration file and find the provider type for secrets.
+  - Check if a KMS provider holds the key, so the raw key is not on the local disk.
+  - Check the access policy and the audit log of the KMS key.
+  - Check the process to rotate the key and to rewrite all Secrets.
+  example: cat /etc/kubernetes/enc/encryption-config.yaml; kubectl get secrets -A -o json | kubectl replace -f -
+  expected: A KMS provider holds the key outside the node. Key use is logged and the key is rotated. Secrets are rewritten after each key change.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K03
+    cloud_native_top10:
+    - CNAS-5
+    cwe:
+    - CWE-311
+    nist_800_53:
+    - SC-12
+    - SC-28
+    other:
+    - 'Kubernetes docs: secrets-good-practices.md'
+    - 'Kubernetes docs: securing-a-cluster.md'
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Network separation and hardening, Secrets
+  sources_read:
+  - sources/repos/k8s-website/content/en/docs/concepts/security/secrets-good-practices.md
+  - sources/repos/k8s-website/content/en/docs/tasks/administer-cluster/securing-a-cluster.md
+  - sources/nsa_k8s/nsa_k8s_hardening.md

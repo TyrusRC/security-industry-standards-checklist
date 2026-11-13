@@ -1,0 +1,325 @@
+- id: PCI-KEY-001
+  sheet: PCI
+  category: KEY
+  title: Check that keys for stored account data resist disclosure and misuse
+  objective: Find keys that protect stored account data and that people or processes can read or use without a need.
+  preconditions:
+  - Access to the key management system
+  steps:
+  - Ask for the procedures that protect the keys used to encrypt stored account data.
+  - List all data-encrypting keys and key-encrypting keys with their owners and uses.
+  - Examine who and what can read each key and who and what can call it for decrypt operations.
+  - Make sure each key has one purpose and the application can use it only through its own identity.
+  - Look at the key use logs for calls from unknown identities.
+  example: aws kms get-key-policy; vault policy read; openssl list key stores; review HSM partition roles
+  expected: The procedures protect the keys against disclosure and misuse. Only named identities with a need can use or read each key.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 3.6.1
+    cwe:
+    - CWE-522
+    nist_800_53:
+    - SC-12
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-KEY-002
+  sheet: PCI
+  category: KEY
+  title: Check the cryptographic architecture document of the service provider
+  objective: Find service providers with no current description of the cryptography that protects account data.
+  preconditions:
+  - Service provider scope
+  steps:
+  - Ask for the cryptographic architecture document.
+  - Make sure it lists the algorithms, protocols, key strengths and the key expiry date.
+  - Make sure it names each key with its purpose and where it is used.
+  - Make sure it lists each hardware security module and other secure cryptographic device.
+  - Compare five entries with the real systems.
+  example: Document review; compare with the cryptographic inventory and the key store export
+  expected: A current document describes the algorithms, protocols, key strengths, key uses, expiry dates and secure devices. The document matches the real systems.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    pci_dss:
+    - 3.6.1.1
+    nist_800_53:
+    - SC-12
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-KEY-003
+  sheet: PCI
+  category: KEY
+  title: Check that secret and private keys are stored only in approved forms
+  objective: Find data-encrypting keys that are stored in clear text next to the data they protect.
+  preconditions:
+  - Access to the hosts and the key store
+  steps:
+  - List where each secret and private key for account data is stored.
+  - Make sure each key has a key-encrypting key, a secure cryptographic device or split key components.
+  - Make sure the key-encrypting key is at least as strong as the key it protects.
+  - Make sure the key-encrypting key is stored apart from the data-encrypting key.
+  - Search configuration files, code and environment variables for a clear-text key.
+  example: grep -rE 'BEGIN (RSA |EC )?PRIVATE KEY' /app /etc; check the HSM or KMS key wrapping settings
+  expected: Every secret and private key exists only as an encrypted key, in a secure cryptographic device, or as split components. The key-encrypting key is separate.
+  severity: Critical
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 3.6.1.2
+    - 3.7.3
+    cwe:
+    - CWE-321
+    - CWE-312
+    nist_800_53:
+    - SC-12
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-KEY-004
+  sheet: PCI
+  category: KEY
+  title: Check that few custodians can access clear-text key components
+  objective: Find clear-text key components that too many people can reach.
+  preconditions:
+  - Access to key management records
+  steps:
+  - Ask for the list of key custodians and the key components each person holds.
+  - Compare the list with the key ceremony records and the access list of the key store.
+  - Make sure no person has access to a full clear-text key unless the process needs it.
+  - Make sure each custodian has a documented role and a business need.
+  - Look for custodians who changed role or left the company.
+  example: Review the key custodian list, the HSM smart card holders and the key ceremony logs
+  expected: Only the fewest necessary custodians can access clear-text key components. Each custodian has a documented need and the list is current.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    pci_dss:
+    - 3.6.1.3
+    nist_800_53:
+    - SC-12
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-KEY-005
+  sheet: PCI
+  category: KEY
+  title: Check that keys exist in the fewest possible places
+  objective: Find copies of cryptographic keys in extra places such as backups, build servers and developer systems.
+  preconditions:
+  - Access to the hosts and repositories
+  steps:
+  - Ask for the list of approved key storage locations.
+  - Search the production hosts, the backup media, the code repositories and the build servers for key files.
+  - Search developer systems and shared drives for exported keys.
+  - Compare the result with the approved list.
+  - Make sure each extra copy has a documented reason.
+  example: find / -name '*.pem' -o -name '*.key' -o -name '*.p12' -o -name '*.jks' 2>/dev/null; gitleaks detect
+  expected: Keys exist only in the approved locations. No unneeded copy exists in backups, code repositories or on developer systems.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 3.6.1.4
+    cwe:
+    - CWE-321
+    nist_800_53:
+    - SC-12
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-KEY-006
+  sheet: PCI
+  category: KEY
+  title: Check that strong keys are generated for account data protection
+  objective: Find keys that are weak, predictable or made with a poor random source.
+  preconditions:
+  - Access to the key generation system
+  steps:
+  - Ask for the key generation procedure.
+  - Make sure the keys come from a validated random number generator in a hardware module or a vetted library.
+  - Make sure the key length meets current industry guidance for the algorithm.
+  - Generate a test key by the procedure and examine the algorithm and length.
+  - Search for keys that came from a password or a fixed seed.
+  example: openssl rand -hex 32; aws kms describe-key; pkcs11-tool --list-mechanisms
+  expected: Keys are made with a validated random source in a secure device or vetted library. Key lengths meet current industry guidance.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 3.7.1
+    cwe:
+    - CWE-326
+    - CWE-330
+    nist_800_53:
+    - SC-12
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-KEY-007
+  sheet: PCI
+  category: KEY
+  title: Check that keys are distributed in a secure way
+  objective: Find key distribution that sends keys in clear text or over open channels.
+  preconditions:
+  - Access to the key management records
+  steps:
+  - Ask for the key distribution procedure.
+  - Follow one key from the generation point to the system that uses it.
+  - Look at each hop. Make sure the key is wrapped or split during transfer.
+  - Search e-mail, chat, tickets and shared drives for clear-text keys.
+  - Make sure only the intended recipient can unwrap the key.
+  example: Trace a key import into the HSM; capture the transfer; search the ticket system for 'BEGIN PRIVATE KEY'
+  expected: Keys move only in encrypted or split form between authorized systems and custodians. No key travels in clear text.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 3.7.2
+    cwe:
+    - CWE-319
+    nist_800_53:
+    - SC-12
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-KEY-008
+  sheet: PCI
+  category: KEY
+  title: Check that keys change at the end of their cryptoperiod
+  objective: Find keys that stay in use after the end of the defined cryptoperiod.
+  preconditions:
+  - Access to the key store and the key policy
+  steps:
+  - Ask for the cryptoperiod of each key type and the reason for its length.
+  - Look at the creation date and last rotation date of each key.
+  - Find keys that are older than their cryptoperiod.
+  - Make sure the process also changes a key when a compromise is suspected.
+  - Do a test rotation. Make sure the application still reads the old data.
+  example: aws kms list-keys --query ... ; vault read transit/keys/<name>; compare the creation date to the policy
+  expected: Each key changes at the end of its defined cryptoperiod or at a suspected compromise. No key is older than its cryptoperiod.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 3.7.4
+    cwe:
+    - CWE-324
+    nist_800_53:
+    - SC-12
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-KEY-009
+  sheet: PCI
+  category: KEY
+  title: Check that retired keys are destroyed or archived under protection
+  objective: Find old keys that stay active, readable or unprotected after they are retired.
+  preconditions:
+  - Access to the key store and the key log
+  steps:
+  - Ask for the procedure to retire, replace or destroy keys.
+  - Pick five retired keys from the key log.
+  - Make sure each key is destroyed, or kept only for decryption of old data in a protected archive.
+  - Make sure keys with known or suspected weakness are replaced.
+  - Make sure a retired key cannot encrypt new data.
+  example: Check the key state in the KMS (disabled, pending deletion); search backups for the retired key files
+  expected: Retired and replaced keys are destroyed or archived under protection. A retired key cannot protect new data.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 3.7.5
+    nist_800_53:
+    - SC-12
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-KEY-010
+  sheet: PCI
+  category: KEY
+  title: Check split knowledge and dual control for manual clear-text key operations
+  objective: Find manual key operations that one person can do alone.
+  preconditions:
+  - Manual key operations exist in scope
+  steps:
+  - Find all manual operations on clear-text keys, such as load, export and import.
+  - Ask for the procedure for each operation.
+  - Make sure the procedure uses split knowledge and dual control.
+  - Look at the records of the last two key ceremonies for two named custodians.
+  - Make sure one custodian alone cannot complete the operation.
+  example: Review the HSM quorum settings (M of N); review the key ceremony records
+  expected: Each manual clear-text key operation needs split knowledge and dual control. One person cannot complete it alone.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    pci_dss:
+    - 3.7.6
+    nist_800_53:
+    - SC-12
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-KEY-011
+  sheet: PCI
+  category: KEY
+  title: Check that nobody can replace a key without approval
+  objective: Find ways to put an unauthorized key in place of a valid key.
+  preconditions:
+  - Test key and test account in the key store
+  steps:
+  - Ask for the controls that prevent unauthorized key substitution.
+  - Examine who can import, replace or alias a key in the key store.
+  - Try to replace a test key as a user without the key administrator role.
+  - Make sure the key store logs each import, replace and alias change.
+  - Make sure a person other than the requester must approve the change.
+  example: aws kms update-alias test; vault write transit/keys/test/import; check the audit log for the event
+  expected: Only authorized key administrators can replace a key. Each change needs approval and creates a log entry.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 3.7.7
+    cwe:
+    - CWE-494
+    nist_800_53:
+    - SC-12
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-KEY-012
+  sheet: PCI
+  category: KEY
+  title: Check that a service provider documents key sharing with its customers
+  objective: Find service providers that share keys with customers without guidance on how to handle the keys.
+  preconditions:
+  - Service provider scope
+  steps:
+  - Find out if the provider shares keys with customers for transmission or storage of account data.
+  - Ask for the key management guidance that the provider gives to the customers.
+  - Make sure the guidance covers secure transmission, storage and update of the shared keys.
+  - Make sure it follows the key management rules for generation, distribution, storage, change and retirement.
+  - Compare the guidance with how the provider shares a real key.
+  example: Document review of the customer onboarding and key exchange procedure
+  expected: The provider gives customers guidance on how to handle shared keys. The guidance covers the full key lifecycle.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    pci_dss:
+    - 3.7.9
+    nist_800_53:
+    - SC-12
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md

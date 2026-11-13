@@ -1,0 +1,393 @@
+- id: CICD-ART-001
+  sheet: CICD
+  category: ART
+  title: Check that signed commits are required on protected branches
+  objective: Finds branches that accept commits from unknown authors.
+  preconditions:
+  - Read access to the repository.
+  steps:
+  - Read the branch rules for signed commits.
+  - List recent commits on the protected branch.
+  - Look at the signature status of each.
+  - Make sure unsigned commits cannot reach the branch.
+  example: gh api repos/ORG/REPO/branches/main/protection/required_signatures; git log --show-signature -n 20; git log --format='%H %G?' -n 50
+  expected: Protected branches require signed commits from known keys. Unsigned commits are rejected.
+  severity: Medium
+  test_type: &id001
+  - Config Review
+  - Automated
+  refs:
+    owasp_top10:
+    - A03:2025
+    - A08:2025
+    cicd_top10:
+    - CICD-SEC-9
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-345
+    capec:
+    - CAPEC-443
+    attack:
+    - T1195.002
+    nist_800_53:
+    - SI-7
+    - CM-14
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-09-Improper-Artifact-Integrity-Validation.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/Top10/2025/docs/en/A08_2025-Software_or_Data_Integrity_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+- id: CICD-ART-002
+  sheet: CICD
+  category: ART
+  title: Check signing of build artifacts and verification before deploy
+  objective: Finds artifacts that deploy without a check of who built them.
+  preconditions:
+  - Use a test environment.
+  steps:
+  - Find the signing step in the release pipeline.
+  - Make sure signing uses the identity of the CI workflow.
+  - Find the verification step before deploy or install.
+  - Try to deploy an unsigned test artifact to a test environment.
+  example: cosign sign IMAGE@sha256:DIGEST; cosign verify --certificate-identity-regexp '^https://github.com/ORG/REPO/' --certificate-oidc-issuer https://token.actions.githubusercontent.com IMAGE@sha256:DIGEST
+  expected: The pipeline signs every release artifact. The deploy step checks the signature, the signer identity and the digest, and rejects unsigned artifacts.
+  severity: High
+  test_type: *id001
+  refs:
+    owasp_top10:
+    - A03:2025
+    - A08:2025
+    cicd_top10:
+    - CICD-SEC-9
+    - CICD-SEC-1
+    cheatsheet:
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    - Docker_Security_Cheat_Sheet
+    - NPM_Security_Cheat_Sheet
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-494
+    - CWE-345
+    capec:
+    - CAPEC-206
+    attack:
+    - T1195.002
+    - T1554
+    nist_800_53:
+    - SI-7
+    - CM-14
+    - SR-11
+    other:
+    - SSDF PS.2.1
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-09-Improper-Artifact-Integrity-Validation.md
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-01-Insufficient-Flow-Control-Mechanisms.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/Top10/2025/docs/en/A08_2025-Software_or_Data_Integrity_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/NPM_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+- id: CICD-ART-003
+  sheet: CICD
+  category: ART
+  title: Check build provenance and its verification
+  objective: Finds artifacts with no verifiable record of where, when and how they were built.
+  preconditions:
+  - Read access to the artifact registry.
+  steps:
+  - Find the provenance step in the build platform.
+  - Make sure the build platform creates it, not a developer machine.
+  - 'Check the provenance for one release: builder, source repository and build parameters.'
+  - Make sure the deploy policy rejects missing or unexpected provenance.
+  example: gh attestation verify ARTIFACT --repo ORG/REPO; cosign verify-attestation --type slsaprovenance IMAGE@sha256:DIGEST --certificate-identity-regexp ... --certificate-oidc-issuer ...
+  expected: Each release has provenance from the build platform. The deploy policy checks builder identity, source and digest. Missing evidence is rejected.
+  severity: High
+  test_type: *id001
+  refs:
+    owasp_top10:
+    - A03:2025
+    - A08:2025
+    cicd_top10:
+    - CICD-SEC-9
+    cheatsheet:
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    - Dependency_Graph_SBOM_Cheat_Sheet
+    - Docker_Security_Cheat_Sheet
+    cwe:
+    - CWE-345
+    attack:
+    - T1195.002
+    nist_800_53:
+    - SR-4
+    other:
+    - SSDF PS.3.2
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-09-Improper-Artifact-Integrity-Validation.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/Top10/2025/docs/en/A08_2025-Software_or_Data_Integrity_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Dependency_Graph_SBOM_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+- id: CICD-ART-004
+  sheet: CICD
+  category: ART
+  title: Check the SBOM for each release and its link to the artifact
+  objective: Finds releases with no SBOM, or an SBOM that nobody can tie to the shipped artifact.
+  preconditions:
+  - Read access to the artifact registry.
+  steps:
+  - Find the SBOM step in the release pipeline.
+  - Generate an SBOM from the final artifact and compare it with the published one.
+  - Make sure the SBOM lists transitive dependencies, hashes and generator data.
+  - Make sure a signed attestation binds the SBOM to the artifact digest.
+  example: syft IMAGE@sha256:DIGEST -o cyclonedx-json > sbom.json; cosign verify-attestation --type cyclonedx IMAGE@sha256:DIGEST --certificate-identity-regexp ... --certificate-oidc-issuer ...
+  expected: Each release has a valid SBOM that matches the final artifact. A signed attestation binds the SBOM to the artifact digest.
+  severity: Medium
+  test_type: *id001
+  refs:
+    owasp_top10:
+    - A03:2025
+    cicd_top10:
+    - CICD-SEC-9
+    cheatsheet:
+    - Dependency_Graph_SBOM_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    - Docker_Security_Cheat_Sheet
+    - NPM_Security_Cheat_Sheet
+    cwe:
+    - CWE-1357
+    nist_800_53:
+    - SR-4
+    - CM-8
+    other:
+    - SSDF PS.3.2
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-09-Improper-Artifact-Integrity-Validation.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Dependency_Graph_SBOM_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/NPM_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+  see:
+  - WEB-DEP-002
+- id: CICD-ART-005
+  sheet: CICD
+  category: ART
+  title: Check that one built artifact is promoted unchanged through environments
+  objective: Finds pipelines that rebuild per environment, so the tested artifact is not the shipped one.
+  preconditions:
+  - Read access to deployment settings.
+  steps:
+  - Follow one release from test to production.
+  - Compare the artifact digest in each environment.
+  - Make sure deployments refer to the digest, not a mutable tag.
+  - Make sure the build is immutable and does not rerun for production.
+  example: docker buildx imagetools inspect IMAGE:TAG; kubectl get deploy NAME -o jsonpath='{.spec.template.spec.containers[*].image}'
+  expected: The same digest runs in every environment. Deployments use digests. Production does not trigger a new build.
+  severity: Medium
+  test_type: &id002
+  - Manual
+  - Config Review
+  refs:
+    owasp_top10:
+    - A03:2025
+    - A08:2025
+    cicd_top10:
+    - CICD-SEC-9
+    - CICD-SEC-1
+    cheatsheet:
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    - Docker_Security_Cheat_Sheet
+    cwe:
+    - CWE-345
+    capec:
+    - CAPEC-678
+    attack:
+    - T1195.002
+    nist_800_53:
+    - SI-7
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-09-Improper-Artifact-Integrity-Validation.md
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-01-Insufficient-Flow-Control-Mechanisms.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/Top10/2025/docs/en/A08_2025-Software_or_Data_Integrity_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+- id: CICD-ART-006
+  sheet: CICD
+  category: ART
+  title: Check hash or signature checks for downloaded scripts and tools
+  objective: Finds build steps that download and run code without a check against a published hash.
+  preconditions:
+  - Read access to the repository.
+  steps:
+  - Search pipeline files and Dockerfiles for curl or wget piped to a shell and for downloaded binaries.
+  - For each, find the check of a hash or signature.
+  - Make sure the expected hash comes from a trusted source.
+  - Make sure a changed download fails the build.
+  example: grep -rnE 'curl .*\| *(ba)?sh|wget .*\| *(ba)?sh|curl -[a-zA-Z]*O' .github Dockerfile* scripts/; sha256sum -c tool.sha256
+  expected: No downloaded script runs without a hash or signature check. A changed file makes the build fail.
+  severity: High
+  test_type:
+  - Code Review
+  - Automated
+  refs:
+    owasp_top10:
+    - A03:2025
+    - A08:2025
+    cicd_top10:
+    - CICD-SEC-9
+    - CICD-SEC-3
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Docker_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-494
+    - CWE-829
+    attack:
+    - T1195.002
+    - T1105
+    nist_800_53:
+    - SI-7
+    other:
+    - SSDF PW.4.4
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-09-Improper-Artifact-Integrity-Validation.md
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-03-Dependency-Chain-Abuse.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/Top10/2025/docs/en/A08_2025-Software_or_Data_Integrity_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+  see:
+  - WEB-DEP-005
+- id: CICD-ART-007
+  sheet: CICD
+  category: ART
+  title: Check write controls and immutability of the artifact repository
+  objective: Finds registries where people can overwrite released artifacts or tags.
+  preconditions:
+  - Use a test repository for the overwrite test.
+  steps:
+  - List the accounts that can write to the release repositories.
+  - Make sure only the CI service account can publish releases.
+  - Try to overwrite an existing release tag on a test repository.
+  - Make sure retention rules keep released artifacts.
+  example: gh api orgs/ORG/packages/container/NAME --jq .visibility; skopeo inspect docker://REGISTRY/NAME:TAG; jf rt curl /api/repositories/REPO
+  expected: Only the CI service account can publish. Released tags and versions cannot change. Retention rules keep release artifacts.
+  severity: High
+  test_type: *id002
+  refs:
+    owasp_top10:
+    - A03:2025
+    - A08:2025
+    cicd_top10:
+    - CICD-SEC-9
+    - CICD-SEC-1
+    cheatsheet:
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    - NPM_Security_Cheat_Sheet
+    cwe:
+    - CWE-345
+    - CWE-284
+    attack:
+    - T1195.002
+    nist_800_53:
+    - AC-6
+    - SI-7
+    other:
+    - SSDF PS.3.1
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-09-Improper-Artifact-Integrity-Validation.md
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-01-Insufficient-Flow-Control-Mechanisms.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/Top10/2025/docs/en/A08_2025-Software_or_Data_Integrity_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/NPM_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+- id: CICD-ART-008
+  sheet: CICD
+  category: ART
+  title: Review protection of signing keys and signing identity
+  objective: Finds signing keys that unreviewed jobs or many people can use.
+  preconditions:
+  - Read access to the key management settings.
+  steps:
+  - List the signing keys and certificates and where they are stored.
+  - Make sure they are in a KMS or HSM, or that signing uses short-lived keyless identity.
+  - Make sure jobs that run unreviewed code cannot use them.
+  - Make sure key use is logged and has an alert.
+  example: cosign verify --certificate-identity ID --certificate-oidc-issuer ISSUER IMAGE; aws kms get-key-policy --key-id KEY --policy-name default
+  expected: Signing keys are in hardened storage, or signing uses short-lived identity. Only reviewed release jobs can sign. Each use is logged.
+  severity: High
+  test_type: *id002
+  refs:
+    owasp_top10:
+    - A03:2025
+    - A08:2025
+    cicd_top10:
+    - CICD-SEC-9
+    - CICD-SEC-6
+    cheatsheet:
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-522
+    capec:
+    - CAPEC-68
+    - CAPEC-673
+    nist_800_53:
+    - CM-14
+    - SC-12
+    other:
+    - SSDF PS.2.1
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-09-Improper-Artifact-Integrity-Validation.md
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-06-Insufficient-Credential-Hygiene.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/Top10/2025/docs/en/A08_2025-Software_or_Data_Integrity_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+- id: CICD-ART-009
+  sheet: CICD
+  category: ART
+  title: Check retention of release evidence
+  objective: Finds releases for which the SBOM, signatures and provenance are lost.
+  preconditions:
+  - Read access to the artifact registry.
+  steps:
+  - Pick one release from the last year.
+  - Find its SBOM, signatures, provenance and build logs.
+  - Make sure the original files are stored with the release.
+  - Make sure write access to the store is limited.
+  example: oras discover IMAGE@sha256:DIGEST; cosign tree IMAGE@sha256:DIGEST
+  expected: The original SBOM, signed evidence and provenance exist for each release. Write access to the store is limited.
+  severity: Low
+  test_type: *id002
+  refs:
+    owasp_top10:
+    - A03:2025
+    cicd_top10:
+    - CICD-SEC-9
+    cheatsheet:
+    - Dependency_Graph_SBOM_Cheat_Sheet
+    cwe:
+    - CWE-353
+    nist_800_53:
+    - SR-4
+    other:
+    - SSDF PS.3.1
+    - SSDF PS.3.2
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-09-Improper-Artifact-Integrity-Validation.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Dependency_Graph_SBOM_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt

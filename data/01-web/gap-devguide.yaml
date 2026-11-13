@@ -1,0 +1,87 @@
+- id: WEB-PWD-023
+  sheet: WEB
+  category: PWD
+  title: Check that a user cannot reuse a recent password
+  objective: Find password change and reset flows that accept a password that the user used before.
+  preconditions:
+  - A test account and the password policy.
+  steps:
+  - Read the password policy for the rule on password reuse and the number of stored old passwords.
+  - Change the password to a new value, and then change it back to the old value.
+  - Use the password reset flow to set the old password again.
+  - Change the password to a variation of the old value, such as a new digit at the end.
+  - Make sure the history holds hashes and not plain text.
+  example: 'Test account: change Passw0rd-A to Passw0rd-B, then back to Passw0rd-A, in the change form and in the reset form'
+  expected: The application rejects a recent password in the change flow and in the reset flow, as the policy says. The history holds only hashes.
+  severity: Low
+  test_type:
+  - Manual
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-ATHN-07
+    cwe:
+    - CWE-262
+    other:
+    - 'OWASP DevGuide web app checklist: 06-digital-identity.md'
+  sources_read:
+  - sources/repos/DevGuide/docs/en/04-design/02-web-app-checklist/06-digital-identity.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/07-Weak_Authentication_Methods.md
+- id: WEB-DESER-001
+  sheet: WEB
+  category: DESER
+  title: Review isolation, logging and monitoring around code that deserializes data
+  objective: Find deserialization features that run with high privilege and without logs, which makes abuse hard to limit and to detect.
+  steps:
+  - Find the code and services that deserialize data from clients or other systems.
+  - Check the type allowlist and the integrity check that apply before the object is created.
+  - Check that the deserializing component runs with low privilege, for example in a temporary container.
+  - Check the network rules for inbound and outbound connections of that component.
+  - Send a malformed serialized object and look in the log for the failure.
+  - Look for an alert on repeated deserialization failures from one client.
+  example: Search the code for readObject, pickle.loads, unserialize and BinaryFormatter; check container securityContext and egress rules; send a corrupted object
+  expected: Deserializing components run with low privilege and limited network access. Failures are logged and repeated failures raise an alert.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Code Review
+  refs:
+    owasp_top10:
+    - A08:2025
+    cwe:
+    - CWE-502
+    other:
+    - 'OWASP DevGuide web app checklist: 05-validate-inputs.md'
+  sources_read:
+  - sources/repos/DevGuide/docs/en/04-design/02-web-app-checklist/05-validate-inputs.md
+  see:
+  - WEB-INJ-025
+- id: WEB-ELEV-001
+  sheet: WEB
+  category: ELEV
+  title: Review code and services that run with elevated privileges
+  objective: Find components that hold high privileges longer than needed, which makes any flaw in them more severe.
+  steps:
+  - List the services and code paths that run as root, administrator or with raised capabilities.
+  - Find out why each one needs the privilege and which step uses it.
+  - Check that the code raises privilege just before that step and drops it as soon as the step ends.
+  - Check that user input is not processed while the privilege is active.
+  - Check the process owner and capabilities at run time.
+  example: 'ps -eo user,pid,cmd | grep -v "^<app_user>"; getpcaps <pid>; Windows: Get-Process -IncludeUserName; review setuid or impersonation calls in the code'
+  expected: Elevated privilege is held only for the step that needs it. The application runs as a low-privilege account for all other work.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Code Review
+  refs:
+    owasp_top10:
+    - A06:2025
+    - A02:2025
+    cwe:
+    - CWE-250
+    - CWE-272
+    other:
+    - 'OWASP DevGuide web app checklist: 07-access-controls.md'
+  sources_read:
+  - sources/repos/DevGuide/docs/en/04-design/02-web-app-checklist/07-access-controls.md

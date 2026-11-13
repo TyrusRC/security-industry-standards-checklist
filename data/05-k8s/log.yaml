@@ -1,0 +1,257 @@
+- id: K8S-LOG-001
+  sheet: K8S
+  category: LOG
+  title: Check that Kubernetes API audit logging is on
+  objective: Finds clusters that keep no record of API requests.
+  steps:
+  - Read the audit policy and audit log flags of the API server or the managed service setting.
+  - Make a test change in a test namespace.
+  - Find the event in the audit log.
+  - Check that the event has user, verb, object and time.
+  example: kubectl -n kube-system get pod -l component=kube-apiserver -o yaml | grep audit; kubectl create ns audit-test; grep audit-test /var/log/kubernetes/audit.log | head -1
+  expected: The API server writes audit events for all requests that the policy requires. The test change appears with user, verb, object and time.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K10
+    cloud_native_top10:
+    - CNAS-10
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    - Logging_Cheat_Sheet
+    cwe:
+    - CWE-778
+    attack:
+    - T1685.002
+    nist_800_53:
+    - AU-2
+    - AU-12
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K10-Inadequate-Logging-And-Monitoring.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x0A_logging.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+- id: K8S-LOG-002
+  sheet: K8S
+  category: LOG
+  title: Check the audit policy covers credentials and sensitive actions
+  objective: Finds policies that miss the creation of tokens and certificates, which the cluster does not store.
+  steps:
+  - Read the audit policy file rule by rule.
+  - Check rules for serviceaccounts/token, certificatesigningrequests, RBAC objects and pods/exec.
+  - Create a test token and a test CSR.
+  - Find both events in the audit log.
+  example: kubectl create token <sa> -n <test-ns>; kubectl get csr; grep -E "serviceaccounts/token|certificatesigningrequests" /var/log/kubernetes/audit.log | head
+  expected: The audit log shows who made each token and certificate request. Secrets and configmaps use the Metadata level only.
+  severity: High
+  test_type: Manual
+  refs:
+    k8s_top10:
+    - K10
+    - K09
+    cloud_native_top10:
+    - CNAS-10
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    - Logging_Cheat_Sheet
+    cwe:
+    - CWE-778
+    - CWE-532
+    attack:
+    - T1685.002
+    - T1528
+    nist_800_53:
+    - AU-2
+    - AU-3
+    - AU-12
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K10-Inadequate-Logging-And-Monitoring.md
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K09-Broken-Authentication-Mechanisms.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x0A_logging.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+- id: K8S-LOG-003
+  sheet: K8S
+  category: LOG
+  title: Check that logs go to protected storage outside the cluster
+  objective: Finds logs that an attacker with node or cluster access can edit or delete.
+  steps:
+  - Find where audit, node and workload logs go.
+  - Check that an agent ships logs from every node.
+  - Check that the log store is append-only and outside the cluster.
+  - Check who can delete or edit logs.
+  example: kubectl get ds -A | grep -iE "fluent|filebeat|vector"; kubectl logs <pod>; check the retention and write controls of the log store
+  expected: Logs leave the node in near real time to a store outside the cluster. Only a small group can read them, and none can edit them.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K10
+    cloud_native_top10:
+    - CNAS-10
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    - Logging_Cheat_Sheet
+    - Network_Segmentation_Cheat_Sheet
+    cwe:
+    - CWE-778
+    attack:
+    - T1685.002
+    - T1070
+    nist_800_53:
+    - AU-9
+    - AU-11
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K10-Inadequate-Logging-And-Monitoring.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x0A_logging.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Network_Segmentation_Cheat_Sheet.md
+- id: K8S-LOG-004
+  sheet: K8S
+  category: LOG
+  title: Check log buffering and delivery during outages
+  objective: Finds log pipelines that drop records when the central store is down.
+  preconditions:
+  - Use a test setup only.
+  steps:
+  - Find the buffer type and size at each node agent.
+  - Stop the log destination in a test setup for a short time.
+  - Restore the destination.
+  - Count the records that arrive after recovery.
+  example: Read the agent configuration (Fluent Bit or Fluentd); compare event counts before and after the outage
+  expected: The agent buffers records on disk and delivers them after recovery. A message broker decouples ingestion from storage. Lost records are reported.
+  severity: Low
+  test_type: Manual
+  refs:
+    k8s_top10:
+    - K10
+    cloud_native_top10:
+    - CNAS-10
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    - Microservices_Security_Cheat_Sheet
+    cwe:
+    - CWE-778
+    nist_800_53:
+    - AU-12
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K10-Inadequate-Logging-And-Monitoring.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x0A_logging.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Microservices_Security_Cheat_Sheet.md
+- id: K8S-LOG-005
+  sheet: K8S
+  category: LOG
+  title: Check alerts on API failures and risky cluster actions
+  objective: Finds clusters where authorization failures and risky actions raise no alert.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Send requests that return 403 from a test account.
+  - Run kubectl exec into a test pod and create a privileged pod in a test namespace.
+  - Look for alerts in the monitoring system.
+  - Check the alert route and the response time.
+  example: kubectl auth can-i delete nodes --as=<test-user>; kubectl exec <test-pod> -- id; query the log platform for responseStatus.code 403
+  expected: Spikes of 403 responses, exec into pods and privileged pod creation raise alerts that reach the response team in the agreed time.
+  severity: Medium
+  test_type: Manual
+  refs:
+    k8s_top10:
+    - K10
+    cloud_native_top10:
+    - CNAS-10
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    - Logging_Cheat_Sheet
+    cwe:
+    - CWE-778
+    attack:
+    - T1609
+    nist_800_53:
+    - AU-6
+    - SI-4
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K10-Inadequate-Logging-And-Monitoring.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x0A_logging.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+- id: K8S-LOG-006
+  sheet: K8S
+  category: LOG
+  title: Check monitoring of container activity and network flows
+  objective: Finds clusters with no view of process, file and network behavior of containers.
+  steps:
+  - Find the tools that record process, file and network events of containers.
+  - Start a test pod that makes an outbound connection.
+  - Find the event in the tool.
+  - Compare the replicas of one deployment for odd behavior.
+  example: kubectl get pods -A | grep -iE "falco|tetragon|cilium"; kubectl exec <test-pod> -- curl -m 3 https://example.com
+  expected: The tools record unexpected process starts, sensitive file reads and outbound connections. A replica that differs from its peers is flagged.
+  severity: Medium
+  test_type: Manual
+  refs:
+    k8s_top10:
+    - K10
+    cloud_native_top10:
+    - CNAS-10
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    - Docker_Security_Cheat_Sheet
+    cwe:
+    - CWE-778
+    attack:
+    - T1609
+    - T1613
+    nist_800_53:
+    - SI-4
+    - AU-12
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K10-Inadequate-Logging-And-Monitoring.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x0A_logging.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+- id: K8S-LOG-007
+  sheet: K8S
+  category: LOG
+  title: Check monitoring of cluster resource use and configuration changes
+  objective: Finds clusters that miss resource exhaustion and unplanned changes to cluster configuration.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Check that CPU, memory and storage use of nodes and pods is monitored with alerts.
+  - Check that Kubernetes events go to the central log.
+  - Make a test change to a ConfigMap.
+  - Find an alert or record of the change.
+  example: kubectl get events -A --sort-by=.lastTimestamp | tail; kubectl top nodes; kubectl top pods -A
+  expected: Resource alerts exist for node and pod limits. Events and configuration changes appear in the central log before they expire.
+  severity: Low
+  test_type: Manual
+  refs:
+    k8s_top10:
+    - K10
+    cloud_native_top10:
+    - CNAS-10
+    - CNAS-9
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    - Logging_Cheat_Sheet
+    cwe:
+    - CWE-778
+    nist_800_53:
+    - SI-4
+    - CM-3
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K10-Inadequate-Logging-And-Monitoring.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x0A_logging.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x09_compute_resources.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md

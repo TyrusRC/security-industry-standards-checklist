@@ -1,0 +1,506 @@
+{
+ "tool_check": {
+  "kubescape:C-0001": [
+   "K8S-IMG-001"
+  ],
+  "kubescape:C-0004": [
+   "K8S-WRK-008"
+  ],
+  "kubescape:C-0009": [
+   "K8S-WRK-008"
+  ],
+  "kubescape:C-0012": [
+   "K8S-SEC-001"
+  ],
+  "kubescape:C-0013": [
+   "K8S-WRK-001"
+  ],
+  "kubescape:C-0014": [
+   "K8S-EXP-005"
+  ],
+  "kubescape:C-0015": [
+   "K8S-RBAC-004"
+  ],
+  "kubescape:C-0016": [
+   "K8S-WRK-003"
+  ],
+  "kubescape:C-0017": [
+   "K8S-WRK-006"
+  ],
+  "kubescape:C-0021": [
+   "K8S-EXP-005"
+  ],
+  "kubescape:C-0030": [
+   "K8S-NET-002"
+  ],
+  "kubescape:C-0034": [
+   "K8S-WRK-007"
+  ],
+  "kubescape:C-0035": [
+   "K8S-RBAC-002"
+  ],
+  "kubescape:C-0036": [
+   "K8S-POL-003"
+  ],
+  "kubescape:C-0038": [
+   "K8S-WRK-004"
+  ],
+  "kubescape:C-0039": [
+   "K8S-POL-003"
+  ],
+  "kubescape:C-0041": [
+   "K8S-WRK-004",
+   "K8S-NET-004"
+  ],
+  "kubescape:C-0046": [
+   "K8S-WRK-002"
+  ],
+  "kubescape:C-0048": [
+   "K8S-WRK-004"
+  ],
+  "kubescape:C-0049": [
+   "K8S-NET-002"
+  ],
+  "kubescape:C-0050": [
+   "K8S-WRK-008"
+  ],
+  "kubescape:C-0052": [
+   "K8S-LAT-003"
+  ],
+  "kubescape:C-0054": [
+   "K8S-NET-002"
+  ],
+  "kubescape:C-0055": [
+   "K8S-WRK-005"
+  ],
+  "kubescape:C-0057": [
+   "K8S-WRK-004"
+  ],
+  "kubescape:C-0065": [
+   "K8S-RBAC-005"
+  ],
+  "kubescape:C-0066": [
+   "K8S-SEC-003"
+  ],
+  "kubescape:C-0067": [
+   "K8S-LOG-001"
+  ],
+  "kubescape:C-0069": [
+   "K8S-AUTH-005"
+  ],
+  "kubescape:C-0074": [
+   "K8S-WRK-004"
+  ],
+  "kubescape:C-0078": [
+   "K8S-IMG-001"
+  ],
+  "kubescape:C-0083": [
+   "K8S-IMG-003"
+  ],
+  "kubescape:C-0084": [
+   "K8S-IMG-003"
+  ],
+  "kubescape:C-0085": [
+   "K8S-IMG-003"
+  ],
+  "kubescape:C-0088": [
+   "K8S-RBAC-001"
+  ],
+  "kubescape:C-0113": [
+   "K8S-AUTH-002"
+  ],
+  "kubescape:C-0114": [
+   "K8S-AUTH-001"
+  ],
+  "kubescape:C-0118": [
+   "K8S-RBAC-001"
+  ],
+  "kubescape:C-0119": [
+   "K8S-RBAC-001"
+  ],
+  "kubescape:C-0120": [
+   "K8S-RBAC-001"
+  ],
+  "kubescape:C-0141": [
+   "K8S-SEC-003"
+  ],
+  "kubescape:C-0142": [
+   "K8S-SEC-003"
+  ],
+  "kubescape:C-0153": [
+   "K8S-EXP-004"
+  ],
+  "kubescape:C-0154": [
+   "K8S-EXP-004"
+  ],
+  "kubescape:C-0155": [
+   "K8S-EXP-004"
+  ],
+  "kubescape:C-0156": [
+   "K8S-EXP-004"
+  ],
+  "kubescape:C-0157": [
+   "K8S-EXP-004"
+  ],
+  "kubescape:C-0158": [
+   "K8S-EXP-004"
+  ],
+  "kubescape:C-0159": [
+   "K8S-EXP-004"
+  ],
+  "kubescape:C-0160": [
+   "K8S-LOG-002"
+  ],
+  "kubescape:C-0161": [
+   "K8S-LOG-002"
+  ],
+  "kubescape:C-0172": [
+   "K8S-AUTH-005"
+  ],
+  "kubescape:C-0173": [
+   "K8S-AUTH-005"
+  ],
+  "kubescape:C-0175": [
+   "K8S-AUTH-005"
+  ],
+  "kubescape:C-0185": [
+   "K8S-RBAC-002"
+  ],
+  "kubescape:C-0186": [
+   "K8S-RBAC-004"
+  ],
+  "kubescape:C-0187": [
+   "K8S-RBAC-003"
+  ],
+  "kubescape:C-0189": [
+   "K8S-RBAC-008"
+  ],
+  "kubescape:C-0190": [
+   "K8S-WRK-007"
+  ],
+  "kubescape:C-0191": [
+   "K8S-RBAC-005"
+  ],
+  "kubescape:C-0192": [
+   "K8S-POL-002"
+  ],
+  "kubescape:C-0193": [
+   "K8S-WRK-004"
+  ],
+  "kubescape:C-0194": [
+   "K8S-WRK-004"
+  ],
+  "kubescape:C-0195": [
+   "K8S-WRK-004"
+  ],
+  "kubescape:C-0196": [
+   "K8S-WRK-004",
+   "K8S-NET-004"
+  ],
+  "kubescape:C-0197": [
+   "K8S-WRK-003"
+  ],
+  "kubescape:C-0198": [
+   "K8S-WRK-001"
+  ],
+  "kubescape:C-0199": [
+   "K8S-WRK-002"
+  ],
+  "kubescape:C-0200": [
+   "K8S-WRK-002"
+  ],
+  "kubescape:C-0201": [
+   "K8S-WRK-002"
+  ],
+  "kubescape:C-0205": [
+   "K8S-NET-001"
+  ],
+  "kubescape:C-0206": [
+   "K8S-NET-002"
+  ],
+  "kubescape:C-0207": [
+   "K8S-SEC-002"
+  ],
+  "kubescape:C-0208": [
+   "K8S-SEC-004"
+  ],
+  "kubescape:C-0210": [
+   "K8S-WRK-005"
+  ],
+  "kubescape:C-0211": [
+   "K8S-WRK-001",
+   "K8S-WRK-002",
+   "K8S-WRK-003",
+   "K8S-WRK-006"
+  ],
+  "kubescape:C-0213": [
+   "K8S-WRK-004"
+  ],
+  "kubescape:C-0214": [
+   "K8S-WRK-004"
+  ],
+  "kubescape:C-0215": [
+   "K8S-WRK-004"
+  ],
+  "kubescape:C-0216": [
+   "K8S-WRK-004",
+   "K8S-NET-004"
+  ],
+  "kubescape:C-0217": [
+   "K8S-WRK-003"
+  ],
+  "kubescape:C-0218": [
+   "K8S-WRK-001"
+  ],
+  "kubescape:C-0219": [
+   "K8S-WRK-002"
+  ],
+  "kubescape:C-0220": [
+   "K8S-WRK-002"
+  ],
+  "kubescape:C-0221": [
+   "K8S-IMG-003"
+  ],
+  "kubescape:C-0222": [
+   "K8S-IMG-005"
+  ],
+  "kubescape:C-0223": [
+   "K8S-IMG-005"
+  ],
+  "kubescape:C-0225": [
+   "K8S-LAT-002"
+  ],
+  "kubescape:C-0226": [
+   "K8S-CMP-004"
+  ],
+  "kubescape:C-0227": [
+   "K8S-EXP-001"
+  ],
+  "kubescape:C-0228": [
+   "K8S-EXP-001"
+  ],
+  "kubescape:C-0230": [
+   "K8S-NET-001"
+  ],
+  "kubescape:C-0232": [
+   "K8S-AUTH-001"
+  ],
+  "kubescape:C-0233": [
+   "K8S-WRK-010"
+  ],
+  "kubescape:C-0234": [
+   "K8S-SEC-004"
+  ],
+  "kubescape:C-0239": [
+   "K8S-LAT-002"
+  ],
+  "kubescape:C-0240": [
+   "K8S-NET-001"
+  ],
+  "kubescape:C-0241": [
+   "K8S-AUTH-001"
+  ],
+  "kubescape:C-0242": [
+   "K8S-WRK-010"
+  ],
+  "kubescape:C-0243": [
+   "K8S-IMG-003"
+  ],
+  "kubescape:C-0244": [
+   "K8S-SEC-003"
+  ],
+  "kubescape:C-0247": [
+   "K8S-EXP-001"
+  ],
+  "kubescape:C-0249": [
+   "K8S-WRK-010"
+  ],
+  "kubescape:C-0250": [
+   "K8S-IMG-005"
+  ],
+  "kubescape:C-0251": [
+   "K8S-IMG-005"
+  ],
+  "kubescape:C-0252": [
+   "K8S-EXP-001"
+  ],
+  "kubescape:C-0254": [
+   "K8S-LOG-001"
+  ],
+  "kubescape:C-0256": [
+   "K8S-NET-006",
+   "K8S-EXP-006"
+  ],
+  "kubescape:C-0259": [
+   "K8S-SEC-002"
+  ],
+  "kubescape:C-0260": [
+   "K8S-NET-002"
+  ],
+  "kubescape:C-0261": [
+   "K8S-WRK-007"
+  ],
+  "kubescape:C-0262": [
+   "K8S-AUTH-002"
+  ],
+  "kubescape:C-0265": [
+   "K8S-RBAC-002"
+  ],
+  "kubescape:C-0270": [
+   "K8S-WRK-008"
+  ],
+  "kubescape:C-0271": [
+   "K8S-WRK-008"
+  ],
+  "kubescape:C-0273": [
+   "K8S-CMP-002"
+  ],
+  "kubescape:C-0274": [
+   "K8S-NET-005"
+  ],
+  "kubescape:C-0275": [
+   "K8S-WRK-004"
+  ],
+  "kubescape:C-0276": [
+   "K8S-WRK-004"
+  ],
+  "kubescape:C-0279": [
+   "K8S-RBAC-005"
+  ],
+  "kubescape:C-0285": [
+   "K8S-AUTH-001"
+  ],
+  "kubescape:C-0286": [
+   "K8S-AUTH-004"
+  ],
+  "kubescape:C-0287": [
+   "K8S-AUTH-003"
+  ],
+  "kubescape:C-0288": [
+   "K8S-AUTH-006"
+  ],
+  "kubescape:C-0308": [
+   "K8S-IMG-005"
+  ],
+  "kubescape:C-0320": [
+   "K8S-CMP-002"
+  ],
+  "kubescape:C-0321": [
+   "K8S-CMP-002"
+  ],
+  "kubescape:C-0322": [
+   "K8S-CMP-003"
+  ],
+  "prowler:kubernetes:apiserver_anonymous_requests": [
+   "K8S-AUTH-002"
+  ],
+  "prowler:kubernetes:apiserver_auth_mode_include_node": [
+   "K8S-RBAC-001"
+  ],
+  "prowler:kubernetes:apiserver_auth_mode_include_rbac": [
+   "K8S-RBAC-001"
+  ],
+  "prowler:kubernetes:apiserver_auth_mode_not_always_allow": [
+   "K8S-RBAC-001"
+  ],
+  "prowler:kubernetes:apiserver_encryption_provider_config_set": [
+   "K8S-SEC-003"
+  ],
+  "prowler:kubernetes:apiserver_no_token_auth_file": [
+   "K8S-AUTH-001"
+  ],
+  "prowler:kubernetes:core_cpu_limits_set": [
+   "K8S-WRK-008"
+  ],
+  "prowler:kubernetes:core_image_tag_fixed": [
+   "K8S-IMG-002"
+  ],
+  "prowler:kubernetes:core_memory_limits_set": [
+   "K8S-WRK-008"
+  ],
+  "prowler:kubernetes:core_minimize_allowPrivilegeEscalation_containers": [
+   "K8S-WRK-003"
+  ],
+  "prowler:kubernetes:core_minimize_containers_added_capabilities": [
+   "K8S-WRK-002"
+  ],
+  "prowler:kubernetes:core_minimize_containers_capabilities_assigned": [
+   "K8S-WRK-002"
+  ],
+  "prowler:kubernetes:core_minimize_hostIPC_containers": [
+   "K8S-WRK-004"
+  ],
+  "prowler:kubernetes:core_minimize_hostNetwork_containers": [
+   "K8S-WRK-004"
+  ],
+  "prowler:kubernetes:core_minimize_hostPID_containers": [
+   "K8S-WRK-004"
+  ],
+  "prowler:kubernetes:core_minimize_net_raw_capability_admission": [
+   "K8S-WRK-002"
+  ],
+  "prowler:kubernetes:core_minimize_privileged_containers": [
+   "K8S-WRK-004"
+  ],
+  "prowler:kubernetes:core_minimize_root_containers_admission": [
+   "K8S-WRK-001"
+  ],
+  "prowler:kubernetes:core_no_secrets_envs": [
+   "K8S-SEC-002"
+  ],
+  "prowler:kubernetes:core_readonly_root_filesystem_enabled": [
+   "K8S-WRK-006"
+  ],
+  "prowler:kubernetes:core_seccomp_profile_docker_default": [
+   "K8S-WRK-005"
+  ],
+  "prowler:kubernetes:etcd_client_cert_auth": [
+   "K8S-EXP-004"
+  ],
+  "prowler:kubernetes:etcd_no_auto_tls": [
+   "K8S-EXP-004"
+  ],
+  "prowler:kubernetes:etcd_no_peer_auto_tls": [
+   "K8S-EXP-004"
+  ],
+  "prowler:kubernetes:etcd_peer_client_cert_auth": [
+   "K8S-EXP-004"
+  ],
+  "prowler:kubernetes:etcd_peer_tls_config": [
+   "K8S-EXP-004"
+  ],
+  "prowler:kubernetes:etcd_tls_encryption": [
+   "K8S-EXP-004"
+  ],
+  "prowler:kubernetes:etcd_unique_ca": [
+   "K8S-EXP-004"
+  ],
+  "prowler:kubernetes:kubelet_authorization_mode": [
+   "K8S-AUTH-005"
+  ],
+  "prowler:kubernetes:kubelet_disable_anonymous_auth": [
+   "K8S-AUTH-005"
+  ],
+  "prowler:kubernetes:kubelet_disable_read_only_port": [
+   "K8S-AUTH-005"
+  ],
+  "prowler:kubernetes:rbac_cluster_admin_usage": [
+   "K8S-RBAC-002"
+  ],
+  "prowler:kubernetes:rbac_minimize_node_proxy_subresource_access": [
+   "K8S-RBAC-005"
+  ],
+  "prowler:kubernetes:rbac_minimize_secret_access": [
+   "K8S-RBAC-004"
+  ],
+  "prowler:kubernetes:rbac_minimize_wildcard_use_roles": [
+   "K8S-RBAC-003"
+  ],
+  "kubescape:C-0079": [
+   "K8S-CMP-003"
+  ],
+  "kubescape:C-0087": [
+   "K8S-CMP-003"
+  ]
+ }
+}

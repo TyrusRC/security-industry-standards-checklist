@@ -1,0 +1,131 @@
+- id: K8S-NET-007
+  sheet: K8S
+  category: NET
+  title: Check TLS on Ingress routes and HTTPS load balancers
+  objective: Finds public routes that send traffic in clear text or with a weak certificate setup.
+  steps:
+  - List all Ingress objects and check for a tls section.
+  - List the Services of type LoadBalancer and their listeners.
+  - Request each public route with HTTP and check for a redirect to HTTPS.
+  - Scan each public listener with a TLS scanner.
+  example: kubectl get ingress -A -o json | jq ".items[] | select(.spec.tls==null) | .metadata.name"; testssl.sh https://<host>
+  expected: Each Ingress and load balancer listener uses TLS 1.2 or 1.3 with valid certificates. HTTP requests are redirected or refused.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K05
+    cloud_native_top10:
+    - CNAS-6
+    cwe:
+    - CWE-319
+    attack:
+    - T1190
+    nist_800_53:
+    - SC-8
+    tool_check:
+    - kubescape:C-0231
+    - kubescape:C-0245
+    - kubescape:C-0263
+    other:
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Network separation and hardening, Network policies
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0231-encrypttraffictohttpsloadbalancerswithtlscertificates.json
+  - sources/repos/regolibrary/controls/C-0245-encrypttraffictohttpsloadbalancerswithtlscertificates.json
+  - sources/repos/regolibrary/controls/C-0263-ingress-tls.json
+  - sources/nsa_k8s/nsa_k8s_hardening.md
+- id: K8S-NET-008
+  sheet: K8S
+  category: NET
+  title: Check network zones for nodes, control plane and sensitive services
+  objective: Finds flat networks where a compromised node can reach databases and the control plane.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Draw the network zones of the control plane, worker nodes, databases and internal services.
+  - Read the firewall and security group rules between the zones.
+  - From a worker node, try to connect to a database and to an internal service in another zone.
+  - Make sure only needed ports are open between the zones.
+  example: nmap -Pn -p 22,2379,6443,10250,3306,5432 <target-range> from a worker node
+  expected: Worker nodes, the control plane and sensitive services are in separate zones. Firewalls allow only the listed flows.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K05
+    cloud_native_top10:
+    - CNAS-6
+    cwe:
+    - CWE-668
+    attack:
+    - T1021
+    nist_800_53:
+    - SC-7
+    - AC-4
+    other:
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Network separation and hardening, Worker node segmentation
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Network separation and hardening, Network policies
+  sources_read:
+  - sources/nsa_k8s/nsa_k8s_hardening.md
+- id: K8S-NET-009
+  sheet: K8S
+  category: NET
+  title: Check network policy selectors for tenant isolation
+  objective: Finds network policies that open traffic between tenants through wide selectors.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - List network policies that use an empty namespaceSelector or podSelector.
+  - Check that each tenant namespace has a default deny policy plus an allow rule for DNS.
+  - Check that namespace labels used in selectors cannot be set by tenants.
+  - From a pod in one tenant namespace, try to reach a pod in another tenant namespace.
+  example: 'kubectl get netpol -A -o yaml | grep -B3 -A3 "namespaceSelector: {}"; kubectl exec -n tenant-a <pod> -- wget -qO- -T3 http://<svc>.tenant-b'
+  expected: Tenant namespaces cannot reach each other. Selectors name specific namespaces, and tenants cannot change the labels that policies use.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K05
+    cloud_native_top10:
+    - CNAS-6
+    cwe:
+    - CWE-668
+    nist_800_53:
+    - SC-7
+    - AC-4
+    other:
+    - 'Kubernetes docs: multi-tenancy.md'
+  sources_read:
+  - sources/repos/k8s-website/content/en/docs/concepts/security/multi-tenancy.md
+- id: K8S-NET-010
+  sheet: K8S
+  category: NET
+  title: Find workloads exposed through Gateway API or mesh gateways
+  objective: Finds routes that make workloads reachable from the Internet outside the Ingress list.
+  steps:
+  - List Gateway, HTTPRoute, TCPRoute and UDPRoute objects.
+  - List mesh gateway objects such as Istio Gateway.
+  - Map each route to the workload and the owner.
+  - From an outside network, request each listener address.
+  - Ask the owner to justify each public route.
+  example: kubectl get gateways,httproutes,tcproutes,udproutes -A; kubectl get gateways.networking.istio.io -A
+  expected: Each public route has an owner and a reason. Internal workloads have no public route, and listeners need TLS.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K06
+    - K05
+    cloud_native_top10:
+    - CNAS-6
+    attack:
+    - T1190
+    nist_800_53:
+    - SC-7
+    - CM-8
+    tool_check:
+    - kubescape:C-0256
+    - kubescape:C-0266
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0256-exposuretointernet.json
+  - sources/repos/regolibrary/controls/C-0266-exposuretointernet-gateway.json

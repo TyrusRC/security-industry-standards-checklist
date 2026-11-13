@@ -1,0 +1,173 @@
+- id: LLM-PAY-001
+  sheet: LLM
+  category: PAY
+  title: Test that the screening and payment APIs reject self-declared agent identity
+  objective: Finds payment flows where an agent gets access by claiming an identity in a header.
+  preconditions:
+  - Test environment with a sandbox payment service.
+  steps:
+  - Send a screening request with only an X-Agent-ID header and no credential.
+  - Send a request with a valid credential and a different X-Agent-ID header. Look at the audit record.
+  - Send a request with an expired or revoked credential.
+  - Try to raise the trust level of the agent through the API.
+  - Make sure the service removes caller-supplied client-certificate headers from behind a proxy.
+  example: 'curl -H "X-Agent-ID: agent-1" https://api.test/screen -d @req.json ; repeat with a signed passport and a forged header'
+  expected: The API rejects requests with no cryptographic proof of identity. The audit record shows the proven identity. An agent cannot raise its own trust level.
+  severity: High
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    llm_top10:
+    - LLM06:2025
+    agentic_top10:
+    - ASI03
+    cwe:
+    - CWE-290
+    - CWE-287
+    cheatsheet:
+    - AML_Sanctions_AI_Agent_Payments_Cheat_Sheet
+    other: AML cheat sheet section 1
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/AML_Sanctions_AI_Agent_Payments_Cheat_Sheet.md
+  see:
+  - LLM-AGENT-007
+  - LLM-AGENT-009
+  notes: 'Thin source: only one cheat sheet supports this test. Confirm legal duties with compliance owners.'
+- id: LLM-PAY-002
+  sheet: LLM
+  category: PAY
+  title: Test that agent payments cannot skip screening or pass on failure
+  objective: Finds payment flows where an agent pays a sanctioned party or where an outage clears the payment.
+  preconditions:
+  - Sandbox payment service and a test sanction list. Do not run on production.
+  steps:
+  - Call the payment endpoint directly with a new payee, without a screening step. Make sure it refuses.
+  - Send a payment to a test payee on a test sanction list. Make sure the payment is held.
+  - Turn the screening service off, or make it time out. Send a payment.
+  - Make sure the payment is held, and the agent gets an error that says screening failed.
+  - Send a payment with a lower match threshold in the request. Make sure the service ignores it.
+  example: POST /payments with payee_id not in the screening log ; stop the screening container ; POST /screen with {"threshold":0}
+  expected: A payment needs a complete screening result. A match, a timeout or an error holds the payment. The agent cannot change the match threshold.
+  severity: Critical
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    llm_top10:
+    - LLM06:2025
+    agentic_top10:
+    - ASI02
+    cwe:
+    - CWE-693
+    - CWE-636
+    cheatsheet:
+    - AML_Sanctions_AI_Agent_Payments_Cheat_Sheet
+    other: AML cheat sheet sections 2 and 5
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/AML_Sanctions_AI_Agent_Payments_Cheat_Sheet.md
+  see:
+  - LLM-AGENCY-004
+  notes: 'Thin source: only one cheat sheet supports this test. Confirm legal duties with compliance owners.'
+- id: LLM-PAY-003
+  sheet: LLM
+  category: PAY
+  title: Check that the operator of each agent is declared and screened
+  objective: Finds agents that pay on behalf of an unknown or sanctioned operator.
+  preconditions:
+  - Sandbox environment.
+  steps:
+  - List the agents that can start payments. Find the declared operator of each one.
+  - Try to register an agent without an operator. Make sure the service refuses.
+  - Look at the operator record. Make sure it shows a screening date and a result.
+  - Change a test operator to a test sanctioned name. Make sure the service restricts the agent.
+  - Make sure a new agent cannot get more rate limit by a new identity under the same operator.
+  example: GET /agents ; POST /agents without operator ; update operator screening_status=blocked and call the payment API
+  expected: Every agent has a declared and screened operator. A change in operator status restricts the agent. New identities do not add quota.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    llm_top10:
+    - LLM06:2025
+    agentic_top10:
+    - ASI03
+    cwe:
+    - CWE-284
+    cheatsheet:
+    - AML_Sanctions_AI_Agent_Payments_Cheat_Sheet
+    other: AML cheat sheet sections 3 and 6
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/AML_Sanctions_AI_Agent_Payments_Cheat_Sheet.md
+  see:
+  - LLM-DOS-003
+  - LLM-MCP-010
+  notes: 'Thin source: only one cheat sheet supports this test. Confirm legal duties with compliance owners. Spend caps are in LLM-DOS-003 and LLM-MCP-010.'
+- id: LLM-PAY-004
+  sheet: LLM
+  category: PAY
+  title: Check that the payment audit trail is chained and institution-held
+  objective: Finds payment flows where an attacker or an agent can change screening records without detection.
+  preconditions:
+  - Work on a copy of the log, not on the live log.
+  steps:
+  - Take 20 payments from the test run. Find the audit entry of each one.
+  - Make sure each entry holds the agent identity, tool, argument hash, result, time and previous entry hash.
+  - Change one entry in a copy of the log. Run the chain check. Make sure it finds the change.
+  - Delete one entry in the copy. Make sure the check raises an alert.
+  - Make sure the log is stored on systems of the institution and not on the agent device. Make sure it can be exported.
+  example: sha256sum chain check script ; compare prev_hash of each entry ; export the log as JSON
+  expected: Each payment has a chained audit entry with the agent identity. A changed or missing entry is found. The institution holds the log.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    llm_top10:
+    - LLM06:2025
+    agentic_top10:
+    - ASI02
+    cwe:
+    - CWE-778
+    - CWE-345
+    nist_800_53:
+    - AU-9
+    - AU-10
+    cheatsheet:
+    - AML_Sanctions_AI_Agent_Payments_Cheat_Sheet
+    other: AML cheat sheet sections 4 and 9
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/AML_Sanctions_AI_Agent_Payments_Cheat_Sheet.md
+  notes: 'Thin source: only one cheat sheet supports this test. Confirm legal duties with compliance owners.'
+- id: LLM-PAY-005
+  sheet: LLM
+  category: PAY
+  title: Test that screening results carry the list version and expire
+  objective: Finds payment flows that accept a clean result from an old list or an old screening.
+  preconditions:
+  - Sandbox environment.
+  steps:
+  - Get a screening receipt for a test payee. Look at the signed fields.
+  - Make sure the receipt holds the list names, the list version or date, the time and the transaction hash.
+  - Use the receipt for a different transaction. Make sure the service refuses it.
+  - Use a receipt older than the maximum age. Make sure the service asks for a new screen.
+  - Make sure a receipt value set by the issuer cannot raise the maximum age of the verifier.
+  example: decode the receipt (JWS) and look at list_version, screened_at and txn_hash ; replay it on another payment
+  expected: Receipts name the list version and the transaction. The verifier refuses receipts for other transactions or older than its own maximum age.
+  severity: Medium
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    llm_top10:
+    - LLM06:2025
+    cwe:
+    - CWE-294
+    - CWE-345
+    cheatsheet:
+    - AML_Sanctions_AI_Agent_Payments_Cheat_Sheet
+    other: AML cheat sheet sections 9 and 10
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/AML_Sanctions_AI_Agent_Payments_Cheat_Sheet.md
+  notes: 'Thin source: only one cheat sheet supports this test. Confirm legal duties with compliance owners.'

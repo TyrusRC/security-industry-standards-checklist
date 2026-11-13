@@ -1,0 +1,319 @@
+- id: NET-SEG-001
+  sheet: NET
+  category: SEG
+  title: Check that the network has frontend, middleware and backend security zones
+  objective: Finds flat networks where one compromised web server gives access to databases and directories.
+  steps:
+  - Get the network diagram and the VLAN and subnet list.
+  - Look at the placement of load balancers, web servers, application servers, databases and directory servers.
+  - Make sure public-facing components are in a separate zone from internal applications.
+  - Make sure databases, directory services, key storage and file servers are in a backend zone.
+  - Make sure a firewall controls the traffic between the zones.
+  example: 'Review of diagram and switch/firewall config: show vlan brief ; show ip route ; Wireshark capture on each zone border'
+  expected: Public-facing components, applications and data stores are in separate zones. A firewall with an explicit ruleset controls each zone border.
+  severity: High
+  test_type: Config Review
+  refs:
+    cheatsheet:
+    - Network_Segmentation_Cheat_Sheet
+    cwe:
+    - CWE-668
+    nist_800_53:
+    - SC-7
+    - SC-32
+    pci_dss:
+    - '1.4.1'
+    other:
+    - SC-7(21) isolation of system components; SC-7(29) separate subnets (control text read in the catalog)
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Network_Segmentation_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-SEG-002
+  sheet: NET
+  category: SEG
+  title: Make sure databases and backend systems are not reachable from untrusted networks
+  objective: Finds data stores that an attacker on the internet or a web server can reach directly.
+  preconditions:
+  - Written approval for scans from untrusted networks and from the web zone.
+  - Do not run on production without a scan window.
+  steps:
+  - Scan the backend hosts from an untrusted external network.
+  - Scan the backend hosts from a host in the frontend zone.
+  - Try to connect to the database and directory ports that answer.
+  - Compare the result with the zone rules.
+  example: 'nmap -Pn -p 1433,1521,3306,5432,27017,6379,389,636,445 <backend-range> -oA seg-db ; nc -vz <db-host> 5432'
+  expected: Backend systems do not answer from untrusted networks. Only the application servers can reach the database ports.
+  severity: Critical
+  test_type: Automated
+  refs:
+    wstg:
+    - WSTG-CONF-01
+    cheatsheet:
+    - Network_Segmentation_Cheat_Sheet
+    cwe:
+    - CWE-668
+    - CWE-284
+    nist_800_53:
+    - SC-7
+    - AC-4
+    pci_dss:
+    - '1.4.4'
+    - '1.4.2'
+    other:
+    - WSTG-CONF-01 VPC and subnet isolation row
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Network_Segmentation_Cheat_Sheet.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/01-Network_Infrastructure_Configuration.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-SEG-003
+  sheet: NET
+  category: SEG
+  title: Make sure information systems cannot reach the zones of other systems
+  objective: Finds paths from one system to the frontend, middleware or backend of another system.
+  preconditions:
+  - Written approval for tests between the systems.
+  - Do not run on production without a scan window.
+  steps:
+  - Get the network security policy and the list of allowed interservice flows.
+  - Scan the frontend and middleware zones of system B from a host in system A.
+  - Scan the backend zone of system B from the middleware zone of system A.
+  - Compare the result with the list of allowed flows.
+  example: 'nmap -Pn -p- --open <system-B-range> -oA a-to-b ; nc -vz <system-B-db> 5432'
+  expected: Only the documented flows between systems work. A middleware host cannot reach the database of another system and goes through the application server.
+  severity: High
+  test_type: Automated
+  refs:
+    cheatsheet:
+    - Network_Segmentation_Cheat_Sheet
+    cwe:
+    - CWE-668
+    nist_800_53:
+    - SC-7
+    - AC-4
+    pci_dss:
+    - '1.4.1'
+    other:
+    - SC-7(5) deny by default (control text read in the catalog)
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Network_Segmentation_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-SEG-004
+  sheet: NET
+  category: SEG
+  title: Check that outbound traffic from servers is limited to what is needed
+  objective: Finds servers that can connect to any internet host, so a compromised server can reach a control server.
+  preconditions:
+  - Written approval for tests from the server segments.
+  steps:
+  - Get the list of outbound flows that each server zone needs.
+  - From a test host in each zone, try to open connections to an external host that you control.
+  - Try common ports, such as 22, 53, 80, 443 and 3389, and an uncommon port.
+  - Compare the result with the egress rules.
+  example: 'nmap -Pn -p 22,25,53,80,443,3389,8080,4444 <external-test-host> ; curl -m 5 https://<external-test-host>/'
+  expected: Servers reach only the destinations and ports on the allowed list. Other outbound connections are denied and logged.
+  severity: High
+  test_type: Manual
+  refs:
+    cheatsheet:
+    - Network_Segmentation_Cheat_Sheet
+    attack:
+    - T1048
+    nist_800_53:
+    - SC-7
+    - SI-4
+    pci_dss:
+    - '1.3.2'
+    other:
+    - SC-7(9) restrict threatening outgoing traffic (control text read in the catalog)
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Network_Segmentation_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-SEG-005
+  sheet: NET
+  category: SEG
+  title: Test the segmentation controls with a penetration test
+  objective: Finds segmentation that exists on paper but does not stop traffic between zones.
+  preconditions:
+  - Written approval and rules of engagement for the penetration test.
+  - Do not run on production without a test window.
+  steps:
+  - Get the list of all segmentation methods in use, such as firewalls, VLANs and access lists.
+  - Test each method from the less trusted side to the more trusted side.
+  - Test again after each change to the segmentation controls.
+  - Record each path that crosses a zone border without approval.
+  example: 'nmap -Pn -sS -sU -p- <protected-range> from each out-of-scope segment ; hping3 for crafted packets'
+  expected: Traffic from out-of-scope networks cannot reach the protected zone. The test ran in the last 12 months and after each change.
+  severity: High
+  test_type: Manual
+  refs:
+    nist_800_53:
+    - SC-7
+    - CA-8
+    pci_dss:
+    - '11.4.5'
+    other:
+    - NIST SP 800-115 section 5.2 (penetration testing)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-SEG-006
+  sheet: NET
+  category: SEG
+  title: Check that edge routers drop packets with forged source addresses
+  objective: Finds networks that accept spoofed source addresses, which helps to go around block lists.
+  preconditions:
+  - Written approval for tests with crafted packets.
+  - Do not run on production without a test window.
+  steps:
+  - Read the ingress filter rules on the edge routers.
+  - Send a packet from outside with a source address of the internal range.
+  - Send a packet from outside with a private or loopback source address.
+  - Look on an internal sniffer to see if the packets arrive.
+  example: 'hping3 -S -a 10.0.0.5 -p 80 <public-host> ; Wireshark on the internal segment with filter ip.src==10.0.0.5'
+  expected: The router drops the packets with a forged source address before they enter the trusted network.
+  severity: Medium
+  test_type: Manual
+  refs:
+    cheatsheet:
+    - Denial_of_Service_Cheat_Sheet
+    cwe:
+    - CWE-345
+    nist_800_53:
+    - SC-7
+    pci_dss:
+    - '1.4.3'
+    other:
+    - RFC 2267 ingress filtering as named in the Denial of Service Cheat Sheet
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Denial_of_Service_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-SEG-007
+  sheet: NET
+  category: SEG
+  title: Check that internal IP addresses and routes are not shown to outsiders
+  objective: Finds devices that tell untrusted parties about the internal network layout.
+  steps:
+  - Look at the routing protocol settings on the edge routers.
+  - Look at ICMP replies, traceroute output and error messages seen from outside.
+  - Look for internal addresses in DNS answers and in public headers.
+  - Make sure routing updates go only to approved neighbors.
+  example: 'traceroute -n <public-host> ; dig +short @<public-ns> <name> ; curl -sI https://<site> | grep -i "via\|x-forwarded"'
+  expected: Outside parties see no internal IP address and no internal route. Routing updates go only to approved neighbors.
+  severity: Low
+  test_type: Manual
+  refs:
+    attack:
+    - T1590.004
+    - T1590.005
+    cwe:
+    - CWE-200
+    nist_800_53:
+    - SC-7
+    pci_dss:
+    - '1.4.5'
+    other:
+    - SC-7(16) prevent discovery of system components (control text read in the catalog)
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-SEG-008
+  sheet: NET
+  category: SEG
+  title: Review cloud security groups, route tables and network policies for exposure
+  objective: Finds cloud rules that open management or database ports to the internet.
+  preconditions:
+  - Read access to the cloud account, or written approval for external scans.
+  steps:
+  - List all security group or firewall rules in the account.
+  - Find each inbound rule with a source of 0.0.0.0/0 or any.
+  - Look at the ports of those rules, mainly SSH, RDP and database ports.
+  - Read the route tables and subnet layout to see which subnets have a route to the internet.
+  - Scan the public addresses to confirm which ports really answer.
+  example: 'aws ec2 describe-security-groups ; aws ec2 describe-route-tables ; az network nsg rule list --nsg-name <nsg> -g <rg> ; prowler ; ScoutSuite ; nmap -Pn -p- <public-ip>'
+  expected: No security group opens SSH, RDP or database ports to 0.0.0.0/0. Backend subnets have no route from the internet.
+  severity: High
+  test_type: Config Review
+  refs:
+    wstg:
+    - WSTG-CONF-01
+    owasp_top10:
+    - A02:2025
+    cwe:
+    - CWE-1327
+    nist_800_53:
+    - SC-7
+    - CM-7
+    pci_dss:
+    - '1.3.1'
+    - '1.4.2'
+  see:
+  - WEB-CONF-001
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/01-Network_Infrastructure_Configuration.md
+  - sources/repos/Top10/2025/docs/en/A02_2025-Security_Misconfiguration.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-SEG-009
+  sheet: NET
+  category: SEG
+  title: Check that a written network security policy exists and matches the rules
+  objective: Finds firewall rules that no policy approves, and policies that no rule enforces.
+  steps:
+  - Get the network security policy that lists the allowed flows.
+  - Take a sample of firewall rules from the main zone borders.
+  - Look for a policy line for each sampled rule.
+  - Look for a rule for each policy line about a main flow, such as logs, monitoring and CI/CD.
+  example: 'Compare the policy with the export of rules: show access-lists ; nft list ruleset ; manual sample of 20 rules'
+  expected: Each sampled rule has a policy line, and each main policy line has a rule. The policy is current and approved.
+  severity: Low
+  test_type: Manual
+  refs:
+    cheatsheet:
+    - Network_Segmentation_Cheat_Sheet
+    nist_800_53:
+    - SC-7
+    - CM-6
+    pci_dss:
+    - '1.2.1'
+    - '1.2.2'
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Network_Segmentation_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-SEG-010
+  sheet: NET
+  category: SEG
+  title: Scan infrastructure code for open network rules before deployment
+  objective: Finds open security group rules and weak network settings before they reach production.
+  steps:
+  - Find the repositories that define networks, firewalls and security groups as code.
+  - Run a static analysis tool on the code.
+  - Look for rules with any source, any port or public addresses.
+  - Make sure the pipeline runs the tool on each change and blocks high findings.
+  example: 'checkov -d infra/ ; tfsec infra/ ; kubescape scan . ; grep -rn "0.0.0.0/0" infra/'
+  expected: The code defines no open rule that the policy does not allow. The pipeline blocks changes with high findings.
+  severity: Medium
+  test_type: Code Review
+  refs:
+    cheatsheet:
+    - Infrastructure_as_Code_Security_Cheat_Sheet
+    owasp_top10:
+    - A02:2025
+    cwe:
+    - CWE-1327
+    nist_800_53:
+    - CM-3
+    - CM-6
+    - SC-7
+  see:
+  - WEB-CONF-001
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Infrastructure_as_Code_Security_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A02_2025-Security_Misconfiguration.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json

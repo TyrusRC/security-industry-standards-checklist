@@ -1,0 +1,427 @@
+- id: K8S-WRK-012
+  sheet: K8S
+  category: WRK
+  title: Check hostPath volumes for read-only use, narrow paths and admission blocks
+  objective: Finds pods that can read or write host files through hostPath mounts.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - List all pods with hostPath volumes and the host path of each.
+  - Find mounts that are writable or that mount a parent directory such as / or /var.
+  - Find subPath mounts on affected Kubernetes versions.
+  - Check that an admission rule blocks hostPath outside an approved list.
+  - Try to create a pod with a hostPath mount in a test namespace.
+  example: kubectl get pods -A -o json | jq -r ".items[] | select(.spec.volumes[]?.hostPath) | .metadata.namespace+"/"+.metadata.name"; kubescape scan control C-0045,C-0203
+  expected: Only approved system pods use hostPath, with narrow paths and read-only mounts. Admission rules reject all other hostPath volumes.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K01
+    cloud_native_top10:
+    - CNAS-1
+    cwe:
+    - CWE-668
+    attack:
+    - T1611
+    nist_800_53:
+    - AC-6
+    - CM-7
+    tool_check:
+    - kubescape:C-0045
+    - kubescape:C-0048
+    - kubescape:C-0058
+    - kubescape:C-0203
+    - prowler:kubernetes:core_minimize_hostpath_volume_mounts
+    other:
+    - 'Kubernetes docs: api-server-bypass-risks.md'
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0045-writablehostpathmount.json
+  - sources/repos/regolibrary/controls/C-0048-hostpathmount.json
+  - sources/repos/regolibrary/controls/C-0058-cve202125741usingsymlinkforarbitraryhostfilesystemaccess.json
+  - sources/repos/regolibrary/controls/C-0203-minimizetheadmissionofhostpathvolumes.json
+  - sources/repos/k8s-website/content/en/docs/concepts/security/api-server-bypass-risks.md
+- id: K8S-WRK-013
+  sheet: K8S
+  category: WRK
+  title: Find pods that use hostPort or Windows HostProcess containers
+  objective: Finds pods that open node ports or run as processes on the Windows host.
+  steps:
+  - List containers that set hostPort.
+  - List pods that set hostProcess in the Windows security context.
+  - Ask the owner to justify each case.
+  - Check that admission rules reject both settings outside system namespaces.
+  - Replace hostPort with a Service of type ClusterIP or NodePort.
+  example: kubectl get pods -A -o json | jq -r ".items[] | select(.spec.containers[].ports[]?.hostPort) | .metadata.name"
+  expected: No application pod uses hostPort or hostProcess. Admission rules block both settings.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K01
+    cloud_native_top10:
+    - CNAS-1
+    cwe:
+    - CWE-668
+    attack:
+    - T1611
+    nist_800_53:
+    - CM-7
+    - SC-7
+    tool_check:
+    - kubescape:C-0044
+    - kubescape:C-0202
+    - kubescape:C-0204
+    - prowler:kubernetes:core_minimize_admission_hostport_containers
+    - prowler:kubernetes:core_minimize_admission_windows_hostprocess_containers
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0044-containerhostport.json
+  - sources/repos/regolibrary/controls/C-0202-minimizetheadmissionofwindowshostprocesscontainers.json
+  - sources/repos/regolibrary/controls/C-0204-minimizetheadmissionofcontainerswhichusehostports.json
+- id: K8S-WRK-014
+  sheet: K8S
+  category: WRK
+  title: Find SSH servers and sudo in container images and commands
+  objective: Finds containers that give remote shell access or raise privileges at start.
+  steps:
+  - List containers that expose port 22 or 2222.
+  - Search the entry point and command of each container for sudo.
+  - Search the image file systems for an sshd binary.
+  - Remove SSH and sudo from the images and use kubectl debug for support work.
+  example: kubectl get pods -A -o json | jq -r ".items[] | select(.spec.containers[].ports[]?.containerPort | IN(22,2222)) | .metadata.name"; kubescape scan control C-0042,C-0062
+  expected: No container runs an SSH server or uses sudo in its start command. Support access uses audited Kubernetes access.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K01
+    cloud_native_top10:
+    - CNAS-1
+    cwe:
+    - CWE-250
+    attack:
+    - T1021
+    nist_800_53:
+    - CM-7
+    - AC-17
+    tool_check:
+    - kubescape:C-0042
+    - kubescape:C-0062
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0042-sshserverrunninginsidecontainer.json
+  - sources/repos/regolibrary/controls/C-0062-sudoincontainerentrypoint.json
+- id: K8S-WRK-015
+  sheet: K8S
+  category: WRK
+  title: Check noexec, nosuid and nodev options on writable mounts
+  objective: Finds writable volumes from which an attacker can start dropped binaries.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - List writable volume mounts of each container, including emptyDir and hostPath.
+  - Read the mount options of each mount.
+  - In a test pod, write a script to a writable mount and set it executable.
+  - Try to run the script from the mount.
+  example: kubectl exec <pod> -- sh -c "cp /bin/true /tmp/t && /tmp/t"; kubectl exec <pod> -- mount | grep -E "noexec|nosuid"
+  expected: Writable mounts use the options noexec, nosuid and nodev where the application allows it. The test script does not run.
+  severity: Low
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K01
+    cwe:
+    - CWE-732
+    nist_800_53:
+    - CM-7
+    tool_check:
+    - kubescape:C-0319
+    other:
+    - 'Kubernetes docs: application-security-checklist.md'
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0319-mountsecurityoptions.json
+  - sources/repos/k8s-website/content/en/docs/concepts/security/application-security-checklist.md
+- id: K8S-WRK-016
+  sheet: K8S
+  category: WRK
+  title: Check CPU and memory requests and the QoS class of workloads
+  objective: Finds pods that can starve others or get evicted first because they set no requests.
+  steps:
+  - List CPU and memory requests for each container.
+  - Find pods with the QoS class BestEffort.
+  - Check that the memory limit is not lower than the memory request.
+  - Check that critical workloads have the Guaranteed or Burstable class with fitting values.
+  example: kubectl get pods -A -o json | jq -r ".items[] | select(.status.qosClass=="BestEffort") | .metadata.namespace+"/"+.metadata.name"
+  expected: Each container sets CPU and memory requests. No application pod is BestEffort, and memory limits fit the requests.
+  severity: Low
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-9
+    cwe:
+    - CWE-770
+    attack:
+    - T1499
+    nist_800_53:
+    - SC-5
+    tool_check:
+    - kubescape:C-0268
+    - kubescape:C-0269
+    - prowler:kubernetes:core_cpu_requests_set
+    - prowler:kubernetes:core_memory_requests_set
+    other:
+    - 'Kubernetes docs: application-security-checklist.md'
+    - 'Kubernetes docs: multi-tenancy.md'
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0268-ensurecpurequestsareset.json
+  - sources/repos/regolibrary/controls/C-0269-ensurememoryrequestsareset.json
+  - sources/repos/k8s-website/content/en/docs/concepts/security/application-security-checklist.md
+  - sources/repos/k8s-website/content/en/docs/concepts/security/multi-tenancy.md
+- id: K8S-WRK-017
+  sheet: K8S
+  category: WRK
+  title: Check controllers, probes, update strategy and labels of workloads
+  objective: Finds pods and deployments that drift from the code, stay unhealthy or lack an owner.
+  steps:
+  - List pods that have no owner controller.
+  - List containers without readiness and liveness probes.
+  - List deployments that use a non-rolling update strategy.
+  - List workloads without the common app and owner labels.
+  example: kubectl get pods -A -o json | jq -r ".items[] | select(.metadata.ownerReferences==null) | .metadata.name"
+  expected: Each pod belongs to a controller with probes and a rolling update. Labels name the app and the owner.
+  severity: Info
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-8
+    nist_800_53:
+    - CM-8
+    tool_check:
+    - kubescape:C-0018
+    - kubescape:C-0056
+    - kubescape:C-0073
+    - kubescape:C-0076
+    - kubescape:C-0077
+    - kubescape:C-0305
+    - prowler:kubernetes:core_liveness_probe_configured
+    - prowler:kubernetes:core_readiness_probe_configured
+    other:
+    - 'Kubernetes docs: application-security-checklist.md'
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0018-configuredreadinessprobe.json
+  - sources/repos/regolibrary/controls/C-0056-configuredlivenessprobe.json
+  - sources/repos/regolibrary/controls/C-0073-nakedpods.json
+  - sources/repos/regolibrary/controls/C-0076-labelusageforresources.json
+  - sources/repos/regolibrary/controls/C-0077-k8scommonlabelsusage.json
+  - sources/repos/regolibrary/controls/C-0305-norollingupdatestrategy.json
+  - sources/repos/k8s-website/content/en/docs/concepts/security/application-security-checklist.md
+- id: K8S-WRK-018
+  sheet: K8S
+  category: WRK
+  title: Review CronJobs and Jobs for unknown scheduled workloads
+  objective: Finds scheduled jobs that an attacker may use for persistence or execution.
+  steps:
+  - List all CronJobs and Jobs in all namespaces.
+  - Read the image, command and service account of each CronJob.
+  - Compare the list to the change records.
+  - Check who can create CronJobs.
+  example: kubectl get cronjob,job -A -o wide; kubectl get cronjob -A -o json | jq ".items[].spec.jobTemplate.spec.template.spec.containers[].image"
+  expected: Each CronJob is known and approved. The image is trusted and the service account has only the needed rights.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K01
+    attack:
+    - T1053.007
+    nist_800_53:
+    - CM-3
+    - CM-8
+    tool_check:
+    - kubescape:C-0026
+    other:
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Audit Logging and Threat Detection, Logging
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0026-kubernetescronjob.json
+  - sources/nsa_k8s/nsa_k8s_hardening.md
+- id: K8S-WRK-019
+  sheet: K8S
+  category: WRK
+  title: Check volume encryption and workload access to volumes, secrets and ConfigMaps
+  objective: Finds data volumes without encryption and workloads with more storage access than needed.
+  steps:
+  - List StorageClasses and PersistentVolumes with their encryption settings.
+  - Find volumes without encryption.
+  - List workloads that mount PVCs, secrets or ConfigMaps.
+  - Remove mounts that the workload does not need.
+  example: kubectl get sc,pv -o wide; kubectl get pods -A -o json | jq -r ".items[] | select(.spec.volumes[]?.persistentVolumeClaim) | .metadata.name"
+  expected: All PersistentVolumes use encrypted storage. Each workload mounts only the volumes, secrets and ConfigMaps that it needs.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K03
+    cloud_native_top10:
+    - CNAS-5
+    cwe:
+    - CWE-311
+    nist_800_53:
+    - SC-28
+    - AC-6
+    tool_check:
+    - kubescape:C-0255
+    - kubescape:C-0257
+    - kubescape:C-0258
+    - kubescape:C-0264
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0255-workloadwithsecretaccess.json
+  - sources/repos/regolibrary/controls/C-0257-pvcaccess.json
+  - sources/repos/regolibrary/controls/C-0258-configmapaccess.json
+  - sources/repos/regolibrary/controls/C-0264-pv-encrypted.json
+- id: K8S-WRK-020
+  sheet: K8S
+  category: WRK
+  title: Find dangling and mismatched objects that hide broken controls
+  objective: Finds policies and routes that target nothing and so give false safety.
+  steps:
+  - List NetworkPolicies whose pod selector matches no pod.
+  - List Services, Ingresses, Gateway routes and autoscalers that point to missing targets.
+  - List workloads where the selector does not match the pod labels.
+  - List pods with duplicate environment variables, missing or deprecated service account fields.
+  example: kubescape scan control C-0299,C-0293,C-0296,C-0295,C-0294,C-0307; kubectl get netpol,svc,ing -A
+  expected: Each policy selects at least one workload. Services, routes and autoscalers have valid targets. Selectors, environment variables and service accounts are correct.
+  severity: Low
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-8
+    nist_800_53:
+    - CM-6
+    tool_check:
+    - kubescape:C-0293
+    - kubescape:C-0294
+    - kubescape:C-0295
+    - kubescape:C-0296
+    - kubescape:C-0298
+    - kubescape:C-0299
+    - kubescape:C-0300
+    - kubescape:C-0302
+    - kubescape:C-0307
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0293-servicewithnoworkload.json
+  - sources/repos/regolibrary/controls/C-0294-deprecatedserviceaccountfield.json
+  - sources/repos/regolibrary/controls/C-0295-duplicateenvvar.json
+  - sources/repos/regolibrary/controls/C-0296-mismatchingselector.json
+  - sources/repos/regolibrary/controls/C-0298-danglingingressbackend.json
+  - sources/repos/regolibrary/controls/C-0299-danglingnetworkpolicy.json
+  - sources/repos/regolibrary/controls/C-0300-danglinghpatarget.json
+  - sources/repos/regolibrary/controls/C-0302-danglinggatewaybackend.json
+  - sources/repos/regolibrary/controls/C-0307-nonexistentserviceaccount.json
+- id: K8S-WRK-021
+  sheet: K8S
+  category: WRK
+  title: Check hardening of Agent Sandbox workloads
+  objective: Finds sandbox templates for AI agents that lack isolation, limits or egress control.
+  preconditions:
+  - The cluster uses the Agent Sandbox resources.
+  steps:
+  - List Sandbox and SandboxTemplate resources.
+  - Check that each uses an approved hardened runtime class.
+  - Check CPU and memory limits, image registry and image digest for each container.
+  - Check the egress policy mode and that claims cannot override template settings.
+  - Check that service account tokens are not mounted.
+  example: kubectl get sandboxtemplates,sandboxes -A -o yaml; kubescape scan control C-0297,C-0301,C-0303,C-0309,C-0314,C-0316
+  expected: Sandboxes use a hardened runtime, set resource limits and pin images from approved registries. Egress is limited, tokens are off, and claims cannot override the template.
+  severity: High
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    cwe:
+    - CWE-668
+    nist_800_53:
+    - SC-39
+    - SC-7
+    tool_check:
+    - kubescape:C-0297
+    - kubescape:C-0301
+    - kubescape:C-0303
+    - kubescape:C-0304
+    - kubescape:C-0309
+    - kubescape:C-0311
+    - kubescape:C-0312
+    - kubescape:C-0313
+    - kubescape:C-0314
+    - kubescape:C-0315
+    - kubescape:C-0316
+    - kubescape:C-0317
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0297-hardenedsandboxruntimeclass.json
+  - sources/repos/regolibrary/controls/C-0301-agentsandboxegresspolicy.json
+  - sources/repos/regolibrary/controls/C-0303-agentsandboxresourceceilings.json
+  - sources/repos/regolibrary/controls/C-0304-agentsandboximageprovenance.json
+  - sources/repos/regolibrary/controls/C-0309-agentsandboxserviceaccounttokenisolation.json
+  - sources/repos/regolibrary/controls/C-0311-agent-sandbox-container-limits.json
+  - sources/repos/regolibrary/controls/C-0312-agent-runtime-image-digests.json
+  - sources/repos/regolibrary/controls/C-0313-agent-runtime-image-registries.json
+  - sources/repos/regolibrary/controls/C-0314-agent-sandbox-managed-networking.json
+  - sources/repos/regolibrary/controls/C-0315-agent-sandbox-strict-egress.json
+  - sources/repos/regolibrary/controls/C-0316-agent-sandbox-claim-overrides.json
+  - sources/repos/regolibrary/controls/C-0317-worker-pod-resource-ceilings.json
+- id: K8S-WRK-022
+  sheet: K8S
+  category: WRK
+  title: Check pod placement by sensitivity tier and node isolation
+  objective: Finds sensitive pods that share nodes with less trusted workloads.
+  steps:
+  - List the sensitivity tiers of the workloads and the node pools.
+  - Read nodeSelector and tolerations of sensitive workloads.
+  - Check that PodNodeSelector or PodTolerationRestriction limits placement by namespace.
+  - Check that users cannot remove the taints or labels that separate the pools.
+  example: kubectl get pods -A -o wide; kubectl get nodes --show-labels; kubectl describe node <node> | grep Taints
+  expected: Sensitive workloads run on separate nodes or in sandboxed runtimes. Admission rules enforce the placement and users cannot bypass it.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K01
+    cloud_native_top10:
+    - CNAS-1
+    cwe:
+    - CWE-653
+    nist_800_53:
+    - SC-39
+    - AC-4
+    other:
+    - 'Kubernetes docs: security-checklist.md'
+    - 'Kubernetes docs: multi-tenancy.md'
+    - 'Kubernetes docs: securing-a-cluster.md'
+  sources_read:
+  - sources/repos/k8s-website/content/en/docs/concepts/security/security-checklist.md
+  - sources/repos/k8s-website/content/en/docs/concepts/security/multi-tenancy.md
+  - sources/repos/k8s-website/content/en/docs/tasks/administer-cluster/securing-a-cluster.md
+- id: K8S-WRK-023
+  sheet: K8S
+  category: WRK
+  title: Check custom seccomp profiles and audit mode for baselines
+  objective: Finds workloads without a tailored syscall filter and without syscall baselines.
+  steps:
+  - List workloads that use a Localhost seccomp profile.
+  - Read the profile directory of the kubelet on a sample node.
+  - Check if audit mode profiles record the syscalls of a new workload.
+  - Use the recorded syscalls to build a tighter profile.
+  example: ls /var/lib/kubelet/seccomp/; kubectl get pods -A -o json | jq ".items[].spec.securityContext.seccompProfile"
+  expected: Sensitive workloads use a custom profile that allows only needed syscalls. Audit profiles help build the baseline before enforcement.
+  severity: Low
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K01
+    nist_800_53:
+    - CM-7
+    other:
+    - 'Kubernetes docs: security-checklist.md'
+    - 'NSA/CISA Kubernetes Hardening Guidance 1.2, section Audit Logging and Threat Detection, Seccomp: audit mode'
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Kubernetes Pod security, Hardening container environments
+  sources_read:
+  - sources/repos/k8s-website/content/en/docs/concepts/security/security-checklist.md
+  - sources/nsa_k8s/nsa_k8s_hardening.md

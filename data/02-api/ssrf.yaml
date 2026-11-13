@@ -1,0 +1,210 @@
+- id: API-SSRF-001
+  sheet: API
+  category: SSRF
+  title: Find API parameters that make the server fetch a URL
+  objective: Finds API features such as webhooks, import and preview that call client-supplied URLs.
+  steps:
+  - Search the API description and the client code for parameters named url, uri, callback, webhook and image_url.
+  - Look for features that fetch files, send test requests or build link previews.
+  - Send a URL to a server that you control. Look for a request in its log.
+  - Write down the source IP, headers and protocol of each request.
+  example: 'Burp Collaborator or interactsh-client for an out-of-band URL; Burp Param Miner; example body: {"picture_url":"https://<collaborator>/p.jpg"}.'
+  expected: Every URL parameter is known and documented. Each one is tied to an allowlist or a controlled fetch service.
+  severity: Medium
+  test_type: Manual
+  refs:
+    api_top10:
+    - API7:2023
+    cheatsheet:
+    - Server_Side_Request_Forgery_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-918
+    capec:
+    - CAPEC-664
+    attack:
+    - T1190
+  see:
+  - WEB-INJ-021
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa7-server-side-request-forgery.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md
+- id: API-SSRF-002
+  sheet: API
+  category: SSRF
+  title: Test URL parameters for access to internal addresses and ports
+  objective: Finds API endpoints that call loopback, private or internal hosts for the client.
+  preconditions:
+  - Written permission to scan the internal network from the API host.
+  steps:
+  - Send a URL that points to the loopback address or an internal host name.
+  - Send private network addresses and a different port for each request.
+  - Compare the response time and the error text for open and closed ports.
+  - Read the response body for data of the internal service.
+  example: Burp Intruder on the url parameter with an internal address list; compare response times in Burp Logger.
+  expected: The API refuses internal and private targets. Errors and response time do not show which internal ports are open.
+  severity: High
+  test_type: Manual
+  refs:
+    api_top10:
+    - API7:2023
+    cheatsheet:
+    - Server_Side_Request_Forgery_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-918
+    capec:
+    - CAPEC-664
+    attack:
+    - T1190
+  see:
+  - WEB-INJ-021
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa7-server-side-request-forgery.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md
+- id: API-SSRF-003
+  sheet: API
+  category: SSRF
+  title: Test webhook creation and test requests for response disclosure
+  objective: Finds webhook features that show the response of the target to the user.
+  steps:
+  - Create a webhook that points to a server that you control.
+  - Check the options that send a test request at creation time.
+  - Create a webhook to an internal address. Read the API response and the delivery log.
+  - Check if the full response body of the target returns to the client.
+  example: POST /graphql createNotificationChannel with a callback URL; interactsh for blind calls; read the delivery history endpoint.
+  expected: The API does not send raw responses of the target back to the client. Internal targets are refused at creation and at delivery.
+  severity: High
+  test_type: Manual
+  refs:
+    api_top10:
+    - API7:2023
+    cheatsheet:
+    - Server_Side_Request_Forgery_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-918
+    - CWE-200
+    capec:
+    - CAPEC-664
+  see:
+  - WEB-INJ-021
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa7-server-side-request-forgery.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md
+- id: API-SSRF-004
+  sheet: API
+  category: SSRF
+  title: Test if the fetch follows redirects to internal targets
+  objective: Finds fetch code that follows redirects and so passes the allowlist check.
+  steps:
+  - Host a URL on an allowed domain that sends a redirect to an internal address.
+  - Send this URL in the API parameter.
+  - Look at the logs of the redirect target.
+  - Check the option for redirects in the HTTP client.
+  example: python -m http.server with a 302 handler; interactsh as the redirect target; code review of the HTTP client options.
+  expected: The fetch client does not follow redirects, or it checks each redirect target with the same rules.
+  severity: High
+  test_type:
+  - Manual
+  - Code Review
+  refs:
+    api_top10:
+    - API7:2023
+    cheatsheet:
+    - Server_Side_Request_Forgery_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-918
+    - CWE-601
+    capec:
+    - CAPEC-664
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa7-server-side-request-forgery.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md
+- id: API-SSRF-005
+  sheet: API
+  category: SSRF
+  title: Test URL parser differences and allowlist bypass cases
+  objective: Finds allowlists that fail because of URL parser differences or address forms.
+  steps:
+  - Send URLs with user info, extra dots, mixed case and alternative IP notations.
+  - Send an IPv4-mapped IPv6 address and a name with more than one A record.
+  - Send a name that resolves to a public address and then to a private one.
+  - Check that the check and the request use the same parsed host.
+  example: Burp Intruder with a list of URL forms and address notations; a DNS test domain with short TTL.
+  expected: The API uses one URL parser. It checks the resolved IP address, binds the request to it and normalizes addresses before it compares them.
+  severity: High
+  test_type: Manual
+  refs:
+    api_top10:
+    - API7:2023
+    cheatsheet:
+    - Server_Side_Request_Forgery_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-918
+    capec:
+    - CAPEC-664
+  see:
+  - WEB-HTTP-006
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa7-server-side-request-forgery.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md
+- id: API-SSRF-006
+  sheet: API
+  category: SSRF
+  title: Check the allowed schemes, ports and media types of fetch features
+  objective: Finds fetch features that accept protocols or content that the feature does not need.
+  steps:
+  - Read which schemes and ports the fetch feature must use.
+  - Send file, ftp and other non-HTTP schemes.
+  - Send ports that are not on the allowlist.
+  - Send a URL that returns a type that the feature does not expect.
+  example: curl -X POST https://api.example/api/profile/upload_picture -d '{"picture_url":"file:///etc/hostname"}' on a test system.
+  expected: Only the listed schemes, ports and media types work. Other values give a generic 400 error.
+  severity: Medium
+  test_type: Manual
+  refs:
+    api_top10:
+    - API7:2023
+    cheatsheet:
+    - Server_Side_Request_Forgery_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-918
+    - CWE-20
+    capec:
+    - CAPEC-664
+  see:
+  - WEB-ARCH-004
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa7-server-side-request-forgery.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md
+- id: API-SSRF-007
+  sheet: API
+  category: SSRF
+  title: Check outbound network rules and metadata service protection
+  objective: Finds hosts that can reach internal services and cloud metadata from the API process.
+  steps:
+  - Read the egress firewall and network policy for the hosts that fetch URLs.
+  - From a test host, call the cloud metadata address of the provider.
+  - Check that the metadata service needs a session token header (IMDSv2) and that the old version is off.
+  - Check that fetch workers run in a separate network segment.
+  example: aws ec2 describe-instances --query HttpTokens; kubectl get networkpolicy; curl to the metadata address from a test pod.
+  expected: Fetch workers can reach only needed targets. The metadata service is protected and the old version is off.
+  severity: High
+  test_type: Config Review
+  refs:
+    api_top10:
+    - API7:2023
+    - API8:2023
+    cheatsheet:
+    - Server_Side_Request_Forgery_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-918
+    - CWE-668
+    capec:
+    - CAPEC-664
+    attack:
+    - T1552.005
+  see:
+  - WEB-ARCH-004
+  - WEB-CONF-001
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa7-server-side-request-forgery.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md

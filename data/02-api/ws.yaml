@@ -1,0 +1,114 @@
+- id: API-WS-001
+  sheet: API
+  category: WS
+  title: Test authorization of each WebSocket message and action
+  objective: Finds sockets where a valid connection gives access to all actions and objects.
+  steps:
+  - Open a connection as a normal user with a valid token.
+  - Send messages for admin actions and for objects of another user.
+  - Subscribe to channels of another user.
+  - Check the authorization again after a role change.
+  example: 'wscat -c wss://api.example/ws -H ''Authorization: Bearer <token>''; Burp WebSockets history and Repeater; ZAP WebSocket tab.'
+  expected: The server checks the role and the object for each message. A connection is not full access.
+  severity: High
+  test_type: Manual
+  refs:
+    api_top10:
+    - API1:2023
+    - API5:2023
+    cheatsheet:
+    - WebSocket_Security_Cheat_Sheet
+    cwe:
+    - CWE-285
+    - CWE-639
+  see:
+  - WEB-HTTP-009
+  - WEB-IDOR-001
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa1-broken-object-level-authorization.md
+  - sources/repos/API-Security/editions/2023/en/0xa5-broken-function-level-authorization.md
+  - sources/repos/CheatSheetSeries/cheatsheets/WebSocket_Security_Cheat_Sheet.md
+- id: API-WS-002
+  sheet: API
+  category: WS
+  title: Test WebSocket message validation, size and flood limits
+  objective: Finds sockets that accept malformed, oversize or very frequent messages.
+  preconditions:
+  - Test environment only.
+  steps:
+  - Send messages that break the JSON schema.
+  - Send injection test strings in each field.
+  - Send a message larger than the limit.
+  - Send many messages in a short time.
+  example: wscat; Burp WebSocket Turbo Intruder; custom Python websockets script in a test environment.
+  expected: The server checks each message against a schema, limits size to a small value and limits the message rate per client.
+  severity: Medium
+  test_type: Manual
+  refs:
+    api_top10:
+    - API4:2023
+    cheatsheet:
+    - WebSocket_Security_Cheat_Sheet
+    - Input_Validation_Cheat_Sheet
+    cwe:
+    - CWE-20
+    - CWE-770
+    capec:
+    - CAPEC-125
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption.md
+  - sources/repos/CheatSheetSeries/cheatsheets/WebSocket_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Input_Validation_Cheat_Sheet.md
+- id: API-WS-003
+  sheet: API
+  category: WS
+  title: Test connection limits, idle timeouts and backpressure
+  objective: Finds sockets that let one client hold many connections or fill server memory.
+  preconditions:
+  - Test environment only.
+  steps:
+  - Open many connections from one user and one IP.
+  - Leave connections idle. Measure the time until the server closes them.
+  - Send data fast and read slowly.
+  - Check the heartbeat frames.
+  example: Python script with asyncio and websockets; Artillery WebSocket engine; monitor server memory.
+  expected: The server limits connections per user. Idle and dead connections close. Memory use stays bound under fast producers.
+  severity: Medium
+  test_type: Manual
+  refs:
+    api_top10:
+    - API4:2023
+    cheatsheet:
+    - WebSocket_Security_Cheat_Sheet
+    cwe:
+    - CWE-770
+    - CWE-400
+    attack:
+    - T1499
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption.md
+  - sources/repos/CheatSheetSeries/cheatsheets/WebSocket_Security_Cheat_Sheet.md
+- id: API-WS-004
+  sheet: API
+  category: WS
+  title: Check WebSocket session end, replay protection and logs
+  objective: Finds sockets that stay open after logout or token expiry and leave no audit trail.
+  steps:
+  - Open a connection. Log out or let the token expire.
+  - Check if the connection closes and if messages still work.
+  - Replay a captured message.
+  - Look in the logs for connect, close, denied and flood events.
+  example: wscat with a recorded message; Burp WebSockets history; log search for the connection ID.
+  expected: Connections close at logout and token expiry. Messages use nonces or timestamps. Security events are logged without secrets.
+  severity: Medium
+  test_type: Manual
+  refs:
+    cheatsheet:
+    - WebSocket_Security_Cheat_Sheet
+    cwe:
+    - CWE-294
+    - CWE-778
+  see:
+  - WEB-HTTP-009
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/WebSocket_Security_Cheat_Sheet.md

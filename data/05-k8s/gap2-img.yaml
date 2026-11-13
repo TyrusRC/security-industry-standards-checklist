@@ -1,0 +1,116 @@
+- id: K8S-IMG-007
+  sheet: K8S
+  category: IMG
+  title: Check image pull policy, digest pins and deprecated registry paths
+  objective: Finds workloads that can run an old or swapped image behind a mutable tag.
+  steps:
+  - List images that use a mutable tag and their pull policy.
+  - Make sure the pull policy is Always where a mutable tag is in use.
+  - List images that are not pinned to a sha256 digest.
+  - List images from the deprecated k8s.gcr.io registry.
+  example: kubectl get pods -A -o jsonpath="{range .items[*]}{.spec.containers[*].image}{"\n"}{end}" | grep -v "@sha256"; kubectl get pods -A -o yaml | grep -c "k8s.gcr.io"
+  expected: Production images use a digest. Mutable tags use the pull policy Always. No component pulls from the deprecated registry path.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K07
+    cloud_native_top10:
+    - CNAS-4
+    cwe:
+    - CWE-494
+    attack:
+    - T1525
+    nist_800_53:
+    - SI-7
+    tool_check:
+    - kubescape:C-0075
+    - kubescape:C-0253
+    - kubescape:C-0306
+    other:
+    - 'Kubernetes docs: security-checklist.md'
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Upgrading and application security practices
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0075-imagepullpolicyonlatesttag.json
+  - sources/repos/regolibrary/controls/C-0253-deprecated-k8s-registry.json
+  - sources/repos/regolibrary/controls/C-0306-imagenotpinnedtodigest.json
+  - sources/repos/k8s-website/content/en/docs/concepts/security/security-checklist.md
+  - sources/nsa_k8s/nsa_k8s_hardening.md
+- id: K8S-IMG-008
+  sheet: K8S
+  category: IMG
+  title: Check that image signature checks fail closed and block bad images
+  objective: Finds clusters where an unsigned, tampered or bypassed image can still start.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Read the signature policy or the ImagePolicyWebhook configuration and the trusted keys.
+  - In a test namespace, start an unsigned image and a tampered image.
+  - Stop the verification service in a test cluster and start a pod.
+  - Check that the policy engine runs a fixed version without known signature bypass flaws.
+  example: kubectl run unsigned --image=<registry>/unsigned:1 -n test; cosign verify --key cosign.pub <image>
+  expected: The cluster rejects unsigned and tampered images and rejects pods when the verifier is down. The policy engine has no known bypass flaw.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K04
+    - K07
+    cloud_native_top10:
+    - CNAS-4
+    cwe:
+    - CWE-345
+    - CWE-494
+    attack:
+    - T1525
+    - T1195
+    nist_800_53:
+    - SI-7
+    - SA-10
+    tool_check:
+    - kubescape:C-0091
+    - kubescape:C-0236
+    - kubescape:C-0237
+    - kubescape:C-0289
+    other:
+    - 'Kubernetes docs: security-checklist.md'
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Kubernetes Pod security, Building secure container images
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0091-cve202247633kyvernosignaturebypass.json
+  - sources/repos/regolibrary/controls/C-0236-verifyimagesignature.json
+  - sources/repos/regolibrary/controls/C-0237-hasimagesignature.json
+  - sources/repos/regolibrary/controls/C-0289-configureimageprovenanceusingimagepolicywebhookadmissioncontroller.json
+  - sources/repos/k8s-website/content/en/docs/concepts/security/security-checklist.md
+  - sources/nsa_k8s/nsa_k8s_hardening.md
+- id: K8S-IMG-009
+  sheet: K8S
+  category: IMG
+  title: Check the image scan gate at admission
+  objective: Finds clusters that deploy images that failed the scan policy.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Find the admission webhook or policy that checks scan results.
+  - Read the rules for severity levels and false-positive handling.
+  - In a test namespace, deploy an image that has a known critical flaw.
+  - Check that rejected deployments appear in the audit log.
+  example: kubectl run vuln --image=<known-vulnerable-image> -n test; trivy image --severity CRITICAL <image>
+  expected: A webhook or policy blocks images that break the scan policy. Waivers for false positives have an owner and an end date.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K04
+    - K07
+    cloud_native_top10:
+    - CNAS-7
+    - CNAS-4
+    cwe:
+    - CWE-1104
+    nist_800_53:
+    - RA-5
+    - SI-2
+    other:
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Kubernetes Pod security, Building secure container images
+  sources_read:
+  - sources/nsa_k8s/nsa_k8s_hardening.md

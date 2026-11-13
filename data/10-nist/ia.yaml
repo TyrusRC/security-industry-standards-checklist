@@ -1,0 +1,54 @@
+- id: NIST-IA-001
+  sheet: NIST
+  category: IA
+  title: Review the authenticator lifecycle for issue, reset, revoke and expiry
+  objective: Finds authenticators that are given with no identity check or that stay valid after loss or change of role.
+  preconditions:
+  - Admin access and a test account.
+  steps:
+  - 'List the authenticator types: password, key, token, certificate and API key.'
+  - Request a test authenticator and look at the identity check before issue.
+  - Check that the first value must be changed or is single use.
+  - Report the test authenticator as lost and make sure it stops working.
+  - Look at the expiry date of each authenticator type.
+  example: Test the activation link twice; revoke an API key and call the API with it; openssl x509 -noout -enddate -in CERT
+  expected: The system checks identity before issue. Lost or changed authenticators stop working at once, and every authenticator has an owner and an end date.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    nist_800_53:
+    - IA-5
+    - IA-5(6)
+    - IA-12
+    - AC-2
+    cwe:
+    - CWE-798
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/extra/nist-800-63b.html
+- id: NIST-IA-002
+  sheet: NIST
+  category: IA
+  title: Check that login names differ from public identifiers
+  objective: Finds accounts whose login name is the public email or display name, which helps guessing attacks.
+  preconditions:
+  - Two test accounts.
+  steps:
+  - List the places where the system shows a user name, email or ID to other people.
+  - Compare each public value with the login name of the test account.
+  - Try to log in with the public value of another test account.
+  - Look at how new identifiers are assigned and whether they are reused.
+  example: Compare the public profile page and API response with the login name; try login with the display name
+  expected: The login name is not shown to other users. The system never reuses an identifier, and the public value does not log in.
+  severity: Low
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    nist_800_53:
+    - IA-4
+    - IA-4(1)
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json

@@ -1,0 +1,118 @@
+- id: K8S-POL-006
+  sheet: K8S
+  category: POL
+  title: Check namespaces as boundaries and workloads in default or system namespaces
+  objective: Finds workloads that share a namespace with other teams or with cluster services.
+  steps:
+  - List the namespaces and the teams or tenants that own them.
+  - List pods in the default, kube-system and kube-public namespaces.
+  - Find user workloads in these namespaces.
+  - Check that RBAC, quotas and network policies exist for each application namespace.
+  example: kubectl get pods -n default; kubectl get pods -n kube-public; kubectl get ns --show-labels
+  expected: Each application has its own namespace with its own RBAC, quota and network policy. The default, kube-system and kube-public namespaces hold no user workloads.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K05
+    - K02
+    cloud_native_top10:
+    - CNAS-8
+    nist_800_53:
+    - AC-4
+    - CM-8
+    tool_check:
+    - kubescape:C-0061
+    - kubescape:C-0209
+    - kubescape:C-0212
+    other:
+    - 'Kubernetes docs: multi-tenancy.md'
+    - 'Kubernetes docs: rbac-good-practices.md'
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Network separation and hardening, Namespaces
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0061-podsindefaultnamespace.json
+  - sources/repos/regolibrary/controls/C-0209-createadministrativeboundariesbetweenresourcesusingnamespaces.json
+  - sources/repos/regolibrary/controls/C-0212-thedefaultnamespaceshouldnotbeused.json
+  - sources/repos/k8s-website/content/en/docs/concepts/security/multi-tenancy.md
+  - sources/repos/k8s-website/content/en/docs/concepts/security/rbac-good-practices.md
+  - sources/nsa_k8s/nsa_k8s_hardening.md
+- id: K8S-POL-007
+  sheet: K8S
+  category: POL
+  title: Review Pod Security admission exemptions and cluster defaults
+  objective: Finds users, runtime classes and namespaces that skip pod security checks.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Read the admission configuration of the API server for the PodSecurity plugin.
+  - List exempt usernames, runtime class names and namespaces.
+  - Make sure ordinary users and service accounts that create workloads are not exempt.
+  - Read the default enforce level of the cluster.
+  - Create a violating pod in an exempt namespace in a test cluster.
+  example: kubectl -n kube-system get pod -l component=kube-apiserver -o yaml | grep admission-control-config-file; cat <admission-config.yaml>
+  expected: Exemptions are few and have an owner. No user who creates workloads is exempt, and the default level is baseline or restricted.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K04
+    - K01
+    cloud_native_top10:
+    - CNAS-1
+    cwe:
+    - CWE-693
+    nist_800_53:
+    - CM-6
+    - AC-6
+    tool_check:
+    - kubescape:C-0068
+    - kubescape:C-0192
+    other:
+    - 'Kubernetes docs: pod-security-admission.md'
+    - 'Kubernetes docs: security-checklist.md'
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Kubernetes Pod security, Pod security enforcement
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0068-pspenabled.json
+  - sources/repos/regolibrary/controls/C-0192-ensurethattheclusterhasatleastoneactivepolicycontrolmechanisminplace.json
+  - sources/repos/k8s-website/content/en/docs/concepts/security/pod-security-admission.md
+  - sources/repos/k8s-website/content/en/docs/concepts/security/security-checklist.md
+  - sources/nsa_k8s/nsa_k8s_hardening.md
+- id: K8S-POL-008
+  sheet: K8S
+  category: POL
+  title: Check control plane and storage isolation between tenants
+  objective: Finds shared resources through which one tenant can reach or harm another.
+  steps:
+  - List the tenants and the namespaces or virtual control planes of each.
+  - Check that RBAC limits each tenant to its own namespaces and that quotas bound object counts.
+  - Check the StorageClass of each tenant and the reclaim policy of shared classes.
+  - Check shared services such as DNS, logging and the kubelet for tenant access.
+  - Decide if the tenants are trusted or hostile and check that the isolation level fits.
+  example: kubectl get sc -o custom-columns=NAME:.metadata.name,RECLAIM:.reclaimPolicy; kubectl get resourcequota -A
+  expected: Tenants have separate namespaces, rights and quotas. Shared storage classes use the Delete reclaim policy, and hostile tenants have sandboxes or separate clusters.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K02
+    - K05
+    cloud_native_top10:
+    - CNAS-3
+    cwe:
+    - CWE-653
+    nist_800_53:
+    - AC-4
+    - SC-39
+    tool_check:
+    - kubescape:C-0242
+    - kubescape:C-0233
+    - kubescape:C-0249
+    other:
+    - 'Kubernetes docs: multi-tenancy.md'
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Kubernetes Pod security, Hardening container environments
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0242-hostilemultitenantworkloads.json
+  - sources/repos/regolibrary/controls/C-0233-considerfargateforrunninguntrustedworkloads.json
+  - sources/repos/regolibrary/controls/C-0249-restrictuntrustedworkloads.json
+  - sources/repos/k8s-website/content/en/docs/concepts/security/multi-tenancy.md
+  - sources/nsa_k8s/nsa_k8s_hardening.md

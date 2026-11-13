@@ -1,0 +1,205 @@
+- id: API-REST-001
+  sheet: API
+  category: REST
+  title: Build a security test matrix from the OpenAPI description
+  objective: Finds operations whose real security rule differs from the rule in the description.
+  preconditions:
+  - The OpenAPI or Swagger file, or a request collection, from the customer.
+  steps:
+  - Import the OpenAPI file. Read the global security rule and each operation override.
+  - Build a table of operation, method, required scheme and required scope or role.
+  - Call each operation with every credential type and role in the table.
+  - Mark each result that differs from the table.
+  example: Schemathesis; ZAP OpenAPI add-on; Burp OpenAPI Parser; Postman collection generated from openapi.json; Newman for the matrix.
+  expected: The behavior of each operation matches its documented security rule. No operation allows more than the table says.
+  severity: High
+  test_type: Manual
+  refs:
+    api_top10:
+    - API2:2023
+    - API5:2023
+    - API9:2023
+    wstg:
+    - WSTG-APIT-01
+    cheatsheet:
+    - REST_Assessment_Cheat_Sheet
+    cwe:
+    - CWE-862
+    - CWE-287
+  see:
+  - WEB-AUTHZ-004
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa9-improper-inventory-management.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/01-API_Reconnaissance.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Assessment_Cheat_Sheet.md
+- id: API-REST-002
+  sheet: API
+  category: REST
+  title: Mutate valid requests one constraint at a time from the schema
+  objective: Finds endpoints that fail or misbehave when a field leaves its declared type or range.
+  steps:
+  - Send a valid request that follows the declared types, required fields and enum values.
+  - 'Change one constraint at a time: type, length, range, enum value or a required field.'
+  - Record every 5xx response, every accepted invalid value and every long delay.
+  - Check that the server rejects the bad value with 400.
+  example: schemathesis run openapi.json --checks all; RESTler fuzz; ZAP OpenAPI active scan; Burp Intruder on single fields.
+  expected: The API rejects each invalid value with 400 or 422 and a generic message. No 5xx response occurs.
+  severity: Medium
+  test_type: Automated
+  refs:
+    api_top10:
+    - API8:2023
+    wstg:
+    - WSTG-APIT-01
+    cheatsheet:
+    - REST_Assessment_Cheat_Sheet
+    - REST_Security_Cheat_Sheet
+    cwe:
+    - CWE-20
+    capec:
+    - CAPEC-28
+  see:
+  - WEB-VAL-012
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/01-API_Reconnaissance.md
+  - sources/repos/API-Security/editions/2023/en/0xa8-security-misconfiguration.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Assessment_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Security_Cheat_Sheet.md
+- id: API-REST-003
+  sheet: API
+  category: REST
+  title: Find hidden parameters in headers, URL segments and structured values
+  objective: Finds API inputs that the description and the user interface do not show.
+  steps:
+  - Record full requests with a proxy while you use all functions with accounts of each role.
+  - Look for unusual headers and URL segments that repeat with different values.
+  - Find structured values in JSON, XML or custom formats.
+  - Test suspected segments with an invalid value to see if they are parameters.
+  example: Burp Param Miner; Arjun; ZAP spider with the AJAX spider; ffuf for parameter names.
+  expected: All inputs are known and documented. Unknown inputs are ignored or rejected.
+  severity: Low
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-APIT-01
+    cheatsheet:
+    - REST_Assessment_Cheat_Sheet
+    cwe:
+    - CWE-1059
+    capec:
+    - CAPEC-215
+  see:
+  - WEB-INFO-006
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/01-API_Reconnaissance.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Assessment_Cheat_Sheet.md
+- id: API-REST-004
+  sheet: API
+  category: REST
+  title: Check that each endpoint allows only the documented HTTP methods
+  objective: Finds endpoints that accept methods which the API does not need.
+  steps:
+  - Send OPTIONS to each endpoint of the API description and read the Allow header.
+  - Compare the Allow header with the methods that the API description lists.
+  - Send each other method, also HEAD, and check for 405.
+  - Check that the caller may use each allowed method on the object.
+  example: curl -i -X OPTIONS https://api.example/v1/items; Burp Intruder with a list of HTTP methods.
+  expected: Only documented methods work. Other methods return 405. Authorization checks also apply to each allowed method.
+  severity: Low
+  test_type: Manual
+  refs:
+    api_top10:
+    - API8:2023
+    cheatsheet:
+    - REST_Security_Cheat_Sheet
+    cwe:
+    - CWE-650
+  see:
+  - WEB-CONF-008
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa8-security-misconfiguration.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Security_Cheat_Sheet.md
+- id: API-REST-005
+  sheet: API
+  category: REST
+  title: Check that input is validated for type, length, range and unexpected fields
+  objective: Finds endpoints that process unchecked input from JSON, XML or form bodies.
+  steps:
+  - Send wrong types, negative numbers, empty strings and values over the length limit.
+  - Send extra fields and repeated fields.
+  - Send injection test strings in every field.
+  - Send XML with external entities if the endpoint accepts XML.
+  example: Burp Intruder with a type-confusion list; curl -d '{"qty":"abc"}'; ZAP active scan.
+  expected: The API checks each field on the server against a schema or allowlist. Unexpected content gives 400 and a log entry.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    api_top10:
+    - API8:2023
+    asvs:
+    - V2.2.1
+    cheatsheet:
+    - REST_Security_Cheat_Sheet
+    - Input_Validation_Cheat_Sheet
+    cwe:
+    - CWE-20
+    capec:
+    - CAPEC-137
+  see:
+  - WEB-VAL-012
+  - WEB-INJ-001
+  - WEB-INJ-008
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa8-security-misconfiguration.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Input_Validation_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: API-REST-006
+  sheet: API
+  category: REST
+  title: Check that status codes do not reveal more than needed
+  objective: Finds APIs that use wrong status codes or show if a hidden object exists.
+  steps:
+  - Request objects that exist, that do not exist and that belong to others.
+  - Compare status codes and bodies. Look for 200 with an error text in the body.
+  - Request protected routes without a token (401) and with a weak role (403).
+  - Check for a generic 500 body.
+  example: curl -i for each case; Burp Comparer; Postman tests with expected status codes.
+  expected: The API uses 401, 403, 404, 405, 413, 415, 429 and 5xx as defined. It does not show whether an object of another user exists.
+  severity: Low
+  test_type: Manual
+  refs:
+    cheatsheet:
+    - REST_Security_Cheat_Sheet
+    cwe:
+    - CWE-204
+    - CWE-209
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Security_Cheat_Sheet.md
+- id: API-REST-007
+  sheet: API
+  category: REST
+  title: Check the audit log of API security events
+  objective: Finds absent or unsafe logs for authentication, token and validation failures.
+  steps:
+  - Make failed logins, bad tokens, denied calls and validation errors in a test environment.
+  - Find each event in the log system.
+  - 'Check the fields: who, when, where, what and a request ID.'
+  - Send log injection test strings. Check that secrets are not logged.
+  example: Splunk or Kibana search for the test request ID; curl with a header that holds a newline marker in a test environment.
+  expected: Security events are logged before and after the action with a request ID. Log data is cleaned and holds no secrets.
+  severity: Medium
+  test_type: Manual
+  refs:
+    cheatsheet:
+    - REST_Security_Cheat_Sheet
+    cwe:
+    - CWE-778
+    - CWE-117
+    - CWE-532
+  see:
+  - WEB-LOG-002
+  - WEB-AUTHZ-018
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Security_Cheat_Sheet.md

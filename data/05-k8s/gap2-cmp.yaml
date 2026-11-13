@@ -1,0 +1,729 @@
+- id: K8S-CMP-007
+  sheet: K8S
+  category: CMP
+  title: Check file modes of control plane manifests and kubeconfig files
+  objective: Finds control plane files that other local users can read or change.
+  preconditions:
+  - Shell access to a control plane node.
+  steps:
+  - List the static pod manifests of the API server, controller manager, scheduler and etcd.
+  - Read the mode and owner of each manifest file.
+  - Read the mode and owner of admin.conf, scheduler.conf and controller-manager.conf.
+  - List the kubeconfig files of administrators on the control plane nodes and read their modes.
+  - Make sure the owner is root and no group or other user can write.
+  example: stat -c "%a %U:%G %n" /etc/kubernetes/manifests/*.yaml /etc/kubernetes/*.conf; ls -l $HOME/.kube; kube-bench run --targets master
+  expected: Each manifest and component kubeconfig file has the mode 600 or stricter and the owner root:root. Other users cannot read administrator kubeconfig files.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K07
+    cwe:
+    - CWE-732
+    nist_800_53:
+    - AC-3
+    - CM-6
+    tool_check:
+    - kubescape:C-0092
+    - kubescape:C-0093
+    - kubescape:C-0094
+    - kubescape:C-0095
+    - kubescape:C-0096
+    - kubescape:C-0097
+    - kubescape:C-0098
+    - kubescape:C-0099
+    - kubescape:C-0104
+    - kubescape:C-0105
+    - kubescape:C-0106
+    - kubescape:C-0107
+    - kubescape:C-0108
+    - kubescape:C-0109
+    other:
+    - 'Kubernetes docs: api-server-bypass-risks.md'
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Network separation and hardening, Kubeconfig Files
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0092-ensurethattheapiserverpodspecificationfilepermissionsaresetto600ormorerestrictive.json
+  - sources/repos/regolibrary/controls/C-0093-ensurethattheapiserverpodspecificationfileownershipissettorootroot.json
+  - sources/repos/regolibrary/controls/C-0094-ensurethatthecontrollermanagerpodspecificationfilepermissionsaresetto600ormorerestrictive.json
+  - sources/repos/regolibrary/controls/C-0095-ensurethatthecontrollermanagerpodspecificationfileownershipissettorootroot.json
+  - sources/repos/regolibrary/controls/C-0096-ensurethattheschedulerpodspecificationfilepermissionsaresetto600ormorerestrictive.json
+  - sources/repos/regolibrary/controls/C-0097-ensurethattheschedulerpodspecificationfileownershipissettorootroot.json
+  - sources/repos/regolibrary/controls/C-0098-ensurethattheetcdpodspecificationfilepermissionsaresetto600ormorerestrictive.json
+  - sources/repos/regolibrary/controls/C-0099-ensurethattheetcdpodspecificationfileownershipissettorootroot.json
+  - sources/repos/regolibrary/controls/C-0104-ensurethattheadminconffilepermissionsaresetto600.json
+  - sources/repos/regolibrary/controls/C-0105-ensurethattheadminconffileownershipissettorootroot.json
+  - sources/repos/regolibrary/controls/C-0106-ensurethattheschedulerconffilepermissionsaresetto600ormorerestrictive.json
+  - sources/repos/regolibrary/controls/C-0107-ensurethattheschedulerconffileownershipissettorootroot.json
+  - sources/repos/regolibrary/controls/C-0108-ensurethatthecontrollermanagerconffilepermissionsaresetto600ormorerestrictive.json
+  - sources/repos/regolibrary/controls/C-0109-ensurethatthecontrollermanagerconffileownershipissettorootroot.json
+  - sources/repos/k8s-website/content/en/docs/concepts/security/api-server-bypass-risks.md
+  - sources/nsa_k8s/nsa_k8s_hardening.md
+- id: K8S-CMP-008
+  sheet: K8S
+  category: CMP
+  title: Check PKI files and the etcd data directory for open access
+  objective: Finds certificate keys and etcd data that local users can read.
+  preconditions:
+  - Shell access to a control plane node.
+  steps:
+  - List the files in the Kubernetes PKI directory with mode and owner.
+  - Make sure all key files have the mode 600 and the owner root.
+  - Find the client CA file of the API server and the kubelet and read its mode and owner.
+  - Find the etcd data directory in the etcd flags and read its mode and owner.
+  - Make sure only the etcd user can read the data directory.
+  example: stat -c "%a %U:%G %n" /etc/kubernetes/pki/* /etc/kubernetes/pki/etcd/*; ps -ef | grep etcd | grep -- --data-dir
+  expected: PKI files are owned by root with the mode 600 for keys and 600 or stricter for certificates. The etcd data directory has the mode 700 and an etcd owner.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K07
+    cwe:
+    - CWE-732
+    - CWE-276
+    nist_800_53:
+    - AC-3
+    - SC-12
+    tool_check:
+    - kubescape:C-0102
+    - kubescape:C-0103
+    - kubescape:C-0110
+    - kubescape:C-0111
+    - kubescape:C-0112
+    - kubescape:C-0168
+    - kubescape:C-0169
+    other:
+    - 'Kubernetes docs: api-server-bypass-risks.md'
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Network separation and hardening, Etcd
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0102-ensurethattheetcddatadirectorypermissionsaresetto700ormorerestrictive.json
+  - sources/repos/regolibrary/controls/C-0103-ensurethattheetcddatadirectoryownershipissettoetcdetcd.json
+  - sources/repos/regolibrary/controls/C-0110-ensurethatthekubernetespkidirectoryandfileownershipissettorootroot.json
+  - sources/repos/regolibrary/controls/C-0111-ensurethatthekubernetespkicertificatefilepermissionsaresetto600ormorerestrictive.json
+  - sources/repos/regolibrary/controls/C-0112-ensurethatthekubernetespkikeyfilepermissionsaresetto600.json
+  - sources/repos/regolibrary/controls/C-0168-ensurethatthecertificateauthoritiesfilepermissionsaresetto600ormorerestrictive.json
+  - sources/repos/regolibrary/controls/C-0169-ensurethattheclientcertificateauthoritiesfileownershipissettorootroot.json
+  - sources/repos/k8s-website/content/en/docs/concepts/security/api-server-bypass-risks.md
+  - sources/nsa_k8s/nsa_k8s_hardening.md
+- id: K8S-CMP-009
+  sheet: K8S
+  category: CMP
+  title: Check file modes of kubelet, kube-proxy and CNI files on nodes
+  objective: Finds node configuration files that local users can change.
+  preconditions:
+  - Shell access to a worker node.
+  steps:
+  - Find the kubelet service file, kubelet.conf and the kubelet config file path.
+  - Read the mode and owner of each file.
+  - Find the kube-proxy kubeconfig file, if kube-proxy uses one, and read its mode and owner.
+  - Read the mode and owner of the files in the CNI configuration directory.
+  - Make sure no user other than root can write to these files.
+  example: stat -c "%a %U:%G %n" /etc/systemd/system/kubelet.service.d/* /etc/kubernetes/kubelet.conf /var/lib/kubelet/config.yaml /etc/cni/net.d/*
+  expected: Each file has the mode 600 or stricter, or 644 for the kubelet config file as the benchmark allows. The owner is root:root.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K07
+    cwe:
+    - CWE-732
+    nist_800_53:
+    - AC-3
+    - CM-6
+    tool_check:
+    - kubescape:C-0100
+    - kubescape:C-0101
+    - kubescape:C-0162
+    - kubescape:C-0163
+    - kubescape:C-0164
+    - kubescape:C-0165
+    - kubescape:C-0166
+    - kubescape:C-0167
+    - kubescape:C-0170
+    - kubescape:C-0171
+    - kubescape:C-0235
+    - kubescape:C-0238
+    - prowler:kubernetes:kubelet_conf_file_ownership
+    - prowler:kubernetes:kubelet_conf_file_permissions
+    - prowler:kubernetes:kubelet_config_yaml_ownership
+    - prowler:kubernetes:kubelet_config_yaml_permissions
+    - prowler:kubernetes:kubelet_service_file_ownership_root
+    - prowler:kubernetes:kubelet_service_file_permissions
+    other:
+    - 'Kubernetes docs: api-server-bypass-risks.md'
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Network separation and hardening, Worker node segmentation
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0100-ensurethatthecontainernetworkinterfacefilepermissionsaresetto600ormorerestrictive.json
+  - sources/repos/regolibrary/controls/C-0101-ensurethatthecontainernetworkinterfacefileownershipissettorootroot.json
+  - sources/repos/regolibrary/controls/C-0162-ensurethatthekubeletservicefilepermissionsaresetto600ormorerestrictive.json
+  - sources/repos/regolibrary/controls/C-0163-ensurethatthekubeletservicefileownershipissettorootroot.json
+  - sources/repos/regolibrary/controls/C-0164-ifproxykubeconfigfileexistsensurepermissionsaresetto600ormorerestrictive.json
+  - sources/repos/regolibrary/controls/C-0165-ifproxykubeconfigfileexistsensureownershipissettorootroot.json
+  - sources/repos/regolibrary/controls/C-0166-ensurethatthekubeconfigkubeletconffilepermissionsaresetto600ormorerestrictive.json
+  - sources/repos/regolibrary/controls/C-0167-ensurethatthekubeconfigkubeletconffileownershipissettorootroot.json
+  - sources/repos/regolibrary/controls/C-0170-ifthekubeletconfigyamlconfigurationfileisbeingusedvalidatepermissionssetto600ormorerestrictive.json
+  - sources/repos/regolibrary/controls/C-0171-ifthekubeletconfigyamlconfigurationfileisbeingusedvalidatefileownershipissettorootroot.json
+  - sources/repos/regolibrary/controls/C-0235-ensurethatthekubeletconfigurationfilehaspermissionssetto644ormorerestrictive.json
+  - sources/repos/regolibrary/controls/C-0238-ensurethatthekubeconfigfilepermissionsaresetto644ormorerestrictive.json
+  - sources/repos/k8s-website/content/en/docs/concepts/security/api-server-bypass-risks.md
+  - sources/nsa_k8s/nsa_k8s_hardening.md
+- id: K8S-CMP-010
+  sheet: K8S
+  category: CMP
+  title: Check TLS settings and cipher suites of the API server
+  objective: Finds API servers that accept weak TLS or have no client CA configured.
+  steps:
+  - Read the TLS certificate, TLS key and client CA flags of the API server.
+  - Read the cipher suite and minimum TLS version settings.
+  - Scan the API server port with a TLS scanner.
+  - Make sure the secure port is not off and TLS 1.2 or 1.3 is the lowest version accepted.
+  example: kubectl -n kube-system get pod -l component=kube-apiserver -o yaml | grep -E "tls|client-ca|secure-port"; nmap --script ssl-enum-ciphers -p 6443 <api-host>
+  expected: The API server uses a TLS certificate and key, a client CA file and only strong cipher suites. TLS 1.2 is the lowest version.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K07
+    cloud_native_top10:
+    - CNAS-1
+    cwe:
+    - CWE-327
+    - CWE-319
+    nist_800_53:
+    - SC-8
+    - SC-13
+    tool_check:
+    - kubescape:C-0128
+    - kubescape:C-0138
+    - kubescape:C-0139
+    - kubescape:C-0143
+    - kubescape:C-0277
+    - prowler:kubernetes:apiserver_tls_config
+    - prowler:kubernetes:apiserver_client_ca_file_set
+    - prowler:kubernetes:apiserver_strong_ciphers_only
+    other:
+    - 'Kubernetes docs: securing-a-cluster.md'
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Network separation and hardening, Encryption
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0128-ensurethattheapiserversecureportargumentisnotsetto0.json
+  - sources/repos/regolibrary/controls/C-0138-ensurethattheapiservertlscertfileandtlsprivatekeyfileargumentsaresetasappropriate.json
+  - sources/repos/regolibrary/controls/C-0139-ensurethattheapiserverclientcafileargumentissetasappropriate.json
+  - sources/repos/regolibrary/controls/C-0143-ensurethattheapiserveronlymakesuseofstrongcryptographicciphers.json
+  - sources/repos/regolibrary/controls/C-0277-ensurethattheapiserveronlymakesuseofstrongcryptographicciphers-new.json
+  - sources/repos/k8s-website/content/en/docs/tasks/administer-cluster/securing-a-cluster.md
+  - sources/nsa_k8s/nsa_k8s_hardening.md
+- id: K8S-CMP-011
+  sheet: K8S
+  category: CMP
+  title: Check TLS trust between the API server, etcd and the kubelets
+  objective: Finds API servers that do not check or authenticate etcd and kubelet connections.
+  steps:
+  - Read the etcd CA, etcd client certificate and etcd client key flags of the API server.
+  - Read the kubelet client certificate, kubelet client key and kubelet CA flags.
+  - Make sure the etcd and kubelet connections use TLS and check the server certificate.
+  - Make sure the kubelet CA is the cluster CA and not a bundle of public CAs.
+  example: kubectl -n kube-system get pod -l component=kube-apiserver -o yaml | grep -E "etcd-(ca|cert|key)file|kubelet-(certificate|client)"
+  expected: The API server connects to etcd and to the kubelets with client certificates. It checks the server certificate against a dedicated CA.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K07
+    cwe:
+    - CWE-295
+    - CWE-319
+    nist_800_53:
+    - SC-8
+    tool_check:
+    - kubescape:C-0116
+    - kubescape:C-0117
+    - kubescape:C-0137
+    - kubescape:C-0140
+    - prowler:kubernetes:apiserver_etcd_cafile_set
+    - prowler:kubernetes:apiserver_etcd_tls_config
+    - prowler:kubernetes:apiserver_kubelet_cert_auth
+    - prowler:kubernetes:apiserver_kubelet_tls_auth
+    other:
+    - 'Kubernetes docs: securing-a-cluster.md'
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Network separation and hardening, Encryption
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0116-ensurethattheapiserverkubeletclientcertificateandkubeletclientkeyargumentsaresetasappropriate.json
+  - sources/repos/regolibrary/controls/C-0117-ensurethattheapiserverkubeletcertificateauthorityargumentissetasappropriate.json
+  - sources/repos/regolibrary/controls/C-0137-ensurethattheapiserveretcdcertfileandetcdkeyfileargumentsaresetasappropriate.json
+  - sources/repos/regolibrary/controls/C-0140-ensurethattheapiserveretcdcafileargumentissetasappropriate.json
+  - sources/repos/k8s-website/content/en/docs/tasks/administer-cluster/securing-a-cluster.md
+  - sources/nsa_k8s/nsa_k8s_hardening.md
+- id: K8S-CMP-012
+  sheet: K8S
+  category: CMP
+  title: Check service account key and token settings of the API server
+  objective: Finds API servers that accept tokens of deleted service accounts or give tokens long life.
+  steps:
+  - Read the service account key file, signing key and lookup flags of the API server.
+  - Make sure service account lookup is on, so deleted accounts lose their tokens.
+  - Read the token lifetime and the token expiry extension setting.
+  - Make sure the ServiceAccount admission plugin is on.
+  example: kubectl -n kube-system get pod -l component=kube-apiserver -o yaml | grep -E "service-account|admission"
+  expected: The API server has a service account key file and lookup on. Token lifetime extension is off and the ServiceAccount admission plugin is on.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K09
+    nist_800_53:
+    - IA-5
+    - AC-2
+    tool_check:
+    - kubescape:C-0125
+    - kubescape:C-0135
+    - kubescape:C-0136
+    - kubescape:C-0290
+    - prowler:kubernetes:apiserver_service_account_lookup_true
+    - prowler:kubernetes:apiserver_service_account_key_file_set
+    - prowler:kubernetes:apiserver_service_account_plugin
+    other:
+    - 'Kubernetes docs: security-checklist.md'
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Authentication and authorization, Authentication
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0125-ensurethattheadmissioncontrolpluginserviceaccountisset.json
+  - sources/repos/regolibrary/controls/C-0135-ensurethattheapiserverserviceaccountlookupargumentissettotrue.json
+  - sources/repos/regolibrary/controls/C-0136-ensurethattheapiserverserviceaccountkeyfileargumentissetasappropriate.json
+  - sources/repos/regolibrary/controls/C-0290-ensurethattheserviceaccountextendtokenexpirationparameterissettofalse.json
+  - sources/repos/k8s-website/content/en/docs/concepts/security/security-checklist.md
+  - sources/nsa_k8s/nsa_k8s_hardening.md
+- id: K8S-CMP-013
+  sheet: K8S
+  category: CMP
+  title: Check flags of the controller manager, scheduler and kube-proxy
+  objective: Finds control plane components that listen on all interfaces or share one identity.
+  steps:
+  - Read the bind address of the controller manager, the scheduler and the kube-proxy metrics service.
+  - Read the profiling flag of the controller manager and the scheduler.
+  - Read the service account credentials, root CA and signing key flags of the controller manager.
+  - Read the terminated pod garbage collection threshold and the kubelet server certificate rotation setting.
+  example: kubectl -n kube-system get pod -l component=kube-controller-manager -o yaml | grep -E "bind-address|profiling|use-service-account|root-ca|terminated"; ss -ltnp | grep -E "10257|10259|10249"
+  expected: Components bind to 127.0.0.1 and profiling is off. The controller manager uses a separate credential for each controller and has a root CA file.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K07
+    cwe:
+    - CWE-668
+    nist_800_53:
+    - CM-6
+    - CM-7
+    tool_check:
+    - kubescape:C-0144
+    - kubescape:C-0145
+    - kubescape:C-0146
+    - kubescape:C-0147
+    - kubescape:C-0148
+    - kubescape:C-0149
+    - kubescape:C-0150
+    - kubescape:C-0151
+    - kubescape:C-0152
+    - kubescape:C-0291
+    - prowler:kubernetes:controllermanager_bind_address
+    - prowler:kubernetes:controllermanager_disable_profiling
+    - prowler:kubernetes:controllermanager_garbage_collection
+    - prowler:kubernetes:controllermanager_root_ca_file_set
+    - prowler:kubernetes:controllermanager_rotate_kubelet_server_cert
+    - prowler:kubernetes:controllermanager_service_account_credentials
+    - prowler:kubernetes:controllermanager_service_account_private_key_file
+    - prowler:kubernetes:scheduler_bind_address
+    - prowler:kubernetes:scheduler_profiling
+    other:
+    - 'Kubernetes docs: security-checklist.md'
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Network separation and hardening, Control plane hardening
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0144-ensurethatthecontrollermanagerterminatedpodgcthresholdargumentissetasappropriate.json
+  - sources/repos/regolibrary/controls/C-0145-ensurethatthecontrollermanagerprofilingargumentissettofalse.json
+  - sources/repos/regolibrary/controls/C-0146-ensurethatthecontrollermanageruseserviceaccountcredentialsargumentissettotrue.json
+  - sources/repos/regolibrary/controls/C-0147-ensurethatthecontrollermanagerserviceaccountprivatekeyfileargumentissetasappropriate.json
+  - sources/repos/regolibrary/controls/C-0148-ensurethatthecontrollermanagerrootcafileargumentissetasappropriate.json
+  - sources/repos/regolibrary/controls/C-0149-ensurethatthecontrollermanagerrotatekubeletservercertificateargumentissettotrue.json
+  - sources/repos/regolibrary/controls/C-0150-ensurethatthecontrollermanagerbindaddressargumentissetto127001.json
+  - sources/repos/regolibrary/controls/C-0151-ensurethattheschedulerprofilingargumentissettofalse.json
+  - sources/repos/regolibrary/controls/C-0152-ensurethattheschedulerbindaddressargumentissetto127001.json
+  - sources/repos/regolibrary/controls/C-0291-ensurethatthekubeproxymetricsserviceisboundtolocalhost.json
+  - sources/repos/k8s-website/content/en/docs/concepts/security/security-checklist.md
+  - sources/nsa_k8s/nsa_k8s_hardening.md
+- id: K8S-CMP-014
+  sheet: K8S
+  category: CMP
+  title: Check API server profiling, timeout, event rate limit and insecure port
+  objective: Finds API servers with debug endpoints, no request timeout or an open insecure port.
+  steps:
+  - Read the insecure port, profiling, request timeout and admission flags of the API server.
+  - Try to connect to the insecure port from a control plane node.
+  - Request a profiling path of the API server with an admin account.
+  - Read the EventRateLimit configuration, if the plugin is on.
+  example: kubectl -n kube-system get pod -l component=kube-apiserver -o yaml | grep -E "insecure|profiling|request-timeout|EventRateLimit"; kubectl get --raw /debug/pprof/
+  expected: The insecure port is closed and profiling is off. A request timeout is set. Event rate limits are set where the plugin is in use.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K06
+    cwe:
+    - CWE-306
+    - CWE-400
+    nist_800_53:
+    - CM-7
+    - SC-5
+    tool_check:
+    - kubescape:C-0005
+    - kubescape:C-0121
+    - kubescape:C-0129
+    - kubescape:C-0134
+    - prowler:kubernetes:apiserver_disable_profiling
+    - prowler:kubernetes:apiserver_request_timeout_set
+    - prowler:kubernetes:apiserver_event_rate_limit
+    other:
+    - 'Kubernetes docs: securing-a-cluster.md'
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Network separation and hardening, Control plane hardening
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0005-apiserverinsecureportisenabled.json
+  - sources/repos/regolibrary/controls/C-0121-ensurethattheadmissioncontrolplugineventratelimitisset.json
+  - sources/repos/regolibrary/controls/C-0129-ensurethattheapiserverprofilingargumentissettofalse.json
+  - sources/repos/regolibrary/controls/C-0134-ensurethattheapiserverrequesttimeoutargumentissetasappropriate.json
+  - sources/repos/k8s-website/content/en/docs/tasks/administer-cluster/securing-a-cluster.md
+  - sources/nsa_k8s/nsa_k8s_hardening.md
+- id: K8S-CMP-015
+  sheet: K8S
+  category: CMP
+  title: Check the NodeRestriction, AlwaysPullImages and DenyServiceExternalIPs plugins
+  objective: Finds clusters where a node or a user can reach outside its own scope.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Read the enabled admission plugins of the API server.
+  - Make sure NodeRestriction, AlwaysPullImages and DenyServiceExternalIPs are on, or an equal policy exists.
+  - In a test namespace, create a Service that sets externalIPs.
+  - With a kubelet credential in a test cluster, try to change the labels of another node.
+  example: kubectl -n kube-system get pod -l component=kube-apiserver -o yaml | grep enable-admission-plugins; kubectl apply -f svc-externalips.yaml
+  expected: NodeRestriction limits each kubelet to its own node and pods. New Services cannot set externalIPs. Image pulls are checked for each pod start.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K04
+    - K07
+    cwe:
+    - CWE-269
+    nist_800_53:
+    - AC-6
+    - CM-7
+    tool_check:
+    - kubescape:C-0115
+    - kubescape:C-0122
+    - kubescape:C-0123
+    - kubescape:C-0124
+    - kubescape:C-0126
+    - kubescape:C-0127
+    - kubescape:C-0283
+    - prowler:kubernetes:apiserver_node_restriction_plugin
+    - prowler:kubernetes:apiserver_always_pull_images_plugin
+    - prowler:kubernetes:apiserver_deny_service_external_ips
+    - prowler:kubernetes:apiserver_no_always_admit_plugin
+    - prowler:kubernetes:apiserver_namespace_lifecycle_plugin
+    - prowler:kubernetes:apiserver_security_context_deny_plugin
+    other:
+    - 'Kubernetes docs: security-checklist.md'
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0115-ensurethattheapiserverdenyserviceexternalipsisnotset.json
+  - sources/repos/regolibrary/controls/C-0122-ensurethattheadmissioncontrolpluginalwaysadmitisnotset.json
+  - sources/repos/regolibrary/controls/C-0123-ensurethattheadmissioncontrolpluginalwayspullimagesisset.json
+  - sources/repos/regolibrary/controls/C-0124-ensurethattheadmissioncontrolpluginsecuritycontextdenyissetifpodsecuritypolicyisnotused.json
+  - sources/repos/regolibrary/controls/C-0126-ensurethattheadmissioncontrolpluginnamespacelifecycleisset.json
+  - sources/repos/regolibrary/controls/C-0127-ensurethattheadmissioncontrolpluginnoderestrictionisset.json
+  - sources/repos/regolibrary/controls/C-0283-ensurethattheapiserverdenyserviceexternalipsisset.json
+  - sources/repos/k8s-website/content/en/docs/concepts/security/security-checklist.md
+- id: K8S-CMP-016
+  sheet: K8S
+  category: CMP
+  title: Check kubelet runtime settings for timeouts, PIDs, kernel and events
+  objective: Finds kubelet settings that weaken node protection or hide events.
+  steps:
+  - Read the kubelet config file of a sample node.
+  - Read the streaming connection idle timeout and the event record rate.
+  - Read the pod PID limit, the protect kernel defaults setting and the iptables management setting.
+  - Make sure the hostname override flag is not in use.
+  - Make sure the default seccomp profile setting is on.
+  example: kubectl get --raw "/api/v1/nodes/<node>/proxy/configz" | jq .kubeletconfig | grep -Ei "streaming|podPidsLimit|protectKernel|iptables|eventRecord|seccompDefault"
+  expected: Streaming timeouts are not zero and a pod PID limit is set. The kubelet protects kernel defaults, manages iptables and records events.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K07
+    cloud_native_top10:
+    - CNAS-9
+    cwe:
+    - CWE-400
+    nist_800_53:
+    - CM-6
+    - SC-5
+    tool_check:
+    - kubescape:C-0176
+    - kubescape:C-0177
+    - kubescape:C-0178
+    - kubescape:C-0179
+    - kubescape:C-0180
+    - kubescape:C-0284
+    - kubescape:C-0318
+    - prowler:kubernetes:kubelet_streaming_connection_timeout
+    - prowler:kubernetes:kubelet_manage_iptables
+    - prowler:kubernetes:kubelet_event_record_qps
+    other:
+    - 'Kubernetes docs: securing-a-cluster.md'
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Network separation and hardening, Resource policies
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0176-ensurethatthestreamingconnectionidletimeoutargumentisnotsetto0.json
+  - sources/repos/regolibrary/controls/C-0177-ensurethattheprotectkerneldefaultsargumentissettotrue.json
+  - sources/repos/regolibrary/controls/C-0178-ensurethatthemakeiptablesutilchainsargumentissettotrue.json
+  - sources/repos/regolibrary/controls/C-0179-ensurethatthehostnameoverrideargumentisnotset.json
+  - sources/repos/regolibrary/controls/C-0180-ensurethattheeventqpsargumentissetto0oralevelwhichensuresappropriateeventcapture.json
+  - sources/repos/regolibrary/controls/C-0284-ensurethatthekubeletconfiguredtolimitpodpids.json
+  - sources/repos/regolibrary/controls/C-0318-ensurethattheseccompdefaultparameterissettotrue.json
+  - sources/repos/k8s-website/content/en/docs/tasks/administer-cluster/securing-a-cluster.md
+  - sources/nsa_k8s/nsa_k8s_hardening.md
+- id: K8S-CMP-017
+  sheet: K8S
+  category: CMP
+  title: Check kubelet TLS, client CA, cipher suites and certificate rotation
+  objective: Finds kubelets with weak TLS, no client CA or no certificate rotation.
+  steps:
+  - Read the TLS certificate, TLS key and client CA settings of the kubelet.
+  - Read the TLS cipher suite list of the kubelet.
+  - Make sure client and server certificate rotation are on.
+  - Scan port 10250 of a node with a TLS scanner.
+  example: nmap --script ssl-enum-ciphers -p 10250 <node-ip>; kubectl get --raw "/api/v1/nodes/<node>/proxy/configz" | jq .kubeletconfig.tlsCipherSuites
+  expected: The kubelet uses a TLS certificate, a client CA and only strong cipher suites. It rotates its client and server certificates.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K09
+    - K07
+    cwe:
+    - CWE-327
+    - CWE-295
+    nist_800_53:
+    - SC-8
+    - SC-12
+    tool_check:
+    - kubescape:C-0070
+    - kubescape:C-0174
+    - kubescape:C-0181
+    - kubescape:C-0182
+    - kubescape:C-0183
+    - kubescape:C-0184
+    - prowler:kubernetes:kubelet_tls_cert_and_key
+    - prowler:kubernetes:kubelet_strong_ciphers_only
+    - prowler:kubernetes:kubelet_rotate_certificates
+    - prowler:kubernetes:kubelet_client_ca_file_set
+    other:
+    - 'Kubernetes docs: api-server-bypass-risks.md'
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Network separation and hardening, Encryption
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0070-enforcekubeletclienttlsauthentication.json
+  - sources/repos/regolibrary/controls/C-0174-ensurethattheclientcafileargumentissetasappropriate.json
+  - sources/repos/regolibrary/controls/C-0181-ensurethatthetlscertfileandtlsprivatekeyfileargumentsaresetasappropriate.json
+  - sources/repos/regolibrary/controls/C-0182-ensurethattherotatecertificatesargumentisnotsettofalse.json
+  - sources/repos/regolibrary/controls/C-0183-verifythattherotatekubeletservercertificateargumentissettotrue.json
+  - sources/repos/regolibrary/controls/C-0184-ensurethatthekubeletonlymakesuseofstrongcryptographicciphers.json
+  - sources/repos/k8s-website/content/en/docs/concepts/security/api-server-bypass-risks.md
+  - sources/nsa_k8s/nsa_k8s_hardening.md
+- id: K8S-CMP-018
+  sheet: K8S
+  category: CMP
+  title: Check add-ons and ingress controllers for known CVEs and end of life
+  objective: Finds add-ons with known flaws or without security fixes.
+  steps:
+  - List the ingress controllers, GitOps tools and dashboards in the cluster with versions.
+  - Compare each version to the vendor advisories and the end of life dates.
+  - On ingress-nginx, make sure snippet annotations are off or the version is fixed.
+  - Check the aggregated API servers and the Kubernetes version for open advisories.
+  example: 'kubectl get pods -A -o jsonpath="{..image}" | tr " " "
+
+    " | sort -u; kubectl -n ingress-nginx get cm -o yaml | grep allow-snippet'
+  expected: No add-on runs a version with a known critical flaw or past end of life. Snippet annotations of the ingress controller are off.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K07
+    cloud_native_top10:
+    - CNAS-7
+    cwe:
+    - CWE-1104
+    attack:
+    - T1190
+    nist_800_53:
+    - SI-2
+    - RA-5
+    tool_check:
+    - kubescape:C-0059
+    - kubescape:C-0081
+    - kubescape:C-0089
+    - kubescape:C-0090
+    - kubescape:C-0091
+    - kubescape:C-0292
+    other:
+    - 'Kubernetes docs: securing-a-cluster.md'
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Upgrading and application security practices
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0059-cve202125742nginxingresssnippetannotationvulnerability.json
+  - sources/repos/regolibrary/controls/C-0081-cve202224348argocddirtraversal.json
+  - sources/repos/regolibrary/controls/C-0089-cve20223172aggregatedapiserverredirect.json
+  - sources/repos/regolibrary/controls/C-0090-cve202239328grafanaauthbypass.json
+  - sources/repos/regolibrary/controls/C-0091-cve202247633kyvernosignaturebypass.json
+  - sources/repos/regolibrary/controls/C-0292-nginx-ingress-controller-eol.json
+  - sources/repos/k8s-website/content/en/docs/tasks/administer-cluster/securing-a-cluster.md
+  - sources/nsa_k8s/nsa_k8s_hardening.md
+- id: K8S-CMP-019
+  sheet: K8S
+  category: CMP
+  title: Check static pod paths and manifest sources of kubelets
+  objective: Finds nodes where a local user or a web source can start pods that skip the API checks.
+  preconditions:
+  - Shell access to a worker node.
+  steps:
+  - Read the static pod path and static pod URL settings of the kubelet on each node.
+  - Make sure the setting is off where a node does not need static pods.
+  - List the files in the static pod directory and the mode of the directory.
+  - Compare the pods in the runtime on the node to the pods in the API.
+  example: grep -E "staticPodPath|staticPodURL" /var/lib/kubelet/config.yaml; ls -la /etc/kubernetes/manifests; crictl pods
+  expected: Static pods are off or limited to known manifests in a protected directory. Each pod in the node runtime is visible in the API.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K07
+    cwe:
+    - CWE-732
+    attack:
+    - T1610
+    nist_800_53:
+    - CM-5
+    - CM-7
+    other:
+    - 'Kubernetes docs: api-server-bypass-risks.md'
+  sources_read:
+  - sources/repos/k8s-website/content/en/docs/concepts/security/api-server-bypass-risks.md
+- id: K8S-CMP-020
+  sheet: K8S
+  category: CMP
+  title: Check access to the container runtime socket on nodes
+  objective: Finds nodes where non-admin users can reach the runtime and start containers.
+  preconditions:
+  - Shell access to a worker node.
+  steps:
+  - Find the runtime socket paths on a node.
+  - Read the mode, owner and group of each socket.
+  - List the users and groups that can open the sockets.
+  - Make sure the kubelet is isolated from other node services.
+  example: ls -l /run/containerd/containerd.sock /var/run/crio/crio.sock; getent group docker
+  expected: Only root and the runtime group can use the runtime socket. Node login and superuser access are limited to named administrators.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K01
+    - K07
+    cwe:
+    - CWE-732
+    attack:
+    - T1611
+    - T1609
+    nist_800_53:
+    - AC-3
+    - AC-6
+    other:
+    - 'Kubernetes docs: api-server-bypass-risks.md'
+  sources_read:
+  - sources/repos/k8s-website/content/en/docs/concepts/security/api-server-bypass-risks.md
+- id: K8S-CMP-021
+  sheet: K8S
+  category: CMP
+  title: Check feature gates and API versions that are alpha or beta
+  objective: Finds cluster features that are still in development and may carry flaws.
+  steps:
+  - List the feature gates of the API server, the kubelet and the controller manager.
+  - Find gates that enable alpha or beta features.
+  - Ask the owner what each feature does for the business.
+  - Disable the features that are not in use.
+  example: kubectl get --raw /metrics | grep kubernetes_feature_enabled | grep " 1$"; kubectl -n kube-system get pod -l component=kube-apiserver -o yaml | grep feature-gates
+  expected: No unused alpha or beta feature is on. Each enabled one has an owner and a written risk decision.
+  severity: Low
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K07
+    cwe:
+    - CWE-1188
+    nist_800_53:
+    - CM-7
+    - CM-6
+    other:
+    - 'Kubernetes docs: securing-a-cluster.md'
+  sources_read:
+  - sources/repos/k8s-website/content/en/docs/tasks/administer-cluster/securing-a-cluster.md
+- id: K8S-CMP-022
+  sheet: K8S
+  category: CMP
+  title: Review the rights that third-party integrations request
+  objective: Finds add-ons with cluster-wide rights that are wider than their job needs.
+  steps:
+  - List the add-ons and operators that run in the cluster.
+  - Read the ClusterRoles and bindings of each add-on.
+  - Find add-ons that read all secrets or create pods in system namespaces.
+  - Check if each add-on can work in one namespace.
+  example: kubectl get clusterrolebinding -o wide; kubectl auth can-i --list --as=system:serviceaccount:<ns>:<sa>
+  expected: Each add-on has only the rights for its job. No untrusted component creates pods in kube- namespaces or in namespaces that allow privileged pods.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K02
+    cloud_native_top10:
+    - CNAS-3
+    cwe:
+    - CWE-269
+    attack:
+    - T1098.006
+    nist_800_53:
+    - AC-6
+    other:
+    - 'Kubernetes docs: securing-a-cluster.md'
+  sources_read:
+  - sources/repos/k8s-website/content/en/docs/tasks/administer-cluster/securing-a-cluster.md
+- id: K8S-CMP-023
+  sheet: K8S
+  category: CMP
+  title: Check removal of unused components and periodic scans
+  objective: Finds old components that stay in the cluster and are not scanned.
+  steps:
+  - List the components of the cluster, the pipeline and the nodes.
+  - Find components with no owner or no use.
+  - Check the plan to remove them.
+  - Check the date of the last vulnerability scan and the last penetration test.
+  - Make sure the findings have owners and due dates.
+  example: kube-bench run; kubescape scan framework nsa; trivy k8s --report summary cluster
+  expected: Unused components are removed. Scans and penetration tests run on a fixed schedule and the findings are fixed in time.
+  severity: Low
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K07
+    cloud_native_top10:
+    - CNAS-8
+    nist_800_53:
+    - CM-8
+    - RA-5
+    other:
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Upgrading and application security practices
+  sources_read:
+  - sources/nsa_k8s/nsa_k8s_hardening.md

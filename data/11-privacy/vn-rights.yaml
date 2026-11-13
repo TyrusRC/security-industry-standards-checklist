@@ -1,0 +1,205 @@
+- id: PRIV-VNRIGHTS-001
+  sheet: PRIV
+  category: VNRIGHTS
+  title: Test that a data access request gets an answer within 72 hours
+  objective: Finds access (provision) requests that are late, incomplete or hard to submit.
+  preconditions: &id001
+  - A test user whose data is in scope as data of a Vietnamese citizen.
+  - Written permission to send data subject requests.
+  steps:
+  - Send an access request for the test user through each channel the service offers.
+  - 'Use the fields of the Vietnam form: name, identity number, data requested, format, purpose.'
+  - Record the time from the request to the answer.
+  - Read the answer for the cost, place, format and period of delivery.
+  - Compare the delivered data with the data in the database.
+  example: Request form fields follow Mau so 01 (individual) and Mau so 02 (organisation) in the Decree annex. Use a stopwatch or ticket timestamps.
+  expected: The service answers a valid request within 72 hours and delivers the data in the stated format. It states any cost and the delivery details.
+  severity: High
+  test_type: &id002
+  - Manual
+  refs:
+    privacy_top10:
+    - P9
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 9
+    - Vietnam Decree 13/2023/ND-CP Art. 14
+    - Vietnam PDP Law 91/2025/QH15 Art. 4
+    - Vietnam PDP Law 91/2025/QH15 Art. 15
+  sources_read: &id003
+  - sources/vn_law/13nd.ocr.txt
+  - sources/vn_law/91qh.ocr.txt
+  see:
+  - PRIV-DSR-001
+  - PRIV-DSR-002
+  - PRIV-DSR-006
+  notes: 'Decree Art. 14(3): 72 hours after the request. The 2025 Law Art. 4(1), 4(5) and 15(2)(a) give the right but leave the period to other law. The request form in Decree Art. 14(6) is in Vietnamese. Refusal reasons: Decree Art. 14(4) and Law Art. 15(2)(a).'
+- id: PRIV-VNRIGHTS-002
+  sheet: PRIV
+  category: VNRIGHTS
+  title: Check requests from a representative and requests to third parties
+  objective: Finds service that hands data to a wrong representative or gives it to others without consent.
+  preconditions: *id001
+  steps:
+  - Send an access request for the test user from an authorised representative with a written authorisation.
+  - Send the same request with no written authorisation.
+  - Ask the service to send the test user data to another organisation. Try with and without consent.
+  - Check that the service refuses each request that has no consent or authorisation.
+  example: Use a signed authorisation letter and an unsigned copy. Check the audit record of each request.
+  expected: The service acts for a representative only with written authorisation. It gives data to another party only with the consent of the data subject.
+  severity: High
+  test_type: *id002
+  refs:
+    privacy_top10:
+    - P9
+    - P2
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 11
+    - Vietnam Decree 13/2023/ND-CP Art. 14
+    - Vietnam PDP Law 91/2025/QH15 Art. 15
+  sources_read: *id003
+  see:
+  - PRIV-DSR-002
+  notes: Decree Art. 11(11), 14(2) and 14(7) need consent or authorisation papers. Law Art. 15(2)(b) needs consent. Both texts allow exceptions by law.
+- id: PRIV-VNRIGHTS-003
+  sheet: PRIV
+  category: VNRIGHTS
+  title: Test the correction of personal data and the 72-hour answer
+  objective: Finds correction requests that fail, come late or do not reach other recipients.
+  preconditions: *id001
+  steps:
+  - Change a field in the test user profile with the self-service function.
+  - Send a correction request for a field that the user cannot change directly.
+  - Record the time until the service corrects the field or gives a refusal.
+  - Check that processors and third parties hold the corrected value.
+  - Check that the refusal states a valid reason.
+  example: Compare the field in the web application, the database and the processor export before and after the request.
+  expected: The service corrects the data as soon as possible or tells the user of the refusal within 72 hours. Recipients receive the correction.
+  severity: Medium
+  test_type: *id002
+  refs:
+    privacy_top10:
+    - P9
+    - P7
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 9
+    - Vietnam Decree 13/2023/ND-CP Art. 15
+    - Vietnam PDP Law 91/2025/QH15 Art. 4
+    - Vietnam PDP Law 91/2025/QH15 Art. 13
+  sources_read: *id003
+  see:
+  - PRIV-DSR-003
+  notes: 'Decree Art. 15(2): correct as soon as possible; if not possible, tell the user after 72 hours from the request. Decree Art. 15(3): a processor or third party may correct data only after written consent of the controller. Law Art. 13(2) and 13(3): the controller asks processors and third parties to correct, and tells the requester when it cannot correct.'
+- id: PRIV-VNRIGHTS-004
+  sheet: PRIV
+  category: VNRIGHTS
+  title: Test the deletion request and the 72-hour limit
+  objective: Finds deletion requests that are late, partial or refused with no reason.
+  preconditions: *id001
+  steps:
+  - Send a deletion request for the test user for data that is no longer needed.
+  - Record the time until the service deletes the data.
+  - Look for the data in the database, the search index, the file store and the processor systems.
+  - Send a deletion request for data that the service must keep by law.
+  - Check that the service tells the user why it did not delete.
+  example: 'Use the grounds in Decree Art. 16(1): no longer needed, consent withdrawn, objection, unlawful processing.'
+  expected: The service deletes all copies of the requested data within 72 hours. It states the legal ground when it refuses.
+  severity: High
+  test_type: *id002
+  refs:
+    privacy_top10:
+    - P6
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 9
+    - Vietnam Decree 13/2023/ND-CP Art. 16
+    - Vietnam PDP Law 91/2025/QH15 Art. 4
+    - Vietnam PDP Law 91/2025/QH15 Art. 14
+  sources_read: *id003
+  see:
+  - PRIV-RET-003
+  - PRIV-RET-004
+  - PRIV-RET-005
+  notes: 'Decree Art. 16(5): delete within 72 hours of the request, for all data collected. Decree Art. 16(2) lists the exceptions. Law Art. 14(1), 14(2) and 14(5): deletion grounds and exceptions, and a duty to tell the user when deletion is not possible. The Law gives no number of hours.'
+- id: PRIV-VNRIGHTS-005
+  sheet: PRIV
+  category: VNRIGHTS
+  title: Check that deletion is irrecoverable and covers old devices
+  objective: Finds deleted data that an attacker can restore, or old media that still hold data.
+  steps:
+  - Delete a test record and then look for it in backups, snapshots and replicas.
+  - Look for recovery tools or an undelete function in the application.
+  - Review the way the organisation destroys disks and devices that held personal data.
+  - Look at the record of the security check made before a device is wiped or destroyed.
+  example: Review the media destruction records and the retention schedule of backups. Try a database undelete or point-in-time restore on a test copy.
+  expected: Deleted data cannot be restored by normal means. The organisation checks the security of a system before it wipes or destroys devices.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    privacy_top10:
+    - P6
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 16
+    - Vietnam Decree 13/2023/ND-CP Art. 27
+    - Vietnam PDP Law 91/2025/QH15 Art. 14
+  sources_read: *id003
+  see:
+  - PRIV-RET-002
+  - PRIV-RET-004
+  notes: 'Decree Art. 16(7): delete in a way that cannot be restored when the purpose is complete, storage is not needed or the entity ends operations. Decree Art. 27(4): security check of systems and devices before wipe or destruction. Law Art. 14(3) and 14(4): safe deletion and a ban on intentional unlawful recovery.'
+- id: PRIV-VNRIGHTS-006
+  sheet: PRIV
+  category: VNRIGHTS
+  title: Test the restriction of processing within 72 hours
+  objective: Finds requests to restrict processing that the service ignores or does late.
+  preconditions: *id001
+  steps:
+  - Send a restriction request for chosen data of the test user.
+  - Record the time until the service applies the restriction.
+  - Check that analytics, e-mail and batch jobs do not use the restricted data.
+  - Check that processors receive the restriction.
+  - Check that the user can lift the restriction.
+  example: Look for a restriction flag in the data model. Run the marketing and reporting jobs and check their output.
+  expected: The service restricts all requested data within 72 hours and stops all use except storage. Processors apply the restriction.
+  severity: Medium
+  test_type: *id002
+  refs:
+    privacy_top10:
+    - P9
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 9
+    - Vietnam PDP Law 91/2025/QH15 Art. 4
+    - Vietnam PDP Law 91/2025/QH15 Art. 10
+  sources_read: *id003
+  see:
+  - PRIV-DSR-006
+  notes: 'Decree Art. 9(6)(b): 72 hours for all data named in the request. Law Art. 10(1) to 10(3): the right applies when scope, purpose or accuracy is in doubt; the controller must pass the request to processors; the time comes from other law. Law Art. 10(4): earlier processing stays valid.'
+- id: PRIV-VNRIGHTS-007
+  sheet: PRIV
+  category: VNRIGHTS
+  title: Test the objection to disclosure and marketing within 72 hours
+  objective: Finds objections that the service does not apply, or applies late.
+  preconditions: *id001
+  steps:
+  - Send an objection to use for advertising and marketing for the test user.
+  - Send an objection to disclosure of the personal data to others.
+  - Record the time until the service applies each objection.
+  - Send a marketing e-mail campaign and check that the test user is not in it.
+  - Check that partners stop to use the data.
+  example: Use the in-product opt-out and a written request. Check the suppression list.
+  expected: The service applies the objection within 72 hours. The user gets no marketing and the data is not disclosed.
+  severity: Medium
+  test_type: *id002
+  refs:
+    privacy_top10:
+    - P9
+    - P4
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 9
+    - Vietnam PDP Law 91/2025/QH15 Art. 4
+    - Vietnam PDP Law 91/2025/QH15 Art. 28
+  sources_read: *id003
+  see:
+  - PRIV-DSR-005
+  - PRIV-VNMKT-002
+  notes: 'Decree Art. 9(8)(b): 72 hours. Law Art. 4(1)(d) names the right to object but gives no period; see also Law Art. 28(5) for advertising.'

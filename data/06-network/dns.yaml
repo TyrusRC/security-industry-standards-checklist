@@ -1,0 +1,180 @@
+- id: NET-DNS-001
+  sheet: NET
+  category: DNS
+  title: Make sure name servers refuse DNS zone transfers from unknown hosts
+  objective: Finds name servers that give the full list of hosts in a zone to anyone.
+  preconditions:
+  - Written approval for queries to the name servers in scope.
+  steps:
+  - List the name servers of each domain in scope.
+  - Request a zone transfer from each name server.
+  - Request a zone transfer again from a host that is not on the transfer allow list.
+  - Write down each name server that returns zone data.
+  example: 'dig NS example.com +short ; dig AXFR example.com @ns1.example.com ; host -l example.com ns1.example.com ; dnsrecon -d example.com -t axfr'
+  expected: Each name server refuses zone transfers from unknown hosts. Only listed secondary servers can get a transfer.
+  severity: Medium
+  test_type: Automated
+  refs:
+    wstg:
+    - WSTG-INFO-04
+    attack:
+    - T1590.002
+    capec:
+    - CAPEC-291
+    cwe:
+    - CWE-200
+    nist_800_53:
+    - SC-22
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/01-Information_Gathering/04-Attack_Surface_Identification.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-DNS-002
+  sheet: NET
+  category: DNS
+  title: Check the DNS record inventory and the order of service decommissioning
+  objective: Finds DNS records with no owner and processes that leave records for removed services.
+  steps:
+  - Get the DNS inventory that links each record to a resource and an owner.
+  - Export all records of the zone and compare them with the inventory.
+  - Look for CNAME, NS and MX records that point to removed or third-party services.
+  - Read the decommission procedure. Make sure it removes the DNS record before the resource.
+  - Make sure a scheduled scan checks that each record target still exists.
+  example: 'dig AXFR example.com @ns1 (if allowed) ; dnsrecon -d example.com -t std ; for h in $(cat cnames.txt); do dig +short $h; done'
+  expected: Every record has an owner and a live target. The procedure removes the DNS record first, and a scan finds dangling records at least weekly.
+  severity: Medium
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-CONF-10
+    cheatsheet:
+    - Subdomain_Takeover_Prevention_Cheat_Sheet
+    nist_800_53:
+    - CM-8
+    - SC-22
+  see:
+  - WEB-CONF-011
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Subdomain_Takeover_Prevention_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-DNS-003
+  sheet: NET
+  category: DNS
+  title: Check CAA records and Certificate Transparency monitoring for the domains
+  objective: Finds domains where any certificate authority can issue certificates and nobody sees new ones.
+  steps:
+  - Query the CAA records of each domain and subdomain.
+  - Compare the listed certificate authorities with the ones the organization uses.
+  - Search the Certificate Transparency logs for certificates of the domain.
+  - Look for certificates that nobody in the organization asked for.
+  - Make sure an alert exists for new certificates.
+  example: 'dig CAA example.com +short ; curl -s "https://crt.sh/?q=%25.example.com&output=json" | jq -r ".[].name_value" | sort -u'
+  expected: CAA records list only approved certificate authorities. Each logged certificate is known, and new certificates raise an alert.
+  severity: Low
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-INFO-04
+    cheatsheet:
+    - Transport_Layer_Security_Cheat_Sheet
+    - Subdomain_Takeover_Prevention_Cheat_Sheet
+    nist_800_53:
+    - SC-17
+    - SC-12
+    attack:
+    - T1596.003
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Transport_Layer_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Subdomain_Takeover_Prevention_Cheat_Sheet.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/01-Information_Gathering/04-Attack_Surface_Identification.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-DNS-004
+  sheet: NET
+  category: DNS
+  title: Make sure recursive resolvers do not answer queries from the internet
+  objective: Finds open resolvers that attackers use for amplification and for cache attacks.
+  preconditions:
+  - Written approval for queries to the resolvers in scope.
+  - Do not run on production with large query volumes.
+  steps:
+  - Find the hosts that answer on UDP and TCP port 53.
+  - From an external host, send a query for a name that the server does not host.
+  - Look at the response flags to see if the server resolves the name for you.
+  - Make sure authoritative and recursive roles run on separate servers.
+  example: 'nmap -sU -sT -p 53 --script dns-recursion <range> ; dig @<ns-ip> www.example.net A +norecurse ; dig @<ns-ip> www.example.net A'
+  expected: Authoritative servers do not resolve names for outside hosts. Recursive resolvers answer only internal clients.
+  severity: Medium
+  test_type: Automated
+  refs:
+    attack:
+    - T1498.002
+    capec:
+    - CAPEC-490
+    cheatsheet:
+    - Denial_of_Service_Cheat_Sheet
+    cwe:
+    - CWE-668
+    nist_800_53:
+    - SC-22
+    - SC-21
+    - SC-5
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Denial_of_Service_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-DNS-005
+  sheet: NET
+  category: DNS
+  title: Check DNSSEC signing of zones and validation on resolvers
+  objective: Finds zones and resolvers with no data origin authentication of DNS answers.
+  preconditions:
+  - Written approval for queries to the name servers in scope.
+  steps:
+  - Query the DNSKEY and DS records of each public zone.
+  - Check that answers from the authoritative servers carry signatures.
+  - Send a query for a name with a bad signature to the internal resolver.
+  - Look at the answer to see if the resolver rejects it.
+  example: 'dig DNSKEY example.com +dnssec +multi ; dig DS example.com +trace ; dig @<resolver> dnssec-failed.org A (expect SERVFAIL)'
+  expected: Public zones are signed and the chain of trust is complete. Resolvers check signatures and reject answers that fail.
+  severity: Low
+  test_type: Automated
+  refs:
+    attack:
+    - T1584.002
+    cwe:
+    - CWE-345
+    nist_800_53:
+    - SC-20
+    - SC-21
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-DNS-006
+  sheet: NET
+  category: DNS
+  title: Look for internal host names and addresses in public DNS data
+  objective: Finds public DNS data that shows the internal layout of the network.
+  steps:
+  - Query the public zone for all common record types.
+  - Run reverse queries on the public address ranges.
+  - Search passive DNS and certificate logs for the domain.
+  - Look for internal host names, private addresses and test systems in the results.
+  example: 'dnsrecon -d example.com -t std,brt,rvl -r <range>/24 ; dig -x <ip> +short ; dig example.com ANY'
+  expected: Public DNS data holds no internal host names and no private addresses. Reverse records exist only for hosts that need them.
+  severity: Low
+  test_type: Automated
+  refs:
+    wstg:
+    - WSTG-INFO-04
+    attack:
+    - T1590.002
+    - T1596.001
+    capec:
+    - CAPEC-169
+    cwe:
+    - CWE-200
+    nist_800_53:
+    - SC-22
+    pci_dss:
+    - '1.4.5'
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/01-Information_Gathering/04-Attack_Surface_Identification.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md

@@ -1,0 +1,777 @@
+- id: WEB-AUTHN-001
+  sheet: WEB
+  category: AUTHN
+  title: Look for default and vendor accounts and passwords
+  objective: Finds default administrator accounts and known vendor passwords that still work.
+  preconditions:
+  - Do not run on production without owner approval.
+  steps:
+  - Identify the software and version from the response headers and login page.
+  - Find the vendor default accounts in the manual and in default-credential lists.
+  - Try each default pair on every login page, including admin consoles.
+  - Try admin, root, sa and system with blank, admin and password values.
+  - Make sure the build does not contain hard-coded or test accounts.
+  example: nuclei -u https://target -tags default-login ; hydra -C default-creds.txt target https-post-form '/login:user=^USER^&pass=^PASS^:F=Invalid'
+  expected: No default, hard-coded or test account can log in. Default accounts are removed or disabled before production.
+  severity: Critical
+  test_type: Automated
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-ATHN-02
+    asvs:
+    - V6.3.2
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-1392
+    - CWE-1393
+    - CWE-798
+    - CWE-259
+    - CWE-258
+    capec:
+    - CAPEC-70
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/02-Default_Credentials.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-AUTHN-002
+  sheet: WEB
+  category: AUTHN
+  title: Check the account lockout and throttle on failed logins
+  objective: Finds missing or weak lockout that allows online password guessing.
+  preconditions:
+  - A test account that you can afford to lock.
+  - Do not run on production.
+  steps:
+  - Send three wrong passwords. Then send the correct password and note the result.
+  - Repeat with four and five wrong passwords and note when the account locks.
+  - Wait five, ten and fifteen minutes. Send the correct password after each wait.
+  - 'Look at the failed-login counter: make sure it follows the account and not only the IP address.'
+  - If the lockout is client side, turn off JavaScript and send the requests with a proxy.
+  - Compare with the lockout rule in the security documentation.
+  example: 'Burp Intruder, null payload x 10, resource pool: 1 concurrent request, delay 2000 ms, POST /login with the test user and a wrong password; then send the correct password.'
+  expected: The application locks or delays the account after a small number of failures, as documented. The counter follows the account. A valid user is not locked out for long.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-ATHN-03
+    asvs:
+    - V6.3.1
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    - Credential_Stuffing_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-307
+    - CWE-799
+    - CWE-645
+    capec:
+    - CAPEC-112
+    - CAPEC-49
+    - CAPEC-16
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/03-Weak_Lock_Out_Mechanism.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Credential_Stuffing_Prevention_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-AUTHN-003
+  sheet: WEB
+  category: AUTHN
+  title: Test distributed brute force, password spray and credential stuffing
+  objective: Finds protection that counts failures only per IP address and so misses spread-out attacks.
+  preconditions:
+  - Only use accounts that you are allowed to test.
+  - Do not run on production.
+  steps:
+  - Prepare a list of known test user and password pairs and a list of common passwords.
+  - Send each pair from a different source IP address using proxies or VPN endpoints.
+  - Send one common password against many test accounts (password spray).
+  - Look for account lockout, CAPTCHA, delay or MFA step-up in the responses.
+  - Check if the application warns the user or the administrator about the attack.
+  example: ffuf -w pairs.txt:USERPASS -X POST -d 'username=USERPASS&password=PASS' -u https://target/login -x socks5://127.0.0.1:9050 ; Burp Intruder cluster bomb for the spray case.
+  expected: The application detects attacks that span many IP addresses and accounts. It applies account-based controls such as step-up, delay or block, and it raises an alert.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-ATHN-03
+    asvs:
+    - V6.3.1
+    cheatsheet:
+    - Credential_Stuffing_Prevention_Cheat_Sheet
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-307
+    - CWE-521
+    capec:
+    - CAPEC-600
+    - CAPEC-565
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/03-Weak_Lock_Out_Mechanism.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Credential_Stuffing_Prevention_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-AUTHN-004
+  sheet: WEB
+  category: AUTHN
+  title: Try to bypass the CAPTCHA on login and recovery
+  objective: Finds CAPTCHA checks that the server does not enforce, so automated guessing still works.
+  steps:
+  - Send the login request with the CAPTCHA parameter removed.
+  - Send the request with a wrong CAPTCHA value and with an empty value.
+  - Send the same solved CAPTCHA response in two requests.
+  - Clear the cookies and see if the CAPTCHA is skipped.
+  - Look in the alt text, file name and hidden fields for the answer.
+  - Try the mobile or API endpoint for the same function.
+  example: 'Burp Repeater: delete the ''g-recaptcha-response'' parameter, then replay an old valid token; compare the status codes.'
+  expected: The server checks every CAPTCHA response, accepts it once, and rejects missing or wrong values. All endpoints enforce it. The CAPTCHA does not replace the lockout.
+  severity: Medium
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-ATHN-03
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    - Credential_Stuffing_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-307
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/03-Weak_Lock_Out_Mechanism.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Credential_Stuffing_Prevention_Cheat_Sheet.md
+- id: WEB-AUTHN-005
+  sheet: WEB
+  category: AUTHN
+  title: Check that the account unlock process is not weak
+  objective: Finds unlock links or answers that an attacker can guess or reuse to unlock an account.
+  preconditions:
+  - Test account that you can lock.
+  - Do not run on production.
+  steps:
+  - Lock a test account. Start the unlock process.
+  - 'Examine the unlock link or code: length, randomness and lifetime.'
+  - Use the unlock link twice.
+  - Try to unlock another account by changing the user parameter.
+  - Make sure the unlock process has its own rate limit.
+  example: 'Burp Repeater: GET /unlock?user=victim&token=<token>, replay twice, then change user=other.'
+  expected: The unlock token is random, single use and short lived. An attacker cannot unlock an account that is not theirs. The process is rate limited.
+  severity: Medium
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-ATHN-03
+    cheatsheet:
+    - Forgot_Password_Cheat_Sheet
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-640
+    - CWE-645
+    - CWE-330
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/03-Weak_Lock_Out_Mechanism.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Forgot_Password_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+- id: WEB-AUTHN-006
+  sheet: WEB
+  category: AUTHN
+  title: Read the documentation for anti-automation controls
+  objective: Finds missing or incomplete documentation of rate limit, anti-automation and adaptive controls.
+  preconditions:
+  - Access to the security documentation and configuration.
+  steps:
+  - Get the security documentation for authentication.
+  - Find the rules for rate limit, lockout and adaptive response against credential stuffing and brute force.
+  - Make sure the document gives the thresholds and configuration values.
+  - Make sure the document explains how malicious account lockout is prevented.
+  - Compare the documented values with the real configuration.
+  example: Review the security design document and the gateway or WAF rate-limit configuration; record the threshold, window and lockout time.
+  expected: The documentation defines the controls, their values, and how they prevent malicious lockout. The real configuration matches it.
+  severity: Low
+  test_type: Config Review
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A07:2025
+    asvs:
+    - V6.1.1
+    cheatsheet:
+    - Credential_Stuffing_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-307
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Credential_Stuffing_Prevention_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-AUTHN-007
+  sheet: WEB
+  category: AUTHN
+  title: Read the documentation of all authentication pathways
+  objective: Finds authentication pathways that are not documented with their required strength.
+  preconditions:
+  - Access to the security documentation.
+  steps:
+  - 'List every way to log in: web form, API, mobile, SSO, support channels and admin consoles.'
+  - Get the documentation for authentication.
+  - Make sure each pathway is in the document with its controls and strength.
+  - Make sure the document says the controls must be the same on all pathways.
+  example: 'Build a table: pathway, factors, rate limit, MFA, session type. Compare to the design document.'
+  expected: All authentication pathways are documented together with the controls and strength that every pathway must enforce.
+  severity: Low
+  test_type: Config Review
+  level: ASVS L2
+  refs:
+    asvs:
+    - V6.1.3
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-288
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+- id: WEB-AUTHN-008
+  sheet: WEB
+  category: AUTHN
+  title: Look for undocumented or weaker authentication pathways
+  objective: Finds alternative channels or endpoints with weaker authentication than the main login.
+  steps:
+  - 'Find other channels: mobile site, old API versions, staging hosts, partner sites and call centre.'
+  - Read robots.txt, sitemap.xml and the help pages for links to them.
+  - Try the same account on each channel.
+  - Compare lockout, MFA, password reset and TLS on each channel with the main login.
+  - Send the same login to each API version and look for missing checks.
+  example: ffuf -w hosts.txt -u https://FUZZ.target/login ; curl -i https://m.target/myaccount/ ; curl -i https://target/api/v1/login vs /api/v2/login
+  expected: Every channel and API version enforces the same authentication strength. No undocumented pathway exists.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-ATHN-10
+    asvs:
+    - V6.3.4
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-288
+    - CWE-424
+    - CWE-306
+    capec:
+    - CAPEC-115
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/10-Weaker_Authentication_in_Alternative_Channel.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-AUTHN-009
+  sheet: WEB
+  category: AUTHN
+  title: Try to bypass the authentication schema
+  objective: Finds protected pages that can be reached by parameter changes, forced browsing or injection in the login.
+  preconditions:
+  - Do not run on production without owner approval.
+  steps:
+  - Request each protected page without a session.
+  - Change values such as authenticated=no to authenticated=yes in URLs, cookies and hidden fields.
+  - Skip the second step of a multi-step login and request the final page.
+  - Try SQL injection payloads in the user and password fields.
+  - Look at the session ID values for predictable patterns.
+  example: curl -i 'https://target/page.asp?authenticated=yes' ; sqlmap -u https://target/login --data 'user=a&pass=b' --level 3 --batch
+  expected: Protected pages need a valid server-side session. Client-side values do not change the result. Login input is not injectable.
+  severity: Critical
+  test_type: Manual
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-ATHN-04
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-287
+    - CWE-288
+    - CWE-302
+    - CWE-306
+    - CWE-603
+    capec:
+    - CAPEC-115
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/04-Bypassing_Authentication_Schema.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-AUTHN-010
+  sheet: WEB
+  category: AUTHN
+  title: Check password comparison for type and length flaws
+  objective: Finds loose hash comparison, magic hashes and logins that accept a wrong password of the right length.
+  preconditions:
+  - Source code access for the code part.
+  steps:
+  - Log in with a wrong password that has the same length as the real one.
+  - Set a password whose hash starts with 0e and digits. Log in with a different 0e hash password.
+  - In PHP code, look for == in hash and token checks.
+  - Send a wrong-type value, such as true or an array, in place of the password or token.
+  example: 'Test hashes: md5(''240610708'') and md5(''QLTHNDT'') both start with 0e; try each as the password for an account that holds the other. grep -rn ''== md5\|== sha1'' src/'
+  expected: The application accepts only the exact password. It uses strict, constant-time comparison with fixed types.
+  severity: High
+  test_type: Code Review
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-ATHN-04
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-303
+    - CWE-1287
+    - CWE-208
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/04-Bypassing_Authentication_Schema.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+  notes: Magic hash test works only when the code compares hashes with loose equality. Same-length test needs one valid account.
+- id: WEB-AUTHN-011
+  sheet: WEB
+  category: AUTHN
+  title: Check the remember me function and stored credentials
+  objective: Finds remember me tokens or stored credentials that stay valid too long or can be read.
+  steps:
+  - Log in with remember me turned on.
+  - Look in cookies, localStorage and sessionStorage for passwords or encoded credentials.
+  - Decode every stored value and look for user names or passwords.
+  - Make sure the token expires and the server can revoke it.
+  - Check that login forms can not be framed or auto-submitted from another site.
+  example: Browser DevTools > Application tab; echo '<value>' | base64 -d ; curl -I https://target/login | grep -i x-frame-options
+  expected: The browser holds no password or reversible credential. The remember me token is random, expires, and the server can revoke it.
+  severity: Medium
+  test_type: Manual
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-ATHN-05
+    cheatsheet:
+    - Session_Management_Cheat_Sheet
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-522
+    - CWE-312
+    - CWE-922
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/05-Vulnerable_Remember_Password.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-AUTHN-012
+  sheet: WEB
+  category: AUTHN
+  title: Check that the browser cache does not keep private pages
+  objective: Finds sensitive pages that the browser stores or shows again after logout.
+  steps:
+  - Log in and open pages with sensitive data.
+  - Log out and press the Back button.
+  - Look at the Cache-Control header on every authenticated response.
+  - Search the browser cache directory for sensitive values.
+  - Repeat with a mobile User-Agent.
+  example: curl -sI -b 'session=<id>' https://target/account | grep -i cache-control ; ZAP passive scan rule 'Re-examine Cache-control Directives'
+  expected: 'Authenticated responses with sensitive data have Cache-Control: no-store. The Back button after logout does not show private data.'
+  severity: Low
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-ATHN-06
+    cheatsheet:
+    - Session_Management_Cheat_Sheet
+    cwe:
+    - CWE-525
+    - CWE-524
+    capec:
+    - CAPEC-204
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/06-Browser_Cache_Weaknesses.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+- id: WEB-AUTHN-013
+  sheet: WEB
+  category: AUTHN
+  title: Check that users get notice of suspicious sign-in events
+  objective: Finds missing alerts for unusual or partly successful sign-in events.
+  preconditions:
+  - Test mailbox.
+  steps:
+  - Sign in from a new device and a new location.
+  - Fail the second factor with the correct password.
+  - Sign in successfully after several failures.
+  - 'Look at the notices: message, email and recent-login page.'
+  example: Log in with curl using a different User-Agent and X-Forwarded-For through a VPN; then read the mailbox of the test user.
+  expected: The user gets a notice for each suspicious event with time, device and place. The notice does not leak data of other users.
+  severity: Low
+  test_type: Manual
+  level: ASVS L3
+  refs:
+    owasp_top10:
+    - A07:2025
+    asvs:
+    - V6.3.5
+    cheatsheet:
+    - Credential_Stuffing_Prevention_Cheat_Sheet
+    - Multifactor_Authentication_Cheat_Sheet
+    cwe:
+    - CWE-778
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Credential_Stuffing_Prevention_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Multifactor_Authentication_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-AUTHN-014
+  sheet: WEB
+  category: AUTHN
+  title: Check that email is not an authentication factor
+  objective: Finds designs that use email as a sole or additional factor for high assurance.
+  steps:
+  - Read the authentication design and the login flow.
+  - Find any step that uses an emailed code or link as a factor.
+  - Make sure email is not used as a single factor or as a second factor.
+  example: Log in with a test user and record each prompt in Burp; mark any step that sends a code to an email address.
+  expected: Email is not used as a single or second authentication factor at the L3 level. Stronger factors are used.
+  severity: Low
+  test_type: Config Review
+  level: ASVS L3
+  refs:
+    wstg:
+    - WSTG-ATHN-11
+    asvs:
+    - V6.3.6
+    cheatsheet:
+    - Multifactor_Authentication_Cheat_Sheet
+    cwe:
+    - CWE-308
+    - CWE-309
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/11-Multi-Factor_Authentication.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Multifactor_Authentication_Cheat_Sheet.md
+- id: WEB-AUTHN-015
+  sheet: WEB
+  category: AUTHN
+  title: Check notices after changes to authentication details
+  objective: Finds missing notices after password reset or email and user name change.
+  preconditions:
+  - Test mailbox.
+  steps:
+  - Reset the password of a test user.
+  - Change the email address and the user name.
+  - Read the messages that the old and the new address receive.
+  - Make sure the messages do not contain the password or a secret.
+  example: 'Use a mail catcher such as MailHog: POST /account/email new=a@b.test, then list the messages for the old address.'
+  expected: The user gets a notice after each change to authentication details. The notice goes to the old address as well. It contains no secrets.
+  severity: Low
+  test_type: Manual
+  level: ASVS L3
+  refs:
+    asvs:
+    - V6.3.7
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    - Forgot_Password_Cheat_Sheet
+    cwe:
+    - CWE-778
+    - CWE-620
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Forgot_Password_Cheat_Sheet.md
+- id: WEB-AUTHN-016
+  sheet: WEB
+  category: AUTHN
+  title: Check that one IdP cannot spoof a user of another IdP
+  objective: Finds account linking by email or user ID alone, which lets a second IdP take over an account.
+  preconditions:
+  - Two IdPs or a test IdP that you control.
+  steps:
+  - List the IdPs that the application supports.
+  - Create an account at one IdP with the same email and user ID as a victim of another IdP.
+  - Log in to the application through that IdP.
+  - Examine if the application links the session to the victim account.
+  - 'Read the code for the account key: it must be IdP ID plus user ID.'
+  example: Register user victim@corp.test at a test IdP; log in with 'Login with IdP-B' and compare the resulting account ID.
+  expected: The application identifies users by IdP ID plus the IdP user ID. It does not link accounts by email or name alone.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V6.8.1
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-290
+    - CWE-287
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+- id: WEB-AUTHN-017
+  sheet: WEB
+  category: AUTHN
+  title: Check that SAML and JWT assertion signatures are required
+  objective: Finds assertions that the application accepts without a valid signature.
+  steps:
+  - Decode the SAMLResponse or the ID token and note the signed parts.
+  - Remove the signature and send the message.
+  - Change the NameID or a claim and keep the old signature.
+  - Sign the message with a different key.
+  - Move the signature between Response and Assertion.
+  example: 'Burp SAML Raider: remove signatures, modify NameID, re-sign with a cloned self-signed certificate, then forward the SAMLResponse to /saml/acs.'
+  expected: The application rejects unsigned assertions and any assertion with a bad signature. It uses only the signed data.
+  severity: Critical
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-ATHN-12
+    asvs:
+    - V6.8.2
+    cheatsheet:
+    - SAML_Security_Cheat_Sheet
+    cwe:
+    - CWE-347
+    - CWE-345
+    - CWE-303
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/12-SAML_Authentication.md
+  - sources/repos/CheatSheetSeries/cheatsheets/SAML_Security_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-AUTHN-018
+  sheet: WEB
+  category: AUTHN
+  title: Check that SAML assertions cannot be replayed
+  objective: Finds assertions that the service provider accepts more than once.
+  steps:
+  - Log in through SAML and capture the SAMLResponse.
+  - Log out. Send the same SAMLResponse again.
+  - Send it twice inside the validity time.
+  - 'Check the Conditions: NotOnOrAfter and OneTimeUse.'
+  example: curl -i -X POST https://target/saml/acs --data-urlencode 'SAMLResponse=<captured>' -d 'RelayState=/' (send twice).
+  expected: The service provider accepts each assertion ID only once in its validity period and rejects repeats, also after logout.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-ATHN-12
+    asvs:
+    - V6.8.3
+    cheatsheet:
+    - SAML_Security_Cheat_Sheet
+    cwe:
+    - CWE-294
+    capec:
+    - CAPEC-60
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/12-SAML_Authentication.md
+  - sources/repos/CheatSheetSeries/cheatsheets/SAML_Security_Cheat_Sheet.md
+- id: WEB-AUTHN-019
+  sheet: WEB
+  category: AUTHN
+  title: Check that the application uses IdP authentication strength data
+  objective: Finds functions that need strong or recent login but do not check what the IdP reports.
+  steps:
+  - Find functions that need MFA or a recent login.
+  - Log in with a weak method at the IdP.
+  - Call those functions and look at the response.
+  - Read the code for checks of the acr, amr and auth_time claims.
+  example: jwt_tool <id_token> to read acr, amr, auth_time; then call the sensitive endpoint with a session from a password-only login.
+  expected: The application checks the strength, method and age of the login from the IdP data before it allows the function.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-ATHN-12
+    asvs:
+    - V6.8.4
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-308
+    - CWE-304
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/12-SAML_Authentication.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+- id: WEB-AUTHN-020
+  sheet: WEB
+  category: AUTHN
+  title: 'Check SAML conditions: audience, recipient, issuer and time'
+  objective: Finds service providers that do not enforce the Conditions and Subject data of an assertion.
+  steps:
+  - Change the Audience to another service provider.
+  - Use the assertion before NotBefore and after NotOnOrAfter.
+  - Change the Recipient so it does not match the ACS URL.
+  - Send a response for an InResponseTo ID that this service did not issue.
+  - Send a response with a different Issuer.
+  example: 'SAML Raider: edit Conditions/AudienceRestriction and SubjectConfirmationData/@Recipient, re-sign with the test IdP key, post to the ACS endpoint.'
+  expected: The service provider rejects each changed or expired assertion. It checks Audience, Recipient, Issuer, validity and InResponseTo.
+  severity: High
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-ATHN-12
+    cheatsheet:
+    - SAML_Security_Cheat_Sheet
+    cwe:
+    - CWE-345
+    - CWE-347
+    - CWE-294
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/12-SAML_Authentication.md
+  - sources/repos/CheatSheetSeries/cheatsheets/SAML_Security_Cheat_Sheet.md
+- id: WEB-AUTHN-021
+  sheet: WEB
+  category: AUTHN
+  title: Test SAML signature wrapping and NameID parsing
+  objective: Finds parser flaws that let an attacker place unsigned identity data next to a valid signature.
+  steps:
+  - Copy the signed Assertion to a new place and add a changed assertion.
+  - Use a NameID such as user@example.com plus an XML comment and .attacker.com.
+  - Add a second Assertion for another user.
+  - Check if attributes can set roles or groups without a limit.
+  - Look for XSLT in the signature transforms.
+  example: 'SAML Raider XSW 1-8 attacks; NameID test value: user@example.com<!---->.attacker.com'
+  expected: The service provider reads identity only from the element whose signature it checked. Comments and extra assertions have no effect. Role attributes are limited.
+  severity: Critical
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-ATHN-12
+    cheatsheet:
+    - SAML_Security_Cheat_Sheet
+    cwe:
+    - CWE-347
+    - CWE-345
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/12-SAML_Authentication.md
+  - sources/repos/CheatSheetSeries/cheatsheets/SAML_Security_Cheat_Sheet.md
+- id: WEB-AUTHN-022
+  sheet: WEB
+  category: AUTHN
+  title: Check SAML RelayState, IdP-initiated login and logout
+  objective: Finds open redirects, login CSRF and unsigned logout in SAML flows.
+  steps:
+  - Change RelayState to an external URL and log in.
+  - Send an unsolicited response without an earlier request.
+  - Log out at the service provider. Look at the LogoutRequest signature.
+  - Use the old session cookie after logout.
+  example: 'Burp Repeater: POST /saml/acs RelayState=https://evil.example/ ; replay the session cookie after SLO.'
+  expected: RelayState allows only expected values. Unsolicited responses are accepted only if this is documented. Logout ends the session and uses signed messages.
+  severity: Medium
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-ATHN-12
+    cheatsheet:
+    - SAML_Security_Cheat_Sheet
+    cwe:
+    - CWE-601
+    - CWE-352
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/04-Authentication/12-SAML_Authentication.md
+  - sources/repos/CheatSheetSeries/cheatsheets/SAML_Security_Cheat_Sheet.md
+- id: WEB-AUTHN-023
+  sheet: WEB
+  category: AUTHN
+  title: Check protection of certificates used for authentication assertions
+  objective: Finds trusted certificates that an attacker can change.
+  preconditions:
+  - Server or configuration access.
+  steps:
+  - Find where the service stores the IdP or device certificates.
+  - Look at the file and database permissions.
+  - Try to change a certificate with a low-privilege account.
+  - Check for integrity protection, such as a signed store or read-only mount.
+  example: ls -l /etc/app/trust/ ; icacls C:\app\trust ; review the keystore ACL and backup access.
+  expected: Only privileged administrators can change trusted certificates. Changes are detected or logged.
+  severity: High
+  test_type: Config Review
+  level: ASVS L3
+  refs:
+    asvs:
+    - V6.7.1
+    cheatsheet:
+    - SAML_Security_Cheat_Sheet
+    cwe:
+    - CWE-345
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/SAML_Security_Cheat_Sheet.md
+- id: WEB-AUTHN-024
+  sheet: WEB
+  category: AUTHN
+  title: Check the challenge nonce of cryptographic authentication
+  objective: Finds short or repeated challenge nonces in WebAuthn or certificate authentication.
+  steps:
+  - Start 1000 login challenges and save each nonce.
+  - Look at the nonce length. It must be at least 64 bits.
+  - Look for repeated values.
+  - Make sure the server stores and checks the challenge for one login only.
+  example: for i in $(seq 1000); do curl -s https://target/webauthn/challenge | jq -r .challenge; done | sort | uniq -d
+  expected: Each challenge is at least 64 bits long, unique, and valid for one login only.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L3
+  refs:
+    asvs:
+    - V6.7.2
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-330
+    - CWE-294
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+- id: WEB-AUTHN-025
+  sheet: WEB
+  category: AUTHN
+  title: Check that authentication events are logged and alerted
+  objective: Finds missing logs for failed logins and lockouts, which hides attacks.
+  steps:
+  - Cause failed logins, a lockout and a password reset.
+  - Read the application and security logs.
+  - Make sure the log has time, source, account and result.
+  - Make sure passwords and tokens are not in the log.
+  - Check that repeated failures raise an alert.
+  example: grep -iE 'login failed|locked' /var/log/app/auth.log | tail ; grep -i 'password=' /var/log/app/*.log
+  expected: All failed logins, lockouts and resets are logged and reviewed. Alerts exist for attack patterns. Logs hold no secrets.
+  severity: Low
+  test_type: Config Review
+  refs:
+    owasp_top10:
+    - A07:2025
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    - Credential_Stuffing_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-778
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Credential_Stuffing_Prevention_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md

@@ -1,0 +1,197 @@
+{
+ "cheatsheet": {
+  "Authorization_Patterns_Cheat_Sheet": [
+   "WEB-PDP-001",
+   "API-MSVC-001",
+   "WEB-ZTA-005",
+   "WEB-AUTHZ-017",
+   "WEB-AUTHZ-011"
+  ],
+  "Authorization_Decisions_And_Output_Handling_Cheat_Sheet": [
+   "WEB-PDP-001",
+   "WEB-PDP-002"
+  ],
+  "Authorization_Policy_And_Data_Distribution_Cheat_Sheet": [
+   "WEB-PDP-003",
+   "WEB-AUTHZ-010"
+  ],
+  "Authorization_Regression_Testing_Cheat_Sheet": [
+   "WEB-PDP-004",
+   "WEB-AUTHZ-012",
+   "WEB-IDOR-001",
+   "WEB-AUTHZ-004"
+  ],
+  "Authorization_Testing_Automation_Cheat_Sheet": [
+   "WEB-PDP-004"
+  ],
+  "Authentication_Patterns_Cheat_Sheet": [
+   "API-MSVC-004",
+   "API-MSVC-001",
+   "WEB-CONF-015",
+   "WEB-AUTHZ-014",
+   "WEB-AUTHN-007",
+   "WEB-ZTA-005"
+  ],
+  "Identity_Propagation_Patterns_Cheat_Sheet": [
+   "API-MSVC-003",
+   "WEB-AUTHZ-011",
+   "WEB-OAUTH-006",
+   "WEB-JWT-006",
+   "WEB-JWT-007"
+  ],
+  "Multi_Tenant_Security_Cheat_Sheet": [
+   "WEB-TENANT-001",
+   "WEB-TENANT-002",
+   "WEB-TENANT-003",
+   "WEB-TENANT-004",
+   "WEB-TENANT-005",
+   "WEB-TENANT-006",
+   "WEB-AUTHZ-012",
+   "API-BOLA-006",
+   "API-MSVC-002"
+  ],
+  "Passkey_Security_Cheat_Sheet": [
+   "WEB-PASSKEY-001",
+   "WEB-PASSKEY-002",
+   "WEB-PASSKEY-003",
+   "WEB-PASSKEY-004"
+  ],
+  "Cookie_Theft_Mitigation_Cheat_Sheet": [
+   "WEB-ZTA-002",
+   "WEB-AUTHZ-008",
+   "WEB-SESS-008",
+   "WEB-AUTHN-013"
+  ],
+  "Cross-Site_Request_Forgery_Prevention_Cheat_Sheet": [
+   "WEB-CSRF-001",
+   "WEB-CSRF-002",
+   "WEB-CSRF-003",
+   "WEB-CSRF-004",
+   "WEB-CSRF-005",
+   "WEB-SESS-030",
+   "WEB-SESS-009",
+   "WEB-CLIENT-009",
+   "WEB-CLIENT-015",
+   "WEB-CLIENT-016"
+  ],
+  "Injection_Prevention_Cheat_Sheet": [
+   "WEB-INJ-001",
+   "WEB-INJ-004",
+   "WEB-INJ-006",
+   "WEB-INJ-012",
+   "WEB-INJ-014",
+   "WEB-XSS-004",
+   "WEB-VAL-012"
+  ],
+  "XML_Security_Cheat_Sheet": [
+   "WEB-XMLSEC-001",
+   "WEB-XMLSEC-002",
+   "WEB-XMLSEC-003",
+   "WEB-INJ-007",
+   "WEB-INJ-008",
+   "API-SOAP-001",
+   "API-SOAP-002",
+   "DESK-INJ-003"
+  ],
+  "XSS_Filter_Evasion_Cheat_Sheet": [
+   "WEB-XSS-001",
+   "WEB-XSS-002",
+   "WEB-XSS-003",
+   "WEB-XSS-004",
+   "WEB-XSS-010"
+  ],
+  "Web_Frontend_Security_Cheat_Sheet": [
+   "WEB-XSS-006",
+   "WEB-XSS-009",
+   "WEB-XSS-003",
+   "WEB-CLIENT-005",
+   "WEB-CLIENT-006",
+   "WEB-CLIENT-018"
+  ],
+  "Micro_Frontend_Security_Cheat_Sheet": [
+   "WEB-MFE-001",
+   "WEB-MFE-002",
+   "WEB-CLIENT-005",
+   "WEB-CLIENT-018",
+   "WEB-AUTHZ-009",
+   "WEB-CLIENT-006"
+  ],
+  "XS_Leaks_Cheat_Sheet": [
+   "WEB-XSLEAK-001",
+   "WEB-CLIENT-003",
+   "WEB-CLIENT-014",
+   "WEB-CLIENT-009",
+   "WEB-CLIENT-005",
+   "WEB-CLIENT-021"
+  ],
+  "Web_Cache_Security_Cheat_Sheet": [
+   "WEB-CACHE-001",
+   "WEB-CACHE-002",
+   "WEB-CONF-013",
+   "WEB-DATA-003",
+   "WEB-DATA-006",
+   "WEB-DATA-011",
+   "WEB-INJ-019",
+   "WEB-TENANT-002"
+  ],
+  "Bot_Management_and_Anti-Automation_Cheat_Sheet": [
+   "WEB-BOT-001",
+   "WEB-BOT-002",
+   "WEB-AUTHN-002",
+   "WEB-AUTHN-003",
+   "WEB-AUTHN-004",
+   "WEB-BIZ-009",
+   "WEB-BIZ-010",
+   "WEB-BIZ-011",
+   "API-RES-001"
+  ],
+  "Webhook_Security_Cheat_Sheet": [
+   "WEB-WEBHOOK-001",
+   "WEB-WEBHOOK-002",
+   "WEB-WEBHOOK-003",
+   "WEB-WEBHOOK-004",
+   "API-SSRF-003",
+   "API-CONS-005"
+  ],
+  "Database_Security_Cheat_Sheet": [
+   "WEB-DB-001",
+   "WEB-DB-002",
+   "NET-SVC-006",
+   "NET-SEG-002",
+   "WEB-ARCH-003",
+   "DESK-COMM-005",
+   "CLD-CFG-004",
+   "NET-BKP-002"
+  ],
+  "Browser_Extension_Vulnerabilities_Cheat_Sheet": [
+   "WEB-EXT-001",
+   "WEB-EXT-002",
+   "WEB-EXT-003"
+  ],
+  "Post_Quantum_Cryptography_Cheat_Sheet": [
+   "WEB-PQC-001",
+   "WEB-CRYPTO-002",
+   "WEB-CRYPTO-004",
+   "WEB-TLS-001"
+  ],
+  "Third_Party_Payment_Gateway_Integration_Cheat_Sheet": [
+   "WEB-PAY-001",
+   "WEB-BIZ-012",
+   "WEB-BIZ-014",
+   "API-CONS-005",
+   "WEB-WEBHOOK-001",
+   "PCI-SWDEV-009"
+  ],
+  "Email_Validation_and_Verification_Cheat_Sheet": [
+   "WEB-EMAIL-001",
+   "WEB-EMAIL-002",
+   "WEB-IDM-004",
+   "WEB-PWD-017",
+   "WEB-PWD-018",
+   "WEB-AUTHN-014",
+   "WEB-AUTHN-015",
+   "WEB-SESS-025",
+   "WEB-MFA-018"
+  ]
+ }
+}

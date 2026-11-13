@@ -1,0 +1,27 @@
+- id: PCI-CFG-001
+  sheet: PCI
+  category: CFG
+  title: Check that each server has one primary function or isolated security levels
+  objective: Find systems that run functions with different security needs without separation.
+  preconditions:
+  - Access to system inventory and configuration
+  steps:
+  - List the primary function of each system in scope, such as web server, database server and DNS server.
+  - Find systems that run more than one primary function.
+  - For each, make sure the functions are isolated in virtual machines, containers or separate processes with different privileges.
+  - Make sure the functions on one system need the same security level.
+  - Try to reach the data of the more sensitive function from the less sensitive one.
+  example: docker ps; systemctl list-units --type=service; hypervisor VM list; compare with the configuration standard
+  expected: Each system has one primary function, or functions with different security needs are isolated from each other.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 2.2.3
+    nist_800_53:
+    - SC-2
+    - CM-7
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md

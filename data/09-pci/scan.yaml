@@ -1,0 +1,53 @@
+- id: PCI-SCAN-001
+  sheet: PCI
+  category: SCAN
+  title: Check scans after a significant change and rescans of fixed findings
+  objective: Find significant changes that go live with no vulnerability scan.
+  preconditions:
+  - Access to scan reports
+  steps:
+  - Ask for the definition of a significant change.
+  - Pick two significant changes from the last 12 months.
+  - Find an internal and an external vulnerability scan after each change.
+  - Make sure high-risk and critical findings were fixed and rescanned.
+  - Make sure the scan was done by qualified persons who are independent of the change.
+  example: Change record; scan report dates; rescan reports
+  expected: Internal and external scans run after each significant change. High-risk and critical findings are fixed and rescanned.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 11.3.1.3
+    - 11.3.2.1
+    nist_800_53:
+    - RA-5
+    - CM-4
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-SCAN-002
+  sheet: PCI
+  category: SCAN
+  title: Check that approved scanning vendor scans pass every quarter
+  objective: Find external scans that are missing, not from an approved vendor, or not passing.
+  preconditions:
+  - Access to ASV reports
+  steps:
+  - Ask for the ASV scan reports of the last 12 months.
+  - Make sure at least one scan exists for each three-month period.
+  - Make sure each scan came from a PCI SSC approved scanning vendor.
+  - Make sure the scan has a passing status or the failed findings were fixed and rescanned.
+  - Compare the scanned addresses with the list of public addresses in scope.
+  example: ASV attestation of scan compliance; scan scope list compared to the external address inventory
+  expected: An approved scanning vendor scanned every in-scope public address once every three months. The latest scans pass.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    pci_dss:
+    - 11.3.2
+    nist_800_53:
+    - RA-5
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md

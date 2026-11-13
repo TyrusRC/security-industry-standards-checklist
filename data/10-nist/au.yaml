@@ -1,0 +1,116 @@
+- id: NIST-AU-001
+  sheet: NIST
+  category: AU
+  title: Check who can change which events the system logs
+  objective: Finds logging settings that any admin or process can lower without a record.
+  preconditions:
+  - Admin read access and a test system.
+  steps:
+  - Read the list of event types that the policy requires the system to log.
+  - Compare the list with the active logging settings of each component.
+  - List the roles that can change the logging settings.
+  - Change one logging setting with a test account and look at the audit log.
+  - Make sure a role without the right cannot change the setting.
+  example: auditctl -l; kubectl get cm audit-policy -o yaml; aws cloudtrail get-event-selectors --trail-name TRAIL
+  expected: Active logging covers all required event types. Only named roles can change the settings, and each change creates an audit record.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    nist_800_53:
+    - AU-12
+    - AU-12(3)
+    - AU-2
+    - AU-9(4)
+    cheatsheet:
+    - Logging_Cheat_Sheet
+    cwe:
+    - CWE-778
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NIST-AU-002
+  sheet: NIST
+  category: AU
+  title: Check the audit log storage size and the capacity warning
+  objective: Finds logs that fill the disk and stop, or that lose old records with no warning.
+  preconditions:
+  - A test log volume. Do not fill production storage.
+  steps:
+  - Read the space set aside for audit logs and the rate of new records.
+  - Calculate how long the space lasts at the peak rate.
+  - Read the warning level for the storage and the receiver of the warning.
+  - Fill a test log volume to the warning level and look for the alert.
+  - Make sure the retention time still holds when the volume is full.
+  example: df -h /var/log; journalctl --disk-usage; check Elasticsearch disk watermark settings and alert rules
+  expected: The storage holds the retention time at peak load. A warning reaches the named receiver before the storage is full.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    nist_800_53:
+    - AU-4
+    - AU-5(1)
+    - AU-11
+    cheatsheet:
+    - Logging_Cheat_Sheet
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NIST-AU-003
+  sheet: NIST
+  category: AU
+  title: Check the response when audit logging fails
+  objective: Finds systems that go on with no audit trail, or stop in a way that is easy to abuse, when logging fails.
+  preconditions:
+  - A test system. Do not run on production.
+  steps:
+  - Read the rule for what the system does when it cannot write audit records.
+  - Stop the log agent or block the log target on a test system.
+  - Do a security-relevant action and see if the system works as the rule says.
+  - Look for an alert about the logging failure.
+  - Restore logging and look for a gap record or a backlog.
+  example: systemctl stop auditd; iptables -A OUTPUT -p tcp --dport 514 -j DROP; then look at the alert channel and the buffer
+  expected: A logging failure creates an alert at once. The system follows the written rule and keeps a buffer, and no records are lost silently.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    nist_800_53:
+    - AU-5
+    - AU-5(2)
+    - AU-12
+    - SI-4(5)
+    cheatsheet:
+    - Logging_Cheat_Sheet
+    cwe:
+    - CWE-778
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NIST-AU-004
+  sheet: NIST
+  category: AU
+  title: Check audit record search and that reports keep the originals
+  objective: Finds logs that cannot be searched for an incident, or reports that change the original records.
+  preconditions:
+  - Read access to the log platform.
+  steps:
+  - Pick a test event from the last day and note its time and actor.
+  - Search the audit records for the event by user, time and event type.
+  - Create a report from the search result.
+  - Compare the original record before and after the report.
+  - Make sure the time order of the original records is unchanged.
+  example: 'Search in SIEM: user=TESTUSER AND action=login earliest=-24h; sha256sum the raw log file before and after the report'
+  expected: The reviewer finds the test event with the search fields. Report tools read the records and do not change their content or order.
+  severity: Low
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    nist_800_53:
+    - AU-7
+    - AU-7(1)
+    - AU-6
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json

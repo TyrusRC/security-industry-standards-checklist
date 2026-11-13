@@ -1,0 +1,317 @@
+- id: CLD-NET-007
+  sheet: CLD
+  category: NET
+  title: Check CDN origin access, dangling origins and edge settings
+  objective: Finds CDN origins that anyone can reach directly or that point to buckets nobody owns.
+  steps:
+  - List CDN distributions and their origins.
+  - Check that each storage origin allows only the CDN identity.
+  - Find origins that point to deleted buckets.
+  - Check the default root object and the geo restrictions.
+  - Request an object directly from the origin.
+  example: aws cloudfront list-distributions; aws cloudfront get-distribution-config --id <i>; aws s3api head-bucket --bucket <origin-bucket>; curl -i https://<bucket>.s3.amazonaws.com/<object>; prowler aws --services cloudfront
+  expected: Storage origins accept the CDN identity only. No origin points to a missing bucket. The direct origin request is denied.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-6
+    tool_check:
+    - prowler:aws:cloudfront_distributions_default_root_object
+    - prowler:aws:cloudfront_distributions_geo_restrictions_enabled
+    - prowler:aws:cloudfront_distributions_multiple_origin_failover_configured
+    - prowler:aws:cloudfront_distributions_s3_origin_access_control
+    - prowler:aws:cloudfront_distributions_s3_origin_non_existent_bucket
+    cwe:
+    - CWE-284
+    attack:
+    - T1584
+    - T1530
+    nist_800_53:
+    - SC-7
+    - AC-3
+    other:
+    - Microsoft cloud security benchmark v1 NS-2
+    - Microsoft cloud security benchmark v1 NS-6
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/cloudfront/cloudfront_distributions_default_root_object/cloudfront_distributions_default_root_object.metadata.json
+  - sources/repos/prowler/prowler/providers/aws/services/cloudfront/cloudfront_distributions_s3_origin_non_existent_bucket/cloudfront_distributions_s3_origin_non_existent_bucket.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-NET-008
+  sheet: CLD
+  category: NET
+  title: Check security group hygiene, peering, transit and VPC routing paths
+  objective: Finds unused or wide network rules, open transit attachments and unsafe peering routes.
+  steps:
+  - List security groups, peering links, transit gateways and endpoints.
+  - Find unused groups and groups from setup wizards.
+  - Find groups with a very large number of rules.
+  - Check that peering routes are limited to needed ranges.
+  - Check that transit attachments need approval.
+  example: aws ec2 describe-security-groups; aws ec2 describe-vpc-peering-connections; aws ec2 describe-transit-gateways --query "TransitGateways[].Options.AutoAcceptSharedAttachments"; aws ec2 describe-route-tables; gcloud compute instances describe <i> --format="value(canIpForward,networkInterfaces)"; prowler aws --services ec2 vpc
+  expected: No unused or wizard-made group remains. Peering routes are least-privilege. Transit attachments need approval. Hosts have one network interface unless a design needs more.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-6
+    tool_check:
+    - prowler:aws:ec2_instance_uses_single_eni
+    - prowler:aws:ec2_securitygroup_from_launch_wizard
+    - prowler:aws:ec2_securitygroup_with_many_ingress_egress_rules
+    - prowler:aws:ec2_transitgateway_auto_accept_vpc_attachments
+    - prowler:aws:vpc_endpoint_for_ec2_enabled
+    - prowler:aws:vpc_peering_routing_tables_with_least_privilege
+    - prowler:gcp:compute_instance_ip_forwarding_is_enabled
+    - prowler:gcp:compute_instance_single_network_interface
+    - prowler:gcp:compute_network_default_in_use
+    - prowler:gcp:compute_network_not_legacy
+    cwe:
+    - CWE-923
+    attack:
+    - T1021.007
+    - T1599
+    nist_800_53:
+    - SC-7
+    - CM-7
+    other:
+    - Microsoft cloud security benchmark v1 NS-7
+    - Microsoft cloud security benchmark v1 NS-1
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/ec2/ec2_instance_uses_single_eni/ec2_instance_uses_single_eni.metadata.json
+  - sources/repos/prowler/prowler/providers/gcp/services/compute/compute_instance_single_network_interface/compute_instance_single_network_interface.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-NET-009
+  sheet: CLD
+  category: NET
+  title: Check network firewall coverage and flow visibility for each VPC
+  objective: Finds VPCs with no central traffic inspection or network monitor.
+  steps:
+  - List VPCs and virtual networks.
+  - Check that a firewall or bastion service covers each one.
+  - Check the default action of firewall policies.
+  - Check that rule groups are linked.
+  - Check that the network monitor is on in each region.
+  example: aws network-firewall list-firewalls; aws network-firewall describe-firewall-policy --firewall-policy-name <p>; az network bastion list; az network watcher list; prowler aws --services networkfirewall; prowler azure --services network
+  expected: Each VPC has traffic inspection with a deny or alert default. Rule groups are linked. A network monitor runs in each region.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-6
+    tool_check:
+    - prowler:aws:networkfirewall_in_all_vpc
+    - prowler:aws:networkfirewall_policy_default_action_fragmented_packets
+    - prowler:aws:networkfirewall_policy_default_action_full_packets
+    - prowler:aws:networkfirewall_policy_rule_group_associated
+    - prowler:azure:network_bastion_host_exists
+    - prowler:azure:network_watcher_enabled
+    cwe:
+    - CWE-693
+    attack:
+    - T1048
+    - T1071
+    nist_800_53:
+    - SC-7
+    - SI-4
+    other:
+    - Microsoft cloud security benchmark v1 NS-3
+    - Microsoft cloud security benchmark v1 NS-4
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/networkfirewall/networkfirewall_in_all_vpc/networkfirewall_in_all_vpc.metadata.json
+  - sources/repos/prowler/prowler/providers/azure/services/network/network_watcher_enabled/network_watcher_enabled.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-NET-010
+  sheet: CLD
+  category: NET
+  title: Check DNSSEC, domain transfer lock and mail domain signing
+  objective: Finds domains with weak DNSSEC, no transfer lock or no mail signing.
+  steps:
+  - List domains and public DNS zones.
+  - Check that DNSSEC is on and does not use RSASHA1.
+  - Check that the transfer lock is on.
+  - Check that privacy protection hides contact data.
+  - Check DKIM for mail domains.
+  example: aws route53domains get-domain-detail --domain-name <d>; gcloud dns managed-zones describe <z> --format="value(dnssecConfig)"; aws ses get-identity-dkim-attributes --identities <d>; dig +dnssec <d>; prowler gcp --services dns; prowler aws --services route53 ses
+  expected: DNSSEC is on with strong algorithms. Domains have transfer lock and privacy protection. Mail domains sign with DKIM.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    tool_check:
+    - prowler:aws:route53_domains_privacy_protection_enabled
+    - prowler:aws:route53_domains_transferlock_enabled
+    - prowler:aws:ses_identity_dkim_enabled
+    - prowler:gcp:dns_dnssec_disabled
+    - prowler:gcp:dns_rsasha1_in_use_to_key_sign_in_dnssec
+    - prowler:gcp:dns_rsasha1_in_use_to_zone_sign_in_dnssec
+    cwe:
+    - CWE-345
+    attack:
+    - T1584.001
+    - T1584.002
+    nist_800_53:
+    - SC-20
+    - SC-21
+    other:
+    - Microsoft cloud security benchmark v1 NS-10
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/route53/route53_domains_privacy_protection_enabled/route53_domains_privacy_protection_enabled.metadata.json
+  - sources/repos/prowler/prowler/providers/gcp/services/dns/dns_rsasha1_in_use_to_zone_sign_in_dnssec/dns_rsasha1_in_use_to_zone_sign_in_dnssec.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-NET-011
+  sheet: CLD
+  category: NET
+  title: Find dangling DNS records that allow subdomain takeover
+  objective: Finds DNS records that point to released IP addresses or deleted services.
+  steps:
+  - Export all DNS records of each zone.
+  - Find records that point to cloud IP addresses or service names.
+  - Check that each target still belongs to the account.
+  - Try to claim one released target in a test.
+  example: aws route53 list-resource-record-sets --hosted-zone-id <z>; aws ec2 describe-addresses; dig <name>; subjack -w <list>; prowler aws --check route53_dangling_ip_subdomain_takeover
+  expected: Every record points to a resource that the account owns. Records for removed resources are deleted before the resource is released.
+  severity: High
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-8
+    tool_check:
+    - prowler:aws:route53_dangling_ip_subdomain_takeover
+    cwe:
+    - CWE-1188
+    attack:
+    - T1584.001
+    - T1583.001
+    nist_800_53:
+    - SC-20
+    - CM-8
+    other:
+    - Microsoft cloud security benchmark v1 NS-10
+    - Microsoft cloud security benchmark v1 AM-3
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/route53/route53_dangling_ip_subdomain_takeover/route53_dangling_ip_subdomain_takeover.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-NET-012
+  sheet: CLD
+  category: NET
+  title: Check managed admin access to VMs and block serial ports
+  objective: Finds VMs that use shared SSH keys, serial ports or open admin ports.
+  steps:
+  - List VMs and the admin access method of each.
+  - Check that project-wide SSH keys are blocked.
+  - Check that OS Login, session manager or just-in-time access is in use.
+  - Check that serial port access is off.
+  - Check connection logs for remote access endpoints.
+  example: gcloud compute instances describe <i> --format="value(metadata.items)"; gcloud compute project-info describe; az vm show -n <v> -g <rg> --query osProfile.linuxConfiguration.disablePasswordAuthentication; az security jit-policy list; aws ssm describe-instance-information; aws ec2 describe-client-vpn-endpoints; prowler gcp --services compute
+  expected: Admins reach VMs through managed channels with identity and logs. Project-wide keys and serial ports are off. Password login is off.
+  severity: High
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-6
+    - CNAS-3
+    tool_check:
+    - prowler:aws:ec2_client_vpn_endpoint_connection_logging_enabled
+    - prowler:aws:ec2_instance_managed_by_ssm
+    - prowler:azure:vm_jit_access_enabled
+    - prowler:azure:vm_linux_enforce_ssh_authentication
+    - prowler:gcp:compute_instance_block_project_wide_ssh_keys_disabled
+    - prowler:gcp:compute_instance_serial_ports_in_use
+    - prowler:gcp:compute_project_os_login_enabled
+    cwe:
+    - CWE-798
+    attack:
+    - T1021
+    - T1098.004
+    - T1133
+    nist_800_53:
+    - AC-17
+    - AC-2
+    other:
+    - Microsoft cloud security benchmark v1 PA-2
+    - Microsoft cloud security benchmark v1 PA-6
+    - Microsoft cloud security benchmark v1 NS-8
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/ec2/ec2_client_vpn_endpoint_connection_logging_enabled/ec2_client_vpn_endpoint_connection_logging_enabled.metadata.json
+  - sources/repos/prowler/prowler/providers/gcp/services/compute/compute_project_os_login_enabled/compute_project_os_login_enabled.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-NET-013
+  sheet: CLD
+  category: NET
+  title: Check VM boot integrity, confidential computing and enclave host exposure
+  objective: Finds VMs without boot integrity checks and enclave hosts that are open to the network.
+  steps:
+  - List VMs and their security type.
+  - Check that secure boot and a virtual TPM are on.
+  - Check that confidential VMs are used for sensitive work.
+  - Check that enclave hosts have no public address and limited inbound rules.
+  - Check the virtualization type of old instances.
+  example: gcloud compute instances describe <i> --format="value(shieldedInstanceConfig,confidentialInstanceConfig)"; az vm show -n <v> -g <rg> --query securityProfile; aws ec2 describe-instances --query "Reservations[].Instances[].[InstanceId,VirtualizationType,EnclaveOptions]"; prowler gcp --services compute
+  expected: Boot integrity checks are on. Sensitive work runs on confidential VMs. Enclave hosts are private with narrow inbound rules. No old paravirtual instances remain.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-1
+    tool_check:
+    - prowler:aws:ec2_confidential_workload_host_not_running
+    - prowler:aws:ec2_confidential_workload_host_unrestricted_ingress
+    - prowler:aws:ec2_confidential_workload_host_vsock_proxy_exposed
+    - prowler:aws:ec2_instance_paravirtual_type
+    - prowler:azure:vm_trusted_launch_enabled
+    - prowler:gcp:compute_instance_confidential_computing_enabled
+    - prowler:gcp:compute_instance_shielded_vm_enabled
+    cwe:
+    - CWE-693
+    attack:
+    - T1542
+    nist_800_53:
+    - SI-7
+    - SC-39
+    other:
+    - Microsoft cloud security benchmark v1 PV-3
+    - Microsoft cloud security benchmark v1 PV-4
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/ec2/ec2_confidential_workload_host_not_running/ec2_confidential_workload_host_not_running.metadata.json
+  - sources/repos/prowler/prowler/providers/gcp/services/compute/compute_instance_shielded_vm_enabled/compute_instance_shielded_vm_enabled.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-NET-014
+  sheet: CLD
+  category: NET
+  title: Check root and terminal access on managed notebooks
+  objective: Finds notebook users that can get root, a terminal or download files.
+  steps:
+  - List notebook instances and workbenches.
+  - Check that root access is off.
+  - Check if terminal access and file download are off for sensitive data.
+  - Open a test notebook and try to get root.
+  example: aws sagemaker describe-notebook-instance --notebook-instance-name <n> --query RootAccess; gcloud workbench instances describe <i> --location=<l>; prowler aws --services sagemaker; prowler gcp --services vertexai
+  expected: Users have no root access. Terminal and file download are off for sensitive data. The root test fails.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-3
+    tool_check:
+    - prowler:aws:sagemaker_notebook_instance_root_access_disabled
+    - prowler:gcp:vertexai_workbench_instance_auto_upgrade_enabled
+    - prowler:gcp:vertexai_workbench_instance_file_download_disabled
+    - prowler:gcp:vertexai_workbench_instance_root_access_disabled
+    - prowler:gcp:vertexai_workbench_instance_terminal_access_disabled
+    cwe:
+    - CWE-250
+    attack:
+    - T1059
+    - T1048
+    nist_800_53:
+    - AC-6
+    - CM-7
+    other:
+    - Microsoft cloud security benchmark v1 PA-7
+    - Microsoft cloud security benchmark v1 PV-3
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/sagemaker/sagemaker_notebook_instance_root_access_disabled/sagemaker_notebook_instance_root_access_disabled.metadata.json
+  - sources/repos/prowler/prowler/providers/gcp/services/vertexai/vertexai_workbench_instance_terminal_access_disabled/vertexai_workbench_instance_terminal_access_disabled.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx

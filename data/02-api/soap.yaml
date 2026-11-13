@@ -1,0 +1,109 @@
+- id: API-SOAP-001
+  sheet: API
+  category: SOAP
+  title: Check that SOAP messages are validated against the XML schema
+  objective: Finds SOAP services that accept messages that do not match the schema.
+  steps:
+  - Read the XSD of the service for maximum lengths, character sets and patterns.
+  - Send messages with wrong types, fields over the length limit and unexpected elements.
+  - Send malformed XML.
+  - Check that each is rejected.
+  example: SoapUI security tests; Burp WSDL Wizard and Scanner; ZAP WSDL import.
+  expected: The service validates each message against the XSD. The schema sets length, character set and patterns for every field.
+  severity: Medium
+  test_type: Manual
+  refs:
+    cheatsheet:
+    - Web_Service_Security_Cheat_Sheet
+    cwe:
+    - CWE-20
+  see:
+  - WEB-INJ-007
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Web_Service_Security_Cheat_Sheet.md
+- id: API-SOAP-002
+  sheet: API
+  category: SOAP
+  title: Test SOAP endpoints against oversize, recursive and expanded XML
+  objective: Finds services that use too many resources for large, deep or expanded XML.
+  preconditions:
+  - Test environment only.
+  steps:
+  - Send a message over the size limit.
+  - Send deeply nested elements and very long element names.
+  - Send a message with entity expansion in a test environment.
+  - Watch CPU, memory and response time.
+  example: SoapUI with a generated large message; Burp Intruder; a small billion-laughs file on a test system.
+  expected: The parser rejects oversize, recursive messages and entity expansion. A message size limit and resource limits exist.
+  severity: High
+  test_type: Manual
+  refs:
+    api_top10:
+    - API4:2023
+    cheatsheet:
+    - Web_Service_Security_Cheat_Sheet
+    cwe:
+    - CWE-776
+    - CWE-400
+    - CWE-611
+    capec:
+    - CAPEC-528
+  see:
+  - WEB-INJ-008
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Web_Service_Security_Cheat_Sheet.md
+- id: API-SOAP-003
+  sheet: API
+  category: SOAP
+  title: Check authentication and authorization for each SOAP method
+  objective: Finds web service methods that are open or that rely on weak authentication.
+  steps:
+  - Call each method without credentials.
+  - Check whether Basic authentication works over plain HTTP.
+  - Call administrative methods as a normal client.
+  - Check for client certificate use for sensitive services.
+  example: SoapUI with and without WS-Security headers; curl --cacert --cert for mTLS; Burp Autorize.
+  expected: TLS protects every call. Each method checks the rights of the client. Administrative methods are separate and limited.
+  severity: High
+  test_type: Manual
+  refs:
+    api_top10:
+    - API5:2023
+    cheatsheet:
+    - Web_Service_Security_Cheat_Sheet
+    cwe:
+    - CWE-306
+    - CWE-862
+    - CWE-285
+  see:
+  - WEB-AUTHZ-004
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa5-broken-function-level-authorization.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Web_Service_Security_Cheat_Sheet.md
+- id: API-SOAP-004
+  sheet: API
+  category: SOAP
+  title: Check message integrity, confidentiality and attachment scans
+  objective: Finds sensitive SOAP data without signature, message encryption or file scans.
+  steps:
+  - Find messages with sensitive data that are stored or forwarded after receipt.
+  - Check for XML signatures and for encryption of sensitive elements.
+  - Change a signed element. Check that the service rejects it.
+  - Send a test file with the EICAR string as an attachment.
+  example: SoapUI WS-Security configuration; xmlsec1 to check signatures; EICAR test file.
+  expected: Sensitive messages use signatures and element encryption beyond TLS. Attachments are scanned before they are stored.
+  severity: Medium
+  test_type: Manual
+  refs:
+    cheatsheet:
+    - Web_Service_Security_Cheat_Sheet
+    cwe:
+    - CWE-345
+    - CWE-311
+    - CWE-434
+  see:
+  - WEB-HTTP-003
+  - WEB-FILE-003
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Web_Service_Security_Cheat_Sheet.md

@@ -1,0 +1,60 @@
+- id: NET-SOC-001
+  sheet: NET
+  category: SOC
+  title: Run an approved phishing test and count users who give out data
+  objective: Finds how many users follow fake mails that ask for passwords or open attachments.
+  preconditions:
+  - Written approval of management, HR and the security team. Define who may see the results.
+  - Do not use real company accounts. Do not collect real passwords.
+  steps:
+  - Define the target group and the message with management and HR.
+  - Send the test mails from a controlled domain to the target group.
+  - Count the users who open the mail, follow the link or give data on the test page.
+  - Count the users who report the mail to the security team.
+  - Tell the users the result in a way that does not name or blame single persons.
+  example: 'gophish campaign with a landing page that records the click and discards entered data ; check the mail gateway logs for the sender domain'
+  expected: Few users give out data, and most users report the mail. Mail controls block or mark the test messages.
+  severity: Medium
+  test_type: Manual
+  refs:
+    nist_800_53:
+    - SI-4
+    pci_dss:
+    - '12.6.1'
+    - '12.6.3'
+    other:
+    - NIST SP 800-115 section 5.3 (social engineering and phishing)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-SOC-002
+  sheet: NET
+  category: SOC
+  title: Test phone or in-person requests for passwords or network access
+  objective: Finds staff who give credentials or access to a caller or a visitor who has no right to them.
+  preconditions:
+  - Written approval of management with a named scope, scripts and a stop rule.
+  - Do not collect real passwords. Do not target single people for blame.
+  steps:
+  - Write a short script for a call or a visit, such as an IT help desk request.
+  - Make the calls or visits to a sample of staff and the help desk.
+  - Record whether the person follows the identity check procedure.
+  - Record whether the person gives data or access.
+  - Write a report with the successful and the failed tactics.
+  example: 'Call script and a log sheet with fields: time, role called, request, identity check done (yes/no), data given (yes/no)'
+  expected: Staff follow the identity check procedure and refuse the request. The help desk reports the try to the security team.
+  severity: Medium
+  test_type: Manual
+  refs:
+    nist_800_53:
+    - IA-5
+    pci_dss:
+    - '12.6.1'
+    - '12.6.3'
+    other:
+    - NIST SP 800-115 section 5.3 (social engineering)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md

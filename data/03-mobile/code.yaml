@@ -1,0 +1,407 @@
+- id: MOB-CODE-001
+  sheet: MOB
+  category: CODE
+  title: Check the minimum platform version that the app supports
+  objective: Finds apps that run on old OS versions that lack current security patches and features.
+  preconditions:
+  - Decoded APK and extracted IPA.
+  steps:
+  - 'Android: Read minSdkVersion in the AndroidManifest.xml.'
+  - 'iOS: Read MinimumOSVersion in the Info.plist.'
+  - Compare the value with the platform versions that still get security updates.
+  - 'Android: Search the code for Build.VERSION.SDK_INT checks and the sensitive features that they protect.'
+  - Make sure the app refuses or limits sensitive features on unsupported platform versions.
+  example: aapt2 d badging app.apk | grep -E "sdkVersion|targetSdkVersion" ; plutil -p Payload/App.app/Info.plist | grep MinimumOSVersion ; grep -rn "Build.VERSION.SDK_INT" out/
+  expected: The app sets a minimum platform version that still gets security updates. It limits sensitive features on older versions.
+  severity: Low
+  test_type:
+  - Config Review
+  - Code Review
+  level: MASVS L2
+  refs:
+    masvs:
+    - MASVS-CODE-1
+    mastg:
+    - MASTG-TEST-0245
+    maswe:
+    - MASWE-0041
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-451
+    - CWE-693
+    - CWE-1104
+    - CWE-1357
+  sources_read:
+  - sources/masvs/controls-master/MASVS-CODE-1.md
+  - sources/mastg/files/tests-beta_android_MASVS-CODE_MASTG-TEST-0245.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-CODE_MASWE-0041.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0117.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0150.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0154.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+- id: MOB-CODE-002
+  sheet: MOB
+  category: CODE
+  title: Check that the app targets the latest platform version
+  objective: Finds apps that miss platform protections because they target an old SDK.
+  preconditions:
+  - Decoded APK and extracted IPA.
+  steps:
+  - 'Android: Read targetSdkVersion in the AndroidManifest.xml.'
+  - 'Android: Compare it with the current Google Play target API requirement.'
+  - 'iOS: Find the Xcode and SDK version that built the app, and compare it with the current App Store requirement.'
+  - Look for legacy behavior that works only because of the old target, such as broad storage access.
+  example: aapt2 d badging app.apk | grep targetSdkVersion ; plutil -p Payload/App.app/Info.plist | grep -E "DTSDKName|DTXcode"
+  expected: The app targets the latest platform version that the store requires. It does not depend on legacy compatibility behavior.
+  severity: Low
+  test_type:
+  - Config Review
+  level: MASVS L1
+  refs:
+    masvs:
+    - MASVS-CODE-1
+    maswe:
+    - MASWE-0042
+    cwe:
+    - CWE-693
+    - CWE-1357
+  sources_read:
+  - sources/masvs/controls-master/MASVS-CODE-1.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-CODE_MASWE-0042.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0117.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0150.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0154.md
+- id: MOB-CODE-003
+  sheet: MOB
+  category: CODE
+  title: Check that the app can force users to update
+  objective: Finds apps that cannot block old, vulnerable versions after a security fix.
+  preconditions:
+  - Test build or test backend that reports a minimum version.
+  steps:
+  - 'Android: Search the code for AppUpdateManager, getAppUpdateInfo and startUpdateFlowForResult.'
+  - 'iOS: Search the binary for CFBundleShortVersionString, the iTunes lookup URL and a minimum version policy.'
+  - Check that the version check runs before access to protected functions and cannot be skipped.
+  - Check that the app uses an immediate update or a screen that the user cannot dismiss.
+  - Run the app with a version below the minimum. Capture the traffic and hook the update calls.
+  - Make sure the app blocks use until the user updates.
+  example: 'grep -rn "AppUpdateManager\|startUpdateFlowForResult\|BuildConfig.VERSION" out/ ; frida -U -f <pkg> -l hook_update.js ; r2 -A <app_binary> ; izz~itunes.apple.com/lookup ; Burp: change the version in the request or the response'
+  expected: The app checks its version at start. It blocks use of an outdated version with a non-dismissible update flow.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M2:2024
+    masvs:
+    - MASVS-CODE-2
+    mastg:
+    - MASTG-TEST-0392
+    - MASTG-TEST-0382
+    - MASTG-TEST-0383
+    - MASTG-TEST-0384
+    maswe:
+    - MASWE-0043
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-602
+    - CWE-693
+  sources_read:
+  - sources/masvs/controls-master/MASVS-CODE-2.md
+  - sources/mastg/files/tests-beta_android_MASVS-CODE_MASTG-TEST-0392.md
+  - sources/mastg/files/tests-beta_android_MASVS-CODE_MASTG-TEST-0382.md
+  - sources/mastg/files/tests-beta_ios_MASVS-CODE_MASTG-TEST-0383.md
+  - sources/mastg/files/tests-beta_ios_MASVS-CODE_MASTG-TEST-0384.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-CODE_MASWE-0043.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m2-inadequate-supply-chain-security.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0043.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0010.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0062.md
+- id: MOB-CODE-004
+  sheet: MOB
+  category: CODE
+  title: Scan app dependencies for known vulnerabilities
+  objective: Finds third-party libraries and SDKs with public vulnerabilities.
+  preconditions:
+  - Access to the project build files, or an SBOM from the developer.
+  steps:
+  - 'Android: Run a Software Composition Analysis scan on the Gradle build, or create a CycloneDX SBOM.'
+  - 'iOS: Collect Package.resolved, Podfile.lock and Cartfile.resolved. Scan them, or create a CycloneDX SBOM.'
+  - Upload each SBOM to a vulnerability tool such as Dependency-Track.
+  - List dependencies with CVE identifiers. Include transitive dependencies and bundled native libraries.
+  - Check the exploitability and the exposure of each finding in the app.
+  - Check that a process updates or replaces vulnerable libraries.
+  example: ./gradlew dependencyCheckAnalyze ; cdxgen -t java -o sbom.json ; cdxgen -o sbom.json (iOS project) ; dependency-check --enableExperimental -f SARIF -s Podfile.lock ; upload sbom.json to Dependency-Track
+  expected: The app has no dependency with a known high-impact vulnerability. A process finds and fixes new vulnerable dependencies.
+  severity: High
+  test_type:
+  - Automated
+  - Config Review
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M2:2024
+    masvs:
+    - MASVS-CODE-3
+    mastg:
+    - MASTG-TEST-0272
+    - MASTG-TEST-0274
+    - MASTG-TEST-0273
+    - MASTG-TEST-0275
+    maswe:
+    - MASWE-0044
+    cheatsheet:
+    - Vulnerable_Dependency_Management_Cheat_Sheet
+    - Dependency_Graph_SBOM_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-1395
+    - CWE-1357
+  sources_read:
+  - sources/masvs/controls-master/MASVS-CODE-3.md
+  - sources/mastg/files/tests-beta_android_MASVS-CODE_MASTG-TEST-0272.md
+  - sources/mastg/files/tests-beta_android_MASVS-CODE_MASTG-TEST-0274.md
+  - sources/mastg/files/tests-beta_ios_MASVS-CODE_MASTG-TEST-0273.md
+  - sources/mastg/files/tests-beta_ios_MASVS-CODE_MASTG-TEST-0275.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-CODE_MASWE-0044.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m2-inadequate-supply-chain-security.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0131.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0130.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0133.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0132.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Vulnerable_Dependency_Management_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Dependency_Graph_SBOM_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+- id: MOB-CODE-005
+  sheet: MOB
+  category: CODE
+  title: Check native binaries for compiler security features
+  objective: Finds native code built without PIE, stack canaries or ARC, which makes memory bugs easier to use.
+  preconditions:
+  - Extracted APK and IPA.
+  steps:
+  - 'Android: Extract the native libraries from the APK.'
+  - 'Android: Read the canary and pic values of each library.'
+  - 'iOS: Extract the main binary and list the bundled libraries and frameworks.'
+  - 'iOS: Check the main binary and each library for pic, stack canary symbols and ARC symbols.'
+  - Flag a library that mixes Objective-C or C code with no canary symbols.
+  - Check false positives, such as memory-safe code, with the source code and the build flags.
+  example: unzip -o app.apk "lib/*" -d app ; rabin2 -I app/lib/arm64-v8a/lib.so | grep -E "canary|pic" ; r2 -A <app_binary> ; i~canary,pic ; is~release,retain
+  expected: All native libraries use position independent code and stack canaries. iOS code that is not Swift-only uses ARC.
+  severity: Low
+  test_type:
+  - Automated
+  - Config Review
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M7:2024
+    masvs:
+    - MASVS-CODE-3
+    - MASVS-CODE-4
+    mastg:
+    - MASTG-TEST-0222
+    - MASTG-TEST-0223
+    - MASTG-TEST-0228
+    - MASTG-TEST-0229
+    - MASTG-TEST-0230
+    maswe:
+    - MASWE-0045
+  sources_read:
+  - sources/masvs/controls-master/MASVS-CODE-3.md
+  - sources/masvs/controls-master/MASVS-CODE-4.md
+  - sources/mastg/files/tests-beta_android_MASVS-CODE_MASTG-TEST-0222.md
+  - sources/mastg/files/tests-beta_android_MASVS-CODE_MASTG-TEST-0223.md
+  - sources/mastg/files/tests-beta_ios_MASVS-CODE_MASTG-TEST-0228.md
+  - sources/mastg/files/tests-beta_ios_MASVS-CODE_MASTG-TEST-0229.md
+  - sources/mastg/files/tests-beta_ios_MASVS-CODE_MASTG-TEST-0230.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-CODE_MASWE-0045.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m7-insufficient-binary-protection.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0157.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0115.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0082.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0118.md
+- id: MOB-CODE-006
+  sheet: MOB
+  category: CODE
+  title: Check the app for deprecated APIs in security functions
+  objective: Finds use of deprecated APIs that lack fixes or have safer replacements.
+  steps:
+  - Build the app with deprecation warnings on. List the warnings.
+  - Find deprecated keystore, crypto, networking and authentication APIs in the code.
+  - Check the release notes of each supported platform version for removed or changed features.
+  - Check that the team tracks the move off each deprecated security API.
+  - Run the app on all supported platform versions.
+  example: ./gradlew build --warning-mode all ; xcodebuild build 2>&1 | grep -i deprecated ; grep -rn "@Deprecated\|deprecated" out/ | head
+  expected: Security-relevant code uses no deprecated APIs, and the team treats deprecation warnings as work items.
+  severity: Low
+  test_type:
+  - Code Review
+  level: MASVS L2
+  refs:
+    masvs:
+    - MASVS-CODE-3
+    maswe:
+    - MASWE-0046
+    cwe:
+    - CWE-327
+    - CWE-477
+    - CWE-522
+  sources_read:
+  - sources/masvs/controls-master/MASVS-CODE-3.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-CODE_MASWE-0046.md
+- id: MOB-CODE-007
+  sheet: MOB
+  category: CODE
+  title: Check that security functions use platform APIs and vetted libraries
+  objective: Finds custom crypto, TLS, DNS or authentication code that is likely to have flaws.
+  steps:
+  - Search the code for custom cryptographic algorithms, custom TLS stacks and custom DNS resolvers.
+  - Search for custom authentication flows next to the platform credential APIs.
+  - List third-party security libraries. Check the release date and the maintenance state of each.
+  - Compare the libraries with standards such as FIPS 140-2 or 140-3 where the app must follow them.
+  example: jadx -d out app.apk ; grep -rn "implements X509TrustManager\|MessageDigest\|Cipher.getInstance\|new Socket(" out/ ; list libraries with cdxgen -t java
+  expected: The app uses platform APIs or vetted, maintained libraries for crypto, networking, DNS and authentication. It has no home-made security code.
+  severity: Medium
+  test_type:
+  - Code Review
+  level: MASVS L1
+  refs:
+    masvs:
+    - MASVS-CODE-3
+    maswe:
+    - MASWE-0047
+    cwe:
+    - CWE-287
+    - CWE-326
+    - CWE-327
+    - CWE-1240
+  sources_read:
+  - sources/masvs/controls-master/MASVS-CODE-3.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-CODE_MASWE-0047.md
+- id: MOB-CODE-008
+  sheet: MOB
+  category: CODE
+  title: Check the app supply chain for malicious or unexpected code
+  objective: Finds trojanized SDKs, build changes or hidden features that ship in the app.
+  preconditions:
+  - Access to the build files and the release package.
+  steps:
+  - Compare the SBOM of the release with the declared dependencies. List components that are not declared.
+  - Check that the build pins dependency versions with a lockfile and takes packages from a controlled repository.
+  - Check that code review and strong sign-in protect the source repository and the build system.
+  - Scan the release binary for unexpected code, permissions, secrets and network endpoints.
+  - Run the release build and look for unexpected network traffic.
+  - Check that the signing keys are protected and that releases carry a signature.
+  example: cdxgen -o sbom.json ; apksigner verify --print-certs app.apk ; mitmproxy to capture the first start traffic ; grep -rn "http" out/resources | sort -u
+  expected: The release contains only reviewed and declared components. The build pins dependencies and protects signing keys, and the release shows no unexpected behavior.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M2:2024
+    masvs:
+    - MASVS-CODE-3
+    maswe:
+    - MASWE-0048
+    cheatsheet:
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    - Dependency_Graph_SBOM_Cheat_Sheet
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-506
+    - CWE-507
+    - CWE-511
+  sources_read:
+  - sources/masvs/controls-master/MASVS-CODE-3.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-CODE_MASWE-0048.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-CODE_MASWE-0044.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PRIVACY_MASWE-0075.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m2-inadequate-supply-chain-security.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Dependency_Graph_SBOM_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+- id: MOB-CODE-009
+  sheet: MOB
+  category: CODE
+  title: Check the app for unsafe dynamic code loading
+  objective: Finds code that the app loads at runtime from places that attackers control.
+  steps:
+  - 'Android: Search for DexClassLoader, PathClassLoader, System.load and System.loadLibrary with a path.'
+  - 'iOS: Search for dlopen and downloaded scripts or plugins.'
+  - Find the folder that the loaded code comes from. Check if it is writable or on external storage.
+  - Check that the app verifies a signature on downloaded code against a pinned key.
+  - Check that the code arrives over a secure channel.
+  example: grep -rn "DexClassLoader\|PathClassLoader\|System.load" out/ ; r2 -A <app_binary> ; afl~dlopen
+  expected: The app loads no code from writable or external folders. Downloaded code is signed and the app checks the signature before it runs the code.
+  severity: High
+  test_type:
+  - Code Review
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M4:2024
+    masvs:
+    - MASVS-CODE-4
+    maswe:
+    - MASWE-0049
+    cwe:
+    - CWE-494
+  sources_read:
+  - sources/masvs/controls-master/MASVS-CODE-4.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-CODE_MASWE-0049.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m4-insufficient-input-output-validation.md
+- id: MOB-CODE-010
+  sheet: MOB
+  category: CODE
+  title: Check input validation on all entry points of the app
+  objective: Finds input from the UI, IPC, files or network that reaches a sensitive sink unchecked.
+  steps:
+  - 'List the entry points: UI fields, deep links, IPC, files, the clipboard and network data.'
+  - Follow the data from each entry point to its sinks, such as SQL, file paths, WebViews and parsers.
+  - Check that the code validates type, length, range and format against an allowlist.
+  - Check that validation runs on the server too, as client checks are easy to bypass.
+  - Send malformed, oversized and malicious values to each entry point. Look for crashes and injection.
+  - Check that the parsers limit size and nesting depth.
+  example: 'semgrep --config <rules> out/ ; mobsf: upload the APK or IPA for the static scan ; adb shell monkey -p <pkg> 5000 ; Burp Suite Intruder on the API calls of the app'
+  expected: The app treats all outside data as untrusted. It validates data against allowlists before use, and malformed input causes no crash or injection.
+  severity: High
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M4:2024
+    masvs:
+    - MASVS-CODE-4
+    maswe:
+    - MASWE-0050
+    cheatsheet:
+    - Input_Validation_Cheat_Sheet
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-20
+    - CWE-22
+    - CWE-73
+    - CWE-89
+    - CWE-116
+  sources_read:
+  - sources/masvs/controls-master/MASVS-CODE-4.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-CODE_MASWE-0050.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m4-insufficient-input-output-validation.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Input_Validation_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md

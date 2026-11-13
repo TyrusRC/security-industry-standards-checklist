@@ -1,0 +1,204 @@
+- id: API-GRPC-001
+  sheet: API
+  category: GRPC
+  title: Check that gRPC services use TLS and mutual TLS
+  objective: Finds gRPC ports that accept plain text or clients without a certificate.
+  steps:
+  - Connect to each gRPC port without TLS.
+  - Check the TLS version and cipher suites.
+  - For service-to-service calls, connect without a client certificate.
+  - Check the life time and the rotation of certificates.
+  example: grpcurl -plaintext host:50051 list; testssl.sh host:443; openssl s_client -connect host:443.
+  expected: Production gRPC accepts only TLS 1.2 or newer. Service-to-service calls need a client certificate with a short life.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V12.3.1
+    cheatsheet:
+    - gRPC_Security_Cheat_Sheet
+    cwe:
+    - CWE-319
+    - CWE-295
+  see:
+  - WEB-TLS-011
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/gRPC_Security_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: API-GRPC-002
+  sheet: API
+  category: GRPC
+  title: Check that gRPC reflection is off in production
+  objective: Finds gRPC servers that list all services and messages to any client.
+  steps:
+  - Call the reflection service on each production gRPC port.
+  - List the services, methods and message types.
+  - Check for internal or admin methods in the list.
+  - Check the option in the server code.
+  example: grpcurl host:443 list; grpcurl host:443 describe <service>; grpcui for exploration.
+  expected: Reflection is off in production, or only authorized clients can use it.
+  severity: Medium
+  test_type: Manual
+  refs:
+    api_top10:
+    - API9:2023
+    cheatsheet:
+    - gRPC_Security_Cheat_Sheet
+    cwe:
+    - CWE-200
+    - CWE-489
+    capec:
+    - CAPEC-36
+  see:
+  - WEB-HTTP-008
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa9-improper-inventory-management.md
+  - sources/repos/CheatSheetSeries/cheatsheets/gRPC_Security_Cheat_Sheet.md
+- id: API-GRPC-003
+  sheet: API
+  category: GRPC
+  title: Check authentication on every gRPC method, also for streams
+  objective: Finds methods, mostly stream methods, that no authentication interceptor covers.
+  steps:
+  - List all methods, also stream methods, with the proto files.
+  - Call each method without metadata credentials.
+  - Call each method with an expired token.
+  - Read the server code for the interceptors and check unary and stream registration.
+  example: grpcurl -d '{}' host:443 pkg.Service/Method without the authorization header; review of grpc.UnaryInterceptor and grpc.StreamInterceptor.
+  expected: Every protected method returns UNAUTHENTICATED without a valid credential. Stream methods have an interceptor too.
+  severity: High
+  test_type:
+  - Manual
+  - Code Review
+  refs:
+    api_top10:
+    - API2:2023
+    cheatsheet:
+    - gRPC_Security_Cheat_Sheet
+    cwe:
+    - CWE-306
+    - CWE-287
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa2-broken-authentication.md
+  - sources/repos/CheatSheetSeries/cheatsheets/gRPC_Security_Cheat_Sheet.md
+- id: API-GRPC-004
+  sheet: API
+  category: GRPC
+  title: Test method-level and object-level authorization in gRPC
+  objective: Finds gRPC methods and message IDs that any authenticated client can use.
+  steps:
+  - Call each method with tokens of different roles.
+  - Check for PERMISSION_DENIED for methods the role may not use.
+  - Change object IDs in messages to IDs of another user.
+  - Check that denials are logged.
+  example: 'grpcurl -H ''authorization: Bearer <userToken>'' -d ''{"userId":"<idB>"}'' host:443 pkg.Admin/DeleteUser'
+  expected: Each method checks the role of the caller. Object IDs in messages are checked against the owner. Failures return PERMISSION_DENIED and are logged.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    api_top10:
+    - API1:2023
+    - API5:2023
+    asvs:
+    - V8.2.1
+    - V8.2.2
+    cheatsheet:
+    - gRPC_Security_Cheat_Sheet
+    cwe:
+    - CWE-285
+    - CWE-639
+  see:
+  - WEB-AUTHZ-004
+  - WEB-IDOR-001
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa1-broken-object-level-authorization.md
+  - sources/repos/API-Security/editions/2023/en/0xa5-broken-function-level-authorization.md
+  - sources/repos/CheatSheetSeries/cheatsheets/gRPC_Security_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: API-GRPC-005
+  sheet: API
+  category: GRPC
+  title: Test protobuf field validation and message size limits
+  objective: Finds gRPC servers that trust field types and accept very large messages or streams.
+  preconditions:
+  - Test environment only.
+  steps:
+  - Send values at the edge of range, empty, over length and with injection test strings.
+  - Send a message over the size limit in both directions.
+  - Send a stream with many messages or a very long run time.
+  - Check the maximum messages per stream and the session time.
+  example: grpcurl -d @ < big.json host:443 pkg.Service/Method; ghz load tool in a test environment; fuzz with protobuf-aware tools.
+  expected: The server validates every field for business rules. It rejects oversize messages and ends streams that pass the message and time limits.
+  severity: Medium
+  test_type: Manual
+  refs:
+    api_top10:
+    - API4:2023
+    cheatsheet:
+    - gRPC_Security_Cheat_Sheet
+    cwe:
+    - CWE-20
+    - CWE-770
+    capec:
+    - CAPEC-130
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption.md
+  - sources/repos/CheatSheetSeries/cheatsheets/gRPC_Security_Cheat_Sheet.md
+- id: API-GRPC-006
+  sheet: API
+  category: GRPC
+  title: Check rate limits and deadlines for gRPC calls
+  objective: Finds gRPC services without limits per client or without call deadlines.
+  preconditions:
+  - Test environment only.
+  steps:
+  - Send many unary calls from one client. Look for RESOURCE_EXHAUSTED.
+  - Open many streams from one client.
+  - Send a call without a deadline and a slow call.
+  - Check the client and the server timeout settings.
+  example: ghz --rps 500 --total 5000 host:443; grpcurl -max-time 1; review of the limiter and stream interceptor.
+  expected: The service limits calls and streams per client. Server-side deadlines end slow calls.
+  severity: Medium
+  test_type: Manual
+  refs:
+    api_top10:
+    - API4:2023
+    cheatsheet:
+    - gRPC_Security_Cheat_Sheet
+    cwe:
+    - CWE-770
+    - CWE-400
+    attack:
+    - T1499
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption.md
+  - sources/repos/CheatSheetSeries/cheatsheets/gRPC_Security_Cheat_Sheet.md
+- id: API-GRPC-007
+  sheet: API
+  category: GRPC
+  title: Check gRPC errors, status codes and credential placement
+  objective: Finds detailed errors and credentials in message fields.
+  steps:
+  - Send invalid messages and read the status and the error text.
+  - Look for stack traces and internal names.
+  - Check that credentials travel in metadata and not in message fields.
+  - Check the token life time.
+  example: grpcurl -v ... to see the status and trailers; review of proto files for password and token fields.
+  expected: Errors are generic and use the right status codes. Credentials are in metadata. Tokens are short lived.
+  severity: Medium
+  test_type: Manual
+  refs:
+    api_top10:
+    - API8:2023
+    cheatsheet:
+    - gRPC_Security_Cheat_Sheet
+    cwe:
+    - CWE-209
+    - CWE-598
+  see:
+  - WEB-ERR-001
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa8-security-misconfiguration.md
+  - sources/repos/CheatSheetSeries/cheatsheets/gRPC_Security_Cheat_Sheet.md

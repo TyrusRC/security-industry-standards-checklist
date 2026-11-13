@@ -1,0 +1,121 @@
+- id: CLD-AST-001
+  sheet: CLD
+  category: AST
+  title: Build and check the cloud asset inventory
+  objective: Finds resources that no one owns, tracks or patches.
+  steps:
+  - List all resources in every account, region and project.
+  - Compare the list to the asset register.
+  - Find resources without owner, environment or purpose tags.
+  - Add each missing resource to the register or remove it.
+  example: aws resourcegroupstaggingapi get-resources; aws configservice list-discovered-resources --resource-type AWS::EC2::Instance; az resource list; gcloud asset search-all-resources --scope=projects/<p>
+  expected: Every resource is in the register with an owner and tags. Untracked resources are removed.
+  severity: Medium
+  test_type: Manual
+  refs:
+    cloud_native_top10:
+    - CNAS-8
+    cheatsheet:
+    - Infrastructure_as_Code_Security_Cheat_Sheet
+    - Secure_Cloud_Architecture_Cheat_Sheet
+    attack:
+    - T1580
+    - T1526
+    nist_800_53:
+    - CM-8
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x08_asset_mgmt.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Infrastructure_as_Code_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Cloud_Architecture_Cheat_Sheet.md
+- id: CLD-AST-002
+  sheet: CLD
+  category: AST
+  title: Find undocumented APIs and microservices
+  objective: Finds services and API routes that run but are not in any design or API definition.
+  steps:
+  - List API gateways, load balancer rules, function URLs and service names.
+  - Compare them to the API definitions and the architecture document.
+  - Find routes with no definition or owner.
+  - Check the old versions of each API.
+  example: aws apigateway get-rest-apis; aws apigatewayv2 get-apis; az apim api list -g <rg> -n <svc>; gcloud api-gateway apis list
+  expected: Every running API and service is in the documents with an owner. Old API versions are removed or protected.
+  severity: Medium
+  test_type: Manual
+  refs:
+    cloud_native_top10:
+    - CNAS-8
+    cheatsheet:
+    - Microservices_Security_Cheat_Sheet
+    - Secure_Cloud_Architecture_Cheat_Sheet
+    attack:
+    - T1526
+    nist_800_53:
+    - CM-8
+    - CM-2
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x08_asset_mgmt.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Microservices_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Cloud_Architecture_Cheat_Sheet.md
+- id: CLD-AST-003
+  sheet: CLD
+  category: AST
+  title: Find unused regions, ghost resources and stale environments
+  objective: Finds forgotten resources that run with old software and no monitoring.
+  steps:
+  - List resources in regions that the organization does not use.
+  - Find resources with no traffic or use in the last 90 days.
+  - Find resources from finished projects and test environments.
+  - Check that regions not in use are blocked by policy.
+  example: aws ec2 describe-regions; aws ec2 describe-instances --region <r>; az account list-locations; gcloud compute instances list; policy tools for region deny rules
+  expected: No resources run in unused regions. Stale resources are removed, and policy blocks new resources in regions that are not approved.
+  severity: Medium
+  test_type: Manual
+  refs:
+    cloud_native_top10:
+    - CNAS-8
+    cheatsheet:
+    - Infrastructure_as_Code_Security_Cheat_Sheet
+    - Secure_Cloud_Architecture_Cheat_Sheet
+    cwe:
+    - CWE-1104
+    attack:
+    - T1535
+    nist_800_53:
+    - CM-8
+    - CM-7
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x08_asset_mgmt.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Infrastructure_as_Code_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Cloud_Architecture_Cheat_Sheet.md
+- id: CLD-AST-004
+  sheet: CLD
+  category: AST
+  title: Check decommissioning of resources, data and access
+  objective: Finds deleted services that leave data, keys, DNS records or access behind.
+  steps:
+  - Pick three resources retired in the last year.
+  - Check for data, snapshots and backups that remain.
+  - Check for dangling DNS records, roles and keys.
+  - Check the decommission checklist.
+  example: aws ec2 describe-snapshots --owner-ids self; aws route53 list-resource-record-sets --hosted-zone-id <z>; aws iam list-roles
+  expected: Retired resources leave no data, snapshots, DNS records, roles or keys. A decommission checklist exists and was followed.
+  severity: Medium
+  test_type: Manual
+  refs:
+    cloud_native_top10:
+    - CNAS-8
+    cheatsheet:
+    - Infrastructure_as_Code_Security_Cheat_Sheet
+    attack:
+    - T1580
+    nist_800_53:
+    - CM-8
+  see:
+  - WEB-CONF-011
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x08_asset_mgmt.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Infrastructure_as_Code_Security_Cheat_Sheet.md

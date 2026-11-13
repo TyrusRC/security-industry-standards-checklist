@@ -1,0 +1,107 @@
+- id: NET-EXPO-001
+  sheet: NET
+  category: EXPO
+  title: Find Java debug (JDWP) and JMX/RMI ports open to the network
+  objective: Finds Java processes that give code execution to any host that can reach a debug or management port.
+  preconditions:
+  - Written permission for the hosts in scope. Do not run on production.
+  - Only identify the service. Do not run commands on the target.
+  steps:
+  - Scan the hosts in scope for TCP ports 5005, 8000, 1098, 1099 and 9010. Use service detection.
+  - Send the JDWP handshake string to each open port. Look for the same string in the reply.
+  - Ask the RMI registry for its bound names. Look for JMX connectors.
+  - Make sure no JDWP port answers from any host except the developer workstation.
+  - Make sure each JMX port needs authentication and TLS, or listens only on localhost.
+  example: nmap -sV -p5005,8000,1098,1099,9010 host ; nmap -p1099 --script rmi-dumpregistry host ; printf "JDWP-Handshake" | nc host 5005
+  expected: No JDWP port answers from the network. JMX and RMI ports are not reachable, or need authentication and TLS.
+  severity: Critical
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    nist_800_53:
+    - CM-7
+    - SC-7
+    cwe:
+    - CWE-489
+    - CWE-306
+    attack:
+    - T1210
+    other: JDWP has no authentication in the protocol; run Java with the debug agent only on localhost
+  sources_read:
+  - sources/cwe/cwec_latest.xml.zip
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  see:
+  - NET-DISC-008
+- id: NET-EXPO-002
+  sheet: NET
+  category: EXPO
+  title: Find distcc and X11 services that accept connections from the network
+  objective: Finds build and display services that run commands or show screens without a login.
+  preconditions:
+  - Written permission for the hosts in scope. Do not run on production.
+  - Only identify the service. Do not run commands on the target.
+  steps:
+  - Scan the hosts in scope for TCP port 3632 and for the TCP ports 6000 to 6009.
+  - Run the nmap distcc script against each open port 3632. Do not run a command.
+  - Run xdpyinfo against each open X11 port. Look for a reply without credentials.
+  - Make sure X11 listens only on a Unix socket, and distcc has an allow list of build hosts.
+  - Make sure the host firewall blocks both ports from other networks.
+  example: nmap -sV -p3632,6000-6009 host ; nmap -p3632 --script distcc-cve2004-2687 --script-args="distcc-cve2004-2687.cmd=id" host (only with a written approval) ; xdpyinfo -display host:0
+  expected: Ports 3632 and 6000 to 6009 are closed to the network. Distcc accepts only listed build hosts. X11 accepts no TCP connection.
+  severity: Critical
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    nist_800_53:
+    - CM-7
+    - SC-7
+    cwe:
+    - CWE-306
+    - CWE-284
+    attack:
+    - T1210
+    - T1021
+    other: distcc daemon and X server TCP listening options
+  sources_read:
+  - sources/cwe/cwec_latest.xml.zip
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  see:
+  - NET-DISC-008
+- id: NET-EXPO-003
+  sheet: NET
+  category: EXPO
+  title: Find AJP and FastCGI ports open outside the web tier
+  objective: Finds back-end web protocols that trust the front end and give file read or code execution to other hosts.
+  preconditions:
+  - Written permission for the hosts in scope. Do not run on production.
+  - Only identify the service. Do not run commands on the target.
+  steps:
+  - Scan the web servers for the TCP ports 8009 and 9000, and for other ports found by service detection.
+  - Run the AJP check with nmap against each open port 8009. Look for a reply to a forwarded request.
+  - Run a FastCGI check against each open port 9000. Look for a reply to a begin-request record.
+  - Make sure the AJP connector has a secret set, or is off, and listens only on localhost.
+  - Make sure PHP-FPM and other FastCGI services use a Unix socket or an allow list.
+  example: nmap -sV -p8009,9000 host ; nmap -p8009 --script ajp-headers,ajp-methods host ; cgi-fcgi -bind -connect host:9000 (only with a written approval)
+  expected: AJP and FastCGI ports are closed to every host except the front-end web server. AJP needs a secret.
+  severity: Critical
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    nist_800_53:
+    - CM-7
+    - SC-7
+    cwe:
+    - CWE-306
+    - CWE-923
+    attack:
+    - T1190
+    - T1210
+    other: Apache Tomcat AJP connector secret; PHP-FPM listen.allowed_clients
+  sources_read:
+  - sources/cwe/cwec_latest.xml.zip
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  see:
+  - NET-DISC-008

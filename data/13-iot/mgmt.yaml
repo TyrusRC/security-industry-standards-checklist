@@ -1,0 +1,133 @@
+- id: IOT-MGMT-001
+  sheet: IOT
+  category: MGMT
+  title: Check the device inventory and the remote management channel
+  objective: Finds fleets that have no asset list and unauthenticated remote management.
+  steps:
+  - Ask for the device inventory process.
+  - Find the remote management service.
+  - Test the authentication on the channel.
+  - Test whether one command reaches one device only.
+  example: Document review plus a lab connection to the management service with a test token.
+  expected: The operator knows every device and its version. Remote management needs strong authentication and is logged.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    other:
+    - GSMA CLP13_6.12
+    - GSMA CLP12_5.7
+    cwe:
+    - CWE-306
+    attack:
+    - T0822
+    - T0859
+    iot_top10:
+    - I8
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/cwe/cwec_latest.xml.zip
+  - sources/attack/ics-attack.json
+- id: IOT-MGMT-002
+  sheet: IOT
+  category: MGMT
+  title: Check device monitoring, anomaly alerts and incident response
+  objective: Finds fleets where attacks produce no alert.
+  steps:
+  - List the telemetry and logs the cloud receives.
+  - 'Make a test event: failed logins and a config change.'
+  - Check that an alert fires.
+  - Check the incident response contact for the product.
+  example: SIEM or cloud monitor rule list; test alert time.
+  expected: Security events create alerts. A response plan and a vulnerability disclosure contact exist.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    other:
+    - GSMA CLP12_5.8
+    - GSMA CLP13_7.2
+    - UK Code of Practice for Consumer IoT Security provision 2 and 10, as listed in iot_map.md
+    cwe:
+    - CWE-778
+    cheatsheet:
+    - Logging_Cheat_Sheet
+    - Automotive_Security_Cheat_Sheet
+    iot_top10:
+    - I8
+  see:
+  - WEB-LOG-014
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Automotive_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: IOT-MGMT-003
+  sheet: IOT
+  category: MGMT
+  title: Test secure decommissioning and credential revocation
+  objective: Finds retired devices that keep access to the cloud.
+  steps:
+  - Register a lab device.
+  - Remove it in the cloud console.
+  - Try to connect with its credentials.
+  - Check that the device wipes local keys.
+  example: Replay the device token after removal; read the device storage after the wipe.
+  expected: A removed device loses all cloud access at once. Local keys and data are wiped.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    other:
+    - GSMA CLP13_8.10
+    cwe:
+    - CWE-522
+    cheatsheet:
+    - Key_Management_Cheat_Sheet
+    - Drone_Security_Cheat_Sheet
+    iot_top10:
+    - I8
+    - I6
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Drone_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: IOT-MGMT-004
+  sheet: IOT
+  category: MGMT
+  title: Check behaviour of the device when the network or power fails
+  objective: Finds devices that fail open or lose their security state.
+  steps:
+  - Cut the network on a lab unit.
+  - Check local functions and security checks.
+  - Cut and restore power.
+  - Check that the device returns to a safe state.
+  example: Disconnect the uplink; power cycle with a controllable switch.
+  expected: The device keeps its security settings. It fails safe and joins the network again in an orderly way.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    other:
+    - UK Code of Practice for Consumer IoT Security provision 9, as listed in iot_map.md
+    - GSMA CLP13_8.9
+    cwe:
+    - CWE-693
+    cheatsheet:
+    - Secure_Product_Design_Cheat_Sheet
+    - Automotive_Security_Cheat_Sheet
+    iot_top10:
+    - I8
+    - I9
+  sources_read:
+  - sources/repos/www-project-internet-of-things/tab_seek_and_understand.md
+  - sources/top10s/iot_map.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Product_Design_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Automotive_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip

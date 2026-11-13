@@ -1,0 +1,104 @@
+- id: WEB-HDR-001
+  sheet: WEB
+  category: HDR
+  title: Check the HTTP Strict Transport Security header and the preload state
+  objective: Find missing or weak HSTS that leaves users open to downgrade and first-request attacks.
+  steps:
+  - Request the HTTPS page with curl -I and read the Strict-Transport-Security header.
+  - Make sure max-age is at least one year and includeSubDomains is set when all subdomains use HTTPS.
+  - Request the HTTP URL and make sure it redirects with 301 or 308 to HTTPS.
+  - Make sure the redirect target also sends the HSTS header.
+  - Check the preload status of the domain at hstspreload.org.
+  - If a CDN or proxy sits in front, make sure the header survives.
+  example: curl -sI https://example.com | grep -i strict-transport; curl -sI http://example.com | head -5; testssl.sh --headers example.com
+  expected: HSTS is on every HTTPS response with max-age of 31536000 or more. HTTP redirects to HTTPS. Preload is set only if all subdomains use HTTPS.
+  severity: Medium
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    wstg:
+    - WSTG-CONF-07
+    owasp_top10:
+    - A04:2025
+    - A02:2025
+    cheatsheet:
+    - HTTP_Strict_Transport_Security_Cheat_Sheet
+    - HTTP_Headers_Cheat_Sheet
+    cwe:
+    - CWE-319
+    capec:
+    - CAPEC-94
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/07-HTTP_Strict_Transport_Security.md
+  - sources/repos/Top10/2025/docs/en/A02_2025-Security_Misconfiguration.md
+  - sources/repos/Top10/2025/docs/en/A04_2025-Cryptographic_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/HTTP_Strict_Transport_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/HTTP_Headers_Cheat_Sheet.md
+- id: WEB-HDR-002
+  sheet: WEB
+  category: HDR
+  title: Review the Content-Security-Policy for weak directives
+  objective: Find CSP that is absent, report-only or weak and so does not stop XSS and framing.
+  steps:
+  - Read the Content-Security-Policy and Content-Security-Policy-Report-Only headers on sensitive pages.
+  - Look for unsafe-inline, unsafe-eval, unsafe-hashes and wildcard sources.
+  - Look for missing default-src, object-src, base-uri and frame-ancestors.
+  - Make sure nonces are random and change in each response.
+  - Check strict-dynamic and Trusted Types settings.
+  - Make sure the policy is a header, not only a meta element.
+  example: curl -sI https://example.com | grep -i content-security; Google CSP Evaluator https://csp-evaluator.withgoogle.com/
+  expected: An enforced CSP exists with no unsafe-inline or unsafe-eval for scripts, no wildcard sources, frame-ancestors set, and random nonces.
+  severity: Medium
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    wstg:
+    - WSTG-CONF-12
+    owasp_top10:
+    - A02:2025
+    cheatsheet:
+    - HTTP_Headers_Cheat_Sheet
+    cwe:
+    - CWE-693
+    - CWE-1021
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/12-Content_Security_Policy.md
+  - sources/repos/Top10/2025/docs/en/A02_2025-Security_Misconfiguration.md
+  - sources/repos/CheatSheetSeries/cheatsheets/HTTP_Headers_Cheat_Sheet.md
+- id: WEB-HDR-003
+  sheet: WEB
+  category: HDR
+  title: Check other security headers and remove deprecated ones
+  objective: Find missing, wrong or deprecated security headers.
+  steps:
+  - Fetch the response headers of the main page, a login page and an API response.
+  - 'Check X-Content-Type-Options: nosniff, Referrer-Policy and Permissions-Policy.'
+  - Check clickjacking control with frame-ancestors or X-Frame-Options.
+  - Check Cross-Origin-Opener-Policy and Cross-Origin-Embedder-Policy where cross-origin isolation is needed.
+  - Flag X-XSS-Protection other than 0, X-Frame-Options ALLOW-FROM and Expect-CT.
+  - Look for duplicate or conflicting headers and headers in meta elements.
+  example: curl -sI https://example.com; https://securityheaders.com/?q=example.com; zap-baseline.py -t https://example.com
+  expected: Required headers are present with safe values. Deprecated headers are removed or set to safe values. Clear-Site-Data is used only where needed.
+  severity: Low
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    wstg:
+    - WSTG-CONF-14
+    owasp_top10:
+    - A02:2025
+    cheatsheet:
+    - HTTP_Headers_Cheat_Sheet
+    cwe:
+    - CWE-693
+    - CWE-1021
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/14-Other_HTTP_Security_Header_Misconfigurations.md
+  - sources/repos/Top10/2025/docs/en/A02_2025-Security_Misconfiguration.md
+  - sources/repos/CheatSheetSeries/cheatsheets/HTTP_Headers_Cheat_Sheet.md

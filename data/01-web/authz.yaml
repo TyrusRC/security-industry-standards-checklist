@@ -1,0 +1,527 @@
+- id: WEB-AUTHZ-001
+  sheet: WEB
+  category: AUTHZ
+  title: Read the authorization rules for functions and data
+  objective: Finds missing rules for who may use which function and which data.
+  preconditions:
+  - Access to documentation.
+  steps:
+  - Get the authorization documentation.
+  - Make sure it lists function-level rules by consumer permission.
+  - Make sure it lists data-specific rules by resource attribute.
+  - Compare five rules with real behavior.
+  example: Build a role-to-endpoint matrix from the document, then replay it with Autorize or ZAP Access Control Testing.
+  expected: The documentation defines function-level and data-specific access rules. The application follows them.
+  severity: Low
+  test_type: Config Review
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A01:2025
+    asvs:
+    - V8.1.1
+    cheatsheet:
+    - Authorization_Cheat_Sheet
+    cwe:
+    - CWE-284
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Authorization_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A01_2025-Broken_Access_Control.md
+- id: WEB-AUTHZ-002
+  sheet: WEB
+  category: AUTHZ
+  title: Read the field-level access rules
+  objective: Finds missing rules for who may read or write each field.
+  preconditions:
+  - Access to documentation.
+  steps:
+  - Get the authorization documentation.
+  - Make sure it defines read and write rules for each sensitive field.
+  - Look for rules that depend on object state, such as status.
+  - Compare with the API schema.
+  example: Compare the OpenAPI schema (readOnly, writeOnly) with the documented field matrix.
+  expected: Field-level read and write rules are documented, including state-dependent rules.
+  severity: Low
+  test_type: Config Review
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A01:2025
+    asvs:
+    - V8.1.2
+    cheatsheet:
+    - Authorization_Cheat_Sheet
+    cwe:
+    - CWE-915
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Authorization_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A01_2025-Broken_Access_Control.md
+- id: WEB-AUTHZ-003
+  sheet: WEB
+  category: AUTHZ
+  title: Read the contextual and environmental decision rules
+  objective: Finds missing rules for time, place, IP and device in access decisions.
+  preconditions:
+  - Access to documentation.
+  steps:
+  - Get the authentication and authorization documentation.
+  - 'Find the attributes used: time, location, IP address and device.'
+  - 'Make sure the document lists thresholds and actions: allow, challenge, deny, step-up.'
+  example: Review the risk engine rules and the design document side by side.
+  expected: The attributes, risk thresholds and actions are documented for authentication and authorization decisions.
+  severity: Low
+  test_type: Config Review
+  level: ASVS L3
+  refs:
+    asvs:
+    - V8.1.3
+    - V8.1.4
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-284
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+- id: WEB-AUTHZ-004
+  sheet: WEB
+  category: AUTHZ
+  title: Test function-level access for each role
+  objective: Finds functions that users can call without explicit permission.
+  steps:
+  - Map all functions and admin pages for each role.
+  - Log in as a low role. Call the functions of a higher role with a proxy.
+  - Call the same requests with no session.
+  - 'Change HTTP methods: GET, POST, PUT, DELETE.'
+  - Compare every response with the response of the allowed role.
+  example: 'Burp Autorize: set the low-privilege cookie and browse as admin; or POST /admin/addUser (userID=fakeuser&role=3) with a user cookie.'
+  expected: Only roles with explicit permission can use each function. Others get 401 or 403 for every method.
+  severity: Critical
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A01:2025
+    wstg:
+    - WSTG-ATHZ-02
+    - WSTG-ATHZ-03
+    asvs:
+    - V8.2.1
+    cheatsheet:
+    - Authorization_Cheat_Sheet
+    cwe:
+    - CWE-862
+    - CWE-863
+    - CWE-285
+    - CWE-425
+    - CWE-306
+    capec:
+    - CAPEC-1
+    - CAPEC-58
+    - CAPEC-122
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/02-Bypassing_Authorization_Schema.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/03-Privilege_Escalation.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authorization_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A01_2025-Broken_Access_Control.md
+- id: WEB-AUTHZ-005
+  sheet: WEB
+  category: AUTHZ
+  title: Test forced browsing without a session
+  objective: Finds pages and operations that need no login.
+  steps:
+  - Collect all URLs from crawl, JavaScript and API docs.
+  - Request each URL without a session.
+  - Request admin and internal paths.
+  - Check the files in storage buckets that hold uploads.
+  example: 'ffuf -w urls.txt -u https://target/FUZZ -mc 200,204,301,302,403 ; ZAP: Access Control Testing add-on with an unauthenticated context.'
+  expected: Non-public URLs return 401 or redirect to login. Stored private files are not public.
+  severity: High
+  test_type: Automated
+  refs:
+    owasp_top10:
+    - A01:2025
+    wstg:
+    - WSTG-ATHZ-02
+    cheatsheet:
+    - Authorization_Cheat_Sheet
+    cwe:
+    - CWE-425
+    - CWE-862
+    - CWE-306
+    capec:
+    - CAPEC-1
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/02-Bypassing_Authorization_Schema.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authorization_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A01_2025-Broken_Access_Control.md
+- id: WEB-AUTHZ-006
+  sheet: WEB
+  category: AUTHZ
+  title: Test privilege escalation by parameter and profile changes
+  objective: Finds hidden fields, groups or conditions that a user can change to gain privileges.
+  steps:
+  - Look for group, profile, role and flag fields in requests, hidden fields and responses.
+  - Change a value, such as profile=SysGuest to SysAdmin.
+  - Change the group ID or order ID to one outside your group.
+  - Try to add yourself to a higher role.
+  example: POST /user/viewOrder.jsp groupID=grp002&orderID=0001 from a grp001 user; also change <input name='profile' value='SysAdmin'>.
+  expected: The server does not trust client values for role, group or privilege. A user cannot raise their own privilege.
+  severity: Critical
+  test_type: Manual
+  refs:
+    owasp_top10:
+    - A01:2025
+    wstg:
+    - WSTG-ATHZ-03
+    cheatsheet:
+    - Authorization_Cheat_Sheet
+    cwe:
+    - CWE-269
+    - CWE-266
+    - CWE-639
+    - CWE-472
+    capec:
+    - CAPEC-233
+    - CAPEC-58
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/03-Privilege_Escalation.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authorization_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A01_2025-Broken_Access_Control.md
+- id: WEB-AUTHZ-007
+  sheet: WEB
+  category: AUTHZ
+  title: Test field-level access and mass assignment
+  objective: Finds objects where users can read or write fields they should not.
+  steps:
+  - Compare the fields in responses for different roles.
+  - Add extra fields such as role, isAdmin and balance to update requests.
+  - Change read-only fields.
+  - Check fields that depend on state, such as status.
+  example: 'curl -X PATCH https://target/api/users/me -b ''session=<user>'' -H ''Content-Type: application/json'' -d ''{"role":"admin","isAdmin":true}'''
+  expected: Users cannot read or write fields without permission. Unknown and protected fields are ignored or rejected.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A01:2025
+    asvs:
+    - V8.2.3
+    cheatsheet:
+    - Authorization_Cheat_Sheet
+    cwe:
+    - CWE-915
+    - CWE-863
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Authorization_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A01_2025-Broken_Access_Control.md
+  see:
+  - WEB-INJ-022
+- id: WEB-AUTHZ-008
+  sheet: WEB
+  category: AUTHZ
+  title: Test adaptive access controls at login and during a session
+  objective: Finds contextual controls that apply only at login or not at all.
+  steps:
+  - Read the documented context rules.
+  - Log in from a new device and an unusual place.
+  - Change the IP, device or time during an active session.
+  - 'Check the action: step-up, deny or revoke.'
+  example: Move the test session to a different VPN country and call a sensitive endpoint.
+  expected: Context rules apply when a session starts and during the session, with the documented action.
+  severity: Low
+  test_type: Manual
+  level: ASVS L3
+  refs:
+    asvs:
+    - V8.2.4
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-284
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+- id: WEB-AUTHZ-009
+  sheet: WEB
+  category: AUTHZ
+  title: Check that authorization is enforced on the server
+  objective: Finds access control that exists only in client-side code.
+  steps:
+  - Find controls hidden in JavaScript or by CSS.
+  - Call hidden admin URLs with curl.
+  - Remove or change client-side checks with a proxy.
+  - Send API calls that the UI never makes.
+  example: curl -i https://target/app/admin_getappInfo -b 'session=<user>'
+  expected: The server decides access on every request. Changes in client code do not change the result.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A01:2025
+    asvs:
+    - V8.3.1
+    cheatsheet:
+    - Authorization_Cheat_Sheet
+    cwe:
+    - CWE-602
+    - CWE-603
+    - CWE-862
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Authorization_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A01_2025-Broken_Access_Control.md
+- id: WEB-AUTHZ-010
+  sheet: WEB
+  category: AUTHZ
+  title: Check that permission changes apply at once
+  objective: Finds tokens or caches that keep old permissions after a change.
+  steps:
+  - Log in as a user and keep the session or token.
+  - Remove a role from the user as administrator.
+  - Call a function of that role at once.
+  - Check the lifetime of the token or cache.
+  example: 'curl -i -H ''Authorization: Bearer <old jwt>'' https://target/api/admin/report right after the role is removed.'
+  expected: A permission change takes effect at once. If not, there is a control that alerts on the action and reverts it.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L3
+  refs:
+    asvs:
+    - V8.3.2
+    cheatsheet:
+    - Authorization_Cheat_Sheet
+    cwe:
+    - CWE-863
+    - CWE-285
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Authorization_Cheat_Sheet.md
+- id: WEB-AUTHZ-011
+  sheet: WEB
+  category: AUTHZ
+  title: Check that back-end calls use the original user permissions
+  objective: Finds services that act with their own rights on behalf of a user.
+  steps:
+  - Map the calls between internal services for one user action.
+  - Call the action with a low-privilege user token.
+  - Look at the token that the second service gets.
+  - Check that the second service enforces the user rights.
+  example: 'Trace with a proxy or service mesh logs: compare the Authorization headers on hop 1 and hop 2.'
+  expected: Services pass on the user identity and apply the user permissions. No service acts as a confused deputy.
+  severity: High
+  test_type: Code Review
+  level: ASVS L3
+  refs:
+    owasp_top10:
+    - A01:2025
+    asvs:
+    - V8.3.3
+    cheatsheet:
+    - Authorization_Cheat_Sheet
+    cwe:
+    - CWE-441
+    - CWE-863
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Authorization_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A01_2025-Broken_Access_Control.md
+- id: WEB-AUTHZ-012
+  sheet: WEB
+  category: AUTHZ
+  title: Test tenant isolation in multi-tenant applications
+  objective: Finds operations that affect other tenants.
+  steps:
+  - Create two tenants with a user in each.
+  - Use IDs, names and tokens of tenant A in requests as a user of tenant B.
+  - Change a tenant header or subdomain value.
+  - Check search, export and bulk functions.
+  example: 'curl -b ''session=<tenantB user>'' -H ''X-Tenant-ID: tenantA'' https://target/api/invoices'
+  expected: A user can never read or change data of another tenant.
+  severity: Critical
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A01:2025
+    asvs:
+    - V8.4.1
+    cheatsheet:
+    - Authorization_Cheat_Sheet
+    cwe:
+    - CWE-639
+    - CWE-284
+    - CWE-653
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/CheatSheetSeries/cheatsheets/Authorization_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A01_2025-Broken_Access_Control.md
+- id: WEB-AUTHZ-013
+  sheet: WEB
+  category: AUTHZ
+  title: Check layers of control on administrative interfaces
+  objective: Finds admin interfaces that rely only on network location.
+  steps:
+  - List admin interfaces.
+  - Reach them from a trusted network with a low role.
+  - Check for ongoing identity checks, device posture and risk analysis.
+  - Check that network location alone is not enough.
+  example: 'curl -H ''X-Forwarded-For: 127.0.0.1'' https://target/admin ; review the admin gateway policy.'
+  expected: 'Admin access needs several layers: continuous identity checks, device posture and risk analysis. Network location is never the only factor.'
+  severity: High
+  test_type: Config Review
+  level: ASVS L3
+  refs:
+    wstg:
+    - WSTG-ATHZ-02
+    asvs:
+    - V8.4.2
+    cheatsheet:
+    - Authorization_Cheat_Sheet
+    cwe:
+    - CWE-291
+    - CWE-284
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/02-Bypassing_Authorization_Schema.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authorization_Cheat_Sheet.md
+- id: WEB-AUTHZ-014
+  sheet: WEB
+  category: AUTHZ
+  title: Test bypass with special request headers
+  objective: Finds access control that trusts headers such as X-Original-URL or X-Forwarded-For.
+  steps:
+  - Send a blocked admin URL with X-Original-URL set to it, with a harmless request path.
+  - Do the same with X-Rewrite-URL.
+  - Add X-Forwarded-For, X-Client-IP and X-Remote-Addr with 127.0.0.1, ::1 and RFC1918 addresses.
+  - Try IPv4-mapped IPv6 values.
+  example: 'curl -i https://target/ -H ''X-Original-URL: /admin'' ; curl -i https://target/admin -H ''X-Forwarded-For: 127.0.0.1'''
+  expected: Header values do not change the path or the client identity. The blocked page stays blocked.
+  severity: High
+  test_type: Manual
+  refs:
+    owasp_top10:
+    - A01:2025
+    wstg:
+    - WSTG-ATHZ-02
+    - WSTG-ATHZ-03
+    cheatsheet:
+    - Authorization_Cheat_Sheet
+    cwe:
+    - CWE-290
+    - CWE-291
+    - CWE-288
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/02-Bypassing_Authorization_Schema.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/03-Privilege_Escalation.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authorization_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A01_2025-Broken_Access_Control.md
+- id: WEB-AUTHZ-015
+  sheet: WEB
+  category: AUTHZ
+  title: Test directory traversal and file inclusion in file parameters
+  objective: Finds parameters that read files outside the allowed folder.
+  steps:
+  - Find parameters that name files, templates or pages, also in cookies.
+  - Send ../ sequences with 3 to 8 levels.
+  - 'Send encoded forms: %2e%2e%2f, double encoding and backslashes.'
+  - Try an absolute path and a remote URL.
+  - On Windows, try UNC paths and trailing characters.
+  example: ffuf -w LFI-Jhaddix.txt -u 'https://target/index.php?file=FUZZ' -fs <size> ; curl 'https://target/getUserProfile.jsp?item=../../../../etc/passwd'
+  expected: The application accepts only expected file names. Traversal and remote includes are rejected after full decoding.
+  severity: High
+  test_type: Manual
+  refs:
+    owasp_top10:
+    - A01:2025
+    wstg:
+    - WSTG-ATHZ-01
+    cwe:
+    - CWE-22
+    - CWE-23
+    - CWE-36
+    capec:
+    - CAPEC-64
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/01-Directory_Traversal_File_Include.md
+  - sources/repos/Top10/2025/docs/en/A01_2025-Broken_Access_Control.md
+  notes: Injection slice may cover path traversal in more depth. This test covers the authorization view.
+  see:
+  - WEB-INJ-013
+- id: WEB-AUTHZ-016
+  sheet: WEB
+  category: AUTHZ
+  title: Check URL path matching in authorization rules
+  objective: Finds rules that use partial string matching on URLs.
+  steps:
+  - Read the code for startswith, endswith, contains and indexOf on paths.
+  - Send encoded, double-slash and dot-segment paths to protected URLs.
+  - Try different case and trailing characters.
+  example: curl -i 'https://target//admin' ; curl -i 'https://target/%2e%2e/admin' ; curl -i 'https://target/admin;.css'
+  expected: Authorization uses the normalized path and exact rules. Encoded paths and dot segments do not skip a check.
+  severity: High
+  test_type: Code Review
+  refs:
+    wstg:
+    - WSTG-ATHZ-03
+    cheatsheet:
+    - Authorization_Cheat_Sheet
+    cwe:
+    - CWE-551
+    - CWE-863
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/05-Authorization/03-Privilege_Escalation.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authorization_Cheat_Sheet.md
+- id: WEB-AUTHZ-017
+  sheet: WEB
+  category: AUTHZ
+  title: Check deny by default and checks on every request
+  objective: Finds new or unlisted routes and methods that have no access control.
+  steps:
+  - List all routes from the code or API description.
+  - Find routes with no access rule.
+  - Call them without rights, using POST, PUT and DELETE too.
+  - Check that one shared mechanism enforces checks on every request.
+  example: grep -rn 'permitAll\|@PermitAll\|skip_authorization' src/ ; compare the OpenAPI paths with the security config.
+  expected: Access is denied when no rule matches. Every request goes through the same authorization check, including AJAX and API calls.
+  severity: High
+  test_type: Config Review
+  refs:
+    owasp_top10:
+    - A01:2025
+    cheatsheet:
+    - Authorization_Cheat_Sheet
+    cwe:
+    - CWE-862
+    - CWE-284
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Authorization_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A01_2025-Broken_Access_Control.md
+- id: WEB-AUTHZ-018
+  sheet: WEB
+  category: AUTHZ
+  title: Check logging and alerts for access control failures
+  objective: Finds access control failures that nobody sees, and automated abuse that is not limited.
+  steps:
+  - Send 20 forbidden requests.
+  - Read the logs for each failure.
+  - Check for an alert after repeated failures.
+  - Check for a rate limit on API and controller access.
+  example: for i in $(seq 20); do curl -s -o /dev/null -b 'session=<user>' https://target/admin; done; grep 403 /var/log/app/access.log | tail
+  expected: Access control failures are logged. Repeated failures raise an alert. API and controller access has a rate limit.
+  severity: Low
+  test_type: Config Review
+  refs:
+    owasp_top10:
+    - A01:2025
+    cwe:
+    - CWE-778
+    - CWE-770
+  sources_read:
+  - sources/repos/Top10/2025/docs/en/A01_2025-Broken_Access_Control.md

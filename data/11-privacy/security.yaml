@@ -1,0 +1,224 @@
+- id: PRIV-SEC-001
+  sheet: PRIV
+  category: SEC
+  title: Make sure URLs, logs and analytics hold no personal data
+  objective: Finds personal data in places that many people and systems can read.
+  steps:
+  - Use the application with a test user that has unique data values.
+  - Search access logs, application logs and analytics events for the unique values.
+  - Look for personal data in URLs and query strings.
+  - Check log access rights.
+  example: grep -r 'test.user@example.com' /var/log; compare analytics event payloads with the data map.
+  expected: Logs, URLs and analytics events hold no clear personal data. Identifiers are masked or hashed.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    privacy_top10:
+    - P2
+    - P1
+    other:
+    - GDPR Art. 5
+    - GDPR Art. 32
+    cwe:
+    - CWE-532
+    - CWE-598
+    - CWE-359
+    cheatsheet:
+    - Logging_Cheat_Sheet
+  see:
+  - WEB-LOG-006
+  - WEB-DATA-002
+  sources_read:
+  - sources/repos/www-project-top-10-privacy-risks/tab_topprivacy.md
+  - sources/repos/www-project-top-10-privacy-risks/OWASP_Top_10_Privacy_Risks_Countermeasures_v2.0.pdf
+  - sources/extra/gdpr.html
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: PRIV-SEC-002
+  sheet: PRIV
+  category: SEC
+  title: Check encryption of personal data at rest and the key separation
+  objective: Finds personal data stored in clear form or with keys next to the data.
+  steps:
+  - List the stores that hold personal data.
+  - Check the encryption setting of each store and each backup.
+  - Find where the keys are kept.
+  - Check who can read both keys and data.
+  example: Cloud console storage settings; database encryption status; key vault access policy.
+  expected: All stores and backups are encrypted. Keys are kept in a separate key service with limited access.
+  severity: High
+  test_type:
+  - Config Review
+  refs:
+    privacy_top10:
+    - P2
+    other:
+    - GDPR Art. 32
+    cwe:
+    - CWE-311
+    - CWE-312
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+  see:
+  - WEB-DATA-013
+  sources_read:
+  - sources/repos/www-project-top-10-privacy-risks/tab_topprivacy.md
+  - sources/repos/www-project-top-10-privacy-risks/OWASP_Top_10_Privacy_Risks_Countermeasures_v2.0.pdf
+  - sources/extra/gdpr.html
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: PRIV-SEC-003
+  sheet: PRIV
+  category: SEC
+  title: Check that access to personal data follows need-to-know
+  objective: Finds staff and service accounts that can read more personal data than their role needs.
+  steps:
+  - Ask for the role list and the access matrix for personal data.
+  - List the accounts with read access to the main data store.
+  - Compare the list with the roles.
+  - Check that access to personal data is logged.
+  example: Database grants export; IAM policy review; audit log sample.
+  expected: Only needed roles can read personal data. Each access to bulk data is logged and reviewed.
+  severity: High
+  test_type:
+  - Config Review
+  refs:
+    privacy_top10:
+    - P2
+    other:
+    - GDPR Art. 5
+    - GDPR Art. 32
+    cwe:
+    - CWE-359
+    - CWE-862
+    cheatsheet:
+    - Secure_Product_Design_Cheat_Sheet
+  sources_read:
+  - sources/repos/www-project-top-10-privacy-risks/tab_topprivacy.md
+  - sources/repos/www-project-top-10-privacy-risks/OWASP_Top_10_Privacy_Risks_Countermeasures_v2.0.pdf
+  - sources/extra/gdpr.html
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Product_Design_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: PRIV-SEC-004
+  sheet: PRIV
+  category: SEC
+  title: Check that personal data is encrypted in transit on every channel
+  objective: Finds clear-text transfers of personal data, including internal and partner links.
+  steps:
+  - List all channels that carry personal data.
+  - Capture traffic on each channel.
+  - Look for clear-text protocols.
+  - Check the TLS version and certificate checks.
+  example: Wireshark capture; nmap --script ssl-enum-ciphers -p 443 host.
+  expected: Every channel uses current TLS with certificate checks. No personal data goes in clear text.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    privacy_top10:
+    - P2
+    - P1
+    other:
+    - GDPR Art. 32
+    cwe:
+    - CWE-319
+    cheatsheet:
+    - User_Privacy_Protection_Cheat_Sheet
+  see:
+  - WEB-TLS-006
+  sources_read:
+  - sources/repos/www-project-top-10-privacy-risks/tab_topprivacy.md
+  - sources/repos/www-project-top-10-privacy-risks/OWASP_Top_10_Privacy_Risks_Countermeasures_v2.0.pdf
+  - sources/extra/gdpr.html
+  - sources/repos/CheatSheetSeries/cheatsheets/User_Privacy_Protection_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: PRIV-SEC-005
+  sheet: PRIV
+  category: SEC
+  title: Check that sessions end after inactivity and at logout
+  objective: Finds sessions that stay open and let the service keep collecting data without user awareness.
+  steps:
+  - Log in and leave the session idle.
+  - Check that the session ends at the documented time.
+  - Log out and replay the old session token.
+  - Check for a logout button on all pages.
+  example: 'Burp Repeater: replay the old cookie after logout and after the timeout.'
+  expected: The session ends at the idle limit and at logout. The old token is rejected. Tracking stops with the session.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    privacy_top10:
+    - P8
+    other:
+    - GDPR Art. 5
+    - GDPR Art. 32
+  see:
+  - WEB-SESS-019
+  - WEB-SESS-017
+  - WEB-SESS-016
+  sources_read:
+  - sources/repos/www-project-top-10-privacy-risks/tab_topprivacy.md
+  - sources/repos/www-project-top-10-privacy-risks/OWASP_Top_10_Privacy_Risks_Countermeasures_v2.0.pdf
+  - sources/extra/gdpr.html
+  - sources/repos/www-project-top-10-privacy-risks/tab_topprivacy.md
+- id: PRIV-SEC-006
+  sheet: PRIV
+  category: SEC
+  title: Check that users can see and end open sessions
+  objective: Finds services that give users no control over open sessions.
+  steps:
+  - Log in on two devices.
+  - Open the session list in the account.
+  - End the other session from the first device.
+  - Check that the second device lost access.
+  example: Two browsers; confirm the second token returns 401 after revocation.
+  expected: The user sees all open sessions and can end them. Ended sessions stop at once.
+  severity: Low
+  test_type:
+  - Manual
+  refs:
+    privacy_top10:
+    - P8
+    other:
+    - GDPR Art. 32
+    cheatsheet:
+    - User_Privacy_Protection_Cheat_Sheet
+  see:
+  - WEB-SESS-024
+  sources_read:
+  - sources/repos/www-project-top-10-privacy-risks/tab_topprivacy.md
+  - sources/repos/www-project-top-10-privacy-risks/OWASP_Top_10_Privacy_Risks_Countermeasures_v2.0.pdf
+  - sources/extra/gdpr.html
+  - sources/repos/CheatSheetSeries/cheatsheets/User_Privacy_Protection_Cheat_Sheet.md
+- id: PRIV-SEC-007
+  sheet: PRIV
+  category: SEC
+  title: Check that the privacy assessment covers the web application vulnerabilities
+  objective: Finds privacy reviews that ignore technical flaws such as injection and broken access control.
+  steps:
+  - Ask for the last penetration test and scan reports.
+  - Check that the scope includes personal data stores.
+  - Check the fix status of high findings.
+  - Check the patch process for components.
+  example: 'Document review: pen test report, SAST/DAST results, patch SLA.'
+  expected: Regular tests cover personal data paths. High findings have a fix with evidence. Patches follow a set time frame.
+  severity: Medium
+  test_type:
+  - Config Review
+  refs:
+    privacy_top10:
+    - P1
+    other:
+    - GDPR Art. 32
+    cwe:
+    - CWE-1395
+  see:
+  - WEB-DEP-001
+  sources_read:
+  - sources/repos/www-project-top-10-privacy-risks/tab_topprivacy.md
+  - sources/repos/www-project-top-10-privacy-risks/OWASP_Top_10_Privacy_Risks_Countermeasures_v2.0.pdf
+  - sources/extra/gdpr.html
+  - sources/cwe/cwec_latest.xml.zip

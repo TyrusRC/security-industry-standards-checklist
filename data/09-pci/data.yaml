@@ -1,0 +1,358 @@
+- id: PCI-DATA-001
+  sheet: PCI
+  category: DATA
+  title: Check that stored account data is limited by retention and disposal rules
+  objective: Find account data that is kept longer than the business need or the documented retention period.
+  preconditions:
+  - Read access to the data stores in scope
+  - List of all places where account data is stored
+  steps:
+  - Ask for the data retention and disposal policy for account data.
+  - Make sure the policy sets a retention period and a business reason for each data store.
+  - Search each data store for account data that is older than the retention period.
+  - Make sure a job or process removes or overwrites expired data on a schedule.
+  - Make sure the quarterly process finds stored account data that is not in the policy.
+  example: SELECT count(*) FROM payments WHERE created_at < now() - interval '13 months'; scan file shares with a PAN discovery tool
+  expected: Account data is kept only for the documented period and need. Expired data is removed in a secure way, and a quarterly process finds unknown copies.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 3.2.1
+    cwe:
+    - CWE-312
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-DATA-002
+  sheet: PCI
+  category: DATA
+  title: Check that sensitive authentication data is unrecoverable after authorization
+  objective: Find sensitive authentication data that stays on a system after the authorization process ends.
+  preconditions:
+  - Test card data from the acquirer
+  - Test system, not production
+  steps:
+  - Ask which systems receive sensitive authentication data and how long it stays on them.
+  - Examine the documented process that removes this data after authorization.
+  - Make an authorized test transaction with a test card on the test system.
+  - Search databases, files, logs, queues, caches and memory dumps for the test values after authorization.
+  - Make sure the secure deletion method makes the data unrecoverable.
+  example: grep -r <test track or CVV value> /var/log /data; strings core.dump | grep <test PAN>
+  expected: No sensitive authentication data remains after authorization, even in encrypted form. The deletion method makes the data unrecoverable.
+  severity: Critical
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 3.3.1
+    cwe:
+    - CWE-312
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-DATA-003
+  sheet: PCI
+  category: DATA
+  title: Check that full track data is not stored after authorization
+  objective: Find full magnetic-stripe or chip track data that is kept after the authorization process ends.
+  preconditions:
+  - Test card data
+  - Test system, not production
+  steps:
+  - Make a test transaction with a test card on the test system.
+  - Look at the payment application files, databases and logs for the track 1 and track 2 format.
+  - Search for the sentinel patterns of track data, for example a leading % or ; and an = separator.
+  - Look at debug output, crash dumps, backups and error reports for the same patterns.
+  - Examine the capture code or configuration for fields that keep track data.
+  example: grep -rE '%B[0-9]{13,19}\^|;[0-9]{13,19}=' /data /var/log
+  expected: No data store, log, backup or dump holds the full contents of any track after authorization is complete.
+  severity: Critical
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 3.3.1.1
+    cwe:
+    - CWE-312
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-DATA-004
+  sheet: PCI
+  category: DATA
+  title: Check that the card verification code is not stored after authorization
+  objective: Find CVV, CVC or similar card verification values that stay after the authorization process ends.
+  preconditions:
+  - Test card data
+  - Test system, not production
+  steps:
+  - Make a test transaction with a known test card verification code.
+  - Search database columns, files, logs and message queues for the test code.
+  - Look at the request logs, the proxy logs and the browser or app crash reports for the code.
+  - Examine the application code and the log filters for fields called cvv, cvc, cid or security code.
+  - Look at backups and replicas of the data stores.
+  example: grep -rn -i -E 'cvv|cvc|cid|security_code' /data /var/log; search for the test value in database dumps
+  expected: No data store, log, backup or report holds the card verification code after authorization is complete.
+  severity: Critical
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 3.3.1.2
+    cwe:
+    - CWE-312
+    - CWE-532
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-DATA-005
+  sheet: PCI
+  category: DATA
+  title: Check that PIN and PIN block data is not kept after authorization
+  objective: Find PIN or PIN block data that stays after the authorization process ends.
+  preconditions:
+  - Test PIN data
+  - Test system, not production
+  steps:
+  - Ask whether the system receives PIN or PIN block data.
+  - Make a test PIN transaction on the test system if the system supports it.
+  - Search databases, files, logs, queues and dumps for the encrypted PIN block and for PIN fields.
+  - Examine the application code and the log filters for fields called pin or pinblock.
+  - Look at backups and replicas of the data stores.
+  example: grep -rn -i -E 'pin_?block|pinblock|\bpin\b' /data /var/log; search database dumps for the test PIN block
+  expected: No data store, log, backup or report holds a PIN or a PIN block after authorization is complete.
+  severity: Critical
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 3.3.1.3
+    cwe:
+    - CWE-312
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-DATA-006
+  sheet: PCI
+  category: DATA
+  title: Check that sensitive authentication data is encrypted before authorization ends
+  objective: Find sensitive authentication data that waits in clear text on a system before the authorization is complete.
+  preconditions:
+  - Test card data
+  - Test system, not production
+  steps:
+  - Ask where sensitive authentication data is stored before authorization is complete.
+  - Make a test transaction and stop it before the authorization response.
+  - Look at the data stores, queues, files and swap space for the test values in clear text.
+  - Examine the encryption algorithm and key length against current industry guidance.
+  - Make sure the stored data is deleted when the authorization is complete.
+  example: Pause the test transaction at the gateway; inspect the queue and database; run strings on the swap file
+  expected: All sensitive authentication data that is stored before authorization is complete is encrypted with strong cryptography.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 3.3.2
+    cwe:
+    - CWE-311
+    - CWE-312
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-DATA-007
+  sheet: PCI
+  category: DATA
+  title: Check that displayed PANs show only the BIN and last four digits
+  objective: Find screens, reports, exports and receipts that show more PAN digits than the business need allows.
+  preconditions:
+  - Test accounts for each role
+  - Test PANs
+  steps:
+  - Ask for the list of roles that need to see more than the BIN and the last four digits.
+  - Make sure each role on the list has a documented business need.
+  - Log in as a role that is not on the list. Open each screen, report and export that shows a PAN.
+  - Count the visible digits. Make sure only the BIN and the last four digits show.
+  - Look at the API responses and the page source for the full PAN.
+  - Log in as a listed role and make sure the full PAN shows only where the business need exists.
+  example: Compare the API response to the screen; curl -s /api/orders/123 | grep -E '[0-9]{13,19}'
+  expected: Roles with no documented need see at most the BIN and the last four digits. The full PAN is not in any response sent to those roles.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    pci_dss:
+    - 3.4.1
+    cwe:
+    - CWE-200
+    - CWE-359
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-DATA-008
+  sheet: PCI
+  category: DATA
+  title: Check that remote access tools block copy and move of the PAN
+  objective: Find remote sessions that allow a user to copy or move PAN data to a local device.
+  preconditions:
+  - Test PAN in a test system
+  - Test accounts with and without authorization
+  steps:
+  - List the remote-access technologies that reach systems with account data.
+  - Ask for the list of users with documented authorization to copy or move PAN.
+  - Open a remote session as a user who is not on the list.
+  - Try to copy PAN text, drag a file out, map a local drive and use the clipboard and print functions.
+  - Make sure the technical controls block each action and log the try.
+  example: 'RDP: check drive, clipboard and printer redirection policy; Citrix: check client drive mapping and clipboard policy'
+  expected: Technical controls block copy and move of PAN in remote sessions. Only users with documented authorization and a defined business need can do it.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 3.4.2
+    cwe:
+    - CWE-200
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-DATA-009
+  sheet: PCI
+  category: DATA
+  title: Check that the PAN is unreadable in every place it is stored
+  objective: Find stored PAN in clear text in databases, files, logs, backups, caches and temporary files.
+  preconditions:
+  - Test PANs
+  - Test system, not production
+  steps:
+  - Ask for the documentation of the method that makes the PAN unreadable.
+  - Make sure the method is a keyed hash, truncation, an index token or strong cryptography with key management.
+  - Insert a test PAN. Search databases, files, logs, queues, caches and backups for the test value.
+  - Search the payment application logs and the debug output for PAN patterns that pass a Luhn check.
+  - Make sure the algorithm and key length meet current industry guidance.
+  example: grep -rE '\b[3-6][0-9]{12,18}\b' /data /var/log then run a Luhn check; use a data discovery tool such as a PAN scanner
+  expected: The PAN is unreadable everywhere it is stored, including logs, backups and temporary files. The method is hash, truncation, token or strong cryptography.
+  severity: Critical
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 3.5.1
+    cwe:
+    - CWE-312
+    - CWE-311
+    - CWE-532
+    nist_800_53:
+    - SC-28
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-DATA-010
+  sheet: PCI
+  category: DATA
+  title: Check that hashed and truncated copies of one PAN cannot be correlated
+  objective: Find environments where a hash and a truncated value of the same PAN let a person rebuild the PAN.
+  preconditions:
+  - Test PANs
+  - Access to the data stores
+  steps:
+  - Find out if the same PAN is stored in both a hashed form and a truncated form.
+  - Ask for the controls that stop the correlation of these two forms.
+  - Try to join the hashed records and the truncated records to rebuild the PAN.
+  - Make sure the access rights to the two data sets are separate.
+  - Make sure the hash does not replace the truncated part of the PAN.
+  example: Join test records on the last four digits and the BIN; try a brute force of the missing digits against the hash
+  expected: No user or process can rebuild the original PAN from the hashed and truncated copies. Access to the two forms is separate.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 3.5.1
+    cwe:
+    - CWE-328
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-DATA-011
+  sheet: PCI
+  category: DATA
+  title: Check that PAN hashes are keyed cryptographic hashes of the whole PAN
+  objective: Find PAN hashes that use no key, a weak hash function or only part of the PAN.
+  preconditions:
+  - Test PANs
+  - Source code or configuration access
+  steps:
+  - Find the code or the database function that hashes the PAN.
+  - Make sure the hash is a keyed hash such as HMAC-SHA-256 and covers the entire PAN.
+  - Make sure the key is not in the code or in the same data store as the hashes.
+  - Compute a plain SHA-256 of a test PAN. Make sure it does not match the stored hash.
+  - Examine the key management process for the hash key.
+  example: echo -n <test PAN> | sha256sum; compare to the stored value; search the source for the HMAC key
+  expected: PAN hashes are keyed hashes of the entire PAN. The key is managed under the key management rules and a plain hash does not match.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 3.5.1.1
+    cwe:
+    - CWE-328
+    - CWE-759
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-DATA-012
+  sheet: PCI
+  category: DATA
+  title: Check that disk or partition encryption alone does not protect stored PAN
+  objective: Find non-removable storage where only disk-level or partition-level encryption protects the PAN.
+  preconditions:
+  - Access to the host and storage configuration
+  steps:
+  - List the storage that holds PAN and the encryption method on each volume.
+  - Find volumes that use only disk-level or partition-level encryption.
+  - Make sure these volumes are removable media.
+  - For non-removable volumes, make sure file-level, column-level or field-level encryption also protects the PAN.
+  - Mount a volume on a running system and read a PAN file as a normal user.
+  example: lsblk -f; cryptsetup status <volume>; SELECT column-level encryption settings in the database
+  expected: Disk-level or partition-level encryption is used alone only on removable media. Other storage also has file, column or field-level protection.
+  severity: High
+  test_type:
+  - Config Review
+  refs:
+    pci_dss:
+    - 3.5.1.2
+    cwe:
+    - CWE-311
+    nist_800_53:
+    - SC-28
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-DATA-013
+  sheet: PCI
+  category: DATA
+  title: Check the management of disk and partition encryption for PAN
+  objective: Find disk encryption where the operating system login or a user account unlocks the data.
+  preconditions:
+  - Access to the host and encryption configuration
+  steps:
+  - Find the access control for the disk encryption product.
+  - Make sure logical access is managed apart from the operating system login and access control.
+  - Make sure the decryption keys are not tied to user accounts.
+  - Find where the unlock passphrase or key is stored. Make sure the storage is secure.
+  - Log in as an operating system administrator. Try to read the data without the separate unlock factor.
+  example: cryptsetup luksDump <device>; check the key slots; check the TPM and key escrow settings
+  expected: Access to the decryption is separate from the operating system accounts. Keys are not tied to user accounts and unlock factors are stored securely.
+  severity: High
+  test_type:
+  - Config Review
+  refs:
+    pci_dss:
+    - 3.5.1.3
+    cwe:
+    - CWE-311
+    - CWE-522
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md

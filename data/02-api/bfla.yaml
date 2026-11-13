@@ -1,0 +1,166 @@
+- id: API-BFLA-001
+  sheet: API
+  category: BFLA
+  title: Call administrative endpoints as a normal user and as an anonymous client
+  objective: Finds administrative functions that a client without the right role can call.
+  preconditions:
+  - 'Test accounts for each role: anonymous, user, partner and administrator.'
+  - Do not run destructive calls on production.
+  steps:
+  - List administrative functions from the API description, the client code and the proxy history.
+  - Call each function with the token of a normal user.
+  - Call each function without a token.
+  - Compare the result with the result for an administrator.
+  example: 'curl -X POST https://api.example/api/admin/deleteUser -H ''Authorization: Bearer <userToken>'' -d ''{"userId":"12345"}''; Burp Autorize; ZAP forced browse.'
+  expected: The API returns 401 or 403 to every client that lacks the role. The function does not run.
+  severity: Critical
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    api_top10:
+    - API5:2023
+    wstg:
+    - WSTG-APIT-04
+    asvs:
+    - V8.2.1
+    cwe:
+    - CWE-285
+    - CWE-862
+    - CWE-863
+    capec:
+    - CAPEC-122
+  see:
+  - WEB-AUTHZ-004
+  - WEB-AUTHZ-005
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa5-broken-function-level-authorization.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/04-API_Broken_Function_Level_Authorization.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: API-BFLA-002
+  sheet: API
+  category: BFLA
+  title: Change the HTTP method on each endpoint and check the authorization
+  objective: Finds functions that are protected for one HTTP method but open for another.
+  steps:
+  - Take a GET endpoint that a normal user may call.
+  - Send PUT, PATCH, DELETE and POST to the same path with the token of the normal user.
+  - Take a POST endpoint of an administrator and send GET to the same path.
+  - Record every change in the status code or in the response body.
+  example: 'curl -X DELETE https://api.example/api/users/12345 -H ''Authorization: Bearer <userToken>''; Burp Repeater method change; ZAP active scan with method fuzzing.'
+  expected: Each method has its own authorization check. The API answers 403 or 405 for methods that the caller may not use.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    api_top10:
+    - API5:2023
+    wstg:
+    - WSTG-APIT-04
+    asvs:
+    - V8.2.1
+    cheatsheet:
+    - REST_Security_Cheat_Sheet
+    cwe:
+    - CWE-285
+    - CWE-862
+  see:
+  - WEB-CONF-008
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa5-broken-function-level-authorization.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/04-API_Broken_Function_Level_Authorization.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Security_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: API-BFLA-003
+  sheet: API
+  category: BFLA
+  title: Find privileged functions that sit under normal routes
+  objective: Finds administrative functions outside the /admin path that have no role check.
+  steps:
+  - Compare the API description with the routes in the code and the client JavaScript.
+  - Look for routes such as /users/export_all and /invites/new next to normal routes.
+  - Guess related names for each normal route and send them as a normal user.
+  - Test old API versions of the same routes.
+  example: 'ffuf -u https://api.example/api/FUZZ -w api-endpoints.txt -H ''Authorization: Bearer <userToken>''; Kiterunner; route list from the framework (rails routes, springdoc).'
+  expected: Every route that changes or exports data checks the role of the caller. The path name does not decide who has access.
+  severity: High
+  test_type: Manual
+  refs:
+    api_top10:
+    - API5:2023
+    wstg:
+    - WSTG-APIT-04
+    - WSTG-APIT-01
+    cwe:
+    - CWE-285
+    - CWE-862
+    capec:
+    - CAPEC-36
+    attack:
+    - T1595.003
+  see:
+  - WEB-AUTHZ-004
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa5-broken-function-level-authorization.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/04-API_Broken_Function_Level_Authorization.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/01-API_Reconnaissance.md
+- id: API-BFLA-004
+  sheet: API
+  category: BFLA
+  title: Test the authorization of each role, group and sub-user
+  objective: Finds role hierarchy errors that give a user the functions of another group.
+  steps:
+  - Write a table of roles, groups and the functions that each may call.
+  - Include users with two roles, sub-users and partner accounts in the table.
+  - Call each function with each account and mark the result in the table.
+  - Look for results that differ from the table.
+  example: Burp AuthMatrix with one session per role; Postman collection with an environment for each role; spreadsheet of expected 200 and 403 results.
+  expected: The result of each call matches the documented role table. No role can call a function of a higher role.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    api_top10:
+    - API5:2023
+    wstg:
+    - WSTG-APIT-04
+    asvs:
+    - V8.2.1
+    cwe:
+    - CWE-285
+    - CWE-863
+    capec:
+    - CAPEC-122
+  see:
+  - WEB-AUTHZ-004
+  - WEB-IDM-001
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa5-broken-function-level-authorization.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/04-API_Broken_Function_Level_Authorization.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: API-BFLA-005
+  sheet: API
+  category: BFLA
+  title: Check deny by default and shared checks for administrative controllers
+  objective: Finds routes that are open because a developer forgot to add an authorization rule.
+  steps:
+  - Read the authorization module and the code that defines routes.
+  - Make sure the default rule for a new route is to deny access.
+  - Make sure the administrative controllers use one base class or one policy that checks the role.
+  - Add a test route without a rule in a test environment. Call it as a normal user.
+  example: Code review of the middleware chain; grep for routes without an authorization annotation; unit test that lists all routes and their policy.
+  expected: A new route without an explicit rule is denied. Administrative functions share one central role check.
+  severity: Medium
+  test_type: Code Review
+  refs:
+    api_top10:
+    - API5:2023
+    wstg:
+    - WSTG-APIT-04
+    cwe:
+    - CWE-862
+    - CWE-285
+  see:
+  - WEB-AUTHZ-017
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa5-broken-function-level-authorization.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/04-API_Broken_Function_Level_Authorization.md

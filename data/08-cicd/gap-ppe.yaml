@@ -1,0 +1,81 @@
+- id: CICD-PPE-009
+  sheet: CICD
+  category: PPE
+  title: Check the workflow_run and issue_comment triggers for privilege escalation
+  objective: Finds privileged workflows that an attacker can start or steer through another workflow or a comment.
+  steps:
+  - List the workflows that use the workflow_run or issue_comment trigger.
+  - Make sure each one checks that the triggering actor is a trusted member.
+  - Make sure workflow_run jobs do not use artifacts from the triggering run without a check.
+  - Make sure a comment trigger accepts only a full commit SHA and checks out only that SHA.
+  - Make sure workflow chains use workflow_call with reusable workflows.
+  example: grep -rnE 'workflow_run|issue_comment' .github/workflows; zizmor --pedantic .github/workflows/; actionlint
+  expected: No privileged workflow runs on the output or comment of an untrusted actor. Comment triggers check the actor and a fixed commit SHA.
+  severity: High
+  test_type:
+  - Config Review
+  refs:
+    cicd_top10:
+    - CICD-SEC-4
+    cheatsheet:
+    - GitHub_Actions_Security_Cheat_Sheet
+    cwe:
+    - CWE-94
+    - CWE-345
+    attack:
+    - T1059
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/GitHub_Actions_Security_Cheat_Sheet.md
+- id: CICD-PPE-010
+  sheet: CICD
+  category: PPE
+  title: Check that workflow AI assistants have minimal tools and no write access
+  objective: Finds workflows where prompt injection through issues or pull requests gives an attacker secrets or write access.
+  steps:
+  - List the workflows that run an AI assistant to review pull requests or triage issues.
+  - List the triggers, the secrets and the GITHUB_TOKEN permissions of each workflow.
+  - Make sure untrusted users cannot start a workflow that has secrets or a token with write permission.
+  - Make sure the assistant has only the tools and actions that the task needs.
+  - Open a test issue with a harmless injected instruction. Make sure the assistant does not follow it.
+  example: grep -rniE 'claude|copilot|gemini|openai|llm' .github/workflows; zizmor .github/workflows/
+  expected: An AI assistant that reads untrusted input has no secrets and no write token. Its tool list is limited to the task.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    cicd_top10:
+    - CICD-SEC-4
+    cheatsheet:
+    - GitHub_Actions_Security_Cheat_Sheet
+    - Secure_Coding_with_AI_Cheat_Sheet
+    cwe:
+    - CWE-77
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/GitHub_Actions_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Coding_with_AI_Cheat_Sheet.md
+- id: CICD-PPE-011
+  sheet: CICD
+  category: PPE
+  title: Check that all external contributors need approval before workflows run
+  objective: Finds repositories where a trusted first pull request lets later malicious pull requests run without approval.
+  steps:
+  - Read the setting for fork pull request workflows in the repository and organization.
+  - Make sure the setting is Require approval for all external contributors.
+  - Make sure the first-time contributors option alone is not in use.
+  - Open a test pull request from a fork that was merged before. Make sure the workflow waits for approval.
+  example: gh api repos/ORG/REPO/actions/permissions/fork-pr-contributor-approval
+  expected: Every workflow run from an external contributor waits for manual approval by a maintainer.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    cicd_top10:
+    - CICD-SEC-4
+    cheatsheet:
+    - GitHub_Actions_Security_Cheat_Sheet
+    cwe:
+    - CWE-284
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/GitHub_Actions_Security_Cheat_Sheet.md

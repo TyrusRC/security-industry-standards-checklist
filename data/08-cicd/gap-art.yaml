@@ -1,0 +1,27 @@
+- id: CICD-ART-010
+  sheet: CICD
+  category: ART
+  title: Check that release workflows do not restore or save caches
+  objective: Finds cache poisoning that gives an attacker code in a release or access to production secrets.
+  steps:
+  - List the workflows that build, release or publish packages.
+  - Look for cache steps and for built-in cache options in setup actions.
+  - Make sure release and publish workflows use no cache.
+  - Make sure workflows that share a cache with a release workflow cannot be started by untrusted users.
+  example: 'grep -rnE ''actions/cache|cache:'' .github/workflows; zizmor --pedantic .github/workflows/  # cache-poisoning rule'
+  expected: Release and publish workflows do not use any cache. Untrusted workflows cannot write to a cache that a release workflow reads.
+  severity: High
+  test_type:
+  - Config Review
+  refs:
+    cicd_top10:
+    - CICD-SEC-9
+    - CICD-SEC-4
+    cheatsheet:
+    - GitHub_Actions_Security_Cheat_Sheet
+    cwe:
+    - CWE-345
+    attack:
+    - T1195.002
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/GitHub_Actions_Security_Cheat_Sheet.md

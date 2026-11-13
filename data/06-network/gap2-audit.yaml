@@ -1,0 +1,785 @@
+- id: NET-AUDIT-001
+  sheet: NET
+  category: AUDIT
+  title: Check that auditd is installed, enabled and active from boot
+  objective: Finds hosts where audit events are lost because the daemon or the early boot audit is missing.
+  preconditions: &id001
+  - Root or sudo read access to the host in scope.
+  - Do not change settings on a production host without a change window.
+  steps:
+  - Look for the audit and audit plugin packages.
+  - Look at the auditd service state.
+  - Look at the kernel command line for audit=1 and the audit_backlog_limit value.
+  - Read auditctl -s and look at the enabled flag and the lost counter.
+  example: rpm -q audit audispd-plugins || dpkg -l auditd ; systemctl is-enabled auditd ; systemctl is-active auditd ; cat /proc/cmdline ; auditctl -s
+  expected: The audit packages are installed. The auditd service is enabled and active. The kernel starts auditing at boot with a backlog limit that meets the standard.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:coreos_audit_backlog_limit_kernel_argument
+    - cac:coreos_audit_option
+    - cac:grub2_audit_argument
+    - cac:grub2_audit_backlog_limit_argument
+    - cac:package_audispd-plugins_installed
+    - cac:package_audit-audispd-plugins_installed
+    - cac:package_audit-libs_installed
+    - cac:package_audit_installed
+    - cac:service_auditd_enabled
+    nist_800_53:
+    - CM-6
+    - AU-14
+    - AU-7
+    - AU-10
+    pci_dss:
+    - '10.3'
+    - '10.1'
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/coreos_audit_backlog_limit_kernel_argument/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/grub2_audit_argument/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/package_audispd-plugins_installed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/package_audit-libs_installed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/service_auditd_enabled/rule.yml
+- id: NET-AUDIT-002
+  sheet: NET
+  category: AUDIT
+  title: Check auditd log size, disk-full actions and flush settings
+  objective: Finds hosts that lose audit records or keep running with no audit when the disk is full.
+  preconditions: *id001
+  steps:
+  - Read /etc/audit/auditd.conf.
+  - Look at max_log_file, max_log_file_action, num_logs and space_left.
+  - Look at space_left_action, admin_space_left_action, disk_full_action and disk_error_action.
+  - Look at flush, freq, overflow_action, log_format, name_format and local_events.
+  - Look at the size of the partition that holds /var/log/audit.
+  example: grep -vE "^#|^$" /etc/audit/auditd.conf ; df -h /var/log/audit ; grep -E "active|direction|path|type" /etc/audit/plugins.d/*.conf
+  expected: Audit logs have enough space and rotate by the standard. A full disk sends an alert and halts or changes to single user mode. The daemon writes to disk at the set rate.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:auditd_audispd_configure_sufficiently_large_partition
+    - cac:auditd_audispd_disk_full_action
+    - cac:auditd_audispd_network_failure_action
+    - cac:auditd_audispd_remote_daemon_activated
+    - cac:auditd_audispd_remote_daemon_direction
+    - cac:auditd_audispd_remote_daemon_path
+    - cac:auditd_audispd_remote_daemon_type
+    - cac:auditd_audispd_syslog_plugin_activated
+    - cac:auditd_data_disk_error_action
+    - cac:auditd_data_disk_error_action_stig
+    - cac:auditd_data_disk_full_action
+    - cac:auditd_data_disk_full_action_stig
+    - cac:auditd_data_retention_action_mail_acct
+    - cac:auditd_data_retention_admin_space_left_action
+    - cac:auditd_data_retention_admin_space_left_percentage
+    - cac:auditd_data_retention_flush
+    - cac:auditd_data_retention_max_log_file
+    - cac:auditd_data_retention_max_log_file_action
+    - cac:auditd_data_retention_max_log_file_action_stig
+    - cac:auditd_data_retention_num_logs
+    - cac:auditd_data_retention_space_left
+    - cac:auditd_data_retention_space_left_action
+    - cac:auditd_data_retention_space_left_percentage
+    - cac:auditd_freq
+    - cac:auditd_local_events
+    - cac:auditd_log_format
+    - cac:auditd_name_format
+    - cac:auditd_overflow_action
+    - cac:auditd_write_logs
+    nist_800_53:
+    - AU-5
+    - CM-6
+    - AU-11
+    - AU-4
+    pci_dss:
+    - '10.7'
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/configure_auditd_data_retention/auditd_audispd_configure_sufficiently_large_partition/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/configure_auditd_data_retention/auditd_audispd_syslog_plugin_activated/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/configure_auditd_data_retention/auditd_data_retention_admin_space_left_percentage/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/configure_auditd_data_retention/auditd_data_retention_space_left_action/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/configure_auditd_data_retention/auditd_write_logs/rule.yml
+- id: NET-AUDIT-003
+  sheet: NET
+  category: AUDIT
+  title: Check the owner and mode of audit logs, rules and tools
+  objective: Finds audit logs, rule files or audit binaries that other users can read or change.
+  preconditions: *id001
+  steps:
+  - List the files in /var/log/audit and the directory itself.
+  - List /etc/audit/auditd.conf, /etc/audit/audit.rules and /etc/audit/rules.d.
+  - List the audit binaries auditctl, auditd, ausearch, aureport, autrace and augenrules.
+  - Make sure root owns each item and the modes are as strict as the standard sets.
+  example: stat -c "%U:%G %a %n" /var/log/audit /var/log/audit/* /etc/audit/auditd.conf /etc/audit/rules.d/* /sbin/auditctl /sbin/auditd /sbin/ausearch /sbin/aureport /sbin/augenrules
+  expected: Root owns audit logs, configuration and tools. Logs have a mode of 0600 or 0640, the log directory 0700 or 0750, and the binaries 0755 or stricter.
+  severity: High
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:directory_access_var_log_audit
+    - cac:directory_group_ownership_var_log_audit
+    - cac:directory_ownership_var_log_audit
+    - cac:directory_permissions_var_log_audit
+    - cac:file_audit_tools_group_ownership
+    - cac:file_audit_tools_ownership
+    - cac:file_audit_tools_permissions
+    - cac:file_group_ownership_var_log_audit
+    - cac:file_group_ownership_var_log_audit_stig
+    - cac:file_groupownership_audit_binaries
+    - cac:file_groupownership_audit_configuration
+    - cac:file_ownership_audit_binaries
+    - cac:file_ownership_audit_configuration
+    - cac:file_ownership_var_log_audit
+    - cac:file_ownership_var_log_audit_stig
+    - cac:file_permissions_audit_binaries
+    - cac:file_permissions_audit_configuration
+    - cac:file_permissions_audit_configuration_stig
+    - cac:file_permissions_etc_audit_auditd
+    - cac:file_permissions_etc_audit_auditd_stig
+    - cac:file_permissions_etc_audit_rules
+    - cac:file_permissions_etc_audit_rulesd
+    - cac:file_permissions_local_var_log_messages
+    - cac:file_permissions_var_log_audit
+    - cac:file_permissions_var_log_audit_stig
+    - cac:permissions_local_audit_binaries
+    - cac:permissions_local_var_log_audit
+    nist_800_53:
+    - AU-9
+    - AC-6
+    - CM-6
+    - AU-12
+    pci_dss:
+    - 10.5.1
+    - '10.5'
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/auditd_configure_rules/directory_access_var_log_audit/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/software/integrity/software-integrity/aide/file_audit_tools_permissions/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/auditd_configure_rules/file_ownership_var_log_audit/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/file_permissions_auditd/file_permissions_etc_audit_rules/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/permissions/permissions_local/permissions_local_var_log_audit/rule.yml
+- id: NET-AUDIT-004
+  sheet: NET
+  category: AUDIT
+  title: Check the base audit rules, immutable mode and OSPP rule set
+  objective: Finds hosts where an attacker can switch off or change audit rules after a login.
+  preconditions: *id001
+  steps:
+  - Read the rule files in /etc/audit/rules.d.
+  - Look for the first rule that clears old rules and for the backlog and failure mode settings.
+  - Look for the immutable flag -e 2 as the last rule.
+  - Look for the rules that watch module loading and login UIDs.
+  - Run auditctl -s and look at the enabled value.
+  example: cat /etc/audit/rules.d/*.rules ; auditctl -s | grep enabled ; auditctl -l | head -20 ; grep -rn "loginuid_immutable\|^-e " /etc/audit/rules.d/
+  expected: The rules start from a clean state, set a backlog limit and log failures to the system log. The configuration is immutable and the login UID cannot change.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:audit_basic_configuration
+    - cac:audit_immutable_login_uids
+    - cac:audit_module_load
+    - cac:audit_module_load_ppc64le
+    - cac:audit_ospp_general
+    - cac:audit_ospp_general_aarch64
+    - cac:audit_ospp_general_ppc64le
+    - cac:audit_rules_for_ospp
+    nist_800_53:
+    - AU-2
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/policy_rules/audit_basic_configuration/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/policy_rules/audit_module_load/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/policy_rules/audit_ospp_general/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/policy_rules/audit_ospp_general_ppc64le/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/policy_rules/audit_rules_for_ospp/rule.yml
+- id: NET-AUDIT-005
+  sheet: NET
+  category: AUDIT
+  title: Check audit rules for identity files, logins, sudoers and cron
+  objective: Finds hosts that do not record changes to accounts, logins, privilege rules and scheduled jobs.
+  preconditions: *id001
+  steps:
+  - Run auditctl -l and compare the output with the rules in /etc/audit/rules.d.
+  - Look for watches on /etc/passwd, /etc/shadow, /etc/group and /etc/gshadow.
+  - Look for watches on /etc/sudoers, /etc/sudoers.d, /etc/cron.d and /var/spool/cron.
+  - Look for watches on login, session and failure logs such as faillock, lastlog, wtmp, btmp and utmp.
+  - Change a test account and make sure ausearch shows the event.
+  example: auditctl -l | grep -E "passwd|shadow|group|gshadow|sudoers|cron|faillock|lastlog|wtmp|btmp|utmp|setuid" ; ausearch -k identity -ts recent ; augenrules --check
+  expected: Each identity, login, sudoers and cron file has an audit watch with a key. A change to a watched file creates an audit record.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    tool_check:
+    - cac:audit_rules_cron_execution
+    - cac:audit_rules_etc_cron_d
+    - cac:audit_rules_etc_group_open
+    - cac:audit_rules_etc_group_open_by_handle_at
+    - cac:audit_rules_etc_group_openat
+    - cac:audit_rules_etc_gshadow_open
+    - cac:audit_rules_etc_gshadow_open_by_handle_at
+    - cac:audit_rules_etc_gshadow_openat
+    - cac:audit_rules_etc_passwd_open
+    - cac:audit_rules_etc_passwd_open_by_handle_at
+    - cac:audit_rules_etc_passwd_openat
+    - cac:audit_rules_etc_shadow_open
+    - cac:audit_rules_etc_shadow_open_by_handle_at
+    - cac:audit_rules_etc_shadow_openat
+    - cac:audit_rules_login_events
+    - cac:audit_rules_login_events_faillock
+    - cac:audit_rules_login_events_faillog
+    - cac:audit_rules_login_events_lastlog
+    - cac:audit_rules_login_events_tallylog
+    - cac:audit_rules_session_events
+    - cac:audit_rules_session_events_btmp
+    - cac:audit_rules_session_events_utmp
+    - cac:audit_rules_session_events_wtmp
+    - cac:audit_rules_sudoers
+    - cac:audit_rules_sudoers_d
+    - cac:audit_rules_suid_auid_privilege_function
+    - cac:audit_rules_suid_privilege_function
+    - cac:audit_rules_sysadmin_actions
+    - cac:audit_rules_var_spool_cron
+    nist_800_53:
+    - AU-12
+    - AU-2
+    - AC-6
+    - CM-6
+    pci_dss:
+    - 10.2.2
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/auditd_configure_rules/audit_rules_cron_execution/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/auditd_configure_rules/audit_rules_etc_gshadow_openat/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/auditd_configure_rules/audit_login_events/audit_rules_login_events/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/auditd_configure_rules/audit_rules_session_events_utmp/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/auditd_configure_rules/audit_rules_var_spool_cron/rule.yml
+- id: NET-AUDIT-006
+  sheet: NET
+  category: AUDIT
+  title: Check audit rules for privileged commands and security tools
+  objective: Finds hosts that do not record the use of setuid programs and of tools that change access rules.
+  preconditions: *id001
+  steps:
+  - Find the setuid and setgid programs on the local file systems.
+  - Run auditctl -l and look for a rule for each program, with the auid filter and a key.
+  - Look for rules on chacl, setfacl, chcon, restorecon, semanage and setsebool.
+  - Look for rules on shutdown, reboot, poweroff and init.
+  - Run one program and look for the record with ausearch.
+  example: find / -xdev -type f \( -perm -4000 -o -perm -2000 \) 2>/dev/null ; auditctl -l | grep -E "privileged|perm=x" ; ausearch -k privileged -ts recent
+  expected: Each setuid and setgid program has an audit rule for user executions. The rules for access-change tools and for shutdown commands exist.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:audit_privileged_commands_init
+    - cac:audit_privileged_commands_poweroff
+    - cac:audit_privileged_commands_reboot
+    - cac:audit_privileged_commands_shutdown
+    - cac:audit_rules_execution_chacl
+    - cac:audit_rules_execution_chcon
+    - cac:audit_rules_execution_chmod
+    - cac:audit_rules_execution_restorecon
+    - cac:audit_rules_execution_rm
+    - cac:audit_rules_execution_semanage
+    - cac:audit_rules_execution_setfacl
+    - cac:audit_rules_execution_setfiles
+    - cac:audit_rules_execution_setsebool
+    - cac:audit_rules_execution_seunshare
+    - cac:audit_rules_privileged_commands
+    - cac:audit_rules_privileged_commands_apparmor_parser
+    - cac:audit_rules_privileged_commands_at
+    - cac:audit_rules_privileged_commands_chage
+    - cac:audit_rules_privileged_commands_chfn
+    - cac:audit_rules_privileged_commands_chsh
+    - cac:audit_rules_privileged_commands_crontab
+    - cac:audit_rules_privileged_commands_dbus_daemon_launch_helper
+    - cac:audit_rules_privileged_commands_fdisk
+    - cac:audit_rules_privileged_commands_fusermount
+    - cac:audit_rules_privileged_commands_fusermount3
+    - cac:audit_rules_privileged_commands_gpasswd
+    - cac:audit_rules_privileged_commands_grub2_set_bootflag
+    - cac:audit_rules_privileged_commands_insmod
+    - cac:audit_rules_privileged_commands_kmod
+    - cac:audit_rules_privileged_commands_modprobe
+    - cac:audit_rules_privileged_commands_mount
+    - cac:audit_rules_privileged_commands_mount_nfs
+    - cac:audit_rules_privileged_commands_newgidmap
+    - cac:audit_rules_privileged_commands_newgrp
+    - cac:audit_rules_privileged_commands_newuidmap
+    - cac:audit_rules_privileged_commands_pam_timestamp_check
+    - cac:audit_rules_privileged_commands_passmass
+    - cac:audit_rules_privileged_commands_passwd
+    - cac:audit_rules_privileged_commands_pkexec
+    - cac:audit_rules_privileged_commands_polkit_helper
+    - cac:audit_rules_privileged_commands_postdrop
+    - cac:audit_rules_privileged_commands_postqueue
+    - cac:audit_rules_privileged_commands_pt_chown
+    - cac:audit_rules_privileged_commands_rmmod
+    - cac:audit_rules_privileged_commands_ssh_agent
+    - cac:audit_rules_privileged_commands_ssh_keysign
+    - cac:audit_rules_privileged_commands_sssd_krb5_child
+    - cac:audit_rules_privileged_commands_sssd_ldap_child
+    - cac:audit_rules_privileged_commands_sssd_proxy_child
+    - cac:audit_rules_privileged_commands_sssd_selinux_child
+    - cac:audit_rules_privileged_commands_su
+    - cac:audit_rules_privileged_commands_sudo
+    - cac:audit_rules_privileged_commands_sudoedit
+    - cac:audit_rules_privileged_commands_umount
+    - cac:audit_rules_privileged_commands_unix2_chkpwd
+    - cac:audit_rules_privileged_commands_unix_chkpwd
+    - cac:audit_rules_privileged_commands_unix_update
+    - cac:audit_rules_privileged_commands_useradd
+    - cac:audit_rules_privileged_commands_userhelper
+    - cac:audit_rules_privileged_commands_usermod
+    - cac:audit_rules_privileged_commands_usernetctl
+    - cac:audit_rules_privileged_commands_utempter
+    - cac:audit_rules_privileged_commands_write
+    - cac:audit_rules_usergroup_modification
+    - cac:audit_rules_usergroup_modification_group
+    - cac:audit_rules_usergroup_modification_gshadow
+    - cac:audit_rules_usergroup_modification_nsswitch_conf
+    - cac:audit_rules_usergroup_modification_opasswd
+    - cac:audit_rules_usergroup_modification_pam_conf
+    - cac:audit_rules_usergroup_modification_pamd
+    - cac:audit_rules_usergroup_modification_passwd
+    - cac:audit_rules_usergroup_modification_shadow
+    - cac:audit_sudo_log_events
+    nist_800_53:
+    - AU-12
+    - AU-2
+    - AC-6
+    - CM-6
+    pci_dss:
+    - 10.2.2
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/auditd_configure_rules/audit_privileged_commands/audit_privileged_commands_init/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/auditd_configure_rules/audit_privileged_commands/audit_rules_privileged_commands_chfn/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/auditd_configure_rules/audit_privileged_commands/audit_rules_privileged_commands_passmass/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/auditd_configure_rules/audit_privileged_commands/audit_rules_privileged_commands_unix2_chkpwd/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/auditd_configure_rules/audit_sudo_log_events/rule.yml
+- id: NET-AUDIT-007
+  sheet: NET
+  category: AUDIT
+  title: Check audit rules for permission, owner and extended attribute changes
+  objective: Finds hosts that do not record changes of file modes, owners and extended attributes.
+  preconditions: *id001
+  steps:
+  - Run auditctl -l and compare the output with the rules in /etc/audit/rules.d.
+  - Look for rules on chmod, fchmod, fchmodat, chown, fchown, fchownat and lchown.
+  - Look for rules on setxattr, lsetxattr, fsetxattr, removexattr and the related calls.
+  - Look for the b32 and b64 variants and the auid filter.
+  - Run chmod on a test file and look for the record with ausearch.
+  example: auditctl -l | grep -E "chmod|chown|setxattr|removexattr" ; touch /tmp/t && chmod 600 /tmp/t && ausearch -k perm_mod -ts recent
+  expected: Rules exist for each permission, owner and attribute system call, for both 32-bit and 64-bit calls. A mode change creates an audit record.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:audit_owner_change_failed
+    - cac:audit_owner_change_failed_aarch64
+    - cac:audit_owner_change_failed_ppc64le
+    - cac:audit_owner_change_success
+    - cac:audit_owner_change_success_aarch64
+    - cac:audit_owner_change_success_ppc64le
+    - cac:audit_perm_change_failed
+    - cac:audit_perm_change_failed_aarch64
+    - cac:audit_perm_change_failed_ppc64le
+    - cac:audit_perm_change_success
+    - cac:audit_perm_change_success_aarch64
+    - cac:audit_perm_change_success_ppc64le
+    - cac:audit_rules_dac_modification_chmod
+    - cac:audit_rules_dac_modification_chown
+    - cac:audit_rules_dac_modification_fchmod
+    - cac:audit_rules_dac_modification_fchmodat
+    - cac:audit_rules_dac_modification_fchmodat2
+    - cac:audit_rules_dac_modification_fchown
+    - cac:audit_rules_dac_modification_fchownat
+    - cac:audit_rules_dac_modification_fremovexattr
+    - cac:audit_rules_dac_modification_fsetxattr
+    - cac:audit_rules_dac_modification_lchown
+    - cac:audit_rules_dac_modification_lremovexattr
+    - cac:audit_rules_dac_modification_lsetxattr
+    - cac:audit_rules_dac_modification_removexattr
+    - cac:audit_rules_dac_modification_setxattr
+    - cac:audit_rules_dac_modification_umount
+    - cac:audit_rules_dac_modification_umount2
+    - cac:audit_rules_successful_file_modification_chmod
+    - cac:audit_rules_successful_file_modification_chown
+    - cac:audit_rules_successful_file_modification_fremovexattr
+    - cac:audit_rules_successful_file_modification_fsetxattr
+    - cac:audit_rules_successful_file_modification_lremovexattr
+    - cac:audit_rules_successful_file_modification_lsetxattr
+    - cac:audit_rules_successful_file_modification_removexattr
+    - cac:audit_rules_successful_file_modification_setxattr
+    - cac:audit_rules_unsuccessful_file_modification_chmod
+    - cac:audit_rules_unsuccessful_file_modification_chown
+    - cac:audit_rules_unsuccessful_file_modification_fremovexattr
+    - cac:audit_rules_unsuccessful_file_modification_fsetxattr
+    - cac:audit_rules_unsuccessful_file_modification_lremovexattr
+    - cac:audit_rules_unsuccessful_file_modification_lsetxattr
+    - cac:audit_rules_unsuccessful_file_modification_removexattr
+    - cac:audit_rules_unsuccessful_file_modification_setxattr
+    nist_800_53:
+    - AU-2
+    - AU-12
+    - CM-6
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/policy_rules/audit_owner_change_failed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/policy_rules/audit_perm_change_success_ppc64le/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/auditd_configure_rules/audit_dac_actions/audit_rules_dac_modification_lremovexattr/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/auditd_configure_rules/audit_file_modification/audit_rules_successful_file_modification_lsetxattr/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/auditd_configure_rules/audit_file_modification/audit_rules_unsuccessful_file_modification_setxattr/rule.yml
+- id: NET-AUDIT-008
+  sheet: NET
+  category: AUDIT
+  title: Check audit rules for failed access, file creation, change and deletion
+  objective: Finds hosts that do not record denied access or the deletion and change of files by users.
+  preconditions: *id001
+  steps:
+  - Run auditctl -l and compare the output with the rules in /etc/audit/rules.d.
+  - Look for rules on open, openat, truncate and creat that log EACCES and EPERM results.
+  - Look for rules on unlink, unlinkat, rename, renameat and rmdir.
+  - Look for rules on file creation and change with success results.
+  - Try to open a protected file as a test user and look for the record with ausearch.
+  example: auditctl -l | grep -E "EACCES|EPERM|unlink|rename|rmdir|creat|truncate" ; ausearch -k access -ts recent ; ausearch -k delete -ts recent
+  expected: Failed access and file delete or change calls have audit rules. A denied access try creates an audit record with the user ID.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:audit_access_failed
+    - cac:audit_access_failed_aarch64
+    - cac:audit_access_failed_ppc64le
+    - cac:audit_access_success
+    - cac:audit_access_success_aarch64
+    - cac:audit_access_success_ppc64le
+    - cac:audit_create_failed
+    - cac:audit_create_failed_aarch64
+    - cac:audit_create_failed_ppc64le
+    - cac:audit_create_success
+    - cac:audit_create_success_aarch64
+    - cac:audit_create_success_ppc64le
+    - cac:audit_delete_failed
+    - cac:audit_delete_failed_aarch64
+    - cac:audit_delete_failed_ppc64le
+    - cac:audit_delete_success
+    - cac:audit_delete_success_aarch64
+    - cac:audit_delete_success_ppc64le
+    - cac:audit_modify_failed
+    - cac:audit_modify_failed_aarch64
+    - cac:audit_modify_failed_ppc64le
+    - cac:audit_modify_success
+    - cac:audit_modify_success_aarch64
+    - cac:audit_modify_success_ppc64le
+    - cac:audit_rules_file_deletion_events
+    - cac:audit_rules_file_deletion_events_rename
+    - cac:audit_rules_file_deletion_events_renameat
+    - cac:audit_rules_file_deletion_events_renameat2
+    - cac:audit_rules_file_deletion_events_rmdir
+    - cac:audit_rules_file_deletion_events_unlink
+    - cac:audit_rules_file_deletion_events_unlinkat
+    - cac:audit_rules_successful_file_modification_creat
+    - cac:audit_rules_successful_file_modification_fchmod
+    - cac:audit_rules_successful_file_modification_fchmodat
+    - cac:audit_rules_successful_file_modification_fchown
+    - cac:audit_rules_successful_file_modification_fchownat
+    - cac:audit_rules_successful_file_modification_ftruncate
+    - cac:audit_rules_successful_file_modification_lchown
+    - cac:audit_rules_successful_file_modification_open
+    - cac:audit_rules_successful_file_modification_open_by_handle_at
+    - cac:audit_rules_successful_file_modification_open_by_handle_at_o_creat
+    - cac:audit_rules_successful_file_modification_open_by_handle_at_o_trunc_write
+    - cac:audit_rules_successful_file_modification_open_o_creat
+    - cac:audit_rules_successful_file_modification_open_o_trunc_write
+    - cac:audit_rules_successful_file_modification_openat
+    - cac:audit_rules_successful_file_modification_openat_o_creat
+    - cac:audit_rules_successful_file_modification_openat_o_trunc_write
+    - cac:audit_rules_successful_file_modification_rename
+    - cac:audit_rules_successful_file_modification_renameat
+    - cac:audit_rules_successful_file_modification_truncate
+    - cac:audit_rules_successful_file_modification_unlink
+    - cac:audit_rules_successful_file_modification_unlinkat
+    - cac:audit_rules_unsuccessful_file_modification
+    - cac:audit_rules_unsuccessful_file_modification_creat
+    - cac:audit_rules_unsuccessful_file_modification_fchmod
+    - cac:audit_rules_unsuccessful_file_modification_fchmodat
+    - cac:audit_rules_unsuccessful_file_modification_fchown
+    - cac:audit_rules_unsuccessful_file_modification_fchownat
+    - cac:audit_rules_unsuccessful_file_modification_ftruncate
+    - cac:audit_rules_unsuccessful_file_modification_lchown
+    - cac:audit_rules_unsuccessful_file_modification_open
+    - cac:audit_rules_unsuccessful_file_modification_open_by_handle_at
+    - cac:audit_rules_unsuccessful_file_modification_open_by_handle_at_o_creat
+    - cac:audit_rules_unsuccessful_file_modification_open_by_handle_at_o_trunc_write
+    - cac:audit_rules_unsuccessful_file_modification_open_by_handle_at_rule_order
+    - cac:audit_rules_unsuccessful_file_modification_open_o_creat
+    - cac:audit_rules_unsuccessful_file_modification_open_o_trunc_write
+    - cac:audit_rules_unsuccessful_file_modification_open_rule_order
+    - cac:audit_rules_unsuccessful_file_modification_openat
+    - cac:audit_rules_unsuccessful_file_modification_openat_o_creat
+    - cac:audit_rules_unsuccessful_file_modification_openat_o_trunc_write
+    - cac:audit_rules_unsuccessful_file_modification_openat_rule_order
+    - cac:audit_rules_unsuccessful_file_modification_rename
+    - cac:audit_rules_unsuccessful_file_modification_renameat
+    - cac:audit_rules_unsuccessful_file_modification_renameat2
+    - cac:audit_rules_unsuccessful_file_modification_truncate
+    - cac:audit_rules_unsuccessful_file_modification_unlink
+    - cac:audit_rules_unsuccessful_file_modification_unlinkat
+    nist_800_53:
+    - AU-2
+    - AU-12
+    - CM-6
+    pci_dss:
+    - 10.2.1
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/policy_rules/audit_access_failed/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/policy_rules/audit_modify_failed_aarch64/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/auditd_configure_rules/audit_file_modification/audit_rules_successful_file_modification_open_by_handle_at/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/auditd_configure_rules/audit_file_modification/audit_rules_unsuccessful_file_modification_ftruncate/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/auditd_configure_rules/audit_file_modification/audit_rules_unsuccessful_file_modification_unlinkat/rule.yml
+- id: NET-AUDIT-009
+  sheet: NET
+  category: AUDIT
+  title: Check audit rules for kernel modules, time, network and MAC changes
+  objective: Finds hosts that do not record module loads, clock changes, network setting changes and policy changes.
+  preconditions: *id001
+  steps:
+  - Look for rules on init_module, finit_module and delete_module.
+  - Look for rules on adjtimex, settimeofday, clock_settime and /etc/localtime.
+  - Look for rules on sethostname, setdomainname and the network configuration files.
+  - Look for watches on the SELinux or AppArmor policy directories.
+  - Look for the audit rules for system shutdown, media export and journal files.
+  example: auditctl -l | grep -E "module|adjtimex|settimeofday|clock_settime|localtime|sethostname|/etc/hosts|selinux|apparmor|mount" ; ausearch -k modules -ts recent
+  expected: Rules exist for module loads, clock changes, network identity changes and mandatory access control policy files. Each rule has a key.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:audit_rules_continue_loading
+    - cac:audit_rules_enable_syscall_auditing
+    - cac:audit_rules_immutable
+    - cac:audit_rules_immutable_login_uids
+    - cac:audit_rules_kernel_module_loading
+    - cac:audit_rules_kernel_module_loading_create
+    - cac:audit_rules_kernel_module_loading_delete
+    - cac:audit_rules_kernel_module_loading_finit
+    - cac:audit_rules_kernel_module_loading_init
+    - cac:audit_rules_kernel_module_loading_query
+    - cac:audit_rules_mac_modification
+    - cac:audit_rules_mac_modification_etc_apparmor
+    - cac:audit_rules_mac_modification_etc_apparmor_d
+    - cac:audit_rules_mac_modification_etc_selinux
+    - cac:audit_rules_mac_modification_usr_share
+    - cac:audit_rules_mac_modification_var_lib_selinux
+    - cac:audit_rules_media_export
+    - cac:audit_rules_networkconfig_modification
+    - cac:audit_rules_networkconfig_modification_etc_hosts
+    - cac:audit_rules_networkconfig_modification_etc_issue
+    - cac:audit_rules_networkconfig_modification_etc_issue_net
+    - cac:audit_rules_networkconfig_modification_etc_networkmanager_system_connections
+    - cac:audit_rules_networkconfig_modification_etc_sysconfig_network
+    - cac:audit_rules_networkconfig_modification_hostname_file
+    - cac:audit_rules_networkconfig_modification_network_scripts
+    - cac:audit_rules_networkconfig_modification_networkmanager
+    - cac:audit_rules_networkconfig_modification_setdomainname
+    - cac:audit_rules_networkconfig_modification_sethostname
+    - cac:audit_rules_system_shutdown
+    - cac:audit_rules_time_adjtimex
+    - cac:audit_rules_time_clock_settime
+    - cac:audit_rules_time_settimeofday
+    - cac:audit_rules_time_stime
+    - cac:audit_rules_time_watch_localtime
+    - cac:audit_rules_var_log_journal
+    nist_800_53:
+    - CM-6
+    - AU-2
+    - AU-12
+    - AC-6
+    pci_dss:
+    - 10.4.2
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/auditd_configure_rules/audit_rules_continue_loading/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/auditd_configure_rules/audit_kernel_module_loading/audit_rules_kernel_module_loading_init/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/auditd_configure_rules/audit_rules_networkconfig_modification/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/auditd_configure_rules/audit_rules_networkconfig_modification_setdomainname/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/auditing/auditd_configure_rules/audit_rules_var_log_journal/rule.yml
+- id: NET-AUDIT-010
+  sheet: NET
+  category: AUDIT
+  title: Check rsyslog and syslog-ng files, remote input and logging services
+  objective: Finds log services that accept remote messages without a need or create log files that others can read.
+  preconditions: *id001
+  steps:
+  - Look at the state of the rsyslog or syslog-ng service and make sure only one log service is active.
+  - Read the rsyslog configuration for the FileCreateMode and the owner of the files.
+  - Look for imtcp, imudp and the listen options. Make sure they are off unless the host is a log server.
+  - Look for rules that log cron, authentication and kernel messages.
+  - Look at the logwatch settings on a log server.
+  example: systemctl is-active rsyslog syslog-ng journald ; grep -rnE "FileCreateMode|imtcp|imudp|InputTCPServerRun|\$ModLoad" /etc/rsyslog.conf /etc/rsyslog.d/ ; ss -ulnp | grep :514 ; grep -E "cron|authpriv"
+    /etc/rsyslog.conf
+  expected: One log service runs and logs the standard facilities. New log files have a mode of 0640 or stricter. Remote input is off, except on a named log server.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:disable_logwatch_for_logserver
+    - cac:ensure_journald_and_rsyslog_not_active_together
+    - cac:ensure_rtc_utc_configuration
+    - cac:logging_services_active
+    - cac:logwatch_configured_hostlimit
+    - cac:logwatch_configured_splithosts
+    - cac:package_rsyslog-gnutls_installed
+    - cac:package_rsyslog_installed
+    - cac:package_syslogng_installed
+    - cac:rsyslog_accept_remote_messages_tcp
+    - cac:rsyslog_accept_remote_messages_udp
+    - cac:rsyslog_cron_logging
+    - cac:rsyslog_filecreatemode
+    - cac:rsyslog_files_groupownership
+    - cac:rsyslog_files_ownership
+    - cac:rsyslog_files_permissions
+    - cac:rsyslog_logging_configured
+    - cac:rsyslog_nolisten
+    - cac:rsyslog_remote_access_monitoring
+    - cac:service_rsyslog_enabled
+    - cac:service_syslogng_enabled
+    - cac:syslogng_filecreatemode
+    - cac:syslogng_nolisten
+    nist_800_53:
+    - CM-6
+    - AU-6
+    - CM-7
+    - AC-6
+    pci_dss:
+    - 10.5.1
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/logging/disable_logwatch_for_logserver/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/logging/configure_logwatch_on_logserver/logwatch_configured_splithosts/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/logging/ensure_rsyslog_log_file_configuration/rsyslog_cron_logging/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/logging/rsyslog_accepting_remote_messages/rsyslog_nolisten/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/logging/syslogng/syslogng_accepting_remote_messages/syslogng_nolisten/rule.yml
+- id: NET-AUDIT-011
+  sheet: NET
+  category: AUDIT
+  title: Check journald storage, forwarding and journal file permissions
+  objective: Finds hosts where the system journal is lost at restart or can be read by other users.
+  preconditions: *id001
+  steps:
+  - Read /etc/systemd/journald.conf and the files under journald.conf.d.
+  - Look at Storage, Compress and ForwardToSyslog.
+  - List /var/log/journal and the journal files with their owner and mode.
+  - Look at the owner and mode of the journalctl program.
+  - Look for the journal-remote socket and make sure it is off unless the host receives logs.
+  example: systemd-analyze cat-config systemd/journald.conf ; stat -c "%U:%G %a %n" /var/log/journal /var/log/journal/* /usr/bin/journalctl ; systemctl is-enabled systemd-journal-remote.socket
+  expected: Storage is persistent. Journal files and the journal directory are owned by root and the systemd-journal group with restricted modes. The remote receive socket is off.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:dir_groupowner_system_journal
+    - cac:dir_owner_system_journal
+    - cac:dir_permissions_system_journal
+    - cac:file_groupowner_journalctl
+    - cac:file_groupowner_system_journal
+    - cac:file_owner_journalctl
+    - cac:file_owner_system_journal
+    - cac:file_permissions_journalctl
+    - cac:file_permissions_system_journal
+    - cac:journald_compress
+    - cac:journald_disable_forward_to_syslog
+    - cac:journald_forward_to_syslog
+    - cac:journald_storage
+    - cac:package_systemd-journal-remote_installed
+    - cac:service_systemd-journald_enabled
+    - cac:socket_systemd-journal-remote_disabled
+    nist_800_53:
+    - SC-24
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/logging/journald/dir_groupowner_system_journal/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/logging/journald/file_groupowner_system_journal/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/logging/journald/file_permissions_system_journal/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/logging/journald/journald_storage/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/logging/journald/socket_systemd-journal-remote_disabled/rule.yml
+- id: NET-AUDIT-012
+  sheet: NET
+  category: AUDIT
+  title: Check /var/log file permissions and the log rotation setup
+  objective: Finds log files that all users can read or change and logs that grow with no rotation.
+  preconditions: *id001
+  steps:
+  - List the files and directories under /var/log with their owner, group and mode.
+  - Look for log files with a mode wider than 0640 and for files with the wrong group.
+  - Look at the package and the timer or cron job for logrotate.
+  - Read /etc/logrotate.conf and look at the rotation count and the size limits.
+  example: find /var/log -type f \( -perm -0004 -o -perm -0020 \) -ls ; stat -c "%U:%G %a %n" /var/log/messages /var/log/secure /var/log/syslog /var/log/auth.log /var/log/wtmp /var/log/btmp ; systemctl
+    is-enabled logrotate.timer ; grep -vE "^#|^$" /etc/logrotate.conf
+  expected: Log files are not readable or changeable by other users. Root owns them and the modes follow the standard. Logrotate runs on a schedule.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    tool_check:
+    - cac:ensure_logrotate_activated
+    - cac:file_groupowner_var_log
+    - cac:file_groupowner_var_log_auth
+    - cac:file_groupowner_var_log_cloud_init
+    - cac:file_groupowner_var_log_journal
+    - cac:file_groupowner_var_log_lastlog
+    - cac:file_groupowner_var_log_localmessages
+    - cac:file_groupowner_var_log_messages
+    - cac:file_groupowner_var_log_secure
+    - cac:file_groupowner_var_log_syslog
+    - cac:file_groupowner_var_log_waagent
+    - cac:file_groupowner_var_log_wbtmp
+    - cac:file_groupownerships_var_log
+    - cac:file_groupownerships_var_log_apt
+    - cac:file_groupownerships_var_log_gdm
+    - cac:file_groupownerships_var_log_gdm3
+    - cac:file_groupownerships_var_log_landscape
+    - cac:file_groupownerships_var_log_sssd
+    - cac:file_owner_var_log
+    - cac:file_owner_var_log_auth
+    - cac:file_owner_var_log_cloud_init
+    - cac:file_owner_var_log_journal
+    - cac:file_owner_var_log_lastlog
+    - cac:file_owner_var_log_localmessages
+    - cac:file_owner_var_log_messages
+    - cac:file_owner_var_log_secure
+    - cac:file_owner_var_log_syslog
+    - cac:file_owner_var_log_waagent
+    - cac:file_owner_var_log_wbtmp
+    - cac:file_ownerships_var_log
+    - cac:file_ownerships_var_log_apt
+    - cac:file_ownerships_var_log_gdm
+    - cac:file_ownerships_var_log_gdm3
+    - cac:file_ownerships_var_log_landscape
+    - cac:file_ownerships_var_log_sssd
+    - cac:file_permissions_var_log
+    - cac:file_permissions_var_log_apt
+    - cac:file_permissions_var_log_auth
+    - cac:file_permissions_var_log_cloud-init
+    - cac:file_permissions_var_log_gdm
+    - cac:file_permissions_var_log_gdm3
+    - cac:file_permissions_var_log_lastlog
+    - cac:file_permissions_var_log_localmessages
+    - cac:file_permissions_var_log_messages
+    - cac:file_permissions_var_log_secure
+    - cac:file_permissions_var_log_sssd
+    - cac:file_permissions_var_log_stig
+    - cac:file_permissions_var_log_syslog
+    - cac:file_permissions_var_log_waagent
+    - cac:file_permissions_var_log_wbtmp
+    - cac:package_logrotate_installed
+    - cac:permissions_local_var_log
+    - cac:timer_logrotate_enabled
+    nist_800_53:
+    - CM-6
+    - SI-11
+    pci_dss:
+    - '10.7'
+  sources_read:
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/logging/log_rotation/ensure_logrotate_activated/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/permissions/files/permissions_var_log_dir/file_groupownerships_var_log_apt/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/permissions/files/permissions_var_log_dir/file_owner_var_log_syslog/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/permissions/files/permissions_var_log_dir/file_permissions_var_log_gdm/rule.yml
+  - sources/repos/ComplianceAsCode/linux_os/guide/system/logging/log_rotation/timer_logrotate_enabled/rule.yml

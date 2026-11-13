@@ -1,0 +1,251 @@
+- id: API-INV-001
+  sheet: API
+  category: INV
+  title: Compare the inventory of API hosts with the exposed hosts
+  objective: Finds API hosts that are not in the inventory or whose purpose is unclear.
+  steps:
+  - Get the inventory of API hosts with environment, network exposure and version.
+  - List hosts from DNS, certificate logs, the cloud account and the gateway.
+  - Compare the two lists.
+  - Write down hosts that have no owner, no environment or no version.
+  example: subfinder -d example.com | httpx -title -tech-detect; amass enum -passive; crt.sh query; cloud API listing of gateways.
+  expected: Every exposed API host is in the inventory with environment, audience and version. No host is unknown.
+  severity: Medium
+  test_type: Manual
+  refs:
+    api_top10:
+    - API9:2023
+    wstg:
+    - WSTG-APIT-01
+    cwe:
+    - CWE-1059
+    attack:
+    - T1590
+    - T1596
+  see:
+  - WEB-INFO-004
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa9-improper-inventory-management.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/01-API_Reconnaissance.md
+- id: API-INV-002
+  sheet: API
+  category: INV
+  title: Find old, beta and undocumented API versions and test them
+  objective: Finds retired or test versions that run with weaker controls.
+  steps:
+  - 'Change the version in the path, header or host: v1, v2, beta, internal, test.'
+  - Search archives and old documents for retired endpoints.
+  - Send the same request to each version that answers.
+  - Compare the authentication, authorization and limits with the current version.
+  example: waybackurls api.example.com | grep -E '/v[0-9]'; gau; ffuf -u https://api.example/FUZZ/users -w versions.txt.
+  expected: Retired versions are off. Each version that runs has the same security controls as the current version.
+  severity: High
+  test_type: Manual
+  refs:
+    api_top10:
+    - API9:2023
+    wstg:
+    - WSTG-APIT-01
+    cwe:
+    - CWE-1059
+    capec:
+    - CAPEC-36
+    - CAPEC-121
+    attack:
+    - T1595.003
+    - T1593
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa9-improper-inventory-management.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/01-API_Reconnaissance.md
+- id: API-INV-003
+  sheet: API
+  category: INV
+  title: Compare controls on non-production hosts with production
+  objective: Finds beta, staging or test hosts that run the same API without the protection of production.
+  preconditions:
+  - Test only the hosts that are in scope.
+  steps:
+  - Find the staging, beta and test hosts of the API.
+  - Repeat a rate limit test and a login brute force test on each host.
+  - Check the gateway, WAF and authentication of each host.
+  - Check which data these hosts hold.
+  example: ffuf against beta.api.example.com/password/reset/confirm; compare response headers of both hosts; review of the DNS records.
+  expected: Non-production hosts have the same controls as production or are not reachable from the internet. They hold no production data.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    api_top10:
+    - API9:2023
+    - API4:2023
+    cwe:
+    - CWE-1059
+    - CWE-200
+    capec:
+    - CAPEC-121
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa9-improper-inventory-management.md
+  - sources/repos/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption.md
+- id: API-INV-004
+  sheet: API
+  category: INV
+  title: Check that API documentation is limited to authorized users
+  objective: Finds public API descriptions and explorers that expose the full attack surface.
+  steps:
+  - Request /openapi.json, /swagger.json, /api-docs, /doc and /swagger on every API host.
+  - Request them without a token and with a low-privilege token.
+  - Compare the document with the routes that really exist.
+  - Look for internal routes and test servers in the document.
+  example: curl -s https://api.example/openapi.json | jq '.paths|keys'; ZAP OpenAPI add-on; nuclei -t exposures/apis.
+  expected: API descriptions and explorers are available only to authorized users and only for the routes that the user may call.
+  severity: Low
+  test_type: Manual
+  refs:
+    api_top10:
+    - API9:2023
+    wstg:
+    - WSTG-APIT-01
+    cheatsheet:
+    - REST_Assessment_Cheat_Sheet
+    cwe:
+    - CWE-1059
+    - CWE-200
+  see:
+  - WEB-CONF-003
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa9-improper-inventory-management.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/01-API_Reconnaissance.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Assessment_Cheat_Sheet.md
+- id: API-INV-005
+  sheet: API
+  category: INV
+  title: Compare the API description with the real behavior
+  objective: Finds undocumented endpoints, parameters and security rules in the real API.
+  steps:
+  - Import the OpenAPI file into a proxy or a test tool.
+  - Call endpoints that the file does not list and send fields that it does not define.
+  - Build a table of the effective security rules for each operation, with overrides of the global rule.
+  - Write down each difference between file and behavior.
+  example: ZAP OpenAPI add-on; Burp OpenAPI Parser; Schemathesis; jq on the security and paths keys of the file.
+  expected: The description lists all endpoints, parameters, authentication, errors and limits that the API has. No difference remains.
+  severity: Medium
+  test_type: Manual
+  refs:
+    api_top10:
+    - API9:2023
+    wstg:
+    - WSTG-APIT-01
+    cheatsheet:
+    - REST_Assessment_Cheat_Sheet
+    cwe:
+    - CWE-1059
+    capec:
+    - CAPEC-36
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa9-improper-inventory-management.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/01-API_Reconnaissance.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Assessment_Cheat_Sheet.md
+- id: API-INV-006
+  sheet: API
+  category: INV
+  title: Search public sources and client code for API information
+  objective: Finds leaked API documents, keys and hidden endpoints in public sources.
+  steps:
+  - Search web and code hosts for the API host name, the paths and keys.
+  - Read the JavaScript and mobile client for API routes and secrets.
+  - Read robots.txt and sitemap files for API paths.
+  - Check collections shared on API directories.
+  example: Google dorks site:example.com inurl:/api; GitHub code search for the host; JSMiner; trufflehog github --org example.
+  expected: No API key, internal route or private document is in public sources. Findings go to the incident process.
+  severity: Medium
+  test_type: Manual
+  refs:
+    api_top10:
+    - API9:2023
+    wstg:
+    - WSTG-APIT-01
+    cwe:
+    - CWE-200
+    - CWE-538
+    attack:
+    - T1593
+    - T1589
+  see:
+  - WEB-INFO-001
+  - WEB-INFO-005
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa9-improper-inventory-management.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/12-API_Testing/01-API_Reconnaissance.md
+- id: API-INV-007
+  sheet: API
+  category: INV
+  title: Review the inventory of integrated services and sensitive data flows
+  objective: Finds data shared with third parties without approval, inventory or detail.
+  steps:
+  - Read the list of third-party services that the API calls or that call the API.
+  - For each, find the business reason, the approval and the data types shared.
+  - Compare with real outbound traffic of a test environment.
+  - Look for flows that are not in the list.
+  example: Review of the architecture document; mitmproxy capture of outbound calls; data flow diagram per service.
+  expected: Each third-party data flow has an owner, an approval and a list of data types. No unknown flow exists.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    api_top10:
+    - API9:2023
+    cheatsheet:
+    - Microservices_based_Security_Arch_Doc_Cheat_Sheet
+    cwe:
+    - CWE-1059
+    - CWE-200
+  see:
+  - WEB-ARCH-001
+  - WEB-DATA-004
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa9-improper-inventory-management.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Microservices_based_Security_Arch_Doc_Cheat_Sheet.md
+- id: API-INV-008
+  sheet: API
+  category: INV
+  title: Check the retirement plan and the security updates for old API versions
+  objective: Finds versions that stay open without a plan or without security patches.
+  steps:
+  - Read the version policy and the retirement dates.
+  - List the versions that run and the clients that still use them.
+  - Find security fixes of the new version and check if the old version has them.
+  - Check that documentation is built in the pipeline and stays current.
+  example: Review of the changelog and the gateway analytics per version; diff of the security rules between versions.
+  expected: Each version has a retirement date. Security fixes are moved to old versions or the old version is closed.
+  severity: Low
+  test_type: Config Review
+  refs:
+    api_top10:
+    - API9:2023
+    cwe:
+    - CWE-1059
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa9-improper-inventory-management.md
+- id: API-INV-009
+  sheet: API
+  category: INV
+  title: Check that non-production APIs do not use production data
+  objective: Finds test environments that hold real user data under weaker controls.
+  steps:
+  - List the databases and storage that the non-production APIs use.
+  - Look for real names, emails and tokens in test data.
+  - If production data is needed, compare the controls with production.
+  example: Review of data copy jobs; sample queries on the test database; scan for personal data patterns.
+  expected: Non-production APIs use synthetic data. Any real data has the same controls as in production.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    api_top10:
+    - API9:2023
+    cwe:
+    - CWE-200
+    - CWE-359
+  see:
+  - WEB-DATA-001
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa9-improper-inventory-management.md

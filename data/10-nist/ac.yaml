@@ -1,0 +1,327 @@
+- id: NIST-AC-001
+  sheet: NIST
+  category: AC
+  title: Review the account lifecycle from creation to removal
+  objective: Finds accounts that stay active after the person or service no longer needs them.
+  preconditions:
+  - Admin read access and a test account request process. Do not use real user accounts.
+  steps:
+  - 'List the account types: individual, group, role, service, guest, temporary and emergency.'
+  - Read the rules for who may approve, create, change and remove each account type.
+  - Create a test account and follow the approval steps.
+  - Change the roles of the test account and disable it.
+  - Remove the test account and look for left-over sessions, tokens, keys and shared objects.
+  example: 'Compare the account export with the HR or ticket list: aws iam generate-credential-report; ldapsearch -b DC=corp -s sub ''(objectClass=user)'' lastLogon'
+  expected: Each account has an owner and an approval record. Disabled accounts cannot log in, and their tokens and sessions stop working at once.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    nist_800_53:
+    - AC-2
+    - AC-2(1)
+    - AC-2(3)
+    - AC-2(9)
+    - IA-4
+    cwe:
+    - CWE-284
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NIST-AC-002
+  sheet: NIST
+  category: AC
+  title: Check that temporary, emergency and inactive accounts end by themselves
+  objective: Finds accounts and grants that never expire because only a person can remove them.
+  preconditions:
+  - Admin access to the user store and a way to move the system clock or wait.
+  steps:
+  - Find the accounts and grants that have a set end date.
+  - Create a temporary account with a short life and wait until it ends.
+  - Try to log in with the temporary account after the end time.
+  - List accounts with no logon for the period that the policy sets.
+  - Make sure the system disables each inactive account within the policy time.
+  example: 'Check last logon: aws iam get-credential-report; Get-ADUser -Filter * -Properties LastLogonDate; psql -c ''select rolname,rolvaliduntil from pg_roles'''
+  expected: Temporary and emergency accounts stop working at the end time. Inactive accounts are disabled within the policy time and the system records the change.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    nist_800_53:
+    - AC-2(2)
+    - AC-2(3)
+    - AC-2(5)
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NIST-AC-003
+  sheet: NIST
+  category: AC
+  title: Check that every account management action is written to the audit log
+  objective: Finds account changes that leave no record, so misuse cannot be traced.
+  preconditions:
+  - Admin access and a test account. Use a test system.
+  steps:
+  - Create, change, enable, disable and remove a test account.
+  - Add and remove a role of the test account.
+  - Read the audit log for each of the actions.
+  - Make sure each record names the actor, the target account, the time and the result.
+  example: Search the audit log for the test account name; for example grep -i TESTUSER /var/log/audit/audit.log; aws cloudtrail lookup-events --lookup-attributes AttributeKey=Username,AttributeValue=TESTUSER
+  expected: Each account management action has one audit record with the actor, the target, the time and the result.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    nist_800_53:
+    - AC-2(4)
+    - AU-2
+    - AU-12
+    - AC-6(9)
+    cwe:
+    - CWE-778
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NIST-AC-004
+  sheet: NIST
+  category: AC
+  title: Review how privileged roles are assigned, watched and revoked
+  objective: Finds privileged accounts with no owner, no review or no alert on role changes.
+  preconditions:
+  - Admin read access and a test account.
+  steps:
+  - List all accounts that hold a privileged or security role.
+  - Compare the list with the approved list of people for each role.
+  - Add a test account to a privileged role.
+  - Look for an alert or a record of the role change.
+  - Remove the role and make sure the access ends.
+  example: kubectl get clusterrolebindings -o wide; aws iam list-entities-for-policy --policy-arn arn:aws:iam::aws:policy/AdministratorAccess; net localgroup administrators
+  expected: Only approved people hold privileged roles. Each role change creates a record and an alert, and a removed role ends the access at once.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    nist_800_53:
+    - AC-2(7)
+    - AC-5
+    - AC-6(1)
+    - AC-6(5)
+    cwe:
+    - CWE-269
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NIST-AC-005
+  sheet: NIST
+  category: AC
+  title: Check that each process and service runs with least privilege
+  objective: Finds services that run as root or administrator or hold more rights than their task needs.
+  preconditions:
+  - Shell or console access to a test host with read rights.
+  steps:
+  - List the processes and services of the system and the account of each.
+  - Read the file, network and system rights of each account.
+  - Find rights that the documented task does not need.
+  - Run a function that needs a high right as an ordinary user.
+  - Make sure the system refuses the function.
+  example: ps -eo user,pid,cmd | grep -v '^root' ; sc qc SERVICE; systemd-analyze security UNIT; getcap -r / 2>/dev/null
+  expected: No process runs with more rights than its task needs. Ordinary users cannot start privileged functions or raise their own privilege.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    nist_800_53:
+    - AC-6
+    - AC-6(2)
+    - AC-6(8)
+    - AC-6(10)
+    - SA-8(14)
+    cwe:
+    - CWE-250
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NIST-AC-006
+  sheet: NIST
+  category: AC
+  title: Check the logon failure limit and the way to unlock an account
+  objective: Finds logons that allow unlimited guesses, or a lockout that an attacker can use to block users.
+  preconditions:
+  - A test account. Do not run on production. Agree the lockout effect with the owner.
+  steps:
+  - Read the failed logon limit and the lockout or delay rule for each logon interface.
+  - Send wrong passwords for one test account until the limit is reached.
+  - Send the correct password after the limit and look at the response.
+  - Try the alternate factor or the unlock path that the system offers.
+  - Make sure the unlock path has its own limit of tries.
+  example: hydra -l TESTUSER -P short.txt -t 1 https://HOST/login; check Retry-After headers and the lockout events in the log
+  expected: The system limits consecutive failed logons and then delays or locks the account. The unlock path has a limit and a record.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    nist_800_53:
+    - AC-7
+    - AC-7(4)
+    - IA-5(1)
+    cwe:
+    - CWE-307
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/extra/nist-800-63b.html
+- id: NIST-AC-007
+  sheet: NIST
+  category: AC
+  title: Check the system use notice before logon
+  objective: Finds logon screens that show no required legal, privacy or monitoring notice.
+  preconditions:
+  - Approved notice text from the owner of the system.
+  steps:
+  - Find the notice text that the policy requires for each logon interface.
+  - 'Open each interface: web, console, SSH, API portal and admin tool.'
+  - Look for the notice before the credential fields.
+  - Make sure the user must accept the notice, or can read it, before access starts.
+  example: 'ssh -v HOST (look for Banner text); curl -s https://HOST/login | grep -i notice; sshd_config: Banner /etc/issue.net'
+  expected: Each logon interface shows the approved notice before access. The text is the same as the approved text.
+  severity: Low
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    nist_800_53:
+    - AC-8
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NIST-AC-008
+  sheet: NIST
+  category: AC
+  title: Check that the user sees the last logon date and time
+  objective: Finds systems that cannot show a user that someone else used the account.
+  preconditions:
+  - A test account and two devices.
+  steps:
+  - Log in with a test account and note the time.
+  - Log out and log in again.
+  - Look for the time and the place of the last successful logon on screen.
+  - Look for the count of failed logons since the last success.
+  - Make sure the data is correct when you log in from a second device.
+  example: 'SSH: PrintLastLog yes in sshd_config; web: look at the account security page; Windows: policy DisplayLastLogonInfo'
+  expected: After logon the user sees the correct time and place of the last logon. The user can see failed logons since then.
+  severity: Low
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    nist_800_53:
+    - AC-9
+    - AC-2(12)
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NIST-AC-009
+  sheet: NIST
+  category: AC
+  title: Check the session lock and that it hides the screen content
+  objective: Finds sessions that stay open on an unattended device and show data to other people.
+  preconditions:
+  - A client that has a lock function. Use a test account.
+  steps:
+  - Read the idle time after which the session must lock.
+  - Leave a test session idle until the lock starts.
+  - Look at the screen and make sure it shows no application data.
+  - Try to use the session without new credentials.
+  - Unlock with valid credentials and make sure the work state is kept.
+  example: 'Windows: InactivityTimeoutSecs; Linux: gsettings get org.gnome.desktop.session idle-delay; web client: leave tab idle and send a request'
+  expected: The session locks after the set idle time and hides the content. Access returns only after the user proves identity again.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    nist_800_53:
+    - AC-11
+    - AC-11(1)
+    - AC-12
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NIST-AC-010
+  sheet: NIST
+  category: AC
+  title: Check the timeout warning and the logout message
+  objective: Finds sessions that end without a warning or leave the user unsure if the session is closed.
+  preconditions:
+  - A test account.
+  steps:
+  - Read the idle limit and the overall limit of the session.
+  - Use a test session and wait for the warning time.
+  - Look for a message that tells the user when the session ends.
+  - Let the session end and look for an explicit logout message.
+  - Log out with the logout button and look for the same message.
+  example: 'Browser: wait for the idle limit with the developer tools open; look for a 401 response and the logout page text'
+  expected: The user gets a warning before the session ends and an explicit message when it ends. The session cannot be used after that.
+  severity: Low
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    nist_800_53:
+    - AC-12
+    - AC-12(1)
+    - AC-12(2)
+    - AC-12(3)
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/extra/nist-800-63b.html
+- id: NIST-AC-011
+  sheet: NIST
+  category: AC
+  title: Check the audited emergency override of access control
+  objective: Finds break-glass paths that bypass access control with no approval, limit or record.
+  preconditions:
+  - Agreement of the system owner. Do not run on production.
+  steps:
+  - Find the break-glass or emergency access paths of the system.
+  - Read who may start each path and under which condition.
+  - Start the path with a test case.
+  - Make sure the system limits the time and the scope of the override.
+  - Look for audit records and an alert for the start and the end.
+  example: Check break-glass accounts in the IdP; kubectl auth can-i --list --as=EMERGENCY-USER; read the vault emergency policy
+  expected: Only named people can start the override. It ends by itself, and the system records and reports each use.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    nist_800_53:
+    - AC-3(10)
+    - AC-2(2)
+    - AC-6(9)
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NIST-AC-012
+  sheet: NIST
+  category: AC
+  title: Check that sharing and delegation of access follows the policy
+  objective: Finds users who can pass access to other people or change access rules for their own objects without limit.
+  preconditions:
+  - Two test accounts and one test object.
+  steps:
+  - List the functions that let a user share an object or grant rights to others.
+  - Share a test object with a second test user.
+  - Try to share the object with a user outside the allowed group.
+  - Let the second user share the object again.
+  - Look for audit records of the sharing and the changes of rights.
+  example: 'Test share links and ACL changes: curl -X POST https://HOST/api/files/ID/share -d ''{"user":"OUTSIDER"}'''
+  expected: Users share only inside the limits of the policy. The system records each grant and each change, and the owner can revoke it.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    nist_800_53:
+    - AC-3(4)
+    - AC-2(11)
+    cwe:
+    - CWE-284
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json

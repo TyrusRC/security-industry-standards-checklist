@@ -1,0 +1,63 @@
+- id: K8S-EXP-007
+  sheet: K8S
+  category: EXP
+  title: Check that worker nodes have no public IP addresses
+  objective: Finds nodes that the Internet can reach directly.
+  steps:
+  - List the nodes with their external IP addresses.
+  - Check the subnet and route table of each node pool.
+  - Scan the external addresses of nodes from an outside network.
+  - Check that nodes use a NAT gateway for outbound traffic.
+  example: kubectl get nodes -o wide; nmap -Pn <node-external-ip>
+  expected: Nodes have only private addresses. Services reach the Internet through load balancers or a NAT gateway.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K06
+    cloud_native_top10:
+    - CNAS-6
+    cwe:
+    - CWE-668
+    attack:
+    - T1133
+    nist_800_53:
+    - SC-7
+    tool_check:
+    - kubescape:C-0229
+    - kubescape:C-0248
+    other:
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Network separation and hardening, Worker node segmentation
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0229-ensureclustersarecreatedwithprivatenodes.json
+  - sources/repos/regolibrary/controls/C-0248-ensureclustersarecreatedwithprivatenodes.json
+  - sources/nsa_k8s/nsa_k8s_hardening.md
+- id: K8S-EXP-008
+  sheet: K8S
+  category: EXP
+  title: Check firewall and network policy limits around the control plane
+  objective: Finds control plane ports that untrusted networks can reach.
+  steps:
+  - Read the firewall rules for port 6443 and the other control plane ports.
+  - Read the network policies of the kube-system namespace.
+  - From a user network and from a worker node, try to reach each control plane port.
+  - Make sure the rules allow the control plane to talk to the worker nodes.
+  example: nmap -Pn -p 6443,2379,2380,10250,10257,10259 <control-plane-ip>; kubectl -n kube-system get netpol
+  expected: Only trusted networks reach the API server. Network rules around kube-system block Internet access and still allow control plane traffic.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K06
+    cloud_native_top10:
+    - CNAS-6
+    cwe:
+    - CWE-668
+    attack:
+    - T1133
+    nist_800_53:
+    - SC-7
+    other:
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Network separation and hardening, Control plane hardening
+  sources_read:
+  - sources/nsa_k8s/nsa_k8s_hardening.md

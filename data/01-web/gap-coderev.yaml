@@ -1,0 +1,75 @@
+- id: WEB-CODEREV-001
+  sheet: WEB
+  category: CODEREV
+  title: Check that the secure code review process covers baseline and diff reviews
+  objective: Finds missing or weak security review of new applications and of code changes.
+  steps:
+  - Ask for the secure code review procedure.
+  - Make sure it defines baseline reviews for new applications, major releases and legacy onboarding.
+  - Make sure it defines diff-based reviews for pull requests.
+  - Make sure reviewers get the threat model, earlier findings and a list of high-risk functions before the review.
+  - Take three recent pull requests. Make sure a security-focused review is on record.
+  example: Procedure document; gh pr list --state merged --limit 20 --json number,reviews
+  expected: A written procedure defines both review types and their inputs. Recent changes have a security-focused review on record.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    cheatsheet:
+    - Secure_Code_Review_Cheat_Sheet
+    - Threat_Modeling_Cheat_Sheet
+    cwe:
+    - CWE-1059
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Code_Review_Cheat_Sheet.md
+- id: WEB-CODEREV-002
+  sheet: WEB
+  category: CODEREV
+  title: Review the code for high-risk patterns by scan and by hand
+  objective: Finds hard-coded secrets, unsafe functions and injectable queries that tools alone may miss.
+  steps:
+  - Search the source for hard-coded secrets such as password, api_key and secret assignments.
+  - Search for unsafe functions such as eval, exec, innerHTML and document.write.
+  - Search for queries built with string concatenation.
+  - Read each hit and decide if user-controlled data can reach it.
+  - Use SAST findings to rank the areas for manual review.
+  example: grep -riE "password\s*=|api_key\s*=|secret\s*=" src/; grep -rE "eval\(|exec\(|innerHTML|document\.write" src/; grep -rE "SELECT.*\+|executeQuery.*\+" src/
+  expected: No hit is exploitable. Each hit has a decision on record. Hard-coded secrets are absent.
+  severity: High
+  test_type:
+  - Code Review
+  refs:
+    cheatsheet:
+    - Secure_Code_Review_Cheat_Sheet
+    cwe:
+    - CWE-798
+    - CWE-89
+    - CWE-95
+    - CWE-79
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Code_Review_Cheat_Sheet.md
+- id: WEB-CODEREV-003
+  sheet: WEB
+  category: CODEREV
+  title: Trace data from sources to sinks across trust boundaries in the code
+  objective: Finds places where untrusted data reaches a sink without validation, encoding or authorization.
+  steps:
+  - 'List the sources: user input, file uploads, API calls, database reads and environment variables.'
+  - 'List the sinks: database queries, file writes, output rendering, logs and external APIs.'
+  - Follow each source through validation, transformation and business logic to its sink.
+  - Make sure each trust boundary has input validation and output encoding.
+  - Make sure sensitive data has protection that fits its classification at each step.
+  example: Data flow notes per feature; CodeQL or Semgrep taint rules to find source-sink paths
+  expected: Every path from an untrusted source to a sink has validation or encoding at the trust boundary. Sensitive data stays protected.
+  severity: High
+  test_type:
+  - Code Review
+  refs:
+    cheatsheet:
+    - Secure_Code_Review_Cheat_Sheet
+    cwe:
+    - CWE-20
+    - CWE-116
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Code_Review_Cheat_Sheet.md

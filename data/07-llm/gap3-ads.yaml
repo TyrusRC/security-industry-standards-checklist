@@ -1,0 +1,97 @@
+- id: LLM-ADS-001
+  sheet: LLM
+  category: ADS
+  title: Test that AI ad models respect consent and opt-out
+  objective: Finds ad pipelines that profile users who gave no consent, or who withdrew it.
+  preconditions:
+  - Test user accounts and a staging ad stack.
+  steps:
+  - Send an ad request with no consent signal. Look at the model call log. Make sure no model ran on personal data.
+  - Send a request flagged as child-directed. Make sure the model call is refused.
+  - Send a request with the Sec-GPC header or a GPP opt-out string. Make sure the feature fetch stops.
+  - Withdraw consent for a test user. Send the same request again.
+  - Make sure the segments, lookalike scores and caches of that user are removed.
+  example: 'curl -H "Sec-GPC: 1" https://ads.test/bid ... ; count model invocations per consent state ; withdraw-and-replay regression test'
+  expected: The model does not run for users without consent, for child-directed traffic or after opt-out. Derived data of the user is removed.
+  severity: High
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    llm_top10:
+    - LLM02:2025
+    cwe:
+    - CWE-285
+    cheatsheet:
+    - AI-Powered_Advertising_Systems_Security_Cheat_Sheet
+    other: Ad cheat sheet section 1; GDPR Art. 4(4)
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/AI-Powered_Advertising_Systems_Security_Cheat_Sheet.md
+  see:
+  - PRIV-CONSENT-001
+  notes: 'Single source: the cheat sheet. Legal rules (GDPR, COPPA) need a legal check.'
+- id: LLM-ADS-002
+  sheet: LLM
+  category: ADS
+  title: Test that ad training data and retrieval indexes resist poisoning
+  objective: Finds ad pipelines where partners can add rows that change policy decisions or model behavior.
+  preconditions:
+  - Staging stack. Do not run on production.
+  steps:
+  - Ask for the dataset manifests. Make sure they are signed and each row has a provenance tag.
+  - Add an unsigned test chunk that reverses a policy for a restricted category. Make sure the system rejects it.
+  - Send a retrieval query in a restricted category. Make sure the pinned policy chunks are in the result.
+  - Load an unsigned fine-tune adapter in the staging stack. Make sure the load fails.
+  - Send participant text with zero-width and bidi-control characters. Make sure the system removes them before indexing.
+  example: in-toto/DSSE verify on the manifest ; insert unsigned chunk ; check anchor chunk rate per query ; python unicodedata.normalize("NFC", text)
+  expected: Unsigned data and adapters are rejected. Restricted categories always return the pinned policy chunks. Hidden characters are removed.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    llm_top10:
+    - LLM04:2025
+    atlas:
+    - AML.T0020
+    cwe:
+    - CWE-345
+    cheatsheet:
+    - AI-Powered_Advertising_Systems_Security_Cheat_Sheet
+    other: Ad cheat sheet section 2
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/AI-Powered_Advertising_Systems_Security_Cheat_Sheet.md
+  see:
+  - LLM-POISON-001
+  - LLM-RAG-001
+  notes: 'Single source: the cheat sheet. Legal rules (GDPR, COPPA) need a legal check.'
+- id: LLM-ADS-003
+  sheet: LLM
+  category: ADS
+  title: Test that outcome callbacks are signed, unique and reviewed before training
+  objective: Finds ad pipelines where a forged conversion event pays a partner and poisons the model label.
+  preconditions:
+  - Staging stack and a test partner key.
+  steps:
+  - Send a callback with no signature. Make sure the service rejects it.
+  - Change the monetary value, the currency or the event_type in a signed callback. Make sure the check fails.
+  - Send the same event_id again with a new timestamp. Make sure the service counts it once.
+  - Send a callback with a certificate that belongs to a different partner. Make sure the service rejects it.
+  - Make sure new outcome events enter training only after the review window ends.
+  example: HMAC-SHA256 over length-prefixed fields (key_id, event_type, event_id, timestamp, value, endpoint) ; replay with a new timestamp ; RFC 9421 signature test
+  expected: Forged, changed, stale and duplicate callbacks are rejected. Events reach training only after review. Settlement and label creation are separate.
+  severity: High
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    llm_top10:
+    - LLM04:2025
+    cwe:
+    - CWE-345
+    - CWE-294
+    cheatsheet:
+    - AI-Powered_Advertising_Systems_Security_Cheat_Sheet
+    other: Ad cheat sheet section 4
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/AI-Powered_Advertising_Systems_Security_Cheat_Sheet.md
+  notes: 'Single source: the cheat sheet. Legal rules (GDPR, COPPA) need a legal check.'

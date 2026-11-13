@@ -1,0 +1,72 @@
+{
+ "cheatsheet": {
+  "GitHub_Actions_Security_Cheat_Sheet": [
+   "CICD-PBAC-002",
+   "CICD-PPE-004",
+   "CICD-PPE-006",
+   "CICD-TPS-003",
+   "CICD-PBAC-005",
+   "CICD-PBAC-003",
+   "CICD-PPE-005",
+   "CICD-FLOW-004",
+   "CICD-FLOW-001",
+   "CICD-CRED-002",
+   "CICD-CRED-004",
+   "CICD-CRED-007",
+   "CICD-PPE-002",
+   "CICD-PBAC-001",
+   "CICD-CRED-008"
+  ],
+  "Workload_Identity_Federation_Cheat_Sheet": [
+   "CICD-CRED-007"
+  ],
+  "Secure_Coding_with_AI_Cheat_Sheet": [
+   "LLM-MISINFO-001",
+   "CICD-DEP-007",
+   "LLM-AGENT-014",
+   "LLM-MCP-001",
+   "LLM-MCP-002",
+   "LLM-MCP-003",
+   "LLM-MCP-007",
+   "LLM-PINJ-011",
+   "LLM-OUTPUT-002",
+   "LLM-PINJ-009",
+   "LLM-DATA-013",
+   "LLM-AGENT-012",
+   "LLM-AGENT-004",
+   "CICD-TPS-003",
+   "CICD-VULN-001"
+  ],
+  "NodeJS_Docker_Cheat_Sheet": [
+   "CICD-DEP-009",
+   "K8S-IMG-002",
+   "K8S-WRK-001",
+   "CICD-CRED-005",
+   "K8S-DKR-005",
+   "K8S-IMG-004",
+   "K8S-IMG-003"
+  ],
+  "Zero_Trust_Architecture_Cheat_Sheet": [
+   "WEB-AUTHZ-013",
+   "CLD-NET-005",
+   "NET-SEG-003",
+   "K8S-NET-002",
+   "NET-ADM-004",
+   "WEB-SESS-026",
+   "WEB-MFA-001",
+   "WEB-MFA-009",
+   "WEB-MFA-012"
+  ],
+  "Legacy_Application_Management_Cheat_Sheet": [
+   "NET-VULN-007",
+   "WEB-DEP-003"
+  ],
+  "Secure_Code_Review_Cheat_Sheet": [
+   "WEB-BIZ-005",
+   "WEB-BIZ-014",
+   "CICD-CRED-003",
+   "CICD-VULN-006",
+   "WEB-DEP-001"
+  ]
+ }
+}

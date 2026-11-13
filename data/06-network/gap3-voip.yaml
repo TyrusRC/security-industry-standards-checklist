@@ -1,0 +1,95 @@
+- id: NET-VOIP-001
+  sheet: NET
+  category: VOIP
+  title: Check that external SIP signalling uses TLS and not plain text
+  objective: Finds SIP servers that send registrations, passwords and call data in clear text.
+  preconditions:
+  - Written permission for the SIP servers in scope.
+  steps:
+  - Scan the SIP servers for UDP and TCP port 5060 and TCP port 5061.
+  - Make sure external users and trunks use TLS on port 5061, or an IPsec tunnel.
+  - Run a TLS scan on port 5061. Make sure the protocol and cipher list is strong.
+  - Make sure the server certificate is valid and names the SIP domain.
+  - Make sure plain port 5060 is closed to outside networks, or only trusted carriers can reach it.
+  example: nmap -sUV -sT -p5060,5061 sip.example.com ; nmap --script ssl-enum-ciphers -p5061 sip.example.com ; openssl s_client -connect sip.example.com:5061 -verify_return_error
+  expected: External SIP traffic uses TLS with a valid certificate and strong settings. Plain port 5060 is not open to untrusted networks.
+  severity: High
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    nist_800_53:
+    - SC-8
+    - SC-23
+    cwe:
+    - CWE-319
+    attack:
+    - T1040
+    other: RFC 3261 sections 26.2.1, 26.3.1 and 26.3.2.1; https://www.rfc-editor.org/rfc/rfc3261
+  sources_read:
+  - sources/extra/gap3-C/rfc3261.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-VOIP-002
+  sheet: NET
+  category: VOIP
+  title: Test that SIP registration needs authentication and limits failed attempts
+  objective: Finds SIP registrars where an attacker can hijack an extension or guess passwords without limit.
+  preconditions:
+  - Use a test extension. Do not run on production without a change window.
+  steps:
+  - Send a REGISTER request for a test extension without credentials. Look for a 401 or 407 reply.
+  - Send a REGISTER request with a wrong digest. Make sure the server rejects it.
+  - Send 50 wrong attempts from one address. Look for a block or a delay.
+  - Make sure all extensions use long random passwords and not the extension number.
+  - Make sure the server gives the same error for a known extension and an unknown extension.
+  example: 'sipvicious: svmap sip.example.com ; svwar -m REGISTER -e 100-110 sip.example.com ; nmap -sU -p5060 --script sip-methods,sip-enum-users sip.example.com'
+  expected: The registrar rejects unauthenticated and wrong REGISTER requests. Repeated failures cause a block or a delay. Error replies do not reveal valid extensions.
+  severity: High
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    nist_800_53:
+    - IA-2
+    - SC-5
+    cwe:
+    - CWE-287
+    - CWE-307
+    attack:
+    - T1110
+    other: RFC 3261 sections 26.1.1, 26.3.2.1 and 26.3.2.4; https://www.rfc-editor.org/rfc/rfc3261
+  sources_read:
+  - sources/extra/gap3-C/rfc3261.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  notes: Toll-fraud call limits (spend per extension, blocked destinations) have no source in sources/ and are not tested here.
+- id: NET-VOIP-003
+  sheet: NET
+  category: VOIP
+  title: Check that voice media uses SRTP with message authentication
+  objective: Finds voice calls that an attacker can hear, change or fill with bogus media packets.
+  preconditions:
+  - Written permission to capture traffic on the voice VLAN.
+  steps:
+  - Make a test call between two phones in scope. Capture the media packets on the network.
+  - Look at the capture. Make sure the media uses SRTP and not plain RTP.
+  - Look at the SDP in the signalling. Make sure the crypto line or DTLS setup shows an authentication tag.
+  - Make sure the NULL cipher and the NULL authentication tag are not offered.
+  - Make sure keys are exchanged over the TLS signalling channel or with DTLS-SRTP.
+  example: 'tshark -i eth0 -Y "rtp || srtp || sip" ; tshark -Y sdp -T fields -e sdp.media -e sdp.crypto.tag ; Wireshark: Telephony > RTP > RTP Streams'
+  expected: All test calls use SRTP with an authentication tag. No plain RTP and no NULL cipher is offered. Keys do not travel in clear text.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    nist_800_53:
+    - SC-8
+    - SC-13
+    cwe:
+    - CWE-319
+    - CWE-345
+    attack:
+    - T1040
+    other: RFC 3711 sections 9.3 and 9.5.1; https://www.rfc-editor.org/rfc/rfc3711
+  sources_read:
+  - sources/extra/gap3-C/rfc3711.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json

@@ -1,0 +1,233 @@
+- id: PRIV-VNSENS-001
+  sheet: PRIV
+  category: VNSENS
+  title: Find sensitive personal data in the data inventory
+  objective: Finds sensitive data that the inventory does not mark and therefore misses extra controls.
+  steps:
+  - Read the data inventory and the database schema.
+  - 'Mark fields that fit the sensitive categories: health, biometric, location, bank and account data, race, religion, politics.'
+  - Look for such data in logs, files and analytics events.
+  - Check that the inventory shows each sensitive field.
+  example: grep the schema for health, biometric, geo, account and card terms. Compare with the inventory.
+  expected: All sensitive fields are in the inventory and are marked. No sensitive field is hidden in free text, logs or analytics.
+  severity: Medium
+  test_type: &id003
+  - Manual
+  - Config Review
+  refs:
+    privacy_top10:
+    - P2
+    - P10
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 2
+    - Vietnam PDP Law 91/2025/QH15 Art. 2
+  sources_read: &id001
+  - sources/vn_law/13nd.ocr.txt
+  - sources/vn_law/91qh.ocr.txt
+  see:
+  - PRIV-MINIM-001
+  - WEB-DATA-001
+  notes: 'Decree Art. 2(4) lists sensitive data: political and religious views, health records, race and ethnicity, genetic data, biological features, sex life, criminal data, customer data of credit and payment bodies, location data and others. Law Art. 2(3): the list comes from a Government catalogue that is not in the sources read. Law Art. 31 names location and biometric data.'
+- id: PRIV-VNSENS-002
+  sheet: PRIV
+  category: VNSENS
+  title: Check that the user is told when sensitive data is processed
+  objective: Finds sensitive data processing that the user does not know about.
+  steps:
+  - Open each form that collects sensitive data.
+  - Look for a clear message that the data is sensitive personal data.
+  - Look for the same message in the consent text.
+  - Check that the controller has a department or person named for data protection.
+  example: Screenshot the form and the consent text. Look for the notice before submit.
+  expected: The user sees a notice that the data is sensitive before the service processes it. A data protection department or person is named.
+  severity: Medium
+  test_type: &id002
+  - Manual
+  refs:
+    privacy_top10:
+    - P5
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 11
+    - Vietnam Decree 13/2023/ND-CP Art. 28
+    - Vietnam PDP Law 91/2025/QH15 Art. 33
+  sources_read: *id001
+  see:
+  - PRIV-NOTICE-001
+  notes: 'Decree Art. 11(8) and 28(3): tell the data subject; exceptions in Art. 13(4), 17 and 18. Decree Art. 28(2): name a department and a person and tell the authority. Law Art. 33(2): name a department, or hire a service; small business exemptions are in Law Art. 38.'
+- id: PRIV-VNSENS-003
+  sheet: PRIV
+  category: VNSENS
+  title: Test the age check and the parent consent for child data
+  objective: Finds child data processing that starts with no age check or parent consent.
+  preconditions:
+  - A test account flow for child users.
+  - Written permission to create test child profiles.
+  steps:
+  - Register as a user who states an age under 16 and one who states age 7 to 15.
+  - Look for an age check before the service processes data.
+  - Check that consent comes from the parent or guardian and, for age 7 or older, from the child as well.
+  - Try to skip the parent step.
+  example: 'Burp Repeater: change the age or the consent flag in the registration request. Look at server-side checks.'
+  expected: The service checks the age before it processes data of a child. It needs consent of the guardian, and of the child from age 7.
+  severity: High
+  test_type: *id002
+  refs:
+    privacy_top10:
+    - P4
+    - P5
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 20
+    - Vietnam PDP Law 91/2025/QH15 Art. 24
+  sources_read: *id001
+  notes: 'Decree Art. 20(2): consent of the child from age 7 and of the parent or guardian, and the controller must verify the age. Law Art. 24(2): the legal representative acts for the child; consent of the child from age 7 and of the representative is needed for publishing private life information. The Law has no age verification duty in this article.'
+- id: PRIV-VNSENS-004
+  sheet: PRIV
+  category: VNSENS
+  title: Test the stop and deletion of child data on request
+  objective: Finds child data that stays after a guardian withdraws consent or an authority asks.
+  steps:
+  - Withdraw the consent of the guardian for a test child account.
+  - Check that the service stops the processing.
+  - Check that the service deletes the child data in a way that cannot be restored.
+  - Check the process for a written request from an authority.
+  example: Look at the child account, backups and processor copies after the withdrawal.
+  expected: The service stops processing child data and deletes it when the guardian withdraws consent or the purpose ends. It acts on a valid authority order.
+  severity: High
+  test_type: *id002
+  refs:
+    privacy_top10:
+    - P6
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 20
+    - Vietnam PDP Law 91/2025/QH15 Art. 24
+  sources_read: *id001
+  see:
+  - PRIV-RET-003
+  notes: 'Decree Art. 20(3): stop, and delete in a way that cannot be restored, when the purpose is done, the guardian withdraws consent or an authority asks. Law Art. 24(3): stop processing in the case of withdrawal or an authority request; the Law does not state deletion in this article.'
+- id: PRIV-VNSENS-005
+  sheet: PRIV
+  category: VNSENS
+  title: Check the handling of location data
+  objective: Finds tracking of position with no consent or with access by other parties.
+  steps:
+  - Install the mobile application or open the web page that uses position.
+  - Look for a notice about the use of location data.
+  - Look for an option to switch tracking off.
+  - Check network traffic for location sent to parties not related to the service.
+  example: Use a proxy to inspect traffic for latitude, longitude or Wi-Fi data. Check the OS permission prompt.
+  expected: The service tracks position only with consent or by legal order. It tells the user, offers options and sends location to no unrelated party.
+  severity: High
+  test_type: *id002
+  refs:
+    privacy_top10:
+    - P10
+    - P2
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 2
+    - Vietnam PDP Law 91/2025/QH15 Art. 31
+  sources_read: *id001
+  see:
+  - MOB-PRIV-004
+  - MOB-PRIV-005
+  notes: 'Law Art. 31(3): no tracking by radio tag or other technology without consent or a legal order; an app platform must tell users, block unrelated collection and offer options. Decree Art. 2(4)(i) lists location data as sensitive data.'
+- id: PRIV-VNSENS-006
+  sheet: PRIV
+  category: VNSENS
+  title: Check the protection of biometric data
+  objective: Finds biometric data that is stored or sent with weak physical, access or monitoring controls.
+  steps:
+  - List the places that store or send biometric data.
+  - Check the physical security of the storage and the transport devices.
+  - Check that only needed roles can read the data.
+  - Look for monitoring and alerts on access to the data.
+  - Check the notice to the user after harm.
+  example: Review the access list and the monitoring rules. Look for templates, images and raw samples.
+  expected: The organisation limits access to biometric data, protects the storage devices and watches for abuse. It tells the user when harm occurs.
+  severity: High
+  test_type: *id003
+  refs:
+    privacy_top10:
+    - P2
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 2
+    - Vietnam PDP Law 91/2025/QH15 Art. 31
+  sources_read: *id001
+  see:
+  - PRIV-SEC-003
+  notes: 'Law Art. 31(4): physical security, limited access, monitoring, compliance with law and international standards; notice to the data subject after harm, in a manner that the Government sets. Decree Art. 2(4)(d) and 2(4)(dd) list genetic and biological features as sensitive data.'
+- id: PRIV-VNSENS-007
+  sheet: PRIV
+  category: VNSENS
+  title: Check the limits on sharing of health and insurance data
+  objective: Finds health data that goes to insurers or care providers with no written request.
+  steps:
+  - List the recipients of health data.
+  - Look for the legal ground or the written request of the user for each recipient.
+  - Try to send data to an insurer without the request.
+  - Check the contract clauses for reinsurance transfers.
+  example: Review data sharing agreements and interface logs between the health service and insurance partners.
+  expected: Health data goes to care or insurance providers only after a written request of the user or an emergency. Reinsurance transfers are in the customer contract.
+  severity: High
+  test_type: *id003
+  refs:
+    privacy_top10:
+    - P2
+    - P10
+    other:
+    - Vietnam PDP Law 91/2025/QH15 Art. 26
+    - Vietnam Decree 13/2023/ND-CP Art. 2
+  sources_read: *id001
+  see:
+  - PRIV-SHARE-004
+  notes: Law Art. 26 has no matching article in Decree 13/2023. The Decree only lists health record data as sensitive in Art. 2(4)(b).
+- id: PRIV-VNSENS-008
+  sheet: PRIV
+  category: VNSENS
+  title: Check the notice and retention of audio and video recordings
+  objective: Finds recording with no notice or with data kept too long.
+  steps:
+  - Find the places and systems that record audio or video of people.
+  - Look for a sign or notice that tells people about the recording.
+  - Read the retention rule and the deletion job for the recordings.
+  - Check that the use of the recordings fits the purpose.
+  example: Photograph the notice at the camera. Compare the oldest recording with the retention rule.
+  expected: People can see that recording takes place. The system keeps recordings only as long as needed and deletes them after that.
+  severity: Medium
+  test_type: *id003
+  refs:
+    privacy_top10:
+    - P5
+    - P6
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 18
+    - Vietnam PDP Law 91/2025/QH15 Art. 32
+  sources_read: *id001
+  see:
+  - PRIV-RET-001
+  notes: 'Decree Art. 18: authorities may record in public places and must tell people. Law Art. 32 widens the rule to any body or person, adds public events, limits use to the purpose and requires deletion at the end of the storage period.'
+- id: PRIV-VNSENS-009
+  sheet: PRIV
+  category: VNSENS
+  title: Check recruitment data and the monitoring of employees
+  objective: Finds candidate data that is kept after the process, and secret monitoring of staff.
+  steps:
+  - Look at the data fields that the recruitment form requires.
+  - Check that the data of rejected candidates is deleted, unless the candidate agreed to keep it.
+  - Check that the service deletes employee data when the contract ends, unless the law or an agreement says otherwise.
+  - Look for technical monitoring of staff and the notice to staff.
+  example: Review the HR system retention jobs and the staff notice. Compare the form fields with the job purpose.
+  expected: The organisation asks only for data that the job needs and deletes it on time. Staff know about technical monitoring.
+  severity: Medium
+  test_type: *id003
+  refs:
+    privacy_top10:
+    - P10
+    - P6
+    - P5
+    other:
+    - Vietnam PDP Law 91/2025/QH15 Art. 25
+    - Vietnam Decree 13/2023/ND-CP Art. 9
+  sources_read: *id001
+  see:
+  - PRIV-RET-001
+  notes: Law Art. 25 is new in the 2025 Law. Decree 13/2023 has no matching article.

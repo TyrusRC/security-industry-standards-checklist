@@ -1,0 +1,761 @@
+- id: MOB-CRYPTO-001
+  sheet: MOB
+  category: CRYPTO
+  title: Check that the app uses no broken symmetric encryption algorithms
+  objective: Finds use of DES, 3DES, RC2, RC4, Blowfish and other broken ciphers in the app or its libraries.
+  steps:
+  - 'Android: Decompile the app and search for Cipher.getInstance, SecretKeyFactory.getInstance and KeyGenerator.getInstance.'
+  - 'iOS: Extract the binaries and search for CCCrypt and the algorithm constants kCCAlgorithmDES, 3DES, RC4, RC2, CAST and Blowfish.'
+  - Search bundled libraries such as OpenSSL, BoringSSL and libsodium for the same algorithms.
+  - Look at the code at each hit and find the algorithm and the data that it protects.
+  - Compare the algorithms with the current NIST and BSI guidance.
+  example: jadx -d src app.apk; grep -rnE "Cipher.getInstance\(\"(DES|DESede|RC2|RC4|Blowfish|ARC4)" src/; semgrep --config p/mobsfscan src/; mobsf scan (static analyzer); unzip app.ipa; r2 -qc "aaa; afl~CCCrypt; axt sym.imp.CCCrypt" Payload/App.app/App; strings Payload/App.app/App | grep -iE "rc4|des-|blowfish"
+  expected: The app uses no DES, 3DES, RC2, RC4 or Blowfish for sensitive data. It uses AES-GCM or ChaCha20-Poly1305 instead.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Automated
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M10:2024
+    masvs:
+    - MASVS-CRYPTO-1
+    mastg:
+    - MASTG-TEST-0221
+    - MASTG-TEST-0210
+    maswe:
+    - MASWE-0007
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-208
+    - CWE-323
+    - CWE-325
+    - CWE-326
+    - CWE-327
+    - CWE-329
+    - CWE-780
+  see:
+  - WEB-CRYPTO-009
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-CRYPTO_MASWE-0007.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/tests-beta/android/MASVS-CRYPTO/MASTG-TEST-0221.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-CRYPTO/MASTG-TEST-0210.md
+  - sources/repos/masvs/controls/MASVS-CRYPTO-1.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m10-insufficient-cryptography.md
+- id: MOB-CRYPTO-002
+  sheet: MOB
+  category: CRYPTO
+  title: Check that the app uses no broken block modes such as ECB
+  objective: Finds symmetric encryption in ECB mode that leaks patterns in the data.
+  steps:
+  - 'Android: Decompile the app and list all Cipher.getInstance transformation strings.'
+  - 'Android: Mark the strings "AES", AES/ECB/NoPadding, AES/ECB/PKCS5Padding and AES/ECB/ISO10126Padding. Ignore RSA/ECB strings.'
+  - 'iOS: Search the binary for CCCrypt calls and look for kCCOptionECBMode (value 2) in the options argument.'
+  - Hook Cipher.getInstance or CCCrypt at run time and use every workflow of the app with sensitive data.
+  - Use the backtraces to see if the encrypted data is sensitive.
+  example: jadx -d src app.apk; grep -rnE "Cipher.getInstance\(\"[A-Za-z0-9]+(/ECB/[A-Za-z0-9]+)?\"\)" src/; frida-trace -U -f <package> -j "javax.crypto.Cipher!getInstance"; r2 -qc "aaa; axt sym.imp.CCCrypt" Payload/App.app/App; frida-trace -U -f <bundle> -i CCCrypt
+  expected: The app does not use ECB for sensitive data. It uses an authenticated mode such as GCM.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Automated
+  - Manual
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M10:2024
+    masvs:
+    - MASVS-CRYPTO-1
+    mastg:
+    - MASTG-TEST-0232
+    - MASTG-TEST-0350
+    - MASTG-TEST-0317
+    maswe:
+    - MASWE-0007
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-208
+    - CWE-323
+    - CWE-325
+    - CWE-326
+    - CWE-327
+    - CWE-329
+    - CWE-780
+  see:
+  - WEB-CRYPTO-008
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-CRYPTO_MASWE-0007.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0005.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0043.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0056.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0095.md
+  - sources/repos/mastg/tests-beta/android/MASVS-CRYPTO/MASTG-TEST-0232.md
+  - sources/repos/mastg/tests-beta/android/MASVS-CRYPTO/MASTG-TEST-0350.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-CRYPTO/MASTG-TEST-0317.md
+  - sources/repos/masvs/controls/MASVS-CRYPTO-1.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m10-insufficient-cryptography.md
+- id: MOB-CRYPTO-003
+  sheet: MOB
+  category: CRYPTO
+  title: Check that security-relevant values come from a secure random generator
+  objective: Finds tokens, keys, IVs and nonces that come from a predictable random number generator or from the clock.
+  steps:
+  - 'Android: Search the code for java.util.Random, Math.random, SecureRandom with a fixed seed, and Date().getTime or Calendar.MILLISECOND as value sources.'
+  - 'iOS: Search the binary for rand, random, srand and the *rand48 functions.'
+  - Hook these APIs at run time and use every workflow of the app.
+  - Look at the backtraces and the code to find what the value is used for.
+  - Flag keys, IVs, nonces, tokens, session IDs, passwords and PINs.
+  - Ignore uses that are not security-relevant, such as UI effects or game logic.
+  example: jadx -d src app.apk; grep -rnE "java\.util\.Random|Math\.random|new SecureRandom\(|getTime\(\)" src/; frida-trace -U -f <package> -j "java.util.Random!*"; r2 -qc "aaa; afl~rand" Payload/App.app/App; frida-trace -U -f <bundle> -i rand -i random -i arc4random
+  expected: The app uses SecureRandom (Android) or SecRandomCopyBytes and arc4random (iOS) for all security-relevant values. Seeds are not fixed.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Automated
+  - Manual
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M10:2024
+    masvs:
+    - MASVS-CRYPTO-1
+    mastg:
+    - MASTG-TEST-0204
+    - MASTG-TEST-0205
+    - MASTG-TEST-0311
+    - MASTG-TEST-0349
+    maswe:
+    - MASWE-0012
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    cwe:
+    - CWE-332
+    - CWE-337
+    - CWE-338
+  see:
+  - WEB-CRYPTO-014
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-CRYPTO_MASWE-0012.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0005.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0043.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0056.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0095.md
+  - sources/repos/mastg/tests-beta/android/MASVS-CRYPTO/MASTG-TEST-0204.md
+  - sources/repos/mastg/tests-beta/android/MASVS-CRYPTO/MASTG-TEST-0205.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-CRYPTO/MASTG-TEST-0311.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-CRYPTO/MASTG-TEST-0349.md
+  - sources/repos/masvs/controls/MASVS-CRYPTO-1.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m10-insufficient-cryptography.md
+- id: MOB-CRYPTO-004
+  sheet: MOB
+  category: CRYPTO
+  title: Check that cryptographic keys have a sufficient size
+  objective: Finds symmetric and asymmetric keys that are too short for current guidance.
+  steps:
+  - 'Android: Search for KeyGenerator.init, KeyPairGenerator.initialize and key sizes in KeyGenParameterSpec.'
+  - 'iOS: Search for CCCrypt key length arguments and for SecKeyCreateRandomKey with kSecAttrKeyType and kSecAttrKeySizeInBits.'
+  - Write down the algorithm and the key size at each location.
+  - Compare the sizes with the current NIST guidance, for example RSA 2048 bits or more and AES 256 bits.
+  - Flag RSA keys of 1024 bits and AES keys of 128 bits or less for the product policy.
+  example: jadx -d src app.apk; grep -rnE "KeyGenerator|KeyPairGenerator|\.init\([0-9]+\)|\.initialize\([0-9]+\)" src/; r2 -qc "aaa; axt sym.imp.SecKeyCreateRandomKey" Payload/App.app/App; frida-trace -U -f <bundle> -i SecKeyCreateRandomKey
+  expected: Every key meets the current size guidance for its algorithm. The app uses no RSA 1024 bit keys and no keys shorter than the policy allows.
+  severity: Medium
+  test_type:
+  - Code Review
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M10:2024
+    masvs:
+    - MASVS-CRYPTO-2
+    mastg:
+    - MASTG-TEST-0208
+    - MASTG-TEST-0209
+    maswe:
+    - MASWE-0013
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    - Key_Management_Cheat_Sheet
+    cwe:
+    - CWE-331
+    - CWE-326
+    - CWE-337
+    - CWE-338
+    - CWE-522
+  see:
+  - WEB-CRYPTO-005
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-CRYPTO_MASWE-0013.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/tests-beta/android/MASVS-CRYPTO/MASTG-TEST-0208.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-CRYPTO/MASTG-TEST-0209.md
+  - sources/repos/masvs/controls/MASVS-CRYPTO-2.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m10-insufficient-cryptography.md
+- id: MOB-CRYPTO-005
+  sheet: MOB
+  category: CRYPTO
+  title: Check that no cryptographic keys are hardcoded in code or files
+  objective: Finds symmetric keys, private keys and key files that ship inside the app.
+  steps:
+  - 'Android: Search the decompiled code for SecretKeySpec and other calls that take raw key bytes or strings.'
+  - 'iOS: Search for SecKeyCreateWithData, CCCrypt with a literal key and CryptoKit init(rawRepresentation:) calls.'
+  - Search resources and bundle files for .key, .pem, .p12, .der and .cer files and for BEGIN PRIVATE KEY markers.
+  - Search plist and JSON files for Base64 or hex strings next to names such as key, secret or privateKey.
+  - Look at each hit to see if it is a real key that protects data or authenticates a user.
+  example: jadx -d src app.apk; grep -rn "SecretKeySpec" src/; find out/ ipa/ -name "*.pem" -o -name "*.p12" -o -name "*.key" -o -name "*.der"; grep -rl "BEGIN .*PRIVATE KEY" out/ ipa/; strings -n 16 Payload/App.app/App | grep -E "^[A-Za-z0-9+/=]{24,}$"; r2 -qc "aaa; axt sym.imp.SecKeyCreateWithData" Payload/App.app/App; trufflehog filesystem out ipa
+  expected: The app contains no hardcoded keys. The app creates keys on the device or gets them from a backend and stores them in the Keystore or Keychain.
+  severity: High
+  test_type:
+  - Code Review
+  - Automated
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M1:2024
+    - M10:2024
+    masvs:
+    - MASVS-CRYPTO-2
+    - MASVS-STORAGE-1
+    mastg:
+    - MASTG-TEST-0212
+    - MASTG-TEST-0213
+    - MASTG-TEST-0214
+    maswe:
+    - MASWE-0003
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    - Key_Management_Cheat_Sheet
+    cwe:
+    - CWE-312
+    - CWE-318
+    - CWE-321
+  see:
+  - WEB-CRYPTO-018
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-STORAGE_MASWE-0003.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/tests-beta/android/MASVS-CRYPTO/MASTG-TEST-0212.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-CRYPTO/MASTG-TEST-0213.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-CRYPTO/MASTG-TEST-0214.md
+  - sources/repos/masvs/controls/MASVS-CRYPTO-2.md
+  - sources/repos/masvs/controls/MASVS-STORAGE-1.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m1-improper-credential-usage.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m10-insufficient-cryptography.md
+- id: MOB-CRYPTO-006
+  sheet: MOB
+  category: CRYPTO
+  title: Check that keys live only in the platform keystore
+  objective: Finds cryptographic keys that the app stores in preferences, files or code instead of the Android Keystore or iOS Keychain.
+  steps:
+  - List all keys, key pairs and secrets that the app creates, imports or receives.
+  - 'Android: Look for KeyStore.getInstance("AndroidKeyStore") and for keys written to files or SharedPreferences.'
+  - 'iOS: Look for SecKeyCreateRandomKey with kSecAttrTokenIDSecureEnclave and for keys in UserDefaults or files.'
+  - Compare the app data directory before and after use, and search for key material.
+  - Check how the app imports keys and see if it wraps them before import.
+  example: 'jadx -d src app.apk; grep -rnE "AndroidKeyStore|KeyGenParameterSpec|setIsStrongBoxBacked" src/; objection -g <package> explore -> android keystore list; objection: ios keychain dump; grep -rE "[A-Za-z0-9+/=]{32,}" data/shared_prefs/'
+  expected: The app keeps all keys in the Android Keystore or iOS Keychain. Key material never sits in preferences, plain files or code.
+  severity: High
+  test_type:
+  - Manual
+  - Code Review
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M10:2024
+    masvs:
+    - MASVS-CRYPTO-2
+    - MASVS-STORAGE-1
+    maswe:
+    - MASWE-0003
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    - Key_Management_Cheat_Sheet
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-312
+    - CWE-318
+    - CWE-321
+  notes: No MASTG v2 test exists for the keystore part of MASWE-0003. The hardcoded key tests are in MOB-CRYPTO-005.
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-STORAGE_MASWE-0003.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0008.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0059.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0061.md
+  - sources/repos/masvs/controls/MASVS-CRYPTO-2.md
+  - sources/repos/masvs/controls/MASVS-STORAGE-1.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m10-insufficient-cryptography.md
+- id: MOB-CRYPTO-007
+  sheet: MOB
+  category: CRYPTO
+  title: Check that Android asymmetric key pairs have one purpose
+  objective: Finds key pairs that the app uses for more than one role, such as encryption and signing.
+  preconditions:
+  - Android only. The MASTG tests have no iOS counterpart.
+  steps:
+  - Search the code for KeyGenParameterSpec.Builder and note the purposes argument.
+  - 'Decode the purposes bitmask: 1 encrypt, 2 decrypt, 4 sign, 8 signature check, 32 wrap key.'
+  - Flag every purposes value that mixes encryption, signing and wrapping roles.
+  - Hook Cipher.init, Signature.initSign and Signature.initVerify and use every workflow of the app.
+  - Check that no key is used in more than one group of operations.
+  example: jadx -d src app.apk; grep -rn "KeyGenParameterSpec" src/; frida-trace -U -f <package> -j "javax.crypto.Cipher!init" -j "java.security.Signature!initSign" -j "java.security.Signature!initVerify"
+  expected: 'Each key pair has exactly one role: encryption, signing or key wrapping. The value 15 or any mixed value does not appear.'
+  severity: Low
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M10:2024
+    masvs:
+    - MASVS-CRYPTO-1
+    mastg:
+    - MASTG-TEST-0307
+    - MASTG-TEST-0308
+    maswe:
+    - MASWE-0007
+    cheatsheet:
+    - Key_Management_Cheat_Sheet
+    cwe:
+    - CWE-208
+    - CWE-323
+    - CWE-325
+    - CWE-326
+    - CWE-327
+    - CWE-329
+    - CWE-780
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-CRYPTO_MASWE-0007.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0005.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0043.md
+  - sources/repos/mastg/tests-beta/android/MASVS-CRYPTO/MASTG-TEST-0307.md
+  - sources/repos/mastg/tests-beta/android/MASVS-CRYPTO/MASTG-TEST-0308.md
+  - sources/repos/masvs/controls/MASVS-CRYPTO-1.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m10-insufficient-cryptography.md
+- id: MOB-CRYPTO-008
+  sheet: MOB
+  category: CRYPTO
+  title: Check that Android crypto calls use no explicit security provider
+  objective: Finds getInstance calls that name a provider other than the default Conscrypt provider.
+  preconditions:
+  - Android only.
+  steps:
+  - Search the decompiled code for getInstance calls with a second provider argument.
+  - Note the provider names, such as Crypto, BC or BouncyCastle.
+  - Flag every provider except AndroidKeyStore in KeyStore.getInstance calls.
+  - Check the targetSdkVersion, because apps for Android 9 and higher fail when they name a provider.
+  example: jadx -d src app.apk; grep -rnE "getInstance\([^)]*,\s*\"(BC|Crypto|SC|SunJCE)\"" src/; grep -rn "Security.addProvider\|BouncyCastleProvider" src/; aapt2 d badging app.apk | grep targetSdkVersion
+  expected: No getInstance call names a provider other than the default. Only KeyStore calls name AndroidKeyStore.
+  severity: Low
+  test_type:
+  - Code Review
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M10:2024
+    masvs:
+    - MASVS-CRYPTO-1
+    mastg:
+    - MASTG-TEST-0312
+    maswe:
+    - MASWE-0007
+    cwe:
+    - CWE-208
+    - CWE-323
+    - CWE-325
+    - CWE-326
+    - CWE-327
+    - CWE-329
+    - CWE-780
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-CRYPTO_MASWE-0007.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0117.md
+  - sources/repos/mastg/tests-beta/android/MASVS-CRYPTO/MASTG-TEST-0312.md
+  - sources/repos/masvs/controls/MASVS-CRYPTO-1.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m10-insufficient-cryptography.md
+- id: MOB-CRYPTO-009
+  sheet: MOB
+  category: CRYPTO
+  title: Check that the app uses no broken hash functions
+  objective: Finds MD5 and SHA-1 in security-relevant uses such as signatures, integrity checks and fingerprints.
+  steps:
+  - 'Android: Search the decompiled code for MessageDigest.getInstance with MD5, MD2, MD4 or SHA-1.'
+  - 'iOS: Search the binary for CC_MD2, CC_MD4, CC_MD5, CC_SHA1 and CryptoKit Insecure.MD5 and Insecure.SHA1.'
+  - Look at the code at each hit and note what the hash protects.
+  - Check that the app does not hash passwords or passphrases with a fast hash. A password KDF is needed.
+  - Check that digests are not truncated below the security strength that the use case needs.
+  example: jadx -d src app.apk; grep -rnE "MessageDigest.getInstance\(\"(MD5|MD2|MD4|SHA-?1)\"" src/; r2 -qc "aaa; afl~CC_MD5; afl~CC_SHA1" Payload/App.app/App; strings Payload/App.app/App | grep -E "Insecure.*(MD5|SHA1)"
+  expected: The app uses SHA-256 or stronger for security purposes. MD5 and SHA-1 appear only in non-security uses.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Automated
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M10:2024
+    masvs:
+    - MASVS-CRYPTO-1
+    mastg:
+    - MASTG-TEST-0211
+    maswe:
+    - MASWE-0008
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    cwe:
+    - CWE-328
+  see:
+  - WEB-CRYPTO-012
+  notes: MASTG has an iOS test only (MASTG-TEST-0211). The Android step comes from the MASWE-0008 text.
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-CRYPTO_MASWE-0008.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-CRYPTO/MASTG-TEST-0211.md
+  - sources/repos/masvs/controls/MASVS-CRYPTO-1.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m10-insufficient-cryptography.md
+- id: MOB-CRYPTO-010
+  sheet: MOB
+  category: CRYPTO
+  title: Check that the app uses MACs correctly
+  objective: Finds missing, weak or reused message authentication codes.
+  steps:
+  - List the places where the app must protect the integrity of data, such as stored files, messages and tokens.
+  - Search the code for Mac, HMAC, CCHmac, CRC32 and hash(key + message) constructions.
+  - Flag CRC checksums, MD5 or SHA-1 based MACs and plain hash(key || message) patterns.
+  - Check the key source, the key reuse, the tag length and the order of encryption and MAC.
+  - Check that the app compares tags in constant time and rejects replayed messages.
+  example: jadx -d src app.apk; grep -rnE "javax.crypto.Mac|HmacMD5|HmacSHA1|CRC32" src/; r2 -qc "aaa; afl~CCHmac" Payload/App.app/App; frida-trace -U -f <package> -j "javax.crypto.Mac!*"
+  expected: The app uses HMAC with SHA-256 or stronger, or an AEAD mode. Keys have one purpose, tags are full length and replays fail.
+  severity: Medium
+  test_type:
+  - Code Review
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M10:2024
+    masvs:
+    - MASVS-CRYPTO-1
+    - MASVS-CRYPTO-2
+    maswe:
+    - MASWE-0009
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    cwe:
+    - CWE-208
+    - CWE-323
+    - CWE-327
+    - CWE-354
+    - CWE-807
+  see:
+  - WEB-CRYPTO-010
+  - WEB-CRYPTO-006
+  notes: No MASTG v2 test exists for MASWE-0009.
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-CRYPTO_MASWE-0009.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/masvs/controls/MASVS-CRYPTO-1.md
+  - sources/repos/masvs/controls/MASVS-CRYPTO-2.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m10-insufficient-cryptography.md
+- id: MOB-CRYPTO-011
+  sheet: MOB
+  category: CRYPTO
+  title: Check how the app generates cryptographic signatures
+  objective: Finds weak signature algorithms, short signing keys and weak nonces.
+  steps:
+  - Search the code for Signature.getInstance, SecKeyCreateSignature and CryptoKit signing calls.
+  - Note the signature algorithm and digest, for example SHA1withRSA.
+  - Note the key length of each signing key.
+  - Check that (EC)DSA nonces come from a secure random generator or use a deterministic scheme.
+  - Check that signing keys are not used for encryption or key agreement.
+  example: jadx -d src app.apk; grep -rn "Signature.getInstance" src/; r2 -qc "aaa; axt sym.imp.SecKeyCreateSignature" Payload/App.app/App; frida-trace -U -f <package> -j "java.security.Signature!getInstance"
+  expected: The app uses ECDSA, RSA-PSS or EdDSA with approved digests and key lengths. Nonces are unpredictable and signing keys have one purpose.
+  severity: Medium
+  test_type:
+  - Code Review
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M10:2024
+    masvs:
+    - MASVS-CRYPTO-1
+    - MASVS-CRYPTO-2
+    maswe:
+    - MASWE-0010
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    cwe:
+    - CWE-323
+    - CWE-326
+    - CWE-327
+    - CWE-330
+  see:
+  - WEB-CRYPTO-015
+  notes: No MASTG v2 test exists for MASWE-0010.
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-CRYPTO_MASWE-0010.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/masvs/controls/MASVS-CRYPTO-1.md
+  - sources/repos/masvs/controls/MASVS-CRYPTO-2.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m10-insufficient-cryptography.md
+- id: MOB-CRYPTO-012
+  sheet: MOB
+  category: CRYPTO
+  title: Check that the app verifies signatures and acts on the result
+  objective: Finds signature checks that are skipped, ignored or trust keys that an attacker can replace.
+  steps:
+  - List the data that the app must check with signatures, such as updates, configuration, licenses and tokens.
+  - Search the code for the Signature class, SecKeyVerifySignature and token validation calls.
+  - Check that a failed check stops the operation and that the code does not swallow the result.
+  - Check that the public key comes from a trusted set and not from the same download as the data.
+  - Change signed data in transit with a proxy and make sure the app rejects it.
+  example: jadx -d src app.apk; grep -rn "\.verify(" src/; r2 -qc "aaa; axt sym.imp.SecKeyVerifySignature" Payload/App.app/App; frida -U -f <package> -l hook-signature-verify.js (return false and see the app behavior); mitmproxy -s tamper.py
+  expected: The app rejects every item with a wrong, missing or foreign signature. It enforces the expected algorithm and trusted keys.
+  severity: High
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M10:2024
+    masvs:
+    - MASVS-CRYPTO-1
+    maswe:
+    - MASWE-0011
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    cwe:
+    - CWE-295
+    - CWE-347
+  see:
+  - WEB-JWT-001
+  - WEB-JWT-002
+  notes: No MASTG v2 test exists for MASWE-0011.
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-CRYPTO_MASWE-0011.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/masvs/controls/MASVS-CRYPTO-1.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m10-insufficient-cryptography.md
+- id: MOB-CRYPTO-013
+  sheet: MOB
+  category: CRYPTO
+  title: Check that keys derived from passwords use a password KDF
+  objective: Finds keys derived with a plain hash, a low work factor, a missing salt or a low-entropy input.
+  steps:
+  - Search the code for key derivation from passwords, PINs and passphrases.
+  - Flag plain hashes such as SHA-256 of a password, used as a key.
+  - Look for PBKDF2, scrypt or Argon2 and note the iterations, memory and parallelism values.
+  - Check that each derivation uses a unique random salt that is not hardcoded.
+  - Check that a short PIN is combined with a random key from the Keystore or Keychain.
+  example: jadx -d src app.apk; grep -rnE "PBKDF2|SecretKeyFactory.getInstance|scrypt|Argon2" src/; r2 -qc "aaa; afl~CCKeyDerivationPBKDF" Payload/App.app/App; frida-trace -U -f <package> -j "javax.crypto.spec.PBEKeySpec!*"
+  expected: The app derives keys from passwords only with PBKDF2, scrypt or Argon2. It uses a current work factor and a unique random salt.
+  severity: Medium
+  test_type:
+  - Code Review
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M10:2024
+    masvs:
+    - MASVS-CRYPTO-2
+    maswe:
+    - MASWE-0014
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-326
+    - CWE-327
+    - CWE-759
+    - CWE-760
+    - CWE-916
+  see:
+  - WEB-CRYPTO-013
+  notes: No MASTG v2 test exists for MASWE-0014.
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-CRYPTO_MASWE-0014.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/masvs/controls/MASVS-CRYPTO-2.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m10-insufficient-cryptography.md
+- id: MOB-CRYPTO-014
+  sheet: MOB
+  category: CRYPTO
+  title: Check that the app can rotate its cryptographic keys
+  objective: Finds keys with no cryptoperiod, no versioning and no way to replace them.
+  steps:
+  - Read the design documents and find how the app stores and uses long-lived keys.
+  - Search the code for key versions, keysets and key identifiers in the stored data format.
+  - Find the cryptoperiod that the team defined for each key type.
+  - Replace a key in a test build. Old data must stay readable and new data must use the new key.
+  - Make sure the app restricts old keys to decryption and then destroys them.
+  example: jadx -d src app.apk; grep -rnE "keyVersion|KeysetHandle|rotate" src/; adb shell run-as <package> ls files shared_prefs (look for key version markers)
+  expected: The data format supports key versions. The team defines cryptoperiods, and rotation works without data loss.
+  severity: Low
+  test_type:
+  - Config Review
+  - Manual
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M10:2024
+    masvs:
+    - MASVS-CRYPTO-2
+    maswe:
+    - MASWE-0015
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    - Key_Management_Cheat_Sheet
+    cwe:
+    - CWE-324
+  see:
+  - WEB-SECRET-002
+  notes: No MASTG v2 test exists for MASWE-0015.
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-CRYPTO_MASWE-0015.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0008.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/masvs/controls/MASVS-CRYPTO-2.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m10-insufficient-cryptography.md
+- id: MOB-CRYPTO-015
+  sheet: MOB
+  category: CRYPTO
+  title: Check that key use needs authentication and an unlocked device
+  objective: Finds keys that any code in the app, or anyone with the unlocked device, can use without limits.
+  steps:
+  - 'Android: Search KeyGenParameterSpec.Builder for setUserAuthenticationRequired, setUnlockedDeviceRequired and the validity duration.'
+  - 'iOS: Search SecAccessControlCreateWithFlags and the kSecAttrAccessible values of Keychain items.'
+  - Flag keys for sensitive data that need no authentication, or that work while the device is locked.
+  - Flag iOS items with kSecAttrAccessibleAlways or without the ThisDeviceOnly suffix.
+  - Flag keys in StrongBox or the Secure Enclave that have no use restrictions.
+  example: jadx -d src app.apk; grep -rnE "setUserAuthenticationRequired|setUnlockedDeviceRequired|setUserAuthenticationParameters" src/; r2 -qc "aaa; axt sym.imp.SecAccessControlCreateWithFlags" Payload/App.app/App; objection -g <bundle> explore -> ios keychain dump (read the Accessible column)
+  expected: Keys for sensitive data need user authentication and an unlocked device, are bound to the device and have a short or zero validity.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M10:2024
+    masvs:
+    - MASVS-CRYPTO-2
+    - MASVS-AUTH-2
+    - MASVS-AUTH-3
+    maswe:
+    - MASWE-0016
+    cheatsheet:
+    - Key_Management_Cheat_Sheet
+    cwe:
+    - CWE-284
+    - CWE-306
+  notes: No MASTG v2 test exists for MASWE-0016. Related AUTH tests are MOB-AUTH-001 to MOB-AUTH-005.
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-CRYPTO_MASWE-0016.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0061.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/masvs/controls/MASVS-AUTH-2.md
+  - sources/repos/masvs/controls/MASVS-AUTH-3.md
+  - sources/repos/masvs/controls/MASVS-CRYPTO-2.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m10-insufficient-cryptography.md
+- id: MOB-CRYPTO-016
+  sheet: MOB
+  category: CRYPTO
+  title: Check that the app needs a secure device lock for sensitive features
+  objective: Finds sensitive features that work on devices with no PIN, pattern, password or biometric lock.
+  preconditions:
+  - Use a test device. Do not clear the lock of a personal device.
+  steps:
+  - Search the code for KeyguardManager.isDeviceSecure and LAContext canEvaluatePolicy.
+  - Search iOS Keychain items for kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly.
+  - Remove the screen lock on a test device and start the sensitive feature.
+  - Remove the screen lock while the app runs and use the feature again.
+  - See if the app blocks the feature or the key access in both cases.
+  example: jadx -d src app.apk; grep -rn "isDeviceSecure\|isKeyguardSecure" src/; r2 -qc "aaa; axt sym.imp.SecAccessControlCreateWithFlags" Payload/App.app/App; adb shell locksettings clear --old <PIN> (test device)
+  expected: The app checks the device lock state at each use of sensitive features. It blocks the feature or the key use when no lock is set.
+  severity: Low
+  test_type:
+  - Manual
+  - Code Review
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M10:2024
+    masvs:
+    - MASVS-CRYPTO-2
+    maswe:
+    - MASWE-0017
+    cheatsheet:
+    - Key_Management_Cheat_Sheet
+  notes: No MASTG v2 test exists for MASWE-0017.
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-CRYPTO_MASWE-0017.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/masvs/controls/MASVS-CRYPTO-2.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m10-insufficient-cryptography.md

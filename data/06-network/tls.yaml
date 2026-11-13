@@ -1,0 +1,154 @@
+- id: NET-TLS-001
+  sheet: NET
+  category: TLS
+  title: Scan every TLS service on the network, not only HTTPS
+  objective: Finds mail, directory, database and management services with old protocols or weak ciphers.
+  preconditions:
+  - Written approval for scans of the hosts in scope.
+  steps:
+  - Use the open-port results to list all ports that speak TLS or offer STARTTLS.
+  - Scan each TLS port for the supported protocol versions and cipher suites.
+  - Compare the result with the TLS standard of the organization.
+  - Write down each service that allows TLS 1.0, TLS 1.1, null, anonymous, export or non-forward-secrecy ciphers.
+  example: 'testssl.sh --starttls smtp <host>:25 ; testssl.sh <host>:636 ; sslyze --regular <host>:8443 ; nmap --script ssl-enum-ciphers -p <ports> <host>'
+  expected: Every TLS service supports only TLS 1.2 and TLS 1.3 with strong AEAD ciphers. Null, anonymous, export and static key exchange suites are off.
+  severity: Medium
+  test_type: Automated
+  refs:
+    wstg:
+    - WSTG-CONF-01
+    cheatsheet:
+    - Transport_Layer_Security_Cheat_Sheet
+    cwe:
+    - CWE-326
+    - CWE-327
+    nist_800_53:
+    - SC-8
+    - SC-13
+    pci_dss:
+    - '4.2.1'
+  see:
+  - WEB-TLS-001
+  - WEB-TLS-002
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Transport_Layer_Security_Cheat_Sheet.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/01-Network_Infrastructure_Configuration.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-TLS-002
+  sheet: NET
+  category: TLS
+  title: Make sure TLS compression is off on all TLS services
+  objective: Finds services where TLS compression lets an attacker recover secrets from sessions.
+  preconditions:
+  - Written approval for scans of the hosts in scope.
+  steps:
+  - Scan each TLS service for the compression setting.
+  - Write down each service that accepts TLS compression.
+  example: 'testssl.sh --crime <host>:<port> ; sslyze --compression <host>:<port>'
+  expected: No TLS service accepts TLS compression.
+  severity: Low
+  test_type: Automated
+  refs:
+    cheatsheet:
+    - Transport_Layer_Security_Cheat_Sheet
+    cwe:
+    - CWE-327
+    nist_800_53:
+    - SC-8
+    - SC-13
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Transport_Layer_Security_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-TLS-003
+  sheet: NET
+  category: TLS
+  title: Check TLS libraries for known flaws such as Heartbleed
+  objective: Finds services that use old cryptographic libraries with known flaws.
+  preconditions:
+  - Written approval for scans of the hosts in scope.
+  - Do not run on production without a scan window.
+  steps:
+  - List the TLS library and version used by each service.
+  - Scan each TLS service for known library flaws.
+  - Compare the library version with the vendor advisories.
+  - Write down each service that uses an old or vulnerable library.
+  example: 'testssl.sh --heartbleed <host>:<port> ; nmap --script ssl-heartbleed -p <port> <host> ; sslyze --heartbleed <host>:<port>'
+  expected: No TLS service is open to known library flaws. The libraries are at a supported version with current fixes.
+  severity: High
+  test_type: Automated
+  refs:
+    cheatsheet:
+    - Transport_Layer_Security_Cheat_Sheet
+    cwe:
+    - CWE-1395
+    nist_800_53:
+    - SI-2
+    - RA-5
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Transport_Layer_Security_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+- id: NET-TLS-004
+  sheet: NET
+  category: TLS
+  title: Check that legacy TLS clients use a separate endpoint with fallback protection
+  objective: Finds primary endpoints that were weakened for old clients, or that allow protocol downgrade.
+  preconditions:
+  - Written approval for scans of the hosts in scope.
+  steps:
+  - Ask the owner if old clients need weak protocols.
+  - Look for a separate endpoint for old clients with no access to sensitive data.
+  - Make sure the primary endpoint does not allow TLS 1.0 or TLS 1.1.
+  - Check that the TLS_FALLBACK_SCSV extension is on.
+  example: 'testssl.sh --fallback <host>:<port> ; sslyze --fallback <host>:<port>'
+  expected: Weak protocols run only on a separate endpoint without sensitive data. The primary endpoint refuses them and TLS_FALLBACK_SCSV is on.
+  severity: Medium
+  test_type: Automated
+  refs:
+    cheatsheet:
+    - Transport_Layer_Security_Cheat_Sheet
+    cwe:
+    - CWE-326
+    nist_800_53:
+    - SC-8
+    pci_dss:
+    - '4.2.1'
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Transport_Layer_Security_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-TLS-005
+  sheet: NET
+  category: TLS
+  title: Check certificates on internal services and management interfaces
+  objective: Finds expired, self-signed, weak or wrong-name certificates on devices and internal services.
+  preconditions:
+  - Written approval for scans of the hosts in scope.
+  steps:
+  - List the TLS certificates of all services found by the port scan.
+  - Look at the expiry date, the issuer, the key size and the hash algorithm.
+  - Look at the subject alternative names and compare them with the host name.
+  - Look at the permissions of the private key files where you have access.
+  - Write down each default, self-signed, expired or weak certificate.
+  example: 'nmap --script ssl-cert -p <ports> <range> ; testssl.sh --server-defaults <host>:<port> ; openssl x509 -in cert.pem -noout -text'
+  expected: Certificates are valid and not expired, use RSA keys of at least 2048 bits and SHA-256, and match the host name. Private keys are not readable by other users.
+  severity: Medium
+  test_type: Automated
+  refs:
+    cheatsheet:
+    - Transport_Layer_Security_Cheat_Sheet
+    cwe:
+    - CWE-295
+    - CWE-326
+    nist_800_53:
+    - SC-17
+    - SC-12
+    pci_dss:
+    - '4.2.1'
+  see:
+  - WEB-TLS-003
+  - WEB-TLS-004
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Transport_Layer_Security_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md

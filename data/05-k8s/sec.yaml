@@ -1,0 +1,302 @@
+- id: K8S-SEC-001
+  sheet: K8S
+  category: SEC
+  title: Find secrets in ConfigMaps, manifests and pod specs
+  objective: Finds credentials stored in objects with weaker access control than Secrets.
+  steps:
+  - Dump all ConfigMaps and pod specs.
+  - Scan the output for passwords, tokens, keys and connection strings.
+  - Scan the manifest and Helm repositories for the same values.
+  - List each hit with its owner and the credential type.
+  example: kubectl get configmaps -A -o yaml | gitleaks detect --no-git --source - (or trufflehog); kubectl get pods -A -o yaml | grep -iE "password|token|secret|key"
+  expected: ConfigMaps and pod specs hold no credentials. All credentials are in a secret store and are not in manifests or repositories.
+  severity: High
+  test_type: Automated
+  refs:
+    k8s_top10:
+    - K03
+    cloud_native_top10:
+    - CNAS-5
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    - Secrets_Management_Cheat_Sheet
+    cwe:
+    - CWE-798
+    - CWE-312
+    attack:
+    - T1552.001
+    nist_800_53:
+    - IA-5
+    - SC-28
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K03-Secrets-Management-Failures.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x05_insecure_secrets.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+- id: K8S-SEC-002
+  sheet: K8S
+  category: SEC
+  title: Check that secrets reach containers as files and not as env variables
+  objective: Finds secrets exposed as environment variables, where debug output and crash dumps can leak them.
+  steps:
+  - List all env entries that use secretKeyRef or envFrom with a secretRef.
+  - Check that each secret is mounted as a read-only volume instead.
+  - Look at the process list and the debug endpoints of a sample pod for the env values.
+  - Check the mount mode of secret volumes.
+  example: kubectl get pods -A -o json | jq ".items[] | select(.spec.containers[].env[]?.valueFrom.secretKeyRef or .spec.containers[].envFrom[]?.secretRef) | .metadata.name"; kubectl exec <pod> -- env
+  expected: Workloads read secrets from read-only mounted files or from an in-memory fetch. Secrets are not set in env variables or image layers.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K03
+    cloud_native_top10:
+    - CNAS-5
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    - Secrets_Management_Cheat_Sheet
+    cwe:
+    - CWE-312
+    attack:
+    - T1552.007
+    nist_800_53:
+    - SC-28
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K03-Secrets-Management-Failures.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x05_insecure_secrets.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+- id: K8S-SEC-003
+  sheet: K8S
+  category: SEC
+  title: Check that Secrets are encrypted at rest in etcd
+  objective: Finds clusters that store Secret objects in etcd in plaintext.
+  preconditions:
+  - Read access to etcd or the managed cluster settings.
+  steps:
+  - Read the encryption provider configuration of the API server or the managed service setting.
+  - Check that a non-identity provider is first for secrets.
+  - Read a test secret directly from etcd.
+  - Check that existing secrets were rewritten after the change.
+  example: ETCDCTL_API=3 etcdctl get /registry/secrets/<ns>/<name> | hexdump -C | head; kubectl get secrets -A -o json | kubectl replace -f - (rewrite after change)
+  expected: The etcd value of a test secret starts with the encryption provider prefix and shows no plaintext. Existing secrets are rewritten. Backups are encrypted.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K03
+    cloud_native_top10:
+    - CNAS-5
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    - Secrets_Management_Cheat_Sheet
+    cwe:
+    - CWE-312
+    - CWE-311
+    attack:
+    - T1552.007
+    nist_800_53:
+    - SC-28
+    - SC-12
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K03-Secrets-Management-Failures.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x05_insecure_secrets.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+- id: K8S-SEC-004
+  sheet: K8S
+  category: SEC
+  title: Check use of an external secret store and workload identity
+  objective: Finds clusters that keep long-lived static credentials in Secret objects when a short-lived option exists.
+  steps:
+  - List the Secret objects of type Opaque and kubernetes.io/service-account-token.
+  - Find static cloud or database credentials among them.
+  - Check if workloads use an external secret operator or workload identity federation.
+  - Check the age and rotation date of each credential.
+  example: kubectl get secrets -A --field-selector type=Opaque; kubectl get externalsecrets -A (if External Secrets Operator is in use); kubectl get secrets -A -o json | jq ".items[] | {n:.metadata.name, c:.metadata.creationTimestamp}"
+  expected: Workloads get short-lived credentials from a managed vault or workload identity. Few static secrets remain and each has an owner and rotation date.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K03
+    - K08
+    cloud_native_top10:
+    - CNAS-5
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    - Secrets_Management_Cheat_Sheet
+    cwe:
+    - CWE-798
+    - CWE-522
+    attack:
+    - T1552.007
+    - T1555.006
+    nist_800_53:
+    - IA-5
+    - SC-12
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K03-Secrets-Management-Failures.md
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K08-Cluster-To-Cloud-Lateral-Movement.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x05_insecure_secrets.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+- id: K8S-SEC-005
+  sheet: K8S
+  category: SEC
+  title: Check rotation and lifetime of cluster and service account credentials
+  objective: Finds long-lived tokens and certificates that stay valid after a leak.
+  steps:
+  - List secrets of type service-account-token and check their age.
+  - Check that pods use projected tokens from the TokenRequest API with an expiry.
+  - Check the validity period of client and serving certificates.
+  - Check the rotation process and owner for each credential type.
+  example: kubectl get secrets -A --field-selector type=kubernetes.io/service-account-token; kubectl create token <sa> --duration 10m; kubeadm certs check-expiration (self-managed)
+  expected: Pods use short-lived projected tokens. No long-lived service account token Secrets exist without a written reason. Certificates rotate on a set schedule.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K03
+    - K09
+    cloud_native_top10:
+    - CNAS-5
+    - CNAS-3
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    - Secrets_Management_Cheat_Sheet
+    cwe:
+    - CWE-798
+    attack:
+    - T1528
+    nist_800_53:
+    - IA-5
+    - SC-12
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K03-Secrets-Management-Failures.md
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K09-Broken-Authentication-Mechanisms.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x05_insecure_secrets.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x03_improper_auth.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+- id: K8S-SEC-006
+  sheet: K8S
+  category: SEC
+  title: Check that secret values do not reach logs or audit records
+  objective: Finds secrets written to pod logs, central log platforms or API audit logs.
+  steps:
+  - Search pod logs and the central log platform for known test secret values.
+  - Read the audit policy for rules on secrets and configmaps.
+  - Check that these resources use the Metadata level only.
+  - Check who can read pods/log and the log platform.
+  example: kubectl logs <pod> | grep -i "<test-secret>"; grep -B2 -A6 secrets /etc/kubernetes/audit-policy.yaml
+  expected: Secret values never appear in logs. The audit policy records secrets and configmaps at the Metadata level only.
+  severity: Medium
+  test_type: Manual
+  refs:
+    k8s_top10:
+    - K03
+    - K10
+    cloud_native_top10:
+    - CNAS-5
+    - CNAS-10
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    - Secrets_Management_Cheat_Sheet
+    - Logging_Cheat_Sheet
+    cwe:
+    - CWE-532
+    attack:
+    - T1552.001
+    nist_800_53:
+    - AU-3
+    - SC-28
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K03-Secrets-Management-Failures.md
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K10-Inadequate-Logging-And-Monitoring.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x05_insecure_secrets.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x0A_logging.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+- id: K8S-SEC-007
+  sheet: K8S
+  category: SEC
+  title: Scan container filesystems and images for stored secrets
+  objective: Finds tokens, keys and passwords embedded in running containers or in the images that start them.
+  steps:
+  - List the images that run in the cluster.
+  - Scan each image for secrets.
+  - Scan the file system of a running container for keys and token files.
+  - Check that found credentials were revoked.
+  example: trivy image --scanners secret <image>; trivy fs --scanners secret <path>; gitleaks detect --source <repo>
+  expected: Images and running containers hold no embedded secrets. Any secret found is revoked and rotated.
+  severity: High
+  test_type: Automated
+  refs:
+    k8s_top10:
+    - K03
+    cloud_native_top10:
+    - CNAS-5
+    cheatsheet:
+    - Kubernetes_Security_Cheat_Sheet
+    - Secrets_Management_Cheat_Sheet
+    cwe:
+    - CWE-798
+    attack:
+    - T1552.001
+    - T1552.004
+    nist_800_53:
+    - IA-5
+    - RA-5
+  see:
+  - CICD-CRED-005
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K03-Secrets-Management-Failures.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x05_insecure_secrets.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Kubernetes_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md
+- id: K8S-SEC-008
+  sheet: K8S
+  category: SEC
+  title: Check access paths and audit of the secret store itself
+  objective: Finds secret managers with broad access and no record of who read which secret.
+  steps:
+  - List the principals that can read secrets in the external store.
+  - Check that each workload can read only its own secrets.
+  - Check that reads create audit records with the identity and source.
+  - Make sure alerts fire for reads from an unexpected source.
+  example: Check the provider audit log for secret read events; vault audit list (HashiCorp Vault); aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,AttributeValue=GetSecretValue
+  expected: Each workload reads only its own secrets. Every read is recorded with identity and source, and unusual reads raise an alert.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K03
+    cloud_native_top10:
+    - CNAS-5
+    - CNAS-10
+    cheatsheet:
+    - Secrets_Management_Cheat_Sheet
+    cwe:
+    - CWE-284
+    attack:
+    - T1555.006
+    nist_800_53:
+    - AU-2
+    - AC-6
+  see:
+  - CLD-SEC-001
+  sources_read:
+  - sources/repos/www-project-kubernetes-top-ten/2025/en/src/K03-Secrets-Management-Failures.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x05_insecure_secrets.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x0A_logging.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secrets_Management_Cheat_Sheet.md

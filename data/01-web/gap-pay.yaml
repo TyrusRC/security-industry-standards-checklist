@@ -1,0 +1,36 @@
+- id: WEB-PAY-001
+  sheet: WEB
+  category: PAY
+  title: Test payment gateway return and callback handling for spoofing
+  objective: Find checkout flows that mark an order as paid because of a forged return URL or callback.
+  preconditions:
+  - A gateway sandbox account.
+  steps:
+  - Find the return URL and the callback URL that the gateway uses.
+  - Call the return URL with a changed status, amount and order ID.
+  - Send a callback with no signature and with a wrong signature.
+  - Send a valid callback twice and look for a second fulfillment.
+  - Send a callback with a different amount or currency than the order.
+  - Check that the server asks the gateway API for the payment status before it fulfills the order.
+  - Check that the server calculates the order total again from trusted data.
+  example: curl "https://target/checkout/return?order=1001&status=paid&amount=0.01"; replay the gateway callback with curl --data-binary
+  expected: Only a verified server-to-server callback with matching order, amount and currency completes an order. Return URL values are not trusted. A repeated callback has no second effect.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    owasp_top10:
+    - A06:2025
+    - A08:2025
+    cheatsheet:
+    - Third_Party_Payment_Gateway_Integration_Cheat_Sheet
+    wstg:
+    - WSTG-BUSL-10
+    cwe:
+    - CWE-345
+    - CWE-602
+    other:
+    - 'OWASP DevGuide web app checklist: 05-validate-inputs.md'
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Third_Party_Payment_Gateway_Integration_Cheat_Sheet.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/10-Business_Logic/10-Payment_Functionality.md

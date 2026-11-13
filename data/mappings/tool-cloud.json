@@ -1,0 +1,988 @@
+{
+ "tool_check": {
+  "prowler:aws:glacier_vaults_policy_public_access": [
+   "CLD-CFG-001"
+  ],
+  "prowler:aws:s3_access_point_public_access_block": [
+   "CLD-CFG-001"
+  ],
+  "prowler:aws:s3_account_level_public_access_blocks": [
+   "CLD-CFG-001"
+  ],
+  "prowler:aws:s3_bucket_level_public_access_block": [
+   "CLD-CFG-001"
+  ],
+  "prowler:aws:s3_bucket_object_public": [
+   "CLD-CFG-001"
+  ],
+  "prowler:aws:s3_bucket_policy_public_write_access": [
+   "CLD-CFG-001"
+  ],
+  "prowler:aws:s3_bucket_public_access": [
+   "CLD-CFG-001"
+  ],
+  "prowler:aws:s3_bucket_public_list_acl": [
+   "CLD-CFG-001"
+  ],
+  "prowler:aws:s3_bucket_public_write_acl": [
+   "CLD-CFG-001"
+  ],
+  "prowler:aws:s3_multi_region_access_point_public_access_block": [
+   "CLD-CFG-001"
+  ],
+  "prowler:azure:storage_account_public_network_access_disabled": [
+   "CLD-CFG-001"
+  ],
+  "prowler:azure:storage_blob_public_access_level_is_disabled": [
+   "CLD-CFG-001"
+  ],
+  "prowler:gcp:bigquery_dataset_public_access": [
+   "CLD-CFG-001"
+  ],
+  "prowler:gcp:cloudstorage_bucket_public_access": [
+   "CLD-CFG-001"
+  ],
+  "prowler:aws:dms_instance_no_public_access": [
+   "CLD-CFG-002"
+  ],
+  "prowler:aws:efs_mount_target_not_publicly_accessible": [
+   "CLD-CFG-002"
+  ],
+  "prowler:aws:efs_not_publicly_accessible": [
+   "CLD-CFG-002"
+  ],
+  "prowler:aws:elasticache_cluster_uses_public_subnet": [
+   "CLD-CFG-002"
+  ],
+  "prowler:aws:emr_cluster_account_public_block_enabled": [
+   "CLD-CFG-002"
+  ],
+  "prowler:aws:emr_cluster_master_nodes_no_public_ip": [
+   "CLD-CFG-002"
+  ],
+  "prowler:aws:emr_cluster_publicly_accesible": [
+   "CLD-CFG-002"
+  ],
+  "prowler:aws:glue_data_catalogs_not_publicly_accessible": [
+   "CLD-CFG-002"
+  ],
+  "prowler:aws:kafka_cluster_is_public": [
+   "CLD-CFG-002"
+  ],
+  "prowler:aws:lightsail_database_public": [
+   "CLD-CFG-002"
+  ],
+  "prowler:aws:mq_broker_not_publicly_accessible": [
+   "CLD-CFG-002"
+  ],
+  "prowler:aws:neptune_cluster_uses_public_subnet": [
+   "CLD-CFG-002"
+  ],
+  "prowler:aws:opensearch_service_domains_not_publicly_accessible": [
+   "CLD-CFG-002"
+  ],
+  "prowler:aws:rds_instance_inside_vpc": [
+   "CLD-CFG-002"
+  ],
+  "prowler:aws:rds_instance_no_public_access": [
+   "CLD-CFG-002"
+  ],
+  "prowler:aws:redshift_cluster_public_access": [
+   "CLD-CFG-002"
+  ],
+  "prowler:azure:cosmosdb_account_firewall_use_selected_networks": [
+   "CLD-CFG-002"
+  ],
+  "prowler:azure:cosmosdb_account_public_network_access_disabled": [
+   "CLD-CFG-002"
+  ],
+  "prowler:azure:sqlserver_unrestricted_inbound_access": [
+   "CLD-CFG-002"
+  ],
+  "prowler:gcp:cloudsql_instance_private_ip_assignment": [
+   "CLD-CFG-002"
+  ],
+  "prowler:gcp:cloudsql_instance_public_access": [
+   "CLD-CFG-002"
+  ],
+  "prowler:gcp:cloudsql_instance_public_ip": [
+   "CLD-CFG-002"
+  ],
+  "prowler:aws:ec2_instance_port_cassandra_exposed_to_internet": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_instance_port_cifs_exposed_to_internet": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_instance_port_elasticsearch_kibana_exposed_to_internet": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_instance_port_ftp_exposed_to_internet": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_instance_port_kafka_exposed_to_internet": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_instance_port_kerberos_exposed_to_internet": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_instance_port_ldap_exposed_to_internet": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_instance_port_memcached_exposed_to_internet": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_instance_port_mongodb_exposed_to_internet": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_instance_port_mysql_exposed_to_internet": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_instance_port_oracle_exposed_to_internet": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_instance_port_postgresql_exposed_to_internet": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_instance_port_rdp_exposed_to_internet": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_instance_port_redis_exposed_to_internet": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_instance_port_sqlserver_exposed_to_internet": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_instance_port_ssh_exposed_to_internet": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_instance_port_telnet_exposed_to_internet": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_networkacl_allow_ingress_any_port": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_networkacl_allow_ingress_tcp_port_22": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_networkacl_allow_ingress_tcp_port_3389": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_securitygroup_allow_ingress_from_internet_to_all_ports": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_securitygroup_allow_ingress_from_internet_to_any_port": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_securitygroup_allow_ingress_from_internet_to_any_port_from_ip": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_securitygroup_allow_ingress_from_internet_to_high_risk_tcp_ports": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_3389": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_cassandra_7199_9160_8888": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_elasticsearch_kibana_9200_9300_5601": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_ftp_20_21": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_kafka_9092": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_memcached_11211": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_mongodb_27017_27018": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_mysql_3306": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_oracle_1521_2483": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_postgres_5432": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_redis_6379": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_sql_server_1433_1434": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_telnet_23": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_securitygroup_allow_wide_open_public_ipv4": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:ec2_securitygroup_default_restrict_traffic": [
+   "CLD-CFG-003"
+  ],
+  "prowler:azure:network_http_internet_access_restricted": [
+   "CLD-CFG-003"
+  ],
+  "prowler:azure:network_rdp_internet_access_restricted": [
+   "CLD-CFG-003"
+  ],
+  "prowler:azure:network_ssh_internet_access_restricted": [
+   "CLD-CFG-003"
+  ],
+  "prowler:azure:network_udp_internet_access_restricted": [
+   "CLD-CFG-003"
+  ],
+  "prowler:gcp:compute_firewall_rdp_access_from_the_internet_allowed": [
+   "CLD-CFG-003"
+  ],
+  "prowler:gcp:compute_firewall_ssh_access_from_the_internet_allowed": [
+   "CLD-CFG-003"
+  ],
+  "prowler:aws:documentdb_cluster_storage_encrypted": [
+   "CLD-CFG-004"
+  ],
+  "prowler:aws:dynamodb_accelerator_cluster_encryption_enabled": [
+   "CLD-CFG-004"
+  ],
+  "prowler:aws:ec2_ebs_default_encryption": [
+   "CLD-CFG-004"
+  ],
+  "prowler:aws:ec2_ebs_snapshots_encrypted": [
+   "CLD-CFG-004"
+  ],
+  "prowler:aws:ec2_ebs_volume_encryption": [
+   "CLD-CFG-004"
+  ],
+  "prowler:aws:efs_encryption_at_rest_enabled": [
+   "CLD-CFG-004"
+  ],
+  "prowler:aws:elasticache_redis_cluster_rest_encryption_enabled": [
+   "CLD-CFG-004"
+  ],
+  "prowler:aws:firehose_stream_encrypted_at_rest": [
+   "CLD-CFG-004"
+  ],
+  "prowler:aws:kinesis_stream_encrypted_at_rest": [
+   "CLD-CFG-004"
+  ],
+  "prowler:aws:neptune_cluster_snapshot_encrypted": [
+   "CLD-CFG-004"
+  ],
+  "prowler:aws:neptune_cluster_storage_encrypted": [
+   "CLD-CFG-004"
+  ],
+  "prowler:aws:opensearch_service_domains_encryption_at_rest_enabled": [
+   "CLD-CFG-004"
+  ],
+  "prowler:aws:rds_cluster_storage_encrypted": [
+   "CLD-CFG-004"
+  ],
+  "prowler:aws:rds_instance_storage_encrypted": [
+   "CLD-CFG-004"
+  ],
+  "prowler:aws:rds_snapshots_encrypted": [
+   "CLD-CFG-004"
+  ],
+  "prowler:aws:redshift_cluster_encrypted_at_rest": [
+   "CLD-CFG-004"
+  ],
+  "prowler:aws:s3_bucket_default_encryption": [
+   "CLD-CFG-004"
+  ],
+  "prowler:aws:sns_topics_kms_encryption_at_rest_enabled": [
+   "CLD-CFG-004"
+  ],
+  "prowler:aws:sqs_queues_server_side_encryption_enabled": [
+   "CLD-CFG-004"
+  ],
+  "prowler:aws:storagegateway_fileshare_encryption_enabled": [
+   "CLD-CFG-004"
+  ],
+  "prowler:aws:workspaces_volume_encryption_enabled": [
+   "CLD-CFG-004"
+  ],
+  "prowler:azure:sqlserver_tde_encryption_enabled": [
+   "CLD-CFG-004"
+  ],
+  "prowler:azure:storage_infrastructure_encryption_is_enabled": [
+   "CLD-CFG-004"
+  ],
+  "prowler:gcp:compute_instance_encryption_with_csek_enabled": [
+   "CLD-CFG-004"
+  ],
+  "prowler:aws:cloudtrail_cloudwatch_logging_enabled": [
+   "CLD-LOG-001"
+  ],
+  "prowler:aws:cloudtrail_insights_exist": [
+   "CLD-LOG-001"
+  ],
+  "prowler:aws:cloudtrail_log_file_validation_enabled": [
+   "CLD-LOG-001"
+  ],
+  "prowler:aws:cloudtrail_multi_region_enabled": [
+   "CLD-LOG-001"
+  ],
+  "prowler:aws:cloudtrail_multi_region_enabled_logging_management_events": [
+   "CLD-LOG-001"
+  ],
+  "prowler:aws:cloudtrail_s3_dataevents_read_enabled": [
+   "CLD-LOG-001"
+  ],
+  "prowler:aws:cloudtrail_s3_dataevents_write_enabled": [
+   "CLD-LOG-001"
+  ],
+  "prowler:azure:monitor_diagnostic_setting_with_appropriate_categories": [
+   "CLD-LOG-001"
+  ],
+  "prowler:azure:monitor_diagnostic_settings_exists": [
+   "CLD-LOG-001"
+  ],
+  "prowler:gcp:cloudstorage_audit_logs_enabled": [
+   "CLD-LOG-001"
+  ],
+  "prowler:gcp:iam_audit_logs_enabled": [
+   "CLD-LOG-001"
+  ],
+  "prowler:gcp:logging_sink_created": [
+   "CLD-LOG-001"
+  ],
+  "prowler:aws:cloudtrail_bucket_requires_mfa_delete": [
+   "CLD-LOG-002"
+  ],
+  "prowler:aws:cloudtrail_kms_encryption_enabled": [
+   "CLD-LOG-002"
+  ],
+  "prowler:aws:cloudtrail_logs_s3_bucket_access_logging_enabled": [
+   "CLD-LOG-002"
+  ],
+  "prowler:aws:cloudtrail_logs_s3_bucket_is_not_publicly_accessible": [
+   "CLD-LOG-002"
+  ],
+  "prowler:aws:cloudwatch_log_group_kms_encryption_enabled": [
+   "CLD-LOG-002"
+  ],
+  "prowler:aws:cloudwatch_log_group_not_publicly_accessible": [
+   "CLD-LOG-002"
+  ],
+  "prowler:aws:cloudwatch_log_group_retention_policy_specific_days_enabled": [
+   "CLD-LOG-002"
+  ],
+  "prowler:azure:monitor_storage_account_with_activity_logs_cmk_encrypted": [
+   "CLD-LOG-002"
+  ],
+  "prowler:azure:monitor_storage_account_with_activity_logs_is_private": [
+   "CLD-LOG-002"
+  ],
+  "prowler:azure:network_flow_log_more_than_90_days": [
+   "CLD-LOG-002"
+  ],
+  "prowler:azure:sqlserver_auditing_retention_90_days": [
+   "CLD-LOG-002"
+  ],
+  "prowler:gcp:cloudstorage_bucket_log_retention_policy_lock": [
+   "CLD-LOG-002"
+  ],
+  "prowler:aws:cloudfront_distributions_logging_enabled": [
+   "CLD-LOG-003"
+  ],
+  "prowler:aws:elb_logging_enabled": [
+   "CLD-LOG-003"
+  ],
+  "prowler:aws:elbv2_logging_enabled": [
+   "CLD-LOG-003"
+  ],
+  "prowler:aws:networkfirewall_logging_enabled": [
+   "CLD-LOG-003"
+  ],
+  "prowler:aws:route53_public_hosted_zones_cloudwatch_logging_enabled": [
+   "CLD-LOG-003"
+  ],
+  "prowler:aws:vpc_flow_logs_enabled": [
+   "CLD-LOG-003"
+  ],
+  "prowler:aws:waf_global_webacl_logging_enabled": [
+   "CLD-LOG-003"
+  ],
+  "prowler:aws:waf_regional_webacl_logging_enabled": [
+   "CLD-LOG-003"
+  ],
+  "prowler:aws:wafv2_webacl_logging_enabled": [
+   "CLD-LOG-003"
+  ],
+  "prowler:aws:wafv2_webacl_rule_logging_enabled": [
+   "CLD-LOG-003"
+  ],
+  "prowler:azure:network_flow_log_captured_sent": [
+   "CLD-LOG-003"
+  ],
+  "prowler:gcp:compute_loadbalancer_logging_enabled": [
+   "CLD-LOG-003"
+  ],
+  "prowler:gcp:compute_network_dns_logging_enabled": [
+   "CLD-LOG-003"
+  ],
+  "prowler:gcp:compute_subnet_flow_logs_enabled": [
+   "CLD-LOG-003"
+  ],
+  "prowler:aws:cloudwatch_alarm_actions_alarm_state_configured": [
+   "CLD-LOG-004"
+  ],
+  "prowler:aws:cloudwatch_alarm_actions_enabled": [
+   "CLD-LOG-004"
+  ],
+  "prowler:aws:cloudwatch_changes_to_network_acls_alarm_configured": [
+   "CLD-LOG-004"
+  ],
+  "prowler:aws:cloudwatch_changes_to_network_gateways_alarm_configured": [
+   "CLD-LOG-004"
+  ],
+  "prowler:aws:cloudwatch_changes_to_network_route_tables_alarm_configured": [
+   "CLD-LOG-004"
+  ],
+  "prowler:aws:cloudwatch_changes_to_vpcs_alarm_configured": [
+   "CLD-LOG-004"
+  ],
+  "prowler:aws:cloudwatch_log_metric_filter_and_alarm_for_aws_config_configuration_changes_enabled": [
+   "CLD-LOG-004"
+  ],
+  "prowler:aws:cloudwatch_log_metric_filter_and_alarm_for_cloudtrail_configuration_changes_enabled": [
+   "CLD-LOG-004"
+  ],
+  "prowler:aws:cloudwatch_log_metric_filter_authentication_failures": [
+   "CLD-LOG-004"
+  ],
+  "prowler:aws:cloudwatch_log_metric_filter_aws_organizations_changes": [
+   "CLD-LOG-004"
+  ],
+  "prowler:aws:cloudwatch_log_metric_filter_disable_or_scheduled_deletion_of_kms_cmk": [
+   "CLD-LOG-004"
+  ],
+  "prowler:aws:cloudwatch_log_metric_filter_for_s3_bucket_policy_changes": [
+   "CLD-LOG-004"
+  ],
+  "prowler:aws:cloudwatch_log_metric_filter_policy_changes": [
+   "CLD-LOG-004"
+  ],
+  "prowler:aws:cloudwatch_log_metric_filter_root_usage": [
+   "CLD-LOG-004"
+  ],
+  "prowler:aws:cloudwatch_log_metric_filter_security_group_changes": [
+   "CLD-LOG-004"
+  ],
+  "prowler:aws:cloudwatch_log_metric_filter_sign_in_without_mfa": [
+   "CLD-LOG-004"
+  ],
+  "prowler:aws:cloudwatch_log_metric_filter_unauthorized_api_calls": [
+   "CLD-LOG-004"
+  ],
+  "prowler:azure:monitor_alert_create_policy_assignment": [
+   "CLD-LOG-004"
+  ],
+  "prowler:azure:monitor_alert_create_update_nsg": [
+   "CLD-LOG-004"
+  ],
+  "prowler:azure:monitor_alert_create_update_public_ip_address_rule": [
+   "CLD-LOG-004"
+  ],
+  "prowler:azure:monitor_alert_create_update_security_solution": [
+   "CLD-LOG-004"
+  ],
+  "prowler:azure:monitor_alert_create_update_sqlserver_fr": [
+   "CLD-LOG-004"
+  ],
+  "prowler:azure:monitor_alert_delete_nsg": [
+   "CLD-LOG-004"
+  ],
+  "prowler:azure:monitor_alert_delete_policy_assignment": [
+   "CLD-LOG-004"
+  ],
+  "prowler:azure:monitor_alert_delete_public_ip_address_rule": [
+   "CLD-LOG-004"
+  ],
+  "prowler:azure:monitor_alert_delete_security_solution": [
+   "CLD-LOG-004"
+  ],
+  "prowler:azure:monitor_alert_delete_sqlserver_fr": [
+   "CLD-LOG-004"
+  ],
+  "prowler:azure:monitor_alert_service_health_exists": [
+   "CLD-LOG-004"
+  ],
+  "prowler:gcp:logging_log_metric_filter_and_alert_for_audit_configuration_changes_enabled": [
+   "CLD-LOG-004"
+  ],
+  "prowler:gcp:logging_log_metric_filter_and_alert_for_bucket_permission_changes_enabled": [
+   "CLD-LOG-004"
+  ],
+  "prowler:gcp:logging_log_metric_filter_and_alert_for_compute_configuration_changes_enabled": [
+   "CLD-LOG-004"
+  ],
+  "prowler:gcp:logging_log_metric_filter_and_alert_for_custom_role_changes_enabled": [
+   "CLD-LOG-004"
+  ],
+  "prowler:gcp:logging_log_metric_filter_and_alert_for_project_ownership_changes_enabled": [
+   "CLD-LOG-004"
+  ],
+  "prowler:gcp:logging_log_metric_filter_and_alert_for_sql_instance_configuration_changes_enabled": [
+   "CLD-LOG-004"
+  ],
+  "prowler:gcp:logging_log_metric_filter_and_alert_for_vpc_firewall_rule_changes_enabled": [
+   "CLD-LOG-004"
+  ],
+  "prowler:gcp:logging_log_metric_filter_and_alert_for_vpc_network_changes_enabled": [
+   "CLD-LOG-004"
+  ],
+  "prowler:gcp:logging_log_metric_filter_and_alert_for_vpc_network_route_changes_enabled": [
+   "CLD-LOG-004"
+  ],
+  "prowler:aws:kms_key_not_publicly_accessible": [
+   "CLD-SEC-001"
+  ],
+  "prowler:aws:secretsmanager_has_restrictive_resource_policy": [
+   "CLD-SEC-001"
+  ],
+  "prowler:aws:secretsmanager_not_publicly_accessible": [
+   "CLD-SEC-001"
+  ],
+  "prowler:aws:ssm_documents_set_as_public": [
+   "CLD-SEC-001"
+  ],
+  "prowler:azure:keyvault_rbac_enabled": [
+   "CLD-SEC-001"
+  ],
+  "prowler:gcp:kms_key_not_publicly_accessible": [
+   "CLD-SEC-001"
+  ],
+  "prowler:gcp:secretmanager_secret_not_publicly_accessible": [
+   "CLD-SEC-001"
+  ],
+  "prowler:aws:amplify_app_no_secrets_in_environment": [
+   "CLD-SEC-002"
+  ],
+  "prowler:aws:apigateway_restapi_no_secrets_in_stage_variables": [
+   "CLD-SEC-002"
+  ],
+  "prowler:aws:autoscaling_find_secrets_ec2_launch_configuration": [
+   "CLD-SEC-002"
+  ],
+  "prowler:aws:awslambda_function_no_secrets_in_code": [
+   "CLD-SEC-002"
+  ],
+  "prowler:aws:awslambda_function_no_secrets_in_variables": [
+   "CLD-SEC-002"
+  ],
+  "prowler:aws:awslambda_layer_no_secrets_in_content": [
+   "CLD-SEC-002"
+  ],
+  "prowler:aws:batch_job_definition_no_secrets": [
+   "CLD-SEC-002"
+  ],
+  "prowler:aws:cloudformation_stack_outputs_find_secrets": [
+   "CLD-SEC-002"
+  ],
+  "prowler:aws:cloudwatch_log_group_no_secrets_in_logs": [
+   "CLD-SEC-002"
+  ],
+  "prowler:aws:codebuild_project_no_secrets_in_variables": [
+   "CLD-SEC-002"
+  ],
+  "prowler:aws:codebuild_project_source_repo_url_no_sensitive_credentials": [
+   "CLD-SEC-002"
+  ],
+  "prowler:aws:codecommit_repository_no_secrets": [
+   "CLD-SEC-002"
+  ],
+  "prowler:aws:datapipeline_pipeline_no_secrets_in_definition": [
+   "CLD-SEC-002"
+  ],
+  "prowler:aws:ec2_instance_secrets_user_data": [
+   "CLD-SEC-002"
+  ],
+  "prowler:aws:ec2_launch_template_no_secrets": [
+   "CLD-SEC-002"
+  ],
+  "prowler:aws:ecr_repository_image_no_secrets": [
+   "CLD-SEC-002"
+  ],
+  "prowler:aws:ecs_task_definitions_no_environment_secrets": [
+   "CLD-SEC-002"
+  ],
+  "prowler:aws:elasticbeanstalk_environment_no_secrets_in_configuration": [
+   "CLD-SEC-002"
+  ],
+  "prowler:aws:glue_catalog_connection_no_secrets": [
+   "CLD-SEC-002"
+  ],
+  "prowler:aws:glue_etl_jobs_no_secrets_in_arguments": [
+   "CLD-SEC-002"
+  ],
+  "prowler:aws:sagemaker_notebook_instance_no_secrets": [
+   "CLD-SEC-002"
+  ],
+  "prowler:aws:ssm_document_secrets": [
+   "CLD-SEC-002"
+  ],
+  "prowler:aws:stepfunctions_statemachine_no_secrets_in_definition": [
+   "CLD-SEC-002"
+  ],
+  "prowler:aws:secretsmanager_automatic_rotation_enabled": [
+   "CLD-SEC-003"
+  ],
+  "prowler:aws:secretsmanager_secret_rotated_periodically": [
+   "CLD-SEC-003"
+  ],
+  "prowler:aws:secretsmanager_secret_unused": [
+   "CLD-SEC-003"
+  ],
+  "prowler:azure:keyvault_key_expiration_set_in_non_rbac": [
+   "CLD-SEC-003"
+  ],
+  "prowler:azure:keyvault_non_rbac_secret_expiration_set": [
+   "CLD-SEC-003"
+  ],
+  "prowler:azure:keyvault_rbac_key_expiration_set": [
+   "CLD-SEC-003"
+  ],
+  "prowler:azure:keyvault_rbac_secret_expiration_set": [
+   "CLD-SEC-003"
+  ],
+  "prowler:gcp:secretmanager_secret_rotation_enabled": [
+   "CLD-SEC-003"
+  ],
+  "prowler:aws:kms_cmk_rotation_enabled": [
+   "CLD-SEC-004"
+  ],
+  "prowler:azure:keyvault_key_rotation_enabled": [
+   "CLD-SEC-004"
+  ],
+  "prowler:azure:storage_key_rotation_90_days": [
+   "CLD-SEC-004"
+  ],
+  "prowler:gcp:kms_key_rotation_enabled": [
+   "CLD-SEC-004"
+  ],
+  "prowler:gcp:kms_key_rotation_max_90_days": [
+   "CLD-SEC-004"
+  ],
+  "prowler:aws:autoscaling_group_launch_configuration_no_public_ip": [
+   "CLD-NET-002"
+  ],
+  "prowler:aws:ec2_confidential_workload_host_public_ip": [
+   "CLD-NET-002"
+  ],
+  "prowler:aws:ec2_elastic_ip_shodan": [
+   "CLD-NET-002"
+  ],
+  "prowler:aws:ec2_instance_public_ip": [
+   "CLD-NET-002"
+  ],
+  "prowler:aws:ec2_launch_template_no_public_ip": [
+   "CLD-NET-002"
+  ],
+  "prowler:aws:ecs_service_no_assign_public_ip": [
+   "CLD-NET-002"
+  ],
+  "prowler:aws:ecs_task_set_no_assign_public_ip": [
+   "CLD-NET-002"
+  ],
+  "prowler:aws:elb_internet_facing": [
+   "CLD-NET-002"
+  ],
+  "prowler:aws:elbv2_internet_facing": [
+   "CLD-NET-002"
+  ],
+  "prowler:aws:lightsail_instance_public": [
+   "CLD-NET-002"
+  ],
+  "prowler:aws:vpc_subnet_no_public_ip_by_default": [
+   "CLD-NET-002"
+  ],
+  "prowler:azure:network_public_ip_shodan": [
+   "CLD-NET-002"
+  ],
+  "prowler:gcp:compute_instance_public_ip": [
+   "CLD-NET-002"
+  ],
+  "prowler:gcp:compute_public_address_shodan": [
+   "CLD-NET-002"
+  ],
+  "prowler:aws:vpc_subnet_separate_private_public": [
+   "CLD-NET-001"
+  ],
+  "prowler:aws:workspaces_vpc_2private_1public_subnets_nat": [
+   "CLD-NET-001"
+  ],
+  "prowler:azure:network_subnet_nsg_associated": [
+   "CLD-NET-001"
+  ],
+  "prowler:aws:autoscaling_group_launch_configuration_requires_imdsv2": [
+   "CLD-NET-004"
+  ],
+  "prowler:aws:ec2_confidential_workload_host_imdsv2_not_enforced": [
+   "CLD-NET-004"
+  ],
+  "prowler:aws:ec2_instance_account_imdsv2_enabled": [
+   "CLD-NET-004"
+  ],
+  "prowler:aws:ec2_instance_imdsv2_enabled": [
+   "CLD-NET-004"
+  ],
+  "prowler:aws:ec2_launch_template_imdsv2_required": [
+   "CLD-NET-004"
+  ],
+  "prowler:aws:apigateway_restapi_waf_acl_attached": [
+   "CLD-NET-006"
+  ],
+  "prowler:aws:cloudfront_distributions_using_waf": [
+   "CLD-NET-006"
+  ],
+  "prowler:aws:cognito_user_pool_waf_acl_attached": [
+   "CLD-NET-006"
+  ],
+  "prowler:aws:elbv2_waf_acl_attached": [
+   "CLD-NET-006"
+  ],
+  "prowler:aws:shield_advanced_protection_in_associated_elastic_ips": [
+   "CLD-NET-006"
+  ],
+  "prowler:aws:shield_advanced_protection_in_classic_load_balancers": [
+   "CLD-NET-006"
+  ],
+  "prowler:aws:shield_advanced_protection_in_cloudfront_distributions": [
+   "CLD-NET-006"
+  ],
+  "prowler:aws:shield_advanced_protection_in_global_accelerators": [
+   "CLD-NET-006"
+  ],
+  "prowler:aws:shield_advanced_protection_in_internet_facing_load_balancers": [
+   "CLD-NET-006"
+  ],
+  "prowler:aws:shield_advanced_protection_in_route53_hosted_zones": [
+   "CLD-NET-006"
+  ],
+  "prowler:aws:waf_global_rule_with_conditions": [
+   "CLD-NET-006"
+  ],
+  "prowler:aws:waf_global_rulegroup_not_empty": [
+   "CLD-NET-006"
+  ],
+  "prowler:aws:waf_global_webacl_with_rules": [
+   "CLD-NET-006"
+  ],
+  "prowler:aws:waf_regional_rule_with_conditions": [
+   "CLD-NET-006"
+  ],
+  "prowler:aws:waf_regional_rulegroup_not_empty": [
+   "CLD-NET-006"
+  ],
+  "prowler:aws:waf_regional_webacl_with_rules": [
+   "CLD-NET-006"
+  ],
+  "prowler:aws:wafv2_webacl_managed_rule_groups_enabled": [
+   "CLD-NET-006"
+  ],
+  "prowler:aws:wafv2_webacl_with_rules": [
+   "CLD-NET-006"
+  ],
+  "prowler:azure:network_application_gateway_waf_enabled": [
+   "CLD-NET-006"
+  ],
+  "prowler:azure:network_vnet_ddos_protection_enabled": [
+   "CLD-NET-006"
+  ],
+  "prowler:aws:ecr_repositories_not_publicly_accessible": [
+   "CLD-SUP-001"
+  ],
+  "prowler:azure:containerregistry_admin_user_disabled": [
+   "CLD-SUP-001"
+  ],
+  "prowler:azure:containerregistry_not_publicly_accessible": [
+   "CLD-SUP-001"
+  ],
+  "prowler:aws:ec2_instance_emerging_threat_image": [
+   "CLD-SUP-002"
+  ],
+  "prowler:azure:vm_emerging_threat_image": [
+   "CLD-SUP-002"
+  ],
+  "prowler:azure:vm_ensure_using_approved_images": [
+   "CLD-SUP-002"
+  ],
+  "prowler:gcp:compute_instance_emerging_threat_image": [
+   "CLD-SUP-002"
+  ],
+  "prowler:aws:ecr_registry_enhanced_scanning_enabled": [
+   "CLD-SUP-004"
+  ],
+  "prowler:aws:ecr_registry_scan_images_on_push_enabled": [
+   "CLD-SUP-004"
+  ],
+  "prowler:aws:ecr_repositories_scan_images_on_push_enabled": [
+   "CLD-SUP-004"
+  ],
+  "prowler:aws:ecr_repositories_scan_vulnerabilities_in_latest_image": [
+   "CLD-SUP-004"
+  ],
+  "prowler:aws:inspector2_active_findings_exist": [
+   "CLD-SUP-004"
+  ],
+  "prowler:aws:inspector2_active_findings_kev_within_due_date": [
+   "CLD-SUP-004"
+  ],
+  "prowler:aws:inspector2_active_findings_no_known_exploited_vulnerabilities": [
+   "CLD-SUP-004"
+  ],
+  "prowler:aws:inspector2_active_findings_within_max_age": [
+   "CLD-SUP-004"
+  ],
+  "prowler:aws:inspector2_coverage_recently_scanned": [
+   "CLD-SUP-004"
+  ],
+  "prowler:aws:inspector2_coverage_scan_status_active": [
+   "CLD-SUP-004"
+  ],
+  "prowler:aws:inspector2_is_enabled": [
+   "CLD-SUP-004"
+  ],
+  "prowler:azure:defender_container_images_resolved_vulnerabilities": [
+   "CLD-SUP-004"
+  ],
+  "prowler:azure:defender_container_images_scan_enabled": [
+   "CLD-SUP-004"
+  ],
+  "prowler:gcp:artifacts_container_analysis_enabled": [
+   "CLD-SUP-004"
+  ],
+  "prowler:gcp:gcr_container_scanning_enabled": [
+   "CLD-SUP-004"
+  ],
+  "prowler:aws:awslambda_function_using_supported_runtimes": [
+   "CLD-SUP-003"
+  ],
+  "prowler:aws:ec2_instance_older_than_specific_days": [
+   "CLD-SUP-003"
+  ],
+  "prowler:aws:ec2_instance_with_outdated_ami": [
+   "CLD-SUP-003"
+  ],
+  "prowler:aws:eks_cluster_uses_a_supported_version": [
+   "CLD-SUP-003"
+  ],
+  "prowler:aws:elasticbeanstalk_environment_managed_updates_enabled": [
+   "CLD-SUP-003"
+  ],
+  "prowler:aws:elasticbeanstalk_environment_php_platform_updated": [
+   "CLD-SUP-003"
+  ],
+  "prowler:aws:kafka_cluster_uses_latest_version": [
+   "CLD-SUP-003"
+  ],
+  "prowler:aws:lightsail_instance_php_blueprint_updated": [
+   "CLD-SUP-003"
+  ],
+  "prowler:aws:opensearch_service_domains_updated_to_the_latest_service_software_version": [
+   "CLD-SUP-003"
+  ],
+  "prowler:aws:rds_instance_deprecated_engine_version": [
+   "CLD-SUP-003"
+  ],
+  "prowler:aws:rds_instance_extended_support": [
+   "CLD-SUP-003"
+  ],
+  "prowler:aws:ssm_managed_compliant_patching": [
+   "CLD-SUP-003"
+  ],
+  "prowler:azure:aks_cluster_auto_upgrade_enabled": [
+   "CLD-SUP-003"
+  ],
+  "prowler:azure:app_ensure_java_version_is_latest": [
+   "CLD-SUP-003"
+  ],
+  "prowler:azure:app_ensure_php_version_is_latest": [
+   "CLD-SUP-003"
+  ],
+  "prowler:azure:app_ensure_python_version_is_latest": [
+   "CLD-SUP-003"
+  ],
+  "prowler:azure:app_function_latest_runtime_version": [
+   "CLD-SUP-003"
+  ],
+  "prowler:azure:defender_ensure_system_updates_are_applied": [
+   "CLD-SUP-003"
+  ],
+  "prowler:gcp:appengine_version_php_runtime_supported": [
+   "CLD-SUP-003"
+  ],
+  "prowler:aws:apigateway_restapi_authorizers_enabled": [
+   "CLD-SRV-002"
+  ],
+  "prowler:aws:apigateway_restapi_public": [
+   "CLD-SRV-002"
+  ],
+  "prowler:aws:apigateway_restapi_public_with_authorizer": [
+   "CLD-SRV-002"
+  ],
+  "prowler:aws:apigatewayv2_api_authorizers_enabled": [
+   "CLD-SRV-002"
+  ],
+  "prowler:aws:awslambda_function_not_publicly_accessible": [
+   "CLD-SRV-002"
+  ],
+  "prowler:aws:awslambda_function_url_public": [
+   "CLD-SRV-002"
+  ],
+  "prowler:azure:app_function_not_publicly_accessible": [
+   "CLD-SRV-002"
+  ],
+  "prowler:gcp:cloudfunction_function_not_publicly_accessible": [
+   "CLD-SRV-002"
+  ],
+  "prowler:aws:awslambda_function_inside_vpc": [
+   "CLD-SRV-003"
+  ],
+  "prowler:azure:app_function_vnet_integration_enabled": [
+   "CLD-SRV-003"
+  ],
+  "prowler:gcp:cloudfunction_function_inside_vpc": [
+   "CLD-SRV-003"
+  ],
+  "prowler:aws:resourceexplorer2_indexes_found": [
+   "CLD-AST-001"
+  ],
+  "prowler:gcp:iam_cloud_asset_inventory_enabled": [
+   "CLD-AST-001"
+  ],
+  "prowler:aws:codebuild_project_older_90_days": [
+   "CLD-AST-003"
+  ],
+  "prowler:aws:ec2_elastic_ip_unassigned": [
+   "CLD-AST-003"
+  ],
+  "prowler:aws:ec2_instance_stopped_older_than_specific_days": [
+   "CLD-AST-003"
+  ],
+  "prowler:aws:ec2_networkacl_unused": [
+   "CLD-AST-003"
+  ],
+  "prowler:aws:ec2_securitygroup_not_used": [
+   "CLD-AST-003"
+  ],
+  "prowler:aws:lightsail_static_ip_unused": [
+   "CLD-AST-003"
+  ],
+  "prowler:azure:vm_scaleset_not_empty": [
+   "CLD-AST-003"
+  ],
+  "prowler:gcp:compute_instance_suspended_without_persistent_disks": [
+   "CLD-AST-003"
+  ]
+ }
+}

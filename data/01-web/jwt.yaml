@@ -1,0 +1,433 @@
+- id: WEB-JWT-001
+  sheet: WEB
+  category: JWT
+  title: Check that the token signature is validated
+  objective: Finds services that accept tokens with a wrong or missing signature.
+  steps:
+  - Decode a valid token and change one claim.
+  - Send the changed token with the old signature.
+  - Send a token with the signature removed.
+  - Send a token signed with a different key.
+  example: 'jwt_tool <JWT> -M pb -t https://target/api/me -rh ''Authorization: Bearer JWT'' (playbook scan of signature checks)'
+  expected: The service rejects every token with an invalid or missing signature.
+  severity: Critical
+  test_type: Automated
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A01:2025
+    - A07:2025
+    wstg:
+    - WSTG-SESS-10
+    asvs:
+    - V9.1.1
+    cheatsheet:
+    - JSON_Web_Token_Cheat_Sheet
+    cwe:
+    - CWE-347
+    - CWE-345
+    capec:
+    - CAPEC-633
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/10-JSON_Web_Tokens.md
+  - sources/repos/CheatSheetSeries/cheatsheets/JSON_Web_Token_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A01_2025-Broken_Access_Control.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-JWT-002
+  sheet: WEB
+  category: JWT
+  title: Check the algorithm allowlist and the none algorithm
+  objective: Finds acceptance of unsigned tokens or algorithms the service did not choose.
+  steps:
+  - Read the code or configuration for the list of allowed algorithms.
+  - Send a token with alg set to none, in several letter cases.
+  - Send a token with an algorithm that is not on the list.
+  - Make sure the list holds either symmetric or asymmetric algorithms.
+  example: 'jwt_tool <JWT> -X a -t https://target/api/me -rh ''Authorization: Bearer JWT'''
+  expected: Only allowed algorithms are used for each context. The none algorithm is never accepted.
+  severity: Critical
+  test_type: Automated
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A01:2025
+    - A07:2025
+    wstg:
+    - WSTG-SESS-10
+    asvs:
+    - V9.1.2
+    cheatsheet:
+    - JSON_Web_Token_Cheat_Sheet
+    cwe:
+    - CWE-347
+    - CWE-327
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/10-JSON_Web_Tokens.md
+  - sources/repos/CheatSheetSeries/cheatsheets/JSON_Web_Token_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A01_2025-Broken_Access_Control.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-JWT-003
+  sheet: WEB
+  category: JWT
+  title: Check for key type confusion between symmetric and asymmetric keys
+  objective: Finds services that accept a token made with the public key as a shared secret.
+  preconditions:
+  - Test environment preferred.
+  steps:
+  - Find out if the service expects an RS or ES algorithm.
+  - 'Read the code: make sure the key type is bound to one algorithm.'
+  - Send a token with an HS algorithm in a test environment.
+  - Look at the library version and known issues.
+  example: 'jwt_tool <JWT> -X k -pk public.pem -t https://target/api/me -rh ''Authorization: Bearer JWT'''
+  expected: The service binds each key to one algorithm. A token with a different key type is rejected.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-SESS-10
+    asvs:
+    - V9.1.2
+    cheatsheet:
+    - JSON_Web_Token_Cheat_Sheet
+    cwe:
+    - CWE-347
+    - CWE-327
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/10-JSON_Web_Tokens.md
+  - sources/repos/CheatSheetSeries/cheatsheets/JSON_Web_Token_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-JWT-004
+  sheet: WEB
+  category: JWT
+  title: Check that key material comes only from trusted sources
+  objective: Finds services that take the verification key from header values that the sender controls.
+  preconditions:
+  - Test environment.
+  steps:
+  - Read the code that selects the key.
+  - Make sure the jwk, jku and x5u headers are ignored or checked against an allowlist.
+  - Make sure the kid value is validated before any file or database lookup.
+  - Send a token with a changed header value in a test environment and look at the result.
+  example: jwt_tool <JWT> -X s (spoofed JWKS) against a test instance; grep -rn 'jku\|x5u\|getKey\|kid' src/
+  expected: Keys come from pre-configured sources of the issuer. Header values cannot add new key sources.
+  severity: Critical
+  test_type: Code Review
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A01:2025
+    - A07:2025
+    wstg:
+    - WSTG-SESS-10
+    asvs:
+    - V9.1.3
+    cheatsheet:
+    - JSON_Web_Token_Cheat_Sheet
+    cwe:
+    - CWE-347
+    - CWE-345
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/10-JSON_Web_Tokens.md
+  - sources/repos/CheatSheetSeries/cheatsheets/JSON_Web_Token_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A01_2025-Broken_Access_Control.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-JWT-005
+  sheet: WEB
+  category: JWT
+  title: Check the expiry and not-before claims
+  objective: Finds tokens that are accepted outside their validity time.
+  steps:
+  - Read the exp and nbf claims of a token.
+  - Send the token after exp.
+  - Send a token with nbf in the future.
+  - 'Check the lifetime: it must fit the application.'
+  example: 'jwt_tool <JWT> -T to edit exp; or wait for expiry and call curl -H ''Authorization: Bearer <JWT>'' https://target/api/me'
+  expected: Expired tokens and tokens that are not yet valid are rejected. Token lifetime is short.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A01:2025
+    wstg:
+    - WSTG-SESS-10
+    asvs:
+    - V9.2.1
+    cheatsheet:
+    - JSON_Web_Token_Cheat_Sheet
+    cwe:
+    - CWE-324
+    - CWE-345
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/10-JSON_Web_Tokens.md
+  - sources/repos/CheatSheetSeries/cheatsheets/JSON_Web_Token_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A01_2025-Broken_Access_Control.md
+- id: WEB-JWT-006
+  sheet: WEB
+  category: JWT
+  title: Check that the service accepts only the right token type
+  objective: Finds services that accept an ID token as an access token, or the reverse.
+  steps:
+  - Get an ID token, an access token and a refresh token.
+  - Send the ID token to an API that needs an access token.
+  - Send an access token where an ID token is needed.
+  - Check the typ header and the validation rules in the code.
+  example: 'curl -H ''Authorization: Bearer <ID token>'' https://target/api/me'
+  expected: Each service accepts only the token type and purpose that it is made for.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-SESS-10
+    asvs:
+    - V9.2.2
+    cheatsheet:
+    - JSON_Web_Token_Cheat_Sheet
+    cwe:
+    - CWE-345
+    - CWE-1259
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/10-JSON_Web_Tokens.md
+  - sources/repos/CheatSheetSeries/cheatsheets/JSON_Web_Token_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-JWT-007
+  sheet: WEB
+  category: JWT
+  title: Check the audience claim at each service
+  objective: Finds tokens for one service that work at another service.
+  steps:
+  - Log in to a low-privilege app and read the aud claim.
+  - Send the same token to another service or API.
+  - Check that the allowlist of audiences exists in the service.
+  - If one key serves many audiences, check that aud names each one.
+  example: 'curl -H ''Authorization: Bearer <token for client-portal>'' https://internal-admin.example.com/api/v1/users'
+  expected: A service accepts only tokens whose audience names that service. Tokens for one audience fail at another.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A01:2025
+    - A07:2025
+    wstg:
+    - WSTG-SESS-10
+    asvs:
+    - V9.2.3
+    - V9.2.4
+    cheatsheet:
+    - JSON_Web_Token_Cheat_Sheet
+    cwe:
+    - CWE-345
+    - CWE-863
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/10-JSON_Web_Tokens.md
+  - sources/repos/CheatSheetSeries/cheatsheets/JSON_Web_Token_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A01_2025-Broken_Access_Control.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-JWT-008
+  sheet: WEB
+  category: JWT
+  title: Check the issuer claim and the key set for each issuer
+  objective: Finds services that accept tokens from the wrong issuer or environment.
+  steps:
+  - Read the iss claim of a token.
+  - Send a token from a staging or other tenant issuer to production.
+  - 'Read the code: make sure the key set is chosen by the checked issuer.'
+  - Make sure missing iss or aud claims are rejected.
+  example: jwt_tool <JWT> to read iss and aud; replay a staging token at the production API.
+  expected: Only tokens from the configured issuer are accepted, checked with its own keys.
+  severity: High
+  test_type: Manual
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-SESS-10
+    cheatsheet:
+    - JSON_Web_Token_Cheat_Sheet
+    cwe:
+    - CWE-345
+    - CWE-347
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/10-JSON_Web_Tokens.md
+  - sources/repos/CheatSheetSeries/cheatsheets/JSON_Web_Token_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-JWT-009
+  sheet: WEB
+  category: JWT
+  title: Check for weak HMAC secrets
+  objective: Finds short, default or guessable signing secrets.
+  preconditions:
+  - A token from a test account. Offline work only.
+  steps:
+  - Look for default signing keys in the product and its documentation.
+  - Test the token against a wordlist of common secrets offline.
+  - Read the secret length and the way it is made.
+  - Make sure each audience and issuer has its own secret.
+  example: hashcat -m 16500 jwt.txt rockyou.txt ; jwt_tool <JWT> -C -d wordlist.txt
+  expected: The HMAC secret is random, at least as long as the hash output, and not shared between issuers or audiences.
+  severity: High
+  test_type: Automated
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-SESS-10
+    cheatsheet:
+    - JSON_Web_Token_Cheat_Sheet
+    cwe:
+    - CWE-521
+    - CWE-798
+    - CWE-326
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/10-JSON_Web_Tokens.md
+  - sources/repos/CheatSheetSeries/cheatsheets/JSON_Web_Token_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-JWT-010
+  sheet: WEB
+  category: JWT
+  title: Check the JWT payload for sensitive data
+  objective: Finds tokens that expose passwords, hashes or personal data.
+  steps:
+  - Decode the payload of each token type.
+  - List every claim.
+  - Mark claims with sensitive data.
+  - If tokens must hold sensitive data, check for JWE and a fixed algorithm pair.
+  example: jwt_tool <JWT> ; echo '<payload>' | base64 -d | jq .
+  expected: The payload holds no secrets or unneeded personal data. Signed tokens are treated as readable by anyone.
+  severity: Medium
+  test_type: Manual
+  refs:
+    owasp_top10:
+    - A01:2025
+    wstg:
+    - WSTG-SESS-10
+    cheatsheet:
+    - JSON_Web_Token_Cheat_Sheet
+    cwe:
+    - CWE-200
+    - CWE-312
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/10-JSON_Web_Tokens.md
+  - sources/repos/CheatSheetSeries/cheatsheets/JSON_Web_Token_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A01_2025-Broken_Access_Control.md
+- id: WEB-JWT-011
+  sheet: WEB
+  category: JWT
+  title: Check how the JWT is stored and sent
+  objective: Finds tokens sent over HTTP or kept where scripts can read them.
+  steps:
+  - Make sure all calls that carry the token use HTTPS.
+  - If the token is in a cookie, check the cookie attributes.
+  - Look for tokens in localStorage, URLs and logs.
+  example: DevTools > Application > Storage; ZAP passive scan for tokens in URLs.
+  expected: Tokens travel only over HTTPS. Cookies have Secure, HttpOnly and SameSite. Tokens are not in URLs or logs.
+  severity: Medium
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-SESS-10
+    cheatsheet:
+    - JSON_Web_Token_Cheat_Sheet
+    - Session_Management_Cheat_Sheet
+    cwe:
+    - CWE-319
+    - CWE-922
+    - CWE-598
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/10-JSON_Web_Tokens.md
+  - sources/repos/CheatSheetSeries/cheatsheets/JSON_Web_Token_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+- id: WEB-JWT-012
+  sheet: WEB
+  category: JWT
+  title: Check revocation and logout for self-contained tokens
+  objective: Finds JWTs that stay valid after logout, role change or account removal.
+  steps:
+  - Log in and save the token. Log out.
+  - Send the saved token.
+  - Disable the account or change the role. Send the token again.
+  - 'Read how the service handles revocation: deny list, status list or short life.'
+  example: 'curl -i -H ''Authorization: Bearer <old JWT>'' https://target/api/me after POST /logout.'
+  expected: After logout and account changes the old token is rejected. A revocation method exists and token lifetime is short.
+  severity: High
+  test_type: Manual
+  level: ASVS L1
+  refs:
+    owasp_top10:
+    - A01:2025
+    wstg:
+    - WSTG-SESS-10
+    asvs:
+    - V7.4.1
+    cheatsheet:
+    - JSON_Web_Token_Cheat_Sheet
+    - Session_Management_Cheat_Sheet
+    cwe:
+    - CWE-287
+    - CWE-294
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/10-JSON_Web_Tokens.md
+  - sources/repos/CheatSheetSeries/cheatsheets/JSON_Web_Token_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A01_2025-Broken_Access_Control.md
+- id: WEB-JWT-013
+  sheet: WEB
+  category: JWT
+  title: Check the JWT library version and signature edge cases
+  objective: Finds libraries with known signature validation flaws.
+  steps:
+  - List the JWT libraries and runtime versions.
+  - Look up known issues for each version.
+  - Test ECDSA tokens with invalid signature values on Java runtimes in the affected range.
+  - Update libraries that have issues.
+  example: npm audit ; pip-audit ; dependency-check --scan . ; java -version
+  expected: Libraries and runtimes are current and have no known signature issues.
+  severity: High
+  test_type: Config Review
+  refs:
+    wstg:
+    - WSTG-SESS-10
+    cheatsheet:
+    - JSON_Web_Token_Cheat_Sheet
+    cwe:
+    - CWE-347
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/06-Session_Management/10-JSON_Web_Tokens.md
+  - sources/repos/CheatSheetSeries/cheatsheets/JSON_Web_Token_Cheat_Sheet.md
+- id: WEB-JWT-014
+  sheet: WEB
+  category: JWT
+  title: Check JWE use and compression settings if tokens are encrypted
+  objective: Finds weak encryption settings in encrypted tokens.
+  steps:
+  - Find tokens with five parts.
+  - Read the alg and enc header values.
+  - Make sure only an allowlisted pair is accepted.
+  - Make sure the zip header is not used.
+  example: jwt_tool <JWE> ; grep -rn 'zip' src/ | grep -i jwe
+  expected: Only allowlisted alg and enc pairs are used. Keys are bound to one algorithm and claims are not compressed.
+  severity: Medium
+  test_type: Code Review
+  refs:
+    cheatsheet:
+    - JSON_Web_Token_Cheat_Sheet
+    cwe:
+    - CWE-327
+    - CWE-326
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/JSON_Web_Token_Cheat_Sheet.md

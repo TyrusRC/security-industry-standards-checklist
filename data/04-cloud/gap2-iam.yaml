@@ -1,0 +1,723 @@
+- id: CLD-IAM-007
+  sheet: CLD
+  category: IAM
+  title: Check that the root account has no keys and a hardware MFA
+  objective: Finds a root or owner account that has access keys, weak MFA or daily use.
+  steps:
+  - Get the account credential report.
+  - Check that the root account has no access keys.
+  - Check that the root account uses hardware MFA.
+  - Search the audit log for root sign-ins in the last 90 days.
+  - Check that the root credentials are stored in a sealed process.
+  example: 'aws iam get-account-summary --query "SummaryMap.[AccountAccessKeysPresent,AccountMFAEnabled]"; aws iam generate-credential-report; aws cloudtrail lookup-events --lookup-attributes AttributeKey=Username,AttributeValue=root; Azure: az role assignment list --role Owner --scope /subscriptions/<id>; GCP: gcloud organizations get-iam-policy <org>; prowler aws --services iam'
+  expected: The root account has no access keys and a hardware MFA device. No root sign-in happens in normal work. Central root credential management is on.
+  severity: Critical
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-3
+    tool_check:
+    - prowler:aws:iam_avoid_root_usage
+    - prowler:aws:iam_no_root_access_key
+    - prowler:aws:iam_root_credentials_management_enabled
+    - prowler:aws:iam_root_hardware_mfa_enabled
+    - prowler:aws:iam_root_mfa_enabled
+    cwe:
+    - CWE-308
+    attack:
+    - T1078.004
+    nist_800_53:
+    - AC-2
+    - IA-2
+    other:
+    - Microsoft cloud security benchmark v1 PA-1
+    - Microsoft cloud security benchmark v1 IM-6
+    - Microsoft cloud security benchmark v1 PA-5
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/iam/iam_avoid_root_usage/iam_avoid_root_usage.metadata.json
+  - sources/repos/prowler/prowler/providers/aws/services/iam/iam_root_mfa_enabled/iam_root_mfa_enabled.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-IAM-008
+  sheet: CLD
+  category: IAM
+  title: Check MFA enforcement for console users, admins and management APIs
+  objective: Finds human identities that sign in or call management APIs with one factor only.
+  steps:
+  - List all human users with console or portal access.
+  - Find users with no MFA device or no MFA policy.
+  - Check that a policy denies actions when MFA is not present.
+  - Check that admin users use phishing-resistant MFA.
+  - Sign in with a test user that has no MFA.
+  example: aws iam list-virtual-mfa-devices; aws iam get-credential-report; az rest --method get --url https://graph.microsoft.com/v1.0/identity/conditionalAccess/policies; az rest --url https://graph.microsoft.com/v1.0/policies/authenticationMethodsPolicy; gcloud compute project-info describe --format="value(commonInstanceMetadata.items)" (enable-oslogin-2fa)
+  expected: Every human identity needs MFA for sign-in and for management APIs. Admin users use hardware or passkey factors. The test user without MFA gets no access.
+  severity: High
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-3
+    tool_check:
+    - prowler:aws:iam_administrator_access_with_mfa
+    - prowler:aws:iam_user_hardware_mfa_enabled
+    - prowler:aws:iam_user_mfa_enabled_console_access
+    - prowler:azure:entra_authentication_methods_policy_strong_auth_enforced
+    - prowler:azure:entra_conditional_access_policy_require_mfa_for_admin_portals
+    - prowler:azure:entra_conditional_access_policy_require_mfa_for_management_api
+    - prowler:azure:entra_non_privileged_user_has_mfa
+    - prowler:azure:entra_privileged_user_has_mfa
+    - prowler:azure:entra_security_defaults_enabled
+    - prowler:azure:entra_user_with_vm_access_has_mfa
+    - prowler:gcp:compute_project_os_login_2fa_enabled
+    cwe:
+    - CWE-308
+    attack:
+    - T1078.004
+    - T1556.006
+    - T1621
+    nist_800_53:
+    - IA-2
+    - IA-5
+    other:
+    - Microsoft cloud security benchmark v1 IM-6
+    - Microsoft cloud security benchmark v1 IM-1
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/iam/iam_administrator_access_with_mfa/iam_administrator_access_with_mfa.metadata.json
+  - sources/repos/prowler/prowler/providers/gcp/services/compute/compute_project_os_login_2fa_enabled/compute_project_os_login_2fa_enabled.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-IAM-009
+  sheet: CLD
+  category: IAM
+  title: Check password policy and temporary credential lifetime
+  objective: Finds weak password rules and long-lived credentials for users and user pools.
+  steps:
+  - Get the password policy of the account and of each user pool.
+  - Compare length, complexity, reuse and expiry with the company rule.
+  - Find users with long-lived access keys instead of temporary credentials.
+  - Check the expiry time of temporary passwords.
+  example: aws iam get-account-password-policy; aws cognito-idp describe-user-pool --user-pool-id <id> --query UserPool.Policies; aws iam get-credential-report; prowler aws --services iam cognito
+  expected: The password policy sets a minimum length of 14, complexity, reuse limit and expiry. Humans use temporary credentials. Temporary passwords expire in a short time.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-3
+    tool_check:
+    - prowler:aws:cognito_user_pool_password_policy_lowercase
+    - prowler:aws:cognito_user_pool_password_policy_minimum_length_14
+    - prowler:aws:cognito_user_pool_password_policy_number
+    - prowler:aws:cognito_user_pool_password_policy_symbol
+    - prowler:aws:cognito_user_pool_password_policy_uppercase
+    - prowler:aws:cognito_user_pool_temporary_password_expiration
+    - prowler:aws:iam_password_policy_expires_passwords_within_90_days_or_less
+    - prowler:aws:iam_password_policy_lowercase
+    - prowler:aws:iam_password_policy_minimum_length_14
+    - prowler:aws:iam_password_policy_number
+    - prowler:aws:iam_password_policy_reuse_24
+    - prowler:aws:iam_password_policy_symbol
+    - prowler:aws:iam_password_policy_uppercase
+    cwe:
+    - CWE-521
+    attack:
+    - T1110
+    nist_800_53:
+    - IA-5
+    other:
+    - Microsoft cloud security benchmark v1 IM-6
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/cognito/cognito_user_pool_password_policy_lowercase/cognito_user_pool_password_policy_lowercase.metadata.json
+  - sources/repos/prowler/prowler/providers/aws/services/iam/iam_user_with_temporary_credentials/iam_user_with_temporary_credentials.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-IAM-010
+  sheet: CLD
+  category: IAM
+  title: Find old, unused and duplicate access keys and credentials
+  objective: Finds long-lived keys, unused credentials and app secrets that stay valid after a leak.
+  steps:
+  - List all access keys, service account keys and app registration secrets.
+  - Find keys older than 90 days.
+  - Find keys and accounts with no use in the last 90 days.
+  - Find users with two active keys.
+  - Disable one old test key and look at the result.
+  example: aws iam get-credential-report; aws iam list-access-keys --user-name <u>; aws iam get-access-key-last-used --access-key-id <k>; gcloud iam service-accounts keys list --iam-account <sa> --managed-by=user; az ad app credential list --id <app>; prowler aws --services iam
+  expected: No key is older than 90 days or unused. Each user has at most one active key. Service accounts have no user-managed keys. Unused identities are disabled.
+  severity: High
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-3
+    tool_check:
+    - prowler:aws:iam_role_access_not_stale_to_bedrock
+    - prowler:aws:iam_rotate_access_key_90_days
+    - prowler:aws:iam_user_access_not_stale_to_bedrock
+    - prowler:aws:iam_user_access_not_stale_to_sagemaker
+    - prowler:aws:iam_user_accesskey_unused
+    - prowler:aws:iam_user_console_access_unused
+    - prowler:aws:iam_user_no_setup_initial_access_key
+    - prowler:aws:iam_user_two_active_access_key
+    - prowler:aws:iam_user_with_temporary_credentials
+    - prowler:azure:entra_app_registration_credential_not_expired
+    - prowler:azure:entra_user_with_recent_sign_in
+    - prowler:gcp:iam_sa_no_user_managed_keys
+    - prowler:gcp:iam_sa_user_managed_key_rotate_90_days
+    - prowler:gcp:iam_sa_user_managed_key_unused
+    - prowler:gcp:iam_service_account_unused
+    cwe:
+    - CWE-324
+    attack:
+    - T1078.004
+    - T1098.001
+    - T1552.001
+    nist_800_53:
+    - IA-5
+    - AC-2
+    other:
+    - Microsoft cloud security benchmark v1 IM-3
+    - Microsoft cloud security benchmark v1 PA-3
+    - Microsoft cloud security benchmark v1 IM-8
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/iam/iam_no_expired_server_certificates_stored/iam_no_expired_server_certificates_stored.metadata.json
+  - sources/repos/prowler/prowler/providers/gcp/services/iam/iam_service_account_unused/iam_service_account_unused.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-IAM-011
+  sheet: CLD
+  category: IAM
+  title: Check API keys for restrictions, age and a better method
+  objective: Finds static API keys that have no limits and replace identity-based access.
+  steps:
+  - List all API keys, function keys and GraphQL API keys.
+  - Find keys that have no API or caller restriction.
+  - Find keys older than 90 days.
+  - Check if an identity-based method can replace each key.
+  - Try a key from an unlisted network.
+  example: gcloud services api-keys list; gcloud services api-keys describe <key>; az functionapp keys list -g <rg> -n <app>; aws appsync list-api-keys --api-id <id>; prowler gcp --services apikeys
+  expected: Each API key has an API and caller restriction and a rotation date. Keys older than 90 days are rotated. Sensitive APIs use IAM, not keys.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-3
+    tool_check:
+    - prowler:aws:appsync_graphql_api_no_api_key_authentication
+    - prowler:aws:bedrock_api_key_no_administrative_privileges
+    - prowler:aws:bedrock_api_key_no_long_term_credentials
+    - prowler:azure:app_function_access_keys_configured
+    - prowler:gcp:apikeys_api_restricted_with_gemini_api
+    - prowler:gcp:apikeys_api_restrictions_configured
+    - prowler:gcp:apikeys_key_exists
+    - prowler:gcp:apikeys_key_rotated_in_90_days
+    - prowler:gcp:gemini_api_disabled
+    cwe:
+    - CWE-798
+    attack:
+    - T1552.001
+    - T1528
+    nist_800_53:
+    - IA-5
+    - AC-3
+    other:
+    - Microsoft cloud security benchmark v1 IM-3
+    - Microsoft cloud security benchmark v1 IM-8
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/appsync/appsync_graphql_api_no_api_key_authentication/appsync_graphql_api_no_api_key_authentication.metadata.json
+  - sources/repos/prowler/prowler/providers/gcp/services/gemini/gemini_api_disabled/gemini_api_disabled.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-IAM-012
+  sheet: CLD
+  category: IAM
+  title: Find administrator rights on users, groups, roles and service accounts
+  objective: Finds identities that have full admin or owner rights without need.
+  steps:
+  - List all identities with admin, owner or full-access policies.
+  - Find admin policies attached to users, not to groups or roles.
+  - Count the owners of each subscription or project.
+  - Check the written reason for each admin identity.
+  - Replace one admin policy with a scoped policy in a test.
+  example: aws iam list-entities-for-policy --policy-arn arn:aws:iam::aws:policy/AdministratorAccess; az role assignment list --role Owner --all; az role assignment list --include-inherited --role "User Access Administrator"; gcloud projects get-iam-policy <p> --flatten=bindings --filter="bindings.role:roles/owner"; prowler azure --services iam entra
+  expected: Few named identities hold admin rights, each with a written reason. Admin policies attach to roles or groups only. Service accounts have no admin roles.
+  severity: High
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-3
+    tool_check:
+    - prowler:aws:bedrock_full_access_policy_attached
+    - prowler:aws:bedrockagentcore_full_access_policy_attached
+    - prowler:aws:iam_aws_attached_policy_no_administrative_privileges
+    - prowler:aws:iam_customer_attached_policy_no_administrative_privileges
+    - prowler:aws:iam_customer_unattached_policy_no_administrative_privileges
+    - prowler:aws:iam_group_administrator_access_policy
+    - prowler:aws:iam_inline_policy_no_administrative_privileges
+    - prowler:aws:iam_policy_attached_only_to_group_or_roles
+    - prowler:aws:iam_role_administratoraccess_policy
+    - prowler:aws:iam_user_administrator_access_policy
+    - prowler:azure:entra_global_admin_in_less_than_five_users
+    - prowler:azure:iam_subscription_owners_between_2_and_3
+    - prowler:azure:iam_subscription_roles_owner_custom_not_created
+    - prowler:gcp:iam_sa_no_administrative_privileges
+    cwe:
+    - CWE-269
+    attack:
+    - T1078.004
+    - T1098.003
+    nist_800_53:
+    - AC-6
+    - AC-2
+    other:
+    - Microsoft cloud security benchmark v1 PA-7
+    - Microsoft cloud security benchmark v1 PA-1
+    - Microsoft cloud security benchmark v1 PA-2
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/bedrock/bedrock_full_access_policy_attached/bedrock_full_access_policy_attached.metadata.json
+  - sources/repos/prowler/prowler/providers/gcp/services/iam/iam_sa_no_administrative_privileges/iam_sa_no_administrative_privileges.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-IAM-013
+  sheet: CLD
+  category: IAM
+  title: Find policies that allow privilege escalation
+  objective: Finds policies where a user can give themselves more rights or assume admin roles.
+  steps:
+  - Export all customer and inline policies.
+  - Find actions such as iam:PassRole, iam:CreatePolicyVersion and sts:AssumeRole on all resources.
+  - Find full access to audit log and key services.
+  - Run a privilege escalation scanner on the account.
+  - Try one found path with a test identity.
+  example: aws iam get-account-authorization-details; pmapper graph create; pmapper query "who can do iam:* with *"; cloudsplaining scan --input-file <f>; prowler aws --check iam_policy_allows_privilege_escalation iam_inline_policy_allows_privilege_escalation
+  expected: No policy lets a principal raise its own rights. PassRole is limited to named roles and services. No identity has full access to audit log or key services.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    cloud_native_top10:
+    - CNAS-3
+    tool_check:
+    - prowler:aws:bedrock_agent_role_least_privilege
+    - prowler:aws:bedrock_agent_role_not_shared_across_agents
+    - prowler:aws:iam_inline_policy_allows_privilege_escalation
+    - prowler:aws:iam_inline_policy_no_full_access_to_cloudtrail
+    - prowler:aws:iam_inline_policy_no_full_access_to_kms
+    - prowler:aws:iam_inline_policy_no_wildcard_marketplace_subscribe
+    - prowler:aws:iam_no_custom_policy_permissive_role_assumption
+    - prowler:aws:iam_policy_allows_privilege_escalation
+    - prowler:aws:iam_policy_cloudshell_admin_not_attached
+    - prowler:aws:iam_policy_no_agentcore_workload_access_token_wildcard
+    - prowler:aws:iam_policy_no_full_access_to_cloudtrail
+    - prowler:aws:iam_policy_no_full_access_to_kms
+    - prowler:aws:iam_policy_no_wildcard_marketplace_subscribe
+    - prowler:aws:iam_policy_passrole_to_bedrock_agentcore_restricted
+    cwe:
+    - CWE-269
+    attack:
+    - T1098.003
+    - T1078.004
+    nist_800_53:
+    - AC-6
+    - AC-5
+    other:
+    - Microsoft cloud security benchmark v1 PA-7
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/bedrock/bedrock_agent_role_least_privilege/bedrock_agent_role_least_privilege.metadata.json
+  - sources/repos/prowler/prowler/providers/aws/services/iam/iam_policy_passrole_to_bedrock_agentcore_restricted/iam_policy_passrole_to_bedrock_agentcore_restricted.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-IAM-014
+  sheet: CLD
+  category: IAM
+  title: Check separation of duties for key, service account and role admins
+  objective: Finds identities that hold two roles which together give full control.
+  steps:
+  - List role assignments for key admin, key user, service account admin and service account user.
+  - Find identities that hold both roles of a pair.
+  - Find service roles granted at project level.
+  - Find custom roles that manage resource locks.
+  - Check that role changes need a second approval.
+  example: gcloud projects get-iam-policy <p> --format=json; az role definition list --custom-role-only true; az role assignment list --role "User Access Administrator" --all; prowler gcp --services iam
+  expected: No identity holds both roles of a conflicting pair. Service roles apply at resource level. Only a few identities can change locks and roles.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-3
+    tool_check:
+    - prowler:aws:bedrockagentcore_payments_process_payment_role_separation
+    - prowler:azure:iam_custom_role_has_permissions_to_administer_resource_locks
+    - prowler:azure:iam_role_user_access_admin_restricted
+    - prowler:gcp:iam_no_service_roles_at_project_level
+    - prowler:gcp:iam_role_kms_enforce_separation_of_duties
+    - prowler:gcp:iam_role_sa_enforce_separation_of_duties
+    cwe:
+    - CWE-269
+    attack:
+    - T1098.003
+    nist_800_53:
+    - AC-5
+    - AC-6
+    other:
+    - Microsoft cloud security benchmark v1 PA-1
+    - Microsoft cloud security benchmark v1 PA-7
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/bedrockagentcore/bedrockagentcore_payments_process_payment_role_separation/bedrockagentcore_payments_process_payment_role_separation.metadata.json
+  - sources/repos/prowler/prowler/providers/gcp/services/iam/iam_role_sa_enforce_separation_of_duties/iam_role_sa_enforce_separation_of_duties.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-IAM-015
+  sheet: CLD
+  category: IAM
+  title: Check role trust, confused deputy protection and external access findings
+  objective: Finds roles that outside accounts, services or identity providers can assume without limits.
+  steps:
+  - Read the trust policy of each role.
+  - Find trust for other accounts and services with no source account or external ID condition.
+  - Check that identity pool providers have an attribute condition.
+  - Open the external access analyzer findings.
+  - Try to assume a role from an unlisted account.
+  example: aws iam list-roles --query "Roles[].[RoleName,AssumeRolePolicyDocument]"; aws accessanalyzer list-analyzers; aws accessanalyzer list-findings --analyzer-arn <a>; gcloud iam workload-identity-pools providers describe <p> --workload-identity-pool=<pool> --location=global; prowler aws --services iam accessanalyzer
+  expected: Each trust names the account or service and has a source condition or external ID. The analyzer is on in every region and has no open finding without owner.
+  severity: High
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-3
+    tool_check:
+    - prowler:aws:accessanalyzer_enabled
+    - prowler:aws:accessanalyzer_enabled_without_findings
+    - prowler:aws:iam_check_saml_providers_sts
+    - prowler:aws:iam_role_cross_account_readonlyaccess_policy
+    - prowler:aws:iam_role_cross_service_confused_deputy_prevention
+    - prowler:aws:iam_role_service_trust_restricts_source_to_account
+    - prowler:aws:rolesanywhere_profile_restricts_session_permissions
+    - prowler:aws:vpc_endpoint_connections_trust_boundaries
+    - prowler:aws:vpc_endpoint_services_allowed_principals_trust_boundaries
+    - prowler:gcp:iam_workload_identity_pool_provider_attribute_condition
+    cwe:
+    - CWE-441
+    attack:
+    - T1199
+    - T1078.004
+    - T1550.001
+    nist_800_53:
+    - AC-6
+    - AC-3
+    other:
+    - Microsoft cloud security benchmark v1 IM-3
+    - Microsoft cloud security benchmark v1 PA-4
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/accessanalyzer/accessanalyzer_enabled/accessanalyzer_enabled.metadata.json
+  - sources/repos/prowler/prowler/providers/gcp/services/iam/iam_workload_identity_pool_provider_attribute_condition/iam_workload_identity_pool_provider_attribute_condition.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-IAM-016
+  sheet: CLD
+  category: IAM
+  title: Check resource policies of queues, topics, buses and shared resources
+  objective: Finds messaging and shared resources that other accounts or the public can use.
+  steps:
+  - List queues, topics, event buses, email identities and shared catalogs.
+  - Read the resource policy of each one.
+  - Find Principal * and unknown account entries.
+  - Find policies with no condition on source.
+  - Send a test message from an unlisted account.
+  example: aws sqs get-queue-attributes --queue-url <u> --attribute-names Policy; aws sns get-topic-attributes --topic-arn <a>; aws events describe-event-bus --name <b>; aws ses get-identity-policies --identity <i>; prowler aws --services sqs sns eventbridge ses
+  expected: Resource policies name known accounts only. No policy has Principal * without a strong condition. The test message from the unlisted account is denied.
+  severity: High
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-3
+    - CNAS-2
+    tool_check:
+    - prowler:aws:cloudwatch_cross_account_sharing_disabled
+    - prowler:aws:dynamodb_table_cross_account_access
+    - prowler:aws:eventbridge_bus_cross_account_access
+    - prowler:aws:eventbridge_bus_exposed
+    - prowler:aws:eventbridge_schema_registry_cross_account_access
+    - prowler:aws:oam_sink_not_publicly_accessible
+    - prowler:aws:s3_bucket_cross_account_access
+    - prowler:aws:servicecatalog_portfolio_shared_within_organization_only
+    - prowler:aws:ses_identity_not_publicly_accessible
+    - prowler:aws:sns_topics_not_publicly_accessible
+    - prowler:aws:sqs_queues_not_publicly_accessible
+    cwe:
+    - CWE-732
+    attack:
+    - T1530
+    - T1537
+    nist_800_53:
+    - AC-3
+    - AC-4
+    other:
+    - Microsoft cloud security benchmark v1 NS-2
+    - Microsoft cloud security benchmark v1 DP-8
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/cloudwatch/cloudwatch_cross_account_sharing_disabled/cloudwatch_cross_account_sharing_disabled.metadata.json
+  - sources/repos/prowler/prowler/providers/aws/services/sqs/sqs_queues_not_publicly_accessible/sqs_queues_not_publicly_accessible.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-IAM-017
+  sheet: CLD
+  category: IAM
+  title: Check security contacts, support roles and incident setup for each account
+  objective: Finds accounts where security alerts and provider notices go to no one.
+  steps:
+  - List the contact details of each account, subscription and organization.
+  - Check that a security contact has a shared mailbox and phone number.
+  - Check that a role exists for provider support access.
+  - Check that alert emails reach the on-call team.
+  - Send a test security notice.
+  example: aws account get-alternate-contact --alternate-contact-type SECURITY; aws iam list-roles --query "Roles[?contains(RoleName,'Support')]"; az security contact list; gcloud essential-contacts list --organization=<org>; prowler aws --services account
+  expected: Each account has a current security contact on a shared mailbox. A support role and a security audit role exist. The test notice reaches the response team.
+  severity: Low
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-10
+    tool_check:
+    - prowler:aws:account_maintain_current_contact_details
+    - prowler:aws:account_maintain_different_contact_details_to_security_billing_and_operations
+    - prowler:aws:account_security_contact_information_is_registered
+    - prowler:aws:account_security_questions_are_registered_in_the_aws_account
+    - prowler:aws:directoryservice_directory_monitor_notifications
+    - prowler:aws:directoryservice_directory_snapshots_limit
+    - prowler:aws:iam_securityaudit_role_created
+    - prowler:aws:iam_support_role_created
+    - prowler:aws:ssmincidents_enabled_with_plans
+    - prowler:aws:trustedadvisor_errors_and_warnings
+    - prowler:aws:trustedadvisor_premium_support_plan_subscribed
+    - prowler:azure:defender_additional_email_configured_with_a_security_contact
+    - prowler:azure:defender_ensure_notify_alerts_severity_is_high
+    - prowler:azure:defender_ensure_notify_emails_to_owners
+    - prowler:gcp:iam_account_access_approval_enabled
+    - prowler:gcp:iam_organization_essential_contacts_configured
+    cwe:
+    - CWE-778
+    attack:
+    - T1078.004
+    nist_800_53:
+    - IR-6
+    - IR-8
+    other:
+    - Microsoft cloud security benchmark v1 IR-2
+    - Microsoft cloud security benchmark v1 PA-8
+    - Microsoft cloud security benchmark v1 IR-3
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/account/account_maintain_current_contact_details/account_maintain_current_contact_details.metadata.json
+  - sources/repos/prowler/prowler/providers/gcp/services/iam/iam_organization_essential_contacts_configured/iam_organization_essential_contacts_configured.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-IAM-018
+  sheet: CLD
+  category: IAM
+  title: Check tenant settings for guests, app consent and user creation rights
+  objective: Finds tenant defaults that let users create apps, groups and guests or consent to apps.
+  steps:
+  - Read the user and guest settings of the tenant.
+  - Check who can create apps, tenants and groups.
+  - Check the rules for user consent to apps.
+  - Check who can invite guests.
+  - Check that named locations exist for conditional access.
+  example: az rest --url https://graph.microsoft.com/v1.0/policies/authorizationPolicy; az rest --url https://graph.microsoft.com/v1.0/identity/conditionalAccess/namedLocations; prowler azure --services entra
+  expected: Only admin roles create apps, tenants and groups. Users consent to verified apps with low risk only. Only admin roles invite guests. Guest access is limited.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-3
+    tool_check:
+    - prowler:azure:entra_policy_default_users_cannot_create_security_groups
+    - prowler:azure:entra_policy_ensure_default_user_cannot_create_apps
+    - prowler:azure:entra_policy_ensure_default_user_cannot_create_tenants
+    - prowler:azure:entra_policy_guest_invite_only_for_admin_roles
+    - prowler:azure:entra_policy_guest_users_access_restrictions
+    - prowler:azure:entra_policy_restricts_user_consent_for_apps
+    - prowler:azure:entra_policy_user_consent_for_verified_apps
+    - prowler:azure:entra_trusted_named_locations_exists
+    - prowler:azure:entra_users_cannot_create_microsoft_365_groups
+    cwe:
+    - CWE-269
+    attack:
+    - T1136.003
+    - T1528
+    nist_800_53:
+    - AC-6
+    - AC-2
+    other:
+    - Microsoft cloud security benchmark v1 IM-1
+    - Microsoft cloud security benchmark v1 PA-3
+  sources_read:
+  - sources/repos/prowler/prowler/providers/azure/services/entra/entra_policy_default_users_cannot_create_security_groups/entra_policy_default_users_cannot_create_security_groups.metadata.json
+  - sources/repos/prowler/prowler/providers/azure/services/entra/entra_users_cannot_create_microsoft_365_groups/entra_users_cannot_create_microsoft_365_groups.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-IAM-019
+  sheet: CLD
+  category: IAM
+  title: Check customer identity pools and directory sign-in settings
+  objective: Finds user pools that allow guest access, self sign-up, weak recovery or no MFA.
+  steps:
+  - List user pools, identity pools and directory services.
+  - Check that guest access is off.
+  - Check MFA, advanced security and compromised credential blocking.
+  - Check the account recovery method and the self sign-up setting.
+  - Try to sign up and to recover an account with a test user.
+  example: aws cognito-idp describe-user-pool --user-pool-id <id>; aws cognito-identity describe-identity-pool --identity-pool-id <id>; aws ds describe-directories; prowler aws --services cognito directoryservice
+  expected: Guest access is off. MFA and compromised credential blocking are on. Recovery does not use SMS only. Self sign-up is off unless the service needs it.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-3
+    tool_check:
+    - prowler:aws:cognito_identity_pool_guest_access_disabled
+    - prowler:aws:cognito_user_pool_account_recovery_sms_not_preferred
+    - prowler:aws:cognito_user_pool_advanced_security_enabled
+    - prowler:aws:cognito_user_pool_blocks_compromised_credentials_sign_in_attempts
+    - prowler:aws:cognito_user_pool_blocks_potential_malicious_sign_in_attempts
+    - prowler:aws:cognito_user_pool_client_prevent_user_existence_errors
+    - prowler:aws:cognito_user_pool_client_token_revocation_enabled
+    - prowler:aws:cognito_user_pool_deletion_protection_enabled
+    - prowler:aws:cognito_user_pool_mfa_enabled
+    - prowler:aws:cognito_user_pool_self_registration_disabled
+    - prowler:aws:directoryservice_radius_server_security_protocol
+    - prowler:aws:directoryservice_supported_mfa_radius_enabled
+    cwe:
+    - CWE-287
+    attack:
+    - T1078.004
+    - T1110
+    nist_800_53:
+    - IA-2
+    - IA-5
+    other:
+    - Microsoft cloud security benchmark v1 IM-6
+    - Microsoft cloud security benchmark v1 IM-9
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/cognito/cognito_identity_pool_guest_access_disabled/cognito_identity_pool_guest_access_disabled.metadata.json
+  - sources/repos/prowler/prowler/providers/aws/services/directoryservice/directoryservice_supported_mfa_radius_enabled/directoryservice_supported_mfa_radius_enabled.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-IAM-020
+  sheet: CLD
+  category: IAM
+  title: Check that workloads use their own attached identity and not default accounts
+  objective: Finds workloads that run with default service accounts or no managed identity.
+  steps:
+  - List VMs, nodes, functions and app services with their identity.
+  - Find workloads that use the default service account.
+  - Find internet-facing instances with an instance profile.
+  - Check the rights of each attached identity.
+  - Check that app services need sign-in.
+  example: aws ec2 describe-instances --query "Reservations[].Instances[].[InstanceId,IamInstanceProfile.Arn,PublicIpAddress]"; gcloud compute instances list --format="value(name,serviceAccounts[].email)"; az webapp identity show -g <rg> -n <app>; az webapp auth show -g <rg> -n <app>; prowler gcp --services compute gke
+  expected: Each workload has its own identity with minimal rights. No workload uses the default service account. Internet-facing hosts have only the rights they need.
+  severity: High
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-3
+    tool_check:
+    - prowler:aws:ec2_instance_internet_facing_with_instance_profile
+    - prowler:aws:ec2_instance_profile_attached
+    - prowler:aws:rolesanywhere_trust_anchor_pqc_pki
+    - prowler:azure:aiservices_account_managed_identity_enabled
+    - prowler:azure:app_ensure_auth_is_set_up
+    - prowler:azure:app_function_identity_is_configured
+    - prowler:azure:app_function_identity_without_admin_privileges
+    - prowler:azure:app_register_with_identity
+    - prowler:gcp:compute_instance_default_service_account_in_use
+    - prowler:gcp:compute_instance_default_service_account_in_use_with_full_api_access
+    - prowler:gcp:gke_cluster_no_default_service_account
+    cwe:
+    - CWE-250
+    attack:
+    - T1078.004
+    - T1552.005
+    nist_800_53:
+    - AC-6
+    - IA-9
+    other:
+    - Microsoft cloud security benchmark v1 IM-3
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/ec2/ec2_instance_internet_facing_with_instance_profile/ec2_instance_internet_facing_with_instance_profile.metadata.json
+  - sources/repos/prowler/prowler/providers/gcp/services/gke/gke_cluster_no_default_service_account/gke_cluster_no_default_service_account.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-IAM-021
+  sheet: CLD
+  category: IAM
+  title: Check database and data service authentication and default admin names
+  objective: Finds data services with no authentication, default admin names or no identity-based login.
+  steps:
+  - List databases, caches, search domains, brokers and clusters.
+  - Check that each one needs authentication.
+  - Check that identity-based login is on where the service has it.
+  - Find default admin user names.
+  - Try to connect with no credentials.
+  example: aws rds describe-db-instances --query "DBInstances[].[DBInstanceIdentifier,IAMDatabaseAuthenticationEnabled,MasterUsername]"; aws elasticache describe-replication-groups; aws opensearch describe-domain --domain-name <d>; aws kafka describe-cluster --cluster-arn <a>; prowler aws --services rds elasticache opensearch kafka
+  expected: Every data service needs authentication. Identity-based login is on. Admin names are not default. The connection with no credentials fails.
+  severity: High
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-3
+    tool_check:
+    - prowler:aws:dms_endpoint_mongodb_authentication_enabled
+    - prowler:aws:dms_endpoint_neptune_iam_authorization_enabled
+    - prowler:aws:elasticache_redis_replication_group_auth_enabled
+    - prowler:aws:kafka_cluster_mutual_tls_authentication_enabled
+    - prowler:aws:kafka_cluster_unrestricted_access_disabled
+    - prowler:aws:neptune_cluster_iam_authentication_enabled
+    - prowler:aws:opensearch_service_domains_access_control_enabled
+    - prowler:aws:opensearch_service_domains_internal_user_database_enabled
+    - prowler:aws:opensearch_service_domains_use_cognito_authentication_for_kibana
+    - prowler:aws:rds_cluster_default_admin
+    - prowler:aws:rds_cluster_iam_authentication_enabled
+    - prowler:aws:rds_instance_default_admin
+    - prowler:aws:rds_instance_iam_authentication_enabled
+    - prowler:aws:redshift_cluster_non_default_username
+    cwe:
+    - CWE-306
+    attack:
+    - T1078.004
+    - T1190
+    nist_800_53:
+    - IA-2
+    - IA-5
+    other:
+    - Microsoft cloud security benchmark v1 IM-1
+    - Microsoft cloud security benchmark v1 IM-3
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/dms/dms_endpoint_mongodb_authentication_enabled/dms_endpoint_mongodb_authentication_enabled.metadata.json
+  - sources/repos/prowler/prowler/providers/aws/services/redshift/redshift_cluster_non_default_username/redshift_cluster_non_default_username.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx
+- id: CLD-IAM-022
+  sheet: CLD
+  category: IAM
+  title: Check that shared keys and local accounts are off
+  objective: Finds services where static keys or local accounts bypass central access control.
+  steps:
+  - List storage accounts, AI services, databases and clusters.
+  - Check if shared key or local authentication is on.
+  - Check that Entra or IAM authorization is the default.
+  - Check that RBAC is on for clusters.
+  - Try to call each service with a stored key.
+  example: az storage account show -n <a> --query "[allowSharedKeyAccess,defaultToOAuthAuthentication]"; az cognitiveservices account show -n <a> -g <rg> --query properties.disableLocalAuth; az aks show -n <c> -g <rg> --query "[disableLocalAccounts,enableRbac]"; az cosmosdb show -n <a> -g <rg> --query disableLocalAuth; prowler azure --services storage aiservices aks
+  expected: Shared key and local authentication are off. Identity-based authorization is the default. The call with a stored key fails.
+  severity: High
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-3
+    tool_check:
+    - prowler:azure:aiservices_account_local_auth_disabled
+    - prowler:azure:aks_cluster_local_accounts_disabled
+    - prowler:azure:aks_cluster_rbac_enabled
+    - prowler:azure:cosmosdb_account_use_aad_and_rbac
+    - prowler:azure:postgresql_flexible_server_entra_id_authentication_enabled
+    - prowler:azure:sqlserver_azuread_administrator_enabled
+    - prowler:azure:storage_account_key_access_disabled
+    - prowler:azure:storage_default_to_entra_authorization_enabled
+    cwe:
+    - CWE-287
+    attack:
+    - T1078.004
+    - T1552.001
+    nist_800_53:
+    - IA-2
+    - AC-3
+    other:
+    - Microsoft cloud security benchmark v1 IM-1
+    - Microsoft cloud security benchmark v1 IM-3
+  sources_read:
+  - sources/repos/prowler/prowler/providers/azure/services/aiservices/aiservices_account_local_auth_disabled/aiservices_account_local_auth_disabled.metadata.json
+  - sources/repos/prowler/prowler/providers/azure/services/storage/storage_default_to_entra_authorization_enabled/storage_default_to_entra_authorization_enabled.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx

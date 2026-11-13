@@ -1,0 +1,126 @@
+- id: PRIV-VNBREACH-001
+  sheet: PRIV
+  category: VNBREACH
+  title: Check that the breach process meets the 72-hour limit
+  objective: Finds breach processes that cannot notify the authority in time.
+  steps:
+  - Read the breach procedure for the Vietnamese authority.
+  - Find the step that starts the 72-hour clock.
+  - Run a table-top case and record the time to notify.
+  - Check that a late notice has the reason for the delay.
+  example: 'Table-top: simulate the leak of 1000 records. Use form Mau so 03 of the Decree.'
+  expected: The procedure notifies the authority within 72 hours. A late notice includes the reason for the delay.
+  severity: High
+  test_type: &id002
+  - Manual
+  - Config Review
+  refs:
+    privacy_top10:
+    - P3
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 23
+    - Vietnam PDP Law 91/2025/QH15 Art. 23
+  sources_read: &id001
+  - sources/vn_law/13nd.ocr.txt
+  - sources/vn_law/91qh.ocr.txt
+  see:
+  - PRIV-BREACH-001
+  notes: 'Decree Art. 23(1): within 72 hours after the violation happened, for any violation, with a reason if late. Law Art. 23(1): within 72 hours from discovery, but only for violations that can harm defence, security or order, or life, health, honour, dignity or property of the data subject. State both; do not choose.'
+- id: PRIV-VNBREACH-002
+  sheet: PRIV
+  category: VNBREACH
+  title: Check the content of the breach notice to the authority
+  objective: Finds breach notices that omit required facts.
+  steps:
+  - Get the template or a sample notice.
+  - Look for the time, place, act, parties, data types and amount of data.
+  - Look for the contact of the person in charge of data protection.
+  - Look for the possible effects and the steps taken.
+  - Check that the process allows a notice in stages.
+  example: Use the four groups of Decree Art. 23(3) and form Mau so 03 as a checklist.
+  expected: The notice has all required facts. The process allows a first notice and then more details in stages.
+  severity: Medium
+  test_type: &id003
+  - Config Review
+  refs:
+    privacy_top10:
+    - P3
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 23
+    - Vietnam PDP Law 91/2025/QH15 Art. 23
+  sources_read: *id001
+  see:
+  - PRIV-BREACH-002
+  notes: 'Decree Art. 23(3), 23(4) and Mau so 03. Law Art. 23(5): the Government sets the content; those rules are not in the sources read.'
+- id: PRIV-VNBREACH-003
+  sheet: PRIV
+  category: VNBREACH
+  title: Check that processors report breaches to the controller fast
+  objective: Finds processors that delay the breach report.
+  steps:
+  - Read the contract with the processor.
+  - Find the duty and the time limit to report a breach.
+  - Ask the processor to run a test report.
+  - Record the time from detection to the message to the controller.
+  example: Send a test incident alert to the processor contact and measure the response.
+  expected: The processor tells the controller of a breach as soon as possible. The contact and channel are tested.
+  severity: High
+  test_type: *id002
+  refs:
+    privacy_top10:
+    - P3
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 23
+    - Vietnam PDP Law 91/2025/QH15 Art. 23
+  sources_read: *id001
+  see:
+  - PRIV-BREACH-005
+  notes: 'Decree Art. 23(2): as fast as possible after the processor sees the breach. Law Art. 23(1) last sentence: in good time.'
+- id: PRIV-VNBREACH-004
+  sheet: PRIV
+  category: VNBREACH
+  title: Check the breach record and the reports of other violations
+  objective: Finds breaches with no signed record or with no report of other violations.
+  steps:
+  - Find the record of each past breach.
+  - Check that the record confirms the breach and the work with the authority.
+  - Check the process to report unlawful processing, wrong purpose and failed rights.
+  - Check who can send these reports.
+  example: Document review of the breach register and the report log.
+  expected: A record exists for each breach. The organisation reports misuse of data and failures to meet data subject rights.
+  severity: Medium
+  test_type: *id003
+  refs:
+    privacy_top10:
+    - P3
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 23
+    - Vietnam PDP Law 91/2025/QH15 Art. 23
+  sources_read: *id001
+  see:
+  - PRIV-BREACH-002
+  notes: Decree Art. 23(5), 23(6) and Law Art. 23(2), 23(3), 23(4) agree on the record and the reports. The Law adds a duty to stop the violation and repair the harm.
+- id: PRIV-VNBREACH-005
+  sheet: PRIV
+  category: VNBREACH
+  title: Check the notice to users after a bank or credit data leak
+  objective: Finds finance firms that do not tell users about a leak of account data.
+  steps:
+  - Read the user notice process for leaks of bank, financial and credit data.
+  - Find who approves and sends the notice.
+  - Run a test case and measure the time.
+  - Check the notice text.
+  example: 'Table-top: leak of account numbers. Review the notice template.'
+  expected: The firm tells affected users about a leak of bank, financial or credit data.
+  severity: High
+  test_type: *id002
+  refs:
+    privacy_top10:
+    - P3
+    other:
+    - Vietnam PDP Law 91/2025/QH15 Art. 27
+    - Vietnam Decree 13/2023/ND-CP Art. 2
+  sources_read: *id001
+  see:
+  - PRIV-BREACH-003
+  notes: Law Art. 27(1)(d) is new. Decree 13/2023 has no matching rule. Decree Art. 2(4)(h) lists customer data of banks and payment bodies as sensitive.

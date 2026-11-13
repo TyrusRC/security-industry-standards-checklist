@@ -1,0 +1,279 @@
+- id: API-RES-001
+  sheet: API
+  category: RES
+  title: Find out what each rate limit is based on
+  objective: Finds rate limits that one client can bypass with a new IP, key or session.
+  preconditions:
+  - Agree the request volume with the owner. Do not run on production.
+  steps:
+  - Send requests to an expensive endpoint until the API returns 429. Record the count and the time window.
+  - Change the source IP header, the user agent and the client ID. Send again.
+  - Log in as a second user and repeat. Check if the limit is per user or per key.
+  - Check if an authenticated session removes the limit.
+  example: Burp Turbo Intruder; ffuf -rate; curl with X-Forwarded-For set to random values; record the 429 point and the Retry-After header.
+  expected: Limits apply per account and per API key, not only per IP. A header change or a login does not remove the limit.
+  severity: Medium
+  test_type: Manual
+  refs:
+    api_top10:
+    - API4:2023
+    cheatsheet:
+    - REST_Assessment_Cheat_Sheet
+    - REST_Security_Cheat_Sheet
+    cwe:
+    - CWE-770
+    - CWE-799
+    capec:
+    - CAPEC-125
+    attack:
+    - T1499
+  see:
+  - WEB-BIZ-009
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Assessment_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Security_Cheat_Sheet.md
+- id: API-RES-002
+  sheet: API
+  category: RES
+  title: Test the page size and the number of records per response
+  objective: Finds endpoints that return very large result sets in one response.
+  steps:
+  - Find parameters such as limit, page_size, per_page and count.
+  - Send very large, zero and negative values.
+  - Send a request without a page size and check the default.
+  - Compare the response size and time.
+  example: curl 'https://api.example/v1/items?limit=1000000'; Burp Intruder with a number list for the limit parameter.
+  expected: The API enforces a maximum page size on the server. Invalid values give 400 or the default value.
+  severity: Medium
+  test_type: Manual
+  refs:
+    api_top10:
+    - API4:2023
+    cheatsheet:
+    - REST_Assessment_Cheat_Sheet
+    - REST_Security_Cheat_Sheet
+    cwe:
+    - CWE-770
+    - CWE-400
+    capec:
+    - CAPEC-130
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Assessment_Cheat_Sheet.md
+- id: API-RES-003
+  sheet: API
+  category: RES
+  title: Test the limits for body size, string length and array size
+  objective: Finds endpoints that accept very large payloads.
+  steps:
+  - Send a body that is larger than the documented maximum.
+  - Send a string with a length far over the field limit.
+  - Send an array with many thousands of elements.
+  - Send deeply nested JSON.
+  example: 'curl --data-binary @big.json -H ''Content-Type: application/json'' https://api.example/v1/items; python -c to build a nested JSON file; check for HTTP 413.'
+  expected: The API rejects oversize requests with 413 or 400 before it does costly work. Limits exist at the gateway and in the service.
+  severity: Medium
+  test_type: Manual
+  refs:
+    api_top10:
+    - API4:2023
+    cheatsheet:
+    - REST_Security_Cheat_Sheet
+    - Web_Service_Security_Cheat_Sheet
+    cwe:
+    - CWE-770
+    - CWE-400
+    capec:
+    - CAPEC-130
+    attack:
+    - T1499
+  see:
+  - WEB-ARCH-010
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Web_Service_Security_Cheat_Sheet.md
+- id: API-RES-004
+  sheet: API
+  category: RES
+  title: Test file upload size limits and the work after the upload
+  objective: Finds upload endpoints where a large or many files use too much memory or CPU.
+  preconditions:
+  - Test environment only.
+  steps:
+  - Find endpoints that take files or Base64 data and process them, for example thumbnails.
+  - Send a file over the size limit.
+  - Send many small uploads in parallel.
+  - Watch the server time and memory in a test environment.
+  example: curl -F file=@big.png https://api.example/v1/avatar; Turbo Intruder with 50 parallel uploads; monitoring graphs of the test host.
+  expected: The API checks the size before it processes the file. The number of uploads and the work per upload have limits.
+  severity: Medium
+  test_type: Manual
+  refs:
+    api_top10:
+    - API4:2023
+    cheatsheet:
+    - Denial_of_Service_Cheat_Sheet
+    - REST_Security_Cheat_Sheet
+    cwe:
+    - CWE-770
+    - CWE-400
+    capec:
+    - CAPEC-130
+  see:
+  - WEB-FILE-003
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Denial_of_Service_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Security_Cheat_Sheet.md
+- id: API-RES-005
+  sheet: API
+  category: RES
+  title: Test slow requests and operations that run too long
+  objective: Finds absent timeouts for slow clients and for expensive queries.
+  preconditions:
+  - Test environment only.
+  steps:
+  - Open a connection and send the request headers or the body very slowly.
+  - Send expensive search, sort and filter requests.
+  - Measure the time until the server stops the request.
+  - Compare with the documented timeout.
+  example: slowhttptest -c 1000 -H -u https://test.api.example/ ; curl --limit-rate 10; a search request with a wildcard filter.
+  expected: The server closes slow connections and stops long requests after a set time. Minimum data rates and absolute timeouts exist.
+  severity: Medium
+  test_type: Manual
+  refs:
+    api_top10:
+    - API4:2023
+    cheatsheet:
+    - Denial_of_Service_Cheat_Sheet
+    cwe:
+    - CWE-400
+    - CWE-770
+    capec:
+    - CAPEC-125
+    attack:
+    - T1499
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Denial_of_Service_Cheat_Sheet.md
+- id: API-RES-006
+  sheet: API
+  category: RES
+  title: Check that costly third-party calls are limited per target and per account
+  objective: Finds endpoints that trigger paid SMS, email or other provider calls without a limit.
+  preconditions:
+  - Use a sandbox of the provider. Do not send real SMS.
+  steps:
+  - Find endpoints that make the back end call a paid provider, such as SMS or email.
+  - Send many requests for the same phone number and for different numbers.
+  - Count the provider calls in the test sandbox of the provider.
+  - Check the cost limits and cost alerts at the provider.
+  example: Mock provider or sandbox account; Burp Turbo Intruder on POST /initiate_forgot_password; review of provider billing settings.
+  expected: The API limits requests per target and per account. The provider account has a cost limit or a cost alert.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    api_top10:
+    - API4:2023
+    cheatsheet:
+    - REST_Assessment_Cheat_Sheet
+    cwe:
+    - CWE-770
+    - CWE-799
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Assessment_Cheat_Sheet.md
+- id: API-RES-007
+  sheet: API
+  category: RES
+  title: Check the limit on single operations such as OTP check and recovery
+  objective: Finds operations that a client can repeat without a limit, for example OTP checks.
+  steps:
+  - 'List operations that must have a low repeat count: OTP check, recovery and coupon check.'
+  - Repeat each operation many times with one account.
+  - Note the count where the API blocks or delays.
+  - Repeat the test with a second token of the same account.
+  example: Burp Turbo Intruder with a 6-digit OTP range on a test account; Postman runner with 100 iterations.
+  expected: Each sensitive operation has its own low limit per account. A new token does not reset the count.
+  severity: High
+  test_type: Manual
+  refs:
+    api_top10:
+    - API4:2023
+    cheatsheet:
+    - REST_Assessment_Cheat_Sheet
+    cwe:
+    - CWE-799
+    - CWE-307
+    capec:
+    - CAPEC-112
+    attack:
+    - T1110
+  see:
+  - WEB-MFA-003
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Assessment_Cheat_Sheet.md
+- id: API-RES-008
+  sheet: API
+  category: RES
+  title: Check that limits bound the work of one request
+  objective: Finds endpoints where one request does a large amount of work.
+  steps:
+  - Find search, export, bulk write and report endpoints.
+  - Send one request that asks for the maximum work, such as a full export.
+  - Send the same request in parallel up to the rate limit.
+  - Compare the server load with a normal request.
+  example: curl 'https://api.example/v1/export?format=csv&all=true'; bulk write with 10000 items; load graph in the test environment.
+  expected: Costly operations have limits on the work per request, such as items and time, and on concurrent runs per client.
+  severity: Medium
+  test_type: Manual
+  refs:
+    api_top10:
+    - API4:2023
+    cheatsheet:
+    - REST_Assessment_Cheat_Sheet
+    - Web_Service_Security_Cheat_Sheet
+    cwe:
+    - CWE-770
+    - CWE-400
+    capec:
+    - CAPEC-130
+  see:
+  - WEB-ARCH-010
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Assessment_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Web_Service_Security_Cheat_Sheet.md
+- id: API-RES-009
+  sheet: API
+  category: RES
+  title: Check CPU, memory and process limits of the API runtime
+  objective: Finds services that can use all the memory, file descriptors or processes of the host.
+  steps:
+  - Read the container or serverless settings of each API service.
+  - Look for limits on memory, CPU, restarts, file descriptors and processes.
+  - Check the limits for open connections and simultaneous files.
+  - Check the alerts for the limits.
+  example: kubectl describe pod and docker inspect for limits; ulimit -a in the container; review of the deployment files.
+  expected: Each API service has limits for memory, CPU, file descriptors and processes. Alerts show when a limit is near.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    api_top10:
+    - API4:2023
+    cheatsheet:
+    - Web_Service_Security_Cheat_Sheet
+    - Denial_of_Service_Cheat_Sheet
+    cwe:
+    - CWE-770
+    - CWE-400
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Web_Service_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Denial_of_Service_Cheat_Sheet.md

@@ -1,0 +1,297 @@
+- id: MOB-UI-001
+  sheet: MOB
+  category: UI
+  title: Check that sensitive screens stay out of screenshots and the app switcher
+  objective: Finds screens that leak sensitive data through task snapshots, screenshots or screen recordings.
+  preconditions:
+  - Rooted Android device or emulator, and a jailbroken iOS device, to read snapshot files.
+  steps:
+  - List the screens that show sensitive data, such as login, payment, health and personal data.
+  - 'Android: Search the code for FLAG_SECURE, setRecentsScreenshotEnabled, setSecure on SurfaceView and SecureOn in Compose dialogs.'
+  - 'Android: Open each sensitive screen. Press Home. Pull the system task snapshot files from the device.'
+  - 'Android: Try a screenshot and a screen recording on each sensitive screen.'
+  - 'iOS: Open each sensitive screen. Press Home. Pull the snapshot files from the SplashBoard folder of the app.'
+  - Look at each snapshot image for passwords, tokens, personal data or other secrets.
+  example: 'adb shell ls /data/system_ce/0/snapshots (root) ; adb pull /data/system_ce/0/snapshots ; adb exec-out screencap -p > shot.png ; grep -rn "FLAG_SECURE\|setRecentsScreenshotEnabled" out/ ; iOS: scp the Library/SplashBoard/Snapshots folder of the app container'
+  expected: No snapshot, screenshot or recording shows sensitive data. The app hides or protects sensitive screens when it moves to the background.
+  severity: Medium
+  test_type:
+  - Manual
+  - Code Review
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M6:2024
+    masvs:
+    - MASVS-PLATFORM-3
+    mastg:
+    - MASTG-TEST-0289
+    - MASTG-TEST-0291
+    - MASTG-TEST-0290
+    - MASTG-TEST-0292
+    - MASTG-TEST-0293
+    - MASTG-TEST-0294
+    maswe:
+    - MASWE-0038
+    cwe:
+    - CWE-200
+    - CWE-359
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PLATFORM-3.md
+  - sources/mastg/files/tests-beta_android_MASVS-PLATFORM_MASTG-TEST-0289.md
+  - sources/mastg/files/tests-beta_android_MASVS-PLATFORM_MASTG-TEST-0291.md
+  - sources/mastg/files/tests-beta_ios_MASVS-PLATFORM_MASTG-TEST-0290.md
+  - sources/mastg/files/tests-beta_android_MASVS-PLATFORM_MASTG-TEST-0292.md
+  - sources/mastg/files/tests-beta_android_MASVS-PLATFORM_MASTG-TEST-0293.md
+  - sources/mastg/files/tests-beta_android_MASVS-PLATFORM_MASTG-TEST-0294.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0038.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m6-inadequate-privacy-controls.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0002.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0053.md
+- id: MOB-UI-002
+  sheet: MOB
+  category: UI
+  title: Check that Android keyboards do not cache sensitive input
+  objective: Finds input fields that let the keyboard learn and suggest sensitive text.
+  preconditions:
+  - Decoded APK.
+  steps:
+  - 'Android: Extract the layout files from the app package.'
+  - 'Android: List every android:inputType attribute and every setInputType call.'
+  - 'Android: Find fields for passwords, PINs, card data and other secrets.'
+  - 'Android: Check that these fields use a non-caching type such as textPassword or textNoSuggestions.'
+  example: apktool d app.apk -o out ; grep -rn "android:inputType" out/res/layout ; grep -rn "setInputType" out/
+  expected: Every field that takes sensitive data uses an input type that stops keyboard caching and suggestions.
+  severity: Low
+  test_type:
+  - Code Review
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M6:2024
+    masvs:
+    - MASVS-PLATFORM-3
+    mastg:
+    - MASTG-TEST-0258
+    maswe:
+    - MASWE-0036
+    cwe:
+    - CWE-200
+    - CWE-359
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PLATFORM-3.md
+  - sources/mastg/files/tests-beta_android_MASVS-PLATFORM_MASTG-TEST-0258.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0036.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m6-inadequate-privacy-controls.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0007.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  see:
+  - MOB-STORAGE-008
+- id: MOB-UI-003
+  sheet: MOB
+  category: UI
+  title: Check that password, PIN and code fields hide the typed text
+  objective: Finds secret input fields that show characters to bystanders and screen recordings.
+  preconditions:
+  - Decompiled app code or extracted IPA.
+  steps:
+  - 'Android: Find text fields for passwords, PINs and one-time codes in XML and in Compose code.'
+  - 'Android: Flag a plain TextField, and flag a SecureTextField that uses TextObfuscationMode.Visible.'
+  - 'iOS: Check that each UITextField for a secret sets isSecureTextEntry to true.'
+  - 'iOS: Check that SwiftUI code uses SecureField and not TextField for secrets.'
+  - Type test secrets into each field at runtime. Look at the screen for visible characters.
+  example: grep -rn "textPassword\|TextObfuscationMode\|SecureTextField" out/ ; r2 -A <app_binary> ; izz~isSecureTextEntry ; frida -U -f <bundle_id> -l hook_uitextfield.js
+  expected: Every field for a password, PIN or code masks the typed characters. Full values show only after a user action and for a short time.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M6:2024
+    masvs:
+    - MASVS-PLATFORM-3
+    mastg:
+    - MASTG-TEST-0316
+    - MASTG-TEST-0346
+    - MASTG-TEST-0347
+    maswe:
+    - MASWE-0036
+    - MASWE-0040
+    cwe:
+    - CWE-200
+    - CWE-359
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PLATFORM-3.md
+  - sources/mastg/files/tests-beta_android_MASVS-PLATFORM_MASTG-TEST-0316.md
+  - sources/mastg/files/tests-beta_ios_MASVS-PLATFORM_MASTG-TEST-0346.md
+  - sources/mastg/files/tests-beta_ios_MASVS-PLATFORM_MASTG-TEST-0347.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0036.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0040.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m6-inadequate-privacy-controls.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0095.md
+  see:
+  - MOB-STORAGE-008
+- id: MOB-UI-004
+  sheet: MOB
+  category: UI
+  title: Check that notifications hold no sensitive data
+  objective: Finds notifications that show secrets or personal data on the lock screen or to other apps.
+  preconditions:
+  - Android device. Test data that triggers each notification.
+  steps:
+  - 'Android: Read minSdkVersion and the POST_NOTIFICATIONS permission in the AndroidManifest.xml.'
+  - 'Android: Find notification code that uses setContentTitle, setContentText or setStyle.'
+  - 'Android: Check the visibility setting and setPublicVersion of each notification.'
+  - Trigger each notification with test data. Look at the lock screen and at the notification list.
+  - Look for one-time codes, message text, balances or other personal data.
+  example: aapt2 d permissions app.apk | grep POST_NOTIFICATIONS ; grep -rn "setContentText\|setContentTitle\|setVisibility\|setPublicVersion" out/
+  expected: Notifications only say that an event occurred. They show no sensitive values, and the lock screen shows a redacted version.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M6:2024
+    masvs:
+    - MASVS-PLATFORM-3
+    mastg:
+    - MASTG-TEST-0315
+    maswe:
+    - MASWE-0037
+    cwe:
+    - CWE-200
+    - CWE-359
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PLATFORM-3.md
+  - sources/mastg/files/tests-beta_android_MASVS-PLATFORM_MASTG-TEST-0315.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0037.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m6-inadequate-privacy-controls.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0117.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0150.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0126.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+- id: MOB-UI-005
+  sheet: MOB
+  category: UI
+  title: Check sensitive screens for overlay attack protection
+  objective: Finds screens where a malicious app can cover or imitate the UI and steal taps.
+  preconditions:
+  - Android device with a test overlay app.
+  steps:
+  - 'Android: List the screens for login, payment approval, permission requests and security settings.'
+  - 'Android: Search for setFilterTouchesWhenObscured, android:filterTouchesWhenObscured and onFilterTouchEventForSecurity.'
+  - 'Android: Search for FLAG_WINDOW_IS_OBSCURED checks in touch handlers.'
+  - 'Android: Read targetSdkVersion. If it is 31 or higher, look for setHideOverlayWindows and the HIDE_OVERLAY_WINDOWS permission.'
+  - 'Android: Draw a test overlay over each sensitive screen. Tap through it.'
+  example: grep -rn "setFilterTouchesWhenObscured\|filterTouchesWhenObscured\|onFilterTouchEventForSecurity\|setHideOverlayWindows" out/ ; aapt2 d permissions app.apk | grep HIDE_OVERLAY_WINDOWS
+  expected: Sensitive screens ignore touches when another window covers them. The app hides external overlays on API level 31 and higher.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M8:2024
+    masvs:
+    - MASVS-PLATFORM-3
+    mastg:
+    - MASTG-TEST-0340
+    maswe:
+    - MASWE-0039
+    - MASWE-0036
+    cwe:
+    - CWE-1021
+    - CWE-200
+    - CWE-359
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PLATFORM-3.md
+  - sources/mastg/files/tests-beta_android_MASVS-PLATFORM_MASTG-TEST-0340.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0039.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0036.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m8-security-misconfiguration.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0117.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0150.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0126.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+- id: MOB-UI-006
+  sheet: MOB
+  category: UI
+  title: Check that sensitive views are hidden from accessibility services
+  objective: Finds views that any accessibility service can read or control.
+  preconditions:
+  - Android 14 (API 34) or newer for the runtime part.
+  steps:
+  - 'Android: Search the layouts and code for accessibilityDataSensitive and setAccessibilityDataSensitive.'
+  - 'Android: Search for filterTouchesWhenObscured, because it also makes a view data sensitive.'
+  - 'Android: Hook the setters at runtime and use the app on every sensitive screen.'
+  - 'Android: Dump the UI hierarchy of each sensitive screen. Look at the isAccessibilityDataSensitive value of each view.'
+  - 'Android: Take a screenshot of each screen. Find the views with secrets or personal data.'
+  example: adb shell uiautomator dump /sdcard/ui.xml ; adb pull /sdcard/ui.xml ; adb shell dumpsys activity top ; adb exec-out screencap -p > screen.png ; frida -U -f <pkg> -l hook_a11y_sensitive.js
+  expected: Each view that shows or takes sensitive data is accessibility data sensitive. Only declared accessibility tools can read it.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M6:2024
+    masvs:
+    - MASVS-PLATFORM-3
+    mastg:
+    - MASTG-TEST-0403
+    - MASTG-TEST-0404
+    maswe:
+    - MASWE-0040
+    cwe:
+    - CWE-200
+    - CWE-359
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PLATFORM-3.md
+  - sources/mastg/files/tests-beta_android_MASVS-PLATFORM_MASTG-TEST-0403.md
+  - sources/mastg/files/tests-beta_android_MASVS-PLATFORM_MASTG-TEST-0404.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0040.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m6-inadequate-privacy-controls.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0177.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0178.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0043.md
+- id: MOB-UI-007
+  sheet: MOB
+  category: UI
+  title: Check that screens show only the sensitive data that the task needs
+  objective: Finds screens that show full secrets or personal data without need.
+  steps:
+  - Open each screen that shows card numbers, identifiers, account data or personal data.
+  - Look for values that the app could show in part, such as the last four digits.
+  - Check that the app shows full values only after an explicit user action.
+  - Check that the full value hides again after a short time or when the screen closes.
+  example: Manual review with screenshots of each screen ; compare displayed values with the stored data
+  expected: The app shows only the part of a sensitive value that the task needs. Full values need a user action and hide again.
+  severity: Low
+  test_type:
+  - Manual
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M6:2024
+    masvs:
+    - MASVS-PLATFORM-3
+    maswe:
+    - MASWE-0036
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-200
+    - CWE-359
+  sources_read:
+  - sources/masvs/controls-master/MASVS-PLATFORM-3.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0036.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m6-inadequate-privacy-controls.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md

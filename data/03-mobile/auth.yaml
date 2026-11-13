@@ -1,0 +1,576 @@
+- id: MOB-AUTH-001
+  sheet: MOB
+  category: AUTH
+  title: Check that biometric authentication is bound to a key or Keychain item
+  objective: Finds local authentication that depends only on a success callback that an attacker can bypass with hooking.
+  preconditions:
+  - A list of the sensitive resources that local authentication protects (tokens, keys, data) is ready.
+  - Biometrics are set up on the test device.
+  steps:
+  - 'Android: Search for BiometricPrompt.authenticate calls and see if they pass a CryptoObject.'
+  - 'Android: Search for keys generated with setUserAuthenticationRequired(true) that the protected operation uses.'
+  - 'iOS: Search for LAContext.evaluatePolicy and SecAccessControlCreateWithFlags with user presence or biometry flags.'
+  - 'iOS: Hook both APIs at run time and use every flow that the biometric check protects.'
+  - Hook the callback or evaluatePolicy reply to return success and try to open the protected resource.
+  - Find sensitive resources that open after the forced success without a key operation.
+  example: 'jadx -d src app.apk; grep -rn "BiometricPrompt\|CryptoObject\|setUserAuthenticationRequired" src/; frida -U -f <package> -l bypass-biometric.js (objection: android ui biometrics_bypass); r2 -qc "aaa; axt sym.imp.SecAccessControlCreateWithFlags" Payload/App.app/App; objection -g <bundle> explore -> ios ui biometrics_bypass; frida-trace -U -f <bundle> -m "-[LAContext evaluatePolicy:localizedReason:reply:]" -i SecAccessControlCreateWithFlags'
+  expected: Each sensitive resource is protected by a Keystore key or Keychain item that needs authentication. A forced success callback does not open it.
+  severity: Medium
+  test_type:
+  - Manual
+  - Code Review
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M3:2024
+    masvs:
+    - MASVS-AUTH-2
+    mastg:
+    - MASTG-TEST-0327
+    - MASTG-TEST-0266
+    - MASTG-TEST-0267
+    maswe:
+    - MASWE-0020
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-285
+    - CWE-287
+    - CWE-312
+    - CWE-319
+    - CWE-326
+    - CWE-602
+    - CWE-603
+    - CWE-863
+    - CWE-922
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-AUTH_MASWE-0020.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0043.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0095.md
+  - sources/repos/mastg/tests-beta/android/MASVS-AUTH/MASTG-TEST-0327.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-AUTH/MASTG-TEST-0266.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-AUTH/MASTG-TEST-0267.md
+  - sources/repos/masvs/controls/MASVS-AUTH-2.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m3-insecure-authentication-authorization.md
+- id: MOB-AUTH-002
+  sheet: MOB
+  category: AUTH
+  title: Check for fallback to device credentials on sensitive actions
+  objective: Finds sensitive actions that accept the weaker device PIN, pattern or passcode instead of a biometric.
+  preconditions: &id001
+  - A list of the sensitive resources that local authentication protects (tokens, keys, data) is ready.
+  steps:
+  - 'Android: Search for BiometricPrompt, setAllowedAuthenticators and setDeviceCredentialAllowed.'
+  - 'Android: Flag the DEVICE_CREDENTIAL constant, alone or combined with a biometric constant.'
+  - 'iOS: Search for SecAccessControlCreateWithFlags and flag kSecAccessControlUserPresence and kSecAccessControlDevicePasscode.'
+  - 'iOS: Hook SecAccessControlCreateWithFlags at run time and list the flags that the app uses.'
+  - Decide for each sensitive resource if a fallback fits the risk level of the app.
+  example: jadx -d src app.apk; grep -rnE "DEVICE_CREDENTIAL|setDeviceCredentialAllowed|setAllowedAuthenticators" src/; r2 -qc "aaa; axt sym.imp.SecAccessControlCreateWithFlags" Payload/App.app/App; frida-trace -U -f <bundle> -i SecAccessControlCreateWithFlags
+  expected: High-risk actions need biometrics alone, without fallback to the device credential, or the team accepts and documents the risk.
+  severity: Low
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M3:2024
+    masvs:
+    - MASVS-AUTH-2
+    mastg:
+    - MASTG-TEST-0326
+    - MASTG-TEST-0268
+    - MASTG-TEST-0269
+    maswe:
+    - MASWE-0021
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-288
+    - CWE-287
+  notes: MASTG calls this a hardening issue and not a critical vulnerability. Apply it to high-security apps such as finance, government and health.
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-AUTH_MASWE-0021.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0043.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0056.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0095.md
+  - sources/repos/mastg/tests-beta/android/MASVS-AUTH/MASTG-TEST-0326.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-AUTH/MASTG-TEST-0268.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-AUTH/MASTG-TEST-0269.md
+  - sources/repos/masvs/controls/MASVS-AUTH-2.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m3-insecure-authentication-authorization.md
+- id: MOB-AUTH-003
+  sheet: MOB
+  category: AUTH
+  title: Check that biometric keys become invalid when new biometrics are enrolled
+  objective: Finds protected keys and Keychain items that a newly enrolled fingerprint or face can unlock.
+  preconditions:
+  - A list of the sensitive resources that local authentication protects (tokens, keys, data) is ready.
+  - Use a test device where you can add a new biometric.
+  steps:
+  - 'Android: Search KeyGenParameterSpec.Builder for setInvalidatedByBiometricEnrollment and flag the value false.'
+  - 'iOS: Search SecAccessControlCreateWithFlags and flag items that do not use kSecAccessControlBiometryCurrentSet.'
+  - 'iOS: Hook SecAccessControlCreateWithFlags at run time and list the flags.'
+  - Set up the biometric protection in the app, then enroll a new fingerprint or face on the test device.
+  - Try to open the protected resource with the new biometric.
+  example: jadx -d src app.apk; grep -rn "setInvalidatedByBiometricEnrollment" src/; r2 -qc "aaa; axt sym.imp.SecAccessControlCreateWithFlags" Payload/App.app/App; frida-trace -U -f <bundle> -i SecAccessControlCreateWithFlags (look for biometryCurrentSet)
+  expected: The key or item becomes unusable after a new biometric enrollment. The user must authenticate again with the app credentials.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M3:2024
+    masvs:
+    - MASVS-AUTH-2
+    - MASVS-CRYPTO-2
+    mastg:
+    - MASTG-TEST-0328
+    - MASTG-TEST-0270
+    - MASTG-TEST-0271
+    maswe:
+    - MASWE-0022
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-287
+    - CWE-522
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-AUTH_MASWE-0022.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0043.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0056.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0058.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0066.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0095.md
+  - sources/repos/mastg/tests-beta/android/MASVS-AUTH/MASTG-TEST-0328.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-AUTH/MASTG-TEST-0270.md
+  - sources/repos/mastg/tests-beta/ios/MASVS-AUTH/MASTG-TEST-0271.md
+  - sources/repos/masvs/controls/MASVS-AUTH-2.md
+  - sources/repos/masvs/controls/MASVS-CRYPTO-2.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m3-insecure-authentication-authorization.md
+- id: MOB-AUTH-004
+  sheet: MOB
+  category: AUTH
+  title: Check that Android biometric prompts need explicit user confirmation
+  objective: Finds sensitive actions that a passive biometric, such as face recognition, approves without a user action.
+  preconditions:
+  - A list of the sensitive resources that local authentication protects (tokens, keys, data) is ready.
+  - Android only.
+  steps:
+  - Search the code for BiometricPrompt.PromptInfo.Builder and setConfirmationRequired.
+  - Flag every call that sets the value to false.
+  - Check if the call protects a sensitive action such as a payment or data access.
+  - Run the action with face recognition and see if it completes without a tap.
+  example: jadx -d src app.apk; grep -rn "setConfirmationRequired" src/
+  expected: Sensitive actions use setConfirmationRequired(true) or the default value, so the user confirms the action explicitly.
+  severity: Low
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M3:2024
+    masvs:
+    - MASVS-AUTH-2
+    mastg:
+    - MASTG-TEST-0329
+    maswe:
+    - MASWE-0020
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-285
+    - CWE-287
+    - CWE-312
+    - CWE-319
+    - CWE-326
+    - CWE-602
+    - CWE-603
+    - CWE-863
+    - CWE-922
+  notes: MASTG states that false is not always a vulnerability. It can fit low-risk actions.
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-AUTH_MASWE-0020.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/tests-beta/android/MASVS-AUTH/MASTG-TEST-0329.md
+  - sources/repos/masvs/controls/MASVS-AUTH-2.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m3-insecure-authentication-authorization.md
+- id: MOB-AUTH-005
+  sheet: MOB
+  category: AUTH
+  title: Check the validity time of Android keys that biometrics unlock
+  objective: Finds keys that stay usable for minutes or hours after one biometric authentication.
+  preconditions:
+  - A list of the sensitive resources that local authentication protects (tokens, keys, data) is ready.
+  - Android only.
+  steps:
+  - Search for setUserAuthenticationParameters and setUserAuthenticationValidityDurationSeconds in key generation code.
+  - Note the duration value for each key.
+  - Flag every key for a sensitive action that has a duration above zero.
+  - Authenticate once, then run the sensitive operation again inside the validity window.
+  - See if the operation succeeds without a new authentication.
+  example: jadx -d src app.apk; grep -rnE "setUserAuthenticationParameters|setUserAuthenticationValidityDurationSeconds" src/
+  expected: Keys for sensitive operations need authentication for every use (duration 0), or the validity is only a few seconds and the team accepts it.
+  severity: Low
+  test_type:
+  - Code Review
+  - Manual
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M3:2024
+    masvs:
+    - MASVS-AUTH-2
+    mastg:
+    - MASTG-TEST-0330
+    maswe:
+    - MASWE-0020
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-285
+    - CWE-287
+    - CWE-312
+    - CWE-319
+    - CWE-326
+    - CWE-602
+    - CWE-603
+    - CWE-863
+    - CWE-922
+  notes: MASTG states that a short duration can be acceptable when several related operations run in quick succession.
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-AUTH_MASWE-0020.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/tests-beta/android/MASVS-AUTH/MASTG-TEST-0330.md
+  - sources/repos/masvs/controls/MASVS-AUTH-2.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m3-insecure-authentication-authorization.md
+- id: MOB-AUTH-006
+  sheet: MOB
+  category: AUTH
+  title: Check that a custom app PIN or password resists guessing
+  objective: Finds app-defined PINs and passwords that the code compares in plain text or that allow unlimited guesses.
+  preconditions: *id001
+  steps:
+  - Find the screens and code where the app asks for its own PIN or password.
+  - Search the code for a plain string comparison against a stored or hardcoded value.
+  - Enter wrong values many times and see if the app limits or delays the attempts.
+  - Restart the app and clear its data between attempts to see if the counter resets.
+  - Check that the app binds the secret to key material from the Keystore or Keychain.
+  - Check that the app rejects short PINs, such as 4 digits.
+  example: 'jadx -d src app.apk; grep -rnE "equals\(.*(pin|passcode)|compareTo" src/; frida-trace -U -f <package> -j "java.lang.String!equals"; objection: android keystore list; ios keychain dump'
+  expected: The app has no plain comparison and no hardcoded PIN. It limits wrong guesses and ties the secret to hardware-backed key material.
+  severity: Medium
+  test_type:
+  - Manual
+  - Code Review
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M3:2024
+    masvs:
+    - MASVS-AUTH-2
+    maswe:
+    - MASWE-0020
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-285
+    - CWE-287
+    - CWE-312
+    - CWE-319
+    - CWE-326
+    - CWE-602
+    - CWE-603
+    - CWE-863
+    - CWE-922
+  see:
+  - WEB-AUTHN-002
+  notes: This test comes from the MASWE-0020 modes of introduction (no brute-force resistance, custom credentials hardcoded). No MASTG v2 test exists.
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-AUTH_MASWE-0020.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0043.md
+  - sources/repos/masvs/controls/MASVS-AUTH-2.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m3-insecure-authentication-authorization.md
+- id: MOB-AUTH-007
+  sheet: MOB
+  category: AUTH
+  title: Check that the backend enforces authentication for app requests
+  objective: Finds backend functions that the app can call without a valid token, which local checks cannot protect.
+  steps:
+  - Record the requests that the app sends for each protected function with an interception proxy.
+  - Replay each request without the token or session cookie.
+  - Replay each request with the token of a different user.
+  - Hook the local authentication result to success and check what the backend still requires.
+  - Search the app for user roles or permissions that it sends to the backend.
+  example: 'mitmproxy -s save_flows.py; burp: Repeater (delete the Authorization header, then replay); frida -U -f <package> -l bypass-local-auth.js; curl -i https://api.example.com/v1/me (no token)'
+  expected: The backend rejects requests without a valid token. A local bypass gives no access to server data, and the server decides roles and permissions.
+  severity: High
+  test_type:
+  - Manual
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M3:2024
+    masvs:
+    - MASVS-AUTH-1
+    - MASVS-AUTH-2
+    maswe:
+    - MASWE-0020
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-285
+    - CWE-287
+    - CWE-312
+    - CWE-319
+    - CWE-326
+    - CWE-602
+    - CWE-603
+    - CWE-863
+    - CWE-922
+  see:
+  - WEB-AUTHN-009
+  - WEB-SESS-004
+  notes: Server-side authorization tests are in the WEB and API sheets. This test shows that the mobile client cannot replace them.
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-AUTH_MASWE-0020.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0011.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0063.md
+  - sources/repos/masvs/controls/MASVS-AUTH-1.md
+  - sources/repos/masvs/controls/MASVS-AUTH-2.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m3-insecure-authentication-authorization.md
+- id: MOB-AUTH-008
+  sheet: MOB
+  category: AUTH
+  title: Check that the app uses system flows for OAuth and third-party login
+  objective: Finds logins in embedded WebViews, OAuth without PKCE and tokens that the app accepts without checks.
+  steps:
+  - Find all login flows that use OAuth, OpenID Connect or a third-party identity provider.
+  - Check if the app opens the login page in the system browser, a custom tab or ASWebAuthenticationSession.
+  - Flag logins that load the identity provider in an embedded WebView.
+  - Capture the authorization request and see if it carries a state value and a PKCE code challenge.
+  - Open the app deep links with a changed authorization response and see if the app accepts it.
+  - Check that the app validates the token signature, issuer, audience and expiry, or that the backend does.
+  example: 'mitmproxy; burp: look for code_challenge, state, redirect_uri; adb shell am start -a android.intent.action.VIEW -d "app://callback?code=attacker" <package>; xcrun simctl openurl booted "app://callback?code=attacker"; grep -rn "ASWebAuthenticationSession\|CustomTabsIntent\|WebView" src/'
+  expected: The app signs in users with system browser flows and PKCE. It rejects forged or replayed responses and accepts only validated tokens.
+  severity: High
+  test_type:
+  - Manual
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M3:2024
+    masvs:
+    - MASVS-AUTH-1
+    maswe:
+    - MASWE-0018
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-306
+    - CWE-749
+    - CWE-862
+    - CWE-863
+    - CWE-923
+    - CWE-926
+    - CWE-939
+    - CWE-940
+  see:
+  - WEB-OAUTH-003
+  - WEB-OAUTH-011
+  - WEB-OAUTH-015
+  notes: MASWE-0018 also lists exported components and IPC checks. Those modes belong to the PLATFORM slice and are not tested here. This test covers only the authentication modes of MASWE-0018.
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-AUTH_MASWE-0018.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0011.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/masvs/controls/MASVS-AUTH-1.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m3-insecure-authentication-authorization.md
+- id: MOB-AUTH-009
+  sheet: MOB
+  category: AUTH
+  title: Check that login fields support password managers and one-time code fill
+  objective: Finds login screens that block password managers and so push users to weak or reused passwords.
+  steps:
+  - Open the login screen and try to fill the credentials with the system password manager.
+  - Check the autofill hints on Android and the textContentType values on iOS for the credential fields.
+  - Check that one-time code fields support code autofill.
+  - Check that the app is linked to its website with website association files.
+  - Check if the app offers passkeys where the service supports them.
+  example: jadx -d src app.apk; grep -rn "autofillHints\|importantForAutofill" src/res/layout; plutil -p Payload/App.app/Info.plist | grep -i associated; grep -r "textContentType" Payload/ (storyboard or code); curl -s https://example.com/.well-known/assetlinks.json
+  expected: Credential and code fields accept autofill. The app is linked to its domain and offers passkeys where possible.
+  severity: Info
+  test_type:
+  - Manual
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M3:2024
+    masvs:
+    - MASVS-AUTH-1
+    - MASVS-AUTH-3
+    maswe:
+    - MASWE-0019
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-287
+    - CWE-522
+  notes: No MASTG v2 test exists for MASWE-0019. This is a usability and hardening item.
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-AUTH_MASWE-0019.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/masvs/controls/MASVS-AUTH-1.md
+  - sources/repos/masvs/controls/MASVS-AUTH-3.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m3-insecure-authentication-authorization.md
+- id: MOB-AUTH-010
+  sheet: MOB
+  category: AUTH
+  title: Check that sensitive actions need step-up authentication
+  objective: Finds high-risk actions that need no fresh authentication, or whose approval can be reused for another action.
+  steps:
+  - Make a list of the high-risk actions, such as payments, password changes and display of sensitive data.
+  - Run each action in a signed-in session and see if the app asks for a new factor.
+  - Replay the approval request with changed amount or target and see if the server accepts it.
+  - Skip the step-up screen in the client and call the server API directly.
+  - See if the approval is tied to the specific transaction.
+  example: 'burp: Repeater (change the amount in the approved request and replay it); frida -U -f <package> -l skip-stepup.js; mitmproxy'
+  expected: The server demands a fresh factor for each high-risk action and ties the approval to that action. The client alone cannot skip the step.
+  severity: Medium
+  test_type:
+  - Manual
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M3:2024
+    masvs:
+    - MASVS-AUTH-3
+    maswe:
+    - MASWE-0023
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-306
+  see:
+  - WEB-SESS-026
+  - WEB-SESS-025
+  notes: No MASTG v2 test exists for MASWE-0023.
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-AUTH_MASWE-0023.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0011.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0063.md
+  - sources/repos/masvs/controls/MASVS-AUTH-3.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m3-insecure-authentication-authorization.md
+- id: MOB-AUTH-011
+  sheet: MOB
+  category: AUTH
+  title: Check that logout and timeout end the session and clear local data
+  objective: Finds sessions that stay valid on the server, or tokens and personal data that stay on the device after logout.
+  steps:
+  - Sign in and note the access and refresh tokens that the app uses.
+  - Log out in the app and replay the old tokens against the API.
+  - Copy the app data directory and search for tokens, cached personal data and the user profile.
+  - Wait for the inactivity timeout and see if the app asks for a new login.
+  - Send the app to the background and bring it back after a sensitive flow. See if it asks for a new login.
+  example: 'mitmproxy; curl -H "Authorization: Bearer <old-token>" https://api.example.com/v1/me; objection -g <package> explore -> env; adb pull /data/data/<package>; grep -rniE "token|session" data/; objection: ios keychain dump'
+  expected: The server rejects old tokens after logout and timeout. The device holds no tokens or cached personal data of the ended session.
+  severity: Medium
+  test_type:
+  - Manual
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M3:2024
+    masvs:
+    - MASVS-AUTH-3
+    maswe:
+    - MASWE-0024
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    - Session_Management_Cheat_Sheet
+    cwe:
+    - CWE-285
+    - CWE-287
+  see:
+  - WEB-SESS-017
+  - WEB-SESS-019
+  - WEB-SESS-020
+  - WEB-SESS-029
+  notes: No MASTG v2 test exists for MASWE-0024.
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-AUTH_MASWE-0024.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Session_Management_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0002.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0008.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0059.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0061.md
+  - sources/repos/masvs/controls/MASVS-AUTH-3.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m3-insecure-authentication-authorization.md
+- id: MOB-AUTH-012
+  sheet: MOB
+  category: AUTH
+  title: Check that critical actions give signed proof of user approval
+  objective: Finds critical actions that the user can later deny, or that a tampered app can show differently from what it runs.
+  steps:
+  - List the critical actions, such as money transfers and legal consent.
+  - Check if the app shows a confirmation that is tied to the exact data of the action.
+  - Check if the confirmation produces a signature from a hardware-backed, user-authenticated key.
+  - Check that the server validates the signature and the key attestation, and keeps the signature as evidence.
+  - Change the displayed data in a hooked app and see if the server detects the change.
+  example: 'jadx -d src app.apk; grep -rn "setAttestationChallenge\|Signature" src/; frida -U -f <package> -l change-amount.js; burp: Repeater'
+  expected: Each critical action carries a hardware-backed signature over the exact approved data. The server checks it and keeps it as evidence.
+  severity: Low
+  test_type:
+  - Manual
+  - Code Review
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M3:2024
+    masvs:
+    - MASVS-AUTH-3
+    maswe:
+    - MASWE-0025
+    cheatsheet:
+    - Mobile_Application_Security_Cheat_Sheet
+    cwe:
+    - CWE-451
+    - CWE-778
+  notes: No MASTG v2 test exists for MASWE-0025. Apply it to apps with high-value transactions.
+  sources_read:
+  - sources/mastg/files/MASWE__weaknesses_MASVS-AUTH_MASWE-0025.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Mobile_Application_Security_Cheat_Sheet.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0013.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0014.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0043.md
+  - sources/repos/masvs/controls/MASVS-AUTH-3.md
+  - sources/repos/www-project-mobile-top-10/2023-risks/m3-insecure-authentication-authorization.md

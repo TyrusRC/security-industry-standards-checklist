@@ -1,0 +1,152 @@
+- id: WEB-ISO-001
+  sheet: WEB
+  category: ISO
+  title: Check the server-side resource isolation policy with Fetch Metadata headers
+  objective: Find a server that serves private resources to any cross-site request because it has no Fetch Metadata policy.
+  preconditions:
+  - A test account and a proxy that can change request headers.
+  - Source code or gateway configuration for the isolation filter.
+  steps:
+  - Find the filter that reads Sec-Fetch-Site, Sec-Fetch-Mode and Sec-Fetch-Dest.
+  - Send a request to an authenticated API endpoint with Sec-Fetch-Site set to cross-site. Make sure the server rejects it.
+  - Send a request with Sec-Fetch-Site set to same-origin, same-site and none. Make sure only intended requests pass.
+  - Send a cross-site navigation GET request. Make sure the policy allows it only for pages that must be linked.
+  - Send a cross-site request with Sec-Fetch-Dest set to image, script or iframe to a private resource. Make sure it fails.
+  - Remove all Sec-Fetch headers. Make sure the fallback rule is deliberate and old browsers are handled.
+  - If the response depends on a Fetch Metadata header, make sure the Vary header lists it.
+  example: 'curl -i https://target/api/profile -H "Cookie: session=<value>" -H "Sec-Fetch-Site: cross-site" -H "Sec-Fetch-Mode: no-cors" -H "Sec-Fetch-Dest: image"'
+  expected: Cross-site requests for private resources are rejected, cross-site navigations are limited to public pages, and the behavior without the headers is documented. Caches get a Vary header.
+  severity: Medium
+  test_type:
+  - Manual
+  - Code Review
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A01:2025
+    wstg:
+    - WSTG-CLNT-09
+    asvs:
+    - V3.5.8
+    cheatsheet:
+    - XS_Leaks_Cheat_Sheet
+    cwe:
+    - CWE-203
+    - CWE-200
+    capec:
+    - CAPEC-462
+    other:
+    - 'W3C Fetch Metadata Request Headers: https://www.w3.org/TR/fetch-metadata/'
+  see:
+  - WEB-XSLEAK-001
+  - WEB-CSRF-001
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/XS_Leaks_Cheat_Sheet.md
+  - sources/extra/gap3-A/webappsec-fetch-metadata.md
+- id: WEB-ISO-002
+  sheet: WEB
+  category: ISO
+  title: Check Cross-Origin-Resource-Policy on private and public resources
+  objective: Find private images, scripts and documents that other sites can load and measure because the response has no Cross-Origin-Resource-Policy header.
+  preconditions:
+  - A test account and a test page on another origin.
+  steps:
+  - List resources that need a login, such as images, scripts, JSON and downloads.
+  - Request each resource and look for the Cross-Origin-Resource-Policy header.
+  - Make sure private resources use same-origin, or same-site when sibling sites need them.
+  - Make sure cross-origin is used only for resources that other sites must embed.
+  - Load a private resource from a page on another origin with an img or script tag. Make sure the browser blocks it.
+  example: 'curl -sI https://target/avatars/me.png -H "Cookie: session=<value>" | grep -i cross-origin-resource-policy; <img src="https://target/avatars/me.png"> on https://attacker.test'
+  expected: Private resources send Cross-Origin-Resource-Policy with same-origin or same-site. A page on another origin cannot load them.
+  severity: Medium
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A01:2025
+    wstg:
+    - WSTG-CLNT-09
+    asvs:
+    - V3.5.8
+    cheatsheet:
+    - XS_Leaks_Cheat_Sheet
+    cwe:
+    - CWE-200
+    capec:
+    - CAPEC-462
+  see:
+  - WEB-XSLEAK-001
+  - WEB-CLIENT-014
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/XS_Leaks_Cheat_Sheet.md
+- id: WEB-ISO-003
+  sheet: WEB
+  category: ISO
+  title: Check cache controls on resources that show user state
+  objective: Find resources whose cache state tells another site if a user visited a page or holds a role.
+  preconditions:
+  - A test account with a high role and one with a low role.
+  steps:
+  - List resources that only some users can load, such as admin images, scripts and styles.
+  - Load a resource as the high-role user. Look at the Cache-Control header of the response.
+  - Make sure the response uses Cache-Control with no-store. Or make sure the URL holds an unpredictable token for each user.
+  - Make sure the token is long and the server checks it.
+  - On a test page, load the resource and measure the load time. Look for a difference between a cached and a fresh load.
+  example: 'curl -sI https://target/static/admin-panel.css -H "Cookie: session=<admin>" | grep -i cache-control; performance.getEntriesByName(url)[0].duration on the test page'
+  expected: Role-specific resources use no-store or a per-user unpredictable URL. A test page cannot tell from load time if the resource was cached.
+  severity: Low
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A01:2025
+    wstg:
+    - WSTG-CLNT-09
+    cheatsheet:
+    - XS_Leaks_Cheat_Sheet
+    cwe:
+    - CWE-524
+    - CWE-203
+    capec:
+    - CAPEC-462
+  see:
+  - WEB-XSLEAK-001
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/XS_Leaks_Cheat_Sheet.md
+- id: WEB-ISO-004
+  sheet: WEB
+  category: ISO
+  title: Check SameSite cookies against same-site sibling origins
+  objective: Find sessions that a sibling subdomain or a shared public suffix site can still reach because SameSite is not a full origin boundary.
+  preconditions:
+  - A list of all subdomains of the registrable domain and the cookie settings.
+  steps:
+  - List all sibling subdomains. Find those that host user content, third-party services or old applications.
+  - Make sure the application is not hosted on a shared suffix such as github.io, where other tenants are cross-site.
+  - Read the SameSite value of each session cookie. Make sure it is Lax or Strict.
+  - From a page on a sibling subdomain, send a state-changing request to the main application. Look for acceptance.
+  - Make sure origin checks and CSRF tokens still run for same-site requests.
+  example: 'curl -sI https://target/login | grep -i set-cookie; fetch("https://app.example.com/api/delete",{method:"POST",credentials:"include"}) from https://blog.example.com'
+  expected: Session cookies use SameSite Lax or Strict. Same-site sibling origins get no extra trust, and CSRF and origin checks stay on for them.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A01:2025
+    wstg:
+    - WSTG-CLNT-09
+    asvs:
+    - V3.3.2
+    cheatsheet:
+    - XS_Leaks_Cheat_Sheet
+    cwe:
+    - CWE-1275
+  see:
+  - WEB-SESS-009
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/XS_Leaks_Cheat_Sheet.md

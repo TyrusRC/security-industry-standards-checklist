@@ -1,0 +1,25 @@
+- id: PCI-RISK-001
+  sheet: PCI
+  category: RISK
+  title: Check the targeted risk analysis behind flexible requirement frequencies
+  objective: Find requirements with a risk-based frequency that has no documented analysis.
+  preconditions:
+  - Access to risk analysis records
+  steps:
+  - List the requirements where the entity sets its own frequency, such as log review and password change.
+  - Ask for the targeted risk analysis document for each one.
+  - Make sure each document names the assets, the threats, the likelihood and the review date.
+  - Make sure each document sets the frequency and the reason.
+  - Make sure a person reviewed the analysis in the last 12 months.
+  example: Targeted risk analysis records; compare the frequency in the procedure with the analysis
+  expected: A current targeted risk analysis supports every risk-based frequency. Each analysis states the threats, the reason for the frequency and the review date.
+  severity: Low
+  test_type:
+  - Manual
+  refs:
+    pci_dss:
+    - 12.3.1
+    nist_800_53:
+    - RA-3
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md

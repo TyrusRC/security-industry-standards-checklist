@@ -1,0 +1,57 @@
+- id: PCI-TRANS-001
+  sheet: PCI
+  category: TRANS
+  title: Check the inventory of trusted keys and certificates for PAN transmission
+  objective: Find certificates and keys that protect PAN in transit and that no one tracks.
+  preconditions:
+  - Access to the inventory
+  steps:
+  - Ask for the inventory of trusted keys and certificates used to protect PAN in transit.
+  - Scan the public and internal endpoints that carry PAN. Compare each certificate with the inventory.
+  - Make sure each entry has an owner, an issuer and an expiry date.
+  - Find certificates that expire within 30 days.
+  - Make sure a process updates the inventory when a certificate changes.
+  example: nmap --script ssl-cert -p443 <host>; certificate lifecycle tool export; compare to the inventory
+  expected: A current inventory lists all trusted keys and certificates for PAN in transit. Each has an owner and an expiry date, and none is missing.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 4.2.1.1
+    nist_800_53:
+    - SC-12
+    - SC-17
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: PCI-TRANS-002
+  sheet: PCI
+  category: TRANS
+  title: Check that PAN sent through messaging tools is protected or blocked
+  objective: Find PAN in clear text in e-mail, chat, SMS or other end-user messaging.
+  preconditions:
+  - Test PAN
+  - Test accounts on each channel
+  steps:
+  - Ask whether policy allows PAN in end-user messaging.
+  - Make sure the policy forbids unprotected PAN, or requires strong cryptography.
+  - Send a test message that holds a test PAN on each channel in use.
+  - Make sure a data loss control blocks the message or encrypts it.
+  - Search sent mail and chat archives for PAN patterns.
+  example: Mail gateway DLP rule test with 4111111111111111; chat DLP policy review
+  expected: A control blocks PAN in end-user messaging or requires strong cryptography. No unprotected PAN is in messaging archives.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    pci_dss:
+    - 4.2.2
+    cwe:
+    - CWE-319
+    nist_800_53:
+    - SC-8
+    - SI-12
+  sources_read:
+  - sources/pci_dss/PCI-DSS-v4_0_1.md

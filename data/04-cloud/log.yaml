@@ -1,0 +1,177 @@
+- id: CLD-LOG-001
+  sheet: CLD
+  category: LOG
+  title: Check that audit logs are on in every account and region
+  objective: Finds accounts and regions where cloud API activity leaves no record.
+  steps:
+  - List all accounts, subscriptions, projects and regions in use.
+  - Check that the audit trail is on for each, with management and data events.
+  - Make a test change and find its record.
+  - Check that the record shows identity, source address and time.
+  example: aws cloudtrail describe-trails; aws cloudtrail get-trail-status --name <t>; az monitor diagnostic-settings subscription list; gcloud logging sinks list
+  expected: Audit logs cover all accounts and regions. The test change appears with identity, source address and time.
+  severity: High
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-10
+    cheatsheet:
+    - Secure_Cloud_Architecture_Cheat_Sheet
+    - Logging_Cheat_Sheet
+    cwe:
+    - CWE-778
+    attack:
+    - T1685.002
+    - T1651
+    nist_800_53:
+    - AU-2
+    - AU-12
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x0A_logging.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Cloud_Architecture_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+- id: CLD-LOG-002
+  sheet: CLD
+  category: LOG
+  title: Check protection and retention of cloud logs
+  objective: Finds logs that an attacker with account access can edit or delete.
+  steps:
+  - Find the storage target of each log source.
+  - Check that the target is in a separate account with write-once or locked storage.
+  - Check who can delete or change the logs and the log settings.
+  - Check the retention time against the rules.
+  example: aws cloudtrail get-trail --name <t> --query Trail.LogFileValidationEnabled; aws s3api get-object-lock-configuration --bucket <b>; gcloud logging buckets list
+  expected: Logs go to a separate protected store with integrity checks. Few identities can change or delete logs, and retention meets the rules.
+  severity: High
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-10
+    cheatsheet:
+    - Logging_Cheat_Sheet
+    - Secure_Cloud_Architecture_Cheat_Sheet
+    - Network_Segmentation_Cheat_Sheet
+    cwe:
+    - CWE-778
+    attack:
+    - T1685.002
+    - T1070
+    nist_800_53:
+    - AU-9
+    - AU-11
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x0A_logging.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Cloud_Architecture_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Network_Segmentation_Cheat_Sheet.md
+- id: CLD-LOG-003
+  sheet: CLD
+  category: LOG
+  title: Check network flow, DNS and load balancer logs
+  objective: Finds networks where traffic between services and to the Internet cannot be traced.
+  steps:
+  - List VPCs, subnets and load balancers.
+  - Check that flow logs, DNS logs and access logs are on.
+  - Make a test connection between two services.
+  - Find it in the logs.
+  example: aws ec2 describe-flow-logs; az network watcher flow-log list -l <region>; gcloud compute networks subnets describe <s> --format="value(logConfig)"
+  expected: Flow, DNS and load balancer logs are on for all networks. The test connection appears in the log.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-10
+    - CNAS-6
+    cheatsheet:
+    - Logging_Cheat_Sheet
+    - Secure_Cloud_Architecture_Cheat_Sheet
+    cwe:
+    - CWE-778
+    attack:
+    - T1046
+    - T1048
+    nist_800_53:
+    - AU-2
+    - AU-12
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x0A_logging.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x06_over_permissive_network.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Cloud_Architecture_Cheat_Sheet.md
+- id: CLD-LOG-004
+  sheet: CLD
+  category: LOG
+  title: Test alerts for security events and cost or usage anomalies
+  objective: Finds environments where known attack steps raise no alert.
+  preconditions:
+  - Use a test account.
+  steps:
+  - List the alert rules for sign-in, IAM change, log change, key use and storage policy change.
+  - Do a test action for each rule in a test account.
+  - Check that the alert reaches the response team.
+  - Check alerts for unusual usage of compute, functions, databases and cost.
+  example: aws cloudwatch describe-alarms; aws events list-rules; aws budgets describe-budgets --account-id <id>; az monitor activity-log alert list; gcloud alpha monitoring policies list
+  expected: Each test action raises an alert in the agreed time. Alerts for usage and cost anomalies exist and have an owner.
+  severity: High
+  test_type: Manual
+  refs:
+    cloud_native_top10:
+    - CNAS-10
+    - CNAS-9
+    cheatsheet:
+    - Secure_Cloud_Architecture_Cheat_Sheet
+    - Logging_Cheat_Sheet
+    cwe:
+    - CWE-778
+    attack:
+    - T1685.002
+    - T1496
+    nist_800_53:
+    - AU-6
+    - SI-4
+  see:
+  - WEB-LOG-014
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x0A_logging.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x09_compute_resources.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Cloud_Architecture_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+- id: CLD-LOG-005
+  sheet: CLD
+  category: LOG
+  title: Check that logs hold no secrets and that time sources agree
+  objective: Finds logs that expose credentials or cannot be matched across systems.
+  steps:
+  - Search sample logs of functions, gateways and agents for tokens and keys.
+  - Check the field list against the log standard.
+  - Compare timestamps of one request across three systems.
+  - Check the time sync setting of the hosts.
+  example: grep -rIiE "password|token|secret|authorization" <log-sample>; compare timestamps of one correlation ID
+  expected: Logs hold no credentials or protected personal data. Timestamps agree and every record carries a correlation ID.
+  severity: Medium
+  test_type: Manual
+  refs:
+    cloud_native_top10:
+    - CNAS-10
+    cheatsheet:
+    - Logging_Cheat_Sheet
+    - Microservices_Security_Cheat_Sheet
+    - Secure_Cloud_Architecture_Cheat_Sheet
+    cwe:
+    - CWE-532
+    attack:
+    - T1552.001
+    nist_800_53:
+    - AU-3
+  see:
+  - WEB-LOG-006
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x0A_logging.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Microservices_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Cloud_Architecture_Cheat_Sheet.md

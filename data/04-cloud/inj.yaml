@@ -1,0 +1,135 @@
+- id: CLD-INJ-001
+  sheet: CLD
+  category: INJ
+  title: List all event sources that feed code and treat each as untrusted
+  objective: Finds event paths such as storage triggers, queues and topics that carry attacker-controlled data.
+  steps:
+  - List functions, workers and services that react to events.
+  - 'Map each event source: API call, object upload, queue, topic, IoT message or schedule.'
+  - Mark which fields an outside party controls, such as object names and metadata.
+  - Rank sources by exposure.
+  example: aws lambda list-event-source-mappings; aws s3api get-bucket-notification-configuration --bucket <b>; gcloud eventarc triggers list; az eventgrid topic list
+  expected: Every event source is listed with its owner and the fields that outside parties control. Each handler validates these fields.
+  severity: Medium
+  test_type: Manual
+  refs:
+    cloud_native_top10:
+    - CNAS-2
+    cheatsheet:
+    - Serverless_FaaS_Security_Cheat_Sheet
+    cwe:
+    - CWE-20
+    attack:
+    - T1648
+    nist_800_53:
+    - SI-10
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x02_inj_flaws.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Serverless_FaaS_Security_Cheat_Sheet.md
+- id: CLD-INJ-002
+  sheet: CLD
+  category: INJ
+  title: Send crafted values through event fields to the handlers
+  objective: Finds handlers that pass event data into commands, queries or templates without checks.
+  preconditions:
+  - Use a test environment.
+  - Do not run on production.
+  steps:
+  - Create a test object with a name that holds shell and SQL meta characters.
+  - Send a queue message with the same values in each field.
+  - Watch the handler logs and downstream systems for errors or changed behavior.
+  - Send oversize, wrong type and extra fields.
+  example: aws s3 cp test.txt "s3://<b>/a;id;.txt"; aws sqs send-message --queue-url <q> --message-body "{\"id\":\"1 OR 1=1\"}"; gcloud pubsub topics publish <t> --message "<payload>"
+  expected: Handlers reject or neutralize malformed values. No command runs, no query changes, and errors show no internals.
+  severity: High
+  test_type: Manual
+  refs:
+    cloud_native_top10:
+    - CNAS-2
+    cheatsheet:
+    - Serverless_FaaS_Security_Cheat_Sheet
+    cwe:
+    - CWE-20
+    - CWE-78
+    - CWE-89
+    attack:
+    - T1648
+    - T1059.009
+    nist_800_53:
+    - SI-10
+  see:
+  - WEB-INJ-001
+  - WEB-INJ-014
+  - WEB-INJ-025
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x02_inj_flaws.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Serverless_FaaS_Security_Cheat_Sheet.md
+- id: CLD-INJ-003
+  sheet: CLD
+  category: INJ
+  title: Check input validation, parameterized access and least rights in handlers
+  objective: Finds handler code that builds queries or commands from event data, with roles that make the damage worse.
+  steps:
+  - Read the handler code for string-built queries and shell calls.
+  - Check for allow-list validation of type, length and format.
+  - Check that data access uses parameterized calls.
+  - Check that the handler role cannot reach other data.
+  example: semgrep --config auto <handler-dir>; grep -rnE "os.system|subprocess|exec\(|eval\(" <handler-dir>
+  expected: Handlers validate input with allow-lists and use parameterized access. The role limits the damage of a flaw.
+  severity: High
+  test_type: Code Review
+  refs:
+    cloud_native_top10:
+    - CNAS-2
+    cheatsheet:
+    - Serverless_FaaS_Security_Cheat_Sheet
+    cwe:
+    - CWE-20
+    - CWE-89
+    - CWE-78
+    attack:
+    - T1648
+    nist_800_53:
+    - SI-10
+    - AC-6
+  see:
+  - WEB-INJ-004
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x02_inj_flaws.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Serverless_FaaS_Security_Cheat_Sheet.md
+- id: CLD-INJ-004
+  sheet: CLD
+  category: INJ
+  title: Check message and event integrity in queues, topics and buses
+  objective: Finds messaging systems where any writer can inject events that other services trust.
+  steps:
+  - List who can publish to each queue, topic and event bus.
+  - Check the access policies for public or wide principals.
+  - Publish a forged event with a test identity that has no rights.
+  - Check that consumers check the source and format.
+  example: aws sqs get-queue-attributes --queue-url <q> --attribute-names Policy; aws sns get-topic-attributes --topic-arn <t>; gcloud pubsub topics get-iam-policy <t>
+  expected: Only named producers can publish. Consumers check source and message format, and a forged message is rejected.
+  severity: High
+  test_type: Manual
+  refs:
+    cloud_native_top10:
+    - CNAS-2
+    - CNAS-3
+    cheatsheet:
+    - Serverless_FaaS_Security_Cheat_Sheet
+    cwe:
+    - CWE-345
+    - CWE-862
+    attack:
+    - T1648
+    nist_800_53:
+    - SI-10
+    - AC-3
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x02_inj_flaws.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x03_improper_auth.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Serverless_FaaS_Security_Cheat_Sheet.md

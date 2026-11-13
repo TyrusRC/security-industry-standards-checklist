@@ -1,0 +1,193 @@
+- id: NET-CRED-001
+  sheet: NET
+  category: CRED
+  title: Look for vendor default accounts on network services and devices
+  objective: Finds routers, switches, databases and services that still use vendor default passwords.
+  preconditions:
+  - Written approval to try logins on the services in scope.
+  - Do not run on production without approval. Use the vendor list with a low rate to avoid lockouts.
+  steps:
+  - Use the service and version results to list devices and products with a login.
+  - Get the default accounts for each product from the vendor documentation.
+  - Try each default account on the login of the service, within the agreed rate.
+  - Look at the system accounts of each product that the admins did not change.
+  - Write down each default account that is active.
+  example: 'nmap -sV --script default-http-login-hunter,ftp-anon,mysql-empty-password -p <ports> <host> ; hydra -C defaults.txt <host> ssh'
+  expected: No vendor default account works. Default accounts are removed or disabled, or they have a unique strong password.
+  severity: Critical
+  test_type: Automated
+  refs:
+    owasp_top10:
+    - A02:2025
+    wstg:
+    - WSTG-ATHN-02
+    - WSTG-CONF-01
+    attack:
+    - T1078.001
+    capec:
+    - CAPEC-70
+    cwe:
+    - CWE-1188
+    - CWE-798
+    nist_800_53:
+    - IA-5
+    - CM-6
+    pci_dss:
+    - '2.2.2'
+    - '2.3.1'
+  see:
+  - WEB-AUTHN-001
+  sources_read:
+  - sources/repos/Top10/2025/docs/en/A02_2025-Security_Misconfiguration.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/01-Network_Infrastructure_Configuration.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-CRED-002
+  sheet: NET
+  category: CRED
+  title: Check the password policy settings on network systems and directories
+  objective: Finds systems that accept short, common or breached passwords.
+  steps:
+  - Export the password policy of the directory and of each network device or service with local accounts.
+  - Make sure the minimum length is 12 characters, or the maximum the system supports.
+  - Make sure the system checks new passwords against a list of common and breached passwords.
+  - Make sure the lockout limit is not more than 10 failed attempts, for at least 30 minutes.
+  - Compare the policy with the written password policy.
+  example: 'Get-ADDefaultDomainPasswordPolicy ; net accounts ; chage -l <user> ; grep -E "PASS_MIN_LEN|minlen" /etc/login.defs /etc/security/pwquality.conf'
+  expected: Passwords have at least 12 characters and are checked against a list of common and breached passwords. Failed logins lock the account after at most 10 tries.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    wstg:
+    - WSTG-ATHN-07
+    - WSTG-ATHN-03
+    cwe:
+    - CWE-521
+    - CWE-307
+    nist_800_53:
+    - IA-5
+    pci_dss:
+    - '8.3.6'
+    - '8.3.4'
+  see:
+  - WEB-PWD-001
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-CRED-003
+  sheet: NET
+  category: CRED
+  title: Test online password guessing and lockout on remote services
+  objective: Finds remote services that let an attacker try many passwords with no limit.
+  preconditions:
+  - Written approval to try logins on the services in scope, with a test account.
+  - Do not run on production. Lockout of real accounts can stop users from work.
+  steps:
+  - Pick remote services with a login, such as SSH, RDP, VPN and management interfaces.
+  - Send repeated failed logins with a test account until the lockout limit.
+  - Try one common password against many test accounts at a slow rate.
+  - Make sure the service locks the account or slows the logins.
+  - Make sure the service logs the failed logins.
+  example: 'hydra -l testuser -P short-list.txt -t 2 ssh://<host> ; medusa -h <host> -u testuser -P short-list.txt -M ssh'
+  expected: The service blocks or slows repeated failed logins from one source or against one account. Failed logins appear in the logs.
+  severity: High
+  test_type: Automated
+  refs:
+    wstg:
+    - WSTG-ATHN-03
+    attack:
+    - T1110.001
+    - T1110.003
+    capec:
+    - CAPEC-112
+    - CAPEC-49
+    cwe:
+    - CWE-307
+    nist_800_53:
+    - AC-7
+    - IA-5
+    pci_dss:
+    - '8.3.4'
+  see:
+  - WEB-AUTHN-002
+  - WEB-AUTHN-003
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/01-Network_Infrastructure_Configuration.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-CRED-004
+  sheet: NET
+  category: CRED
+  title: Crack password hashes offline to find weak passwords
+  objective: Finds accounts with passwords that an attacker can recover from hashes.
+  preconditions:
+  - The assessment plan says how the hashes are collected and who stores them.
+  - Do not run on production. Crack the hashes offline on a protected system.
+  steps:
+  - Get the password hashes from the system or from a capture, as the plan says.
+  - Set up the cracker with the rules of the password policy.
+  - Run a dictionary attack, then a hybrid attack, then a limited brute force attack.
+  - Count the accounts that the cracker recovers and the time it needed.
+  - Report the accounts to the owner without the plain passwords. Delete the hashes and results at the end.
+  example: 'hashcat -m <mode> hashes.txt wordlist.txt -r rules/best64.rule ; john --wordlist=wordlist.txt hashes.txt'
+  expected: The cracker recovers no password in the agreed time. The hashes use a salted hash with a high work factor, such as Argon2id.
+  severity: High
+  test_type: Manual
+  refs:
+    attack:
+    - T1110.002
+    capec:
+    - CAPEC-55
+    cheatsheet:
+    - Password_Storage_Cheat_Sheet
+    cwe:
+    - CWE-257
+    - CWE-521
+    nist_800_53:
+    - IA-5
+    pci_dss:
+    - '8.3.2'
+    - '8.3.6'
+    other:
+    - NIST SP 800-115 section 5.1 (password cracking)
+  see:
+  - WEB-PWD-001
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/repos/CheatSheetSeries/cheatsheets/Password_Storage_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-CRED-005
+  sheet: NET
+  category: CRED
+  title: Look for hard-coded passwords in device configurations and scripts
+  objective: Finds passwords in clear text in configuration files, scripts and backups.
+  preconditions:
+  - Read access to the configurations and scripts in scope.
+  steps:
+  - Export the running and saved configurations of routers, switches and firewalls.
+  - Collect the scripts and configuration files of servers and automation tools.
+  - Search the files for passwords, community strings, keys and tokens.
+  - Check that password fields hold hashes or encrypted values.
+  - Write down each clear-text secret and where it is stored.
+  example: 'grep -rniE "password|passwd|secret|community|key" /etc /opt/scripts ; show running-config | include password|secret ; trufflehog filesystem <dir>'
+  expected: No file holds a clear-text secret. Secrets come from a secrets store, and stored passwords are hashed or encrypted.
+  severity: High
+  test_type: Config Review
+  refs:
+    attack:
+    - T1552.001
+    - T1602.002
+    cwe:
+    - CWE-798
+    - CWE-256
+    - CWE-555
+    nist_800_53:
+    - IA-5
+    pci_dss:
+    - '8.6.2'
+    - '8.3.2'
+  sources_read:
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Infrastructure_as_Code_Security_Cheat_Sheet.md

@@ -1,0 +1,298 @@
+- id: WEB-FWK-001
+  sheet: WEB
+  category: FWK
+  title: Check the Django production settings for debug, hosts and cookies
+  objective: Find a Django deployment that runs with debug mode, an empty host list or insecure cookie and redirect settings.
+  preconditions:
+  - Read access to the production settings module and shell access to a copy of the production build.
+  steps:
+  - Open the production settings module and find the DEBUG value. It must be False.
+  - Find ALLOWED_HOSTS. Make sure the list is not empty and does not hold a wildcard.
+  - Make sure SESSION_COOKIE_SECURE, CSRF_COOKIE_SECURE and SECURE_SSL_REDIRECT are True.
+  - Make sure SecurityMiddleware and XFrameOptionsMiddleware are in MIDDLEWARE, in this order.
+  - Make sure SECURE_PROXY_SSL_HEADER is set only when a trusted proxy strips and sets the header.
+  - Run the Django deploy check with the production settings and look at each warning.
+  - Send a request to a missing URL and a request with a wrong Host header. Look for debug pages.
+  example: 'python manage.py check --deploy --settings=prod.settings; curl -sk https://target/nonexistent-url-123 | grep -i "DEBUG = True"; curl -sk -H "Host: evil.example" https://target/'
+  expected: DEBUG is False and ALLOWED_HOSTS lists only real host names. The deploy check shows no security warning. Error pages show no settings or stack trace.
+  severity: High
+  test_type:
+  - Config Review
+  - Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A02:2025
+    wstg:
+    - WSTG-CONF-02
+    - WSTG-ERRH-01
+    asvs:
+    - V13.4.2
+    cheatsheet:
+    - Django_Security_Cheat_Sheet
+    cwe:
+    - CWE-489
+    - CWE-215
+  see:
+  - WEB-CONF-002
+  - WEB-ERR-002
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Django_Security_Cheat_Sheet.md
+- id: WEB-FWK-002
+  sheet: WEB
+  category: FWK
+  title: Check Django SECRET_KEY strength, storage and rotation
+  objective: Find a weak, hard-coded or exposed Django SECRET_KEY that lets an attacker forge signed data.
+  preconditions:
+  - Read access to the source repository, the deployment configuration and the secret store.
+  steps:
+  - Find the SECRET_KEY value in settings.py and in the repository history.
+  - Make sure the key has at least 50 characters and does not start with django-insecure-.
+  - Make sure the key is read from an environment variable or a secrets manager.
+  - Look for a written key rotation procedure. It must name the effect on sessions and password reset tokens.
+  - Make sure a leaked key causes an immediate rotation.
+  example: 'git log -p -S SECRET_KEY -- "*settings*.py"; grep -rn "SECRET_KEY" --include=*.py .; python manage.py check --deploy | grep W009'
+  expected: The key is long, random and loaded from a secret store. No repository file or history holds it, and a rotation procedure exists.
+  severity: High
+  test_type:
+  - Config Review
+  - Code Review
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A02:2025
+    asvs:
+    - V13.3.1
+    cheatsheet:
+    - Django_Security_Cheat_Sheet
+    cwe:
+    - CWE-798
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Django_Security_Cheat_Sheet.md
+- id: WEB-FWK-003
+  sheet: WEB
+  category: FWK
+  title: Check Django REST Framework default permission, throttle and paging classes
+  objective: Find a REST API that is open to everyone because the framework defaults were not changed.
+  preconditions:
+  - Read access to the REST_FRAMEWORK settings and the view code.
+  steps:
+  - Open the REST_FRAMEWORK setting. Find DEFAULT_PERMISSION_CLASSES.
+  - Make sure the value is not rest_framework.permissions.AllowAny.
+  - Search the views for permission_classes and authentication_classes overrides. Examine each override.
+  - Make sure each AllowAny view is a public endpoint on purpose.
+  - Make sure DEFAULT_THROTTLE_CLASSES and DEFAULT_THROTTLE_RATES are set, and DEFAULT_PAGINATION_CLASS is set.
+  - Send a request without credentials to a list endpoint. Look for data in the response.
+  - Make sure DEBUG and DEBUG_PROPAGATE_EXCEPTIONS are False.
+  example: 'grep -rn "permission_classes\|authentication_classes\|AllowAny" --include=*.py .; curl -s https://target/api/items/'
+  expected: The default permission class denies anonymous users, throttle and paging classes are set, and every override is documented and has a reason.
+  severity: High
+  test_type:
+  - Config Review
+  - Code Review
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A02:2025
+    wstg:
+    - WSTG-CONF-02
+    cheatsheet:
+    - Django_REST_Framework_Cheat_Sheet
+    cwe:
+    - CWE-1188
+    - CWE-285
+  see:
+  - API-RES-001
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Django_REST_Framework_Cheat_Sheet.md
+- id: WEB-FWK-004
+  sheet: WEB
+  category: FWK
+  title: Review framework field allow-lists and server-side validation constraints
+  objective: Find framework models, serializers and validators that accept or return fields the client must not set or see.
+  preconditions:
+  - Read access to the source code. Use the stack of the application.
+  steps:
+  - Django REST Framework - find each ModelSerializer. Make sure Meta.fields is an explicit list and does not use exclude or __all__.
+  - Laravel - make sure no model sets $guarded to an empty array. Make sure forceFill and forceCreate get no raw request data.
+  - FastAPI - make sure separate input schemas exclude server-set fields and a response_model is set on each route.
+  - FastAPI - make sure extra="forbid" is set where the API must reject unknown fields.
+  - Java - make sure controller parameters use @Valid and the constraints cover size, pattern and range.
+  - Send a request with an extra field such as is_admin. Examine the stored object and the response.
+  example: 'grep -rn "fields = \"__all__\"\|exclude =\|\$guarded = \[\]\|forceFill\|forceCreate" .; curl -X PATCH https://target/api/me -d "{\"is_admin\":true}"'
+  expected: Only listed fields are bound and returned, unknown fields are rejected or ignored, and input that breaks a constraint gets a client error.
+  severity: High
+  test_type:
+  - Code Review
+  - Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A06:2025
+    wstg:
+    - WSTG-INJT-20
+    asvs:
+    - V15.3.3
+    cheatsheet:
+    - Django_REST_Framework_Cheat_Sheet
+    - Laravel_Cheat_Sheet
+    - FastAPI_Security_Cheat_Sheet
+    - Bean_Validation_Cheat_Sheet
+    cwe:
+    - CWE-915
+  see:
+  - WEB-ARCH-006
+  - WEB-INJ-022
+  - WEB-AUTHZ-007
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Django_REST_Framework_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Laravel_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/FastAPI_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Bean_Validation_Cheat_Sheet.md
+- id: WEB-FWK-005
+  sheet: WEB
+  category: FWK
+  title: Check the FastAPI documentation routes and ASGI proxy trust in production
+  objective: Find a FastAPI deployment that exposes its schema or trusts forwarding headers from any client.
+  preconditions:
+  - Access to the production URL and to the server start command or configuration.
+  steps:
+  - Request /docs, /redoc and /openapi.json on the production host without credentials.
+  - If the documentation is private, make sure openapi_url is None or the routes need authentication.
+  - Look at the Uvicorn start command. Find the --forwarded-allow-ips value.
+  - Make sure the value lists only the addresses of trusted reverse proxies and is not a wildcard.
+  - Send a request with a forged X-Forwarded-For and X-Forwarded-Proto header directly to the application port.
+  - Make sure the application does not take the client address or scheme from the forged header.
+  - Make sure the Server header is off.
+  example: 'curl -sk -o /dev/null -w "%{http_code}\n" https://target/docs https://target/openapi.json; uvicorn app:app --forwarded-allow-ips=10.0.0.5 --no-server-header'
+  expected: Documentation routes are closed or protected. Proxy trust is limited to known proxy addresses. Forged forwarding headers do not change the client address or scheme.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A02:2025
+    wstg:
+    - WSTG-CONF-02
+    asvs:
+    - V13.4.2
+    - V4.1.3
+    cheatsheet:
+    - FastAPI_Security_Cheat_Sheet
+    cwe:
+    - CWE-1188
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/FastAPI_Security_Cheat_Sheet.md
+- id: WEB-FWK-006
+  sheet: WEB
+  category: FWK
+  title: Check Laravel and Symfony production mode, application key and secrets
+  objective: Find a Laravel or Symfony application that runs in debug mode or keeps its key and secrets in unsafe places.
+  preconditions:
+  - Read access to the environment files and the deployment configuration.
+  steps:
+  - Laravel - make sure APP_DEBUG is false in the production environment.
+  - Laravel - make sure APP_KEY is set, is not in the repository.
+  - Laravel - make sure the cookie encryption middleware is on and session cookies use HttpOnly, Secure and SameSite.
+  - Symfony - make sure APP_ENV is prod and the production error page is generic.
+  - Symfony - make sure API keys are in the secrets vault. Make sure the private decryption key file is not in the repository.
+  - Symfony - make sure framework.session sets cookie_secure to true and cookie_samesite to lax or strict.
+  - Make sure directories have mode 775 or less and ordinary files have mode 664 or less.
+  example: 'grep -E "APP_DEBUG|APP_ENV|APP_KEY" .env*; php bin/console secrets:list; stat -c "%a %n" storage bootstrap/cache; git log -S APP_KEY'
+  expected: Debug mode is off. The key and secrets come from a vault or the environment and are not in the repository. Cookie settings are strict and file modes are not wider than needed.
+  severity: High
+  test_type:
+  - Config Review
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A02:2025
+    wstg:
+    - WSTG-CONF-02
+    - WSTG-CONF-09
+    asvs:
+    - V13.4.2
+    - V13.3.1
+    cheatsheet:
+    - Laravel_Cheat_Sheet
+    - Symfony_Cheat_Sheet
+    cwe:
+    - CWE-489
+    - CWE-798
+  see:
+  - WEB-CONF-002
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Laravel_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Symfony_Cheat_Sheet.md
+- id: WEB-FWK-007
+  sheet: WEB
+  category: FWK
+  title: Check the php.ini settings of a production PHP server
+  objective: Find php.ini values that show errors, allow remote includes or leave dangerous functions on.
+  preconditions:
+  - Shell access to the PHP server or a copy of the production php.ini.
+  steps:
+  - Make sure the PHP branch is still in security support.
+  - Make sure expose_php is Off, display_errors is Off, html_errors is Off and log_errors is On.
+  - Make sure allow_url_fopen and allow_url_include are Off.
+  - Make sure open_basedir limits PHP to the web root and the needed paths.
+  - Make sure disable_functions lists the functions the application does not use, such as exec, system and passthru.
+  - Make sure file_uploads is Off when the application has no upload, and upload_max_filesize and post_max_size are small.
+  - Make sure enable_dl is Off and the session settings use secure cookie values.
+  example: 'php -i | grep -E "expose_php|display_errors|allow_url|open_basedir|disable_functions|enable_dl|file_uploads"; php -v'
+  expected: Errors go to the log only, remote file access is off, dangerous functions are disabled, and upload and execution limits are set.
+  severity: Medium
+  test_type:
+  - Config Review
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A02:2025
+    wstg:
+    - WSTG-CONF-02
+    asvs:
+    - V13.4.2
+    cheatsheet:
+    - PHP_Configuration_Cheat_Sheet
+    cwe:
+    - CWE-209
+  see:
+  - WEB-ERR-002
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/PHP_Configuration_Cheat_Sheet.md
+- id: WEB-FWK-008
+  sheet: WEB
+  category: FWK
+  title: Check Ruby on Rails session store, routes and sensitive files
+  objective: Find a Rails application with replayable cookie sessions, open route patterns or committed secret files.
+  preconditions:
+  - Read access to the Rails project and its repository history.
+  steps:
+  - Find the session store setting. Note if it is the default cookie store.
+  - If sessions use cookies, make sure a server-side expiry or a database session store limits replay of old cookies.
+  - Make sure the session does not hold sensitive data.
+  - Open config/routes.rb. Find routes that map any controller or action from a URL pattern.
+  - Make sure users can reach only the intended controller methods.
+  - Make sure database.yml, secret_token.rb and local databases are not in the repository.
+  - Make sure HSTS is set in the production environment file.
+  example: 'grep -n "session_store" config/**/*.rb; grep -n ":controller\|:action" config/routes.rb; git ls-files | grep -E "database.yml|secret|sqlite3"'
+  expected: Sessions can expire on the server, routes expose only chosen actions, and no secret or data file is in the repository.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Code Review
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A02:2025
+    wstg:
+    - WSTG-CONF-02
+    cheatsheet:
+    - Ruby_on_Rails_Cheat_Sheet
+    cwe:
+    - CWE-798
+    - CWE-1463
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Ruby_on_Rails_Cheat_Sheet.md

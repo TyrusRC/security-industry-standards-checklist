@@ -1,0 +1,168 @@
+- id: WEB-ERR-001
+  sheet: WEB
+  category: ERR
+  title: Make sure errors return a generic message without stack traces or internals
+  objective: Find error output that shows stack traces, queries, paths, versions, keys or tokens.
+  steps:
+  - Send wrong types, missing parameters, long values and special characters to every input.
+  - Send malformed JSON and XML bodies and invalid HTTP requests.
+  - Request missing files and folders.
+  - Look at the response body and headers for stack traces, SQL, paths, versions and secrets.
+  - Look at error responses that return status 200.
+  - Check that debug pages and consoles are off.
+  example: ffuf -u 'https://example.com/page?id=FUZZ' -w fuzz-errors.txt -mc 500; curl -si 'https://example.com/api/item/%00'; zap-baseline.py -t https://example.com
+  expected: Unexpected or security-sensitive errors return a generic message and a correlation ID. No internal data is visible.
+  severity: Medium
+  test_type:
+  - Manual
+  - Automated
+  level: ASVS L2
+  refs:
+    wstg:
+    - WSTG-ERRH-01
+    - WSTG-ERRH-02
+    asvs:
+    - V16.5.1
+    owasp_top10:
+    - A10:2025
+    - A02:2025
+    cheatsheet:
+    - Error_Handling_Cheat_Sheet
+    cwe:
+    - CWE-209
+    - CWE-550
+    - CWE-215
+    capec:
+    - CAPEC-54
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/08-Error_Handling/01-Improper_Error_Handling.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/08-Error_Handling/02-Stack_Traces.md
+  - sources/repos/Top10/2025/docs/en/A10_2025-Mishandling_of_Exceptional_Conditions.md
+  - sources/repos/Top10/2025/docs/en/A02_2025-Security_Misconfiguration.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Error_Handling_Cheat_Sheet.md
+- id: WEB-ERR-002
+  sheet: WEB
+  category: ERR
+  title: Make sure web server and framework use custom error pages
+  objective: Find default server and framework error pages that identify the product and version.
+  steps:
+  - Request random missing paths and forbidden folders.
+  - Send a request that breaks the HTTP rules, such as a wrong version or a very long line.
+  - Compare the pages with the known default pages of Apache, Nginx, IIS and the framework.
+  - Look at the configuration for custom error pages and a global error handler.
+  example: curl -si https://example.com/nonexistent-$(date +%s); printf 'GET / HTTP/9.9\r\n\r\n' | openssl s_client -quiet -connect example.com:443
+  expected: The application uses custom error pages and a central error handler. No default product page is shown.
+  severity: Low
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    wstg:
+    - WSTG-ERRH-01
+    - WSTG-INFO-02
+    owasp_top10:
+    - A02:2025
+    cheatsheet:
+    - Error_Handling_Cheat_Sheet
+    cwe:
+    - CWE-756
+    - CWE-209
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/08-Error_Handling/01-Improper_Error_Handling.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/01-Information_Gathering/02-Fingerprint_Web_Server.md
+  - sources/repos/Top10/2025/docs/en/A02_2025-Security_Misconfiguration.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Error_Handling_Cheat_Sheet.md
+- id: WEB-ERR-003
+  sheet: WEB
+  category: ERR
+  title: Make sure the application degrades safely when an external resource fails
+  objective: Find applications that crash, hang or expose data when a dependency is down.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - Block, slow down or break one dependency at a time in a test system.
+  - Look at the user response and the application state.
+  - Check for circuit breakers, time-outs and graceful degradation.
+  - Check that the application recovers when the dependency returns.
+  example: toxiproxy-cli toxic add -t timeout -a timeout=0 backend; iptables -A OUTPUT -d <dep-ip> -j DROP
+  expected: The application keeps working in a safe reduced mode, gives a generic error, and recovers by itself.
+  severity: Medium
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V16.5.2
+    owasp_top10:
+    - A10:2025
+    cwe:
+    - CWE-755
+    - CWE-400
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A10_2025-Mishandling_of_Exceptional_Conditions.md
+- id: WEB-ERR-004
+  sheet: WEB
+  category: ERR
+  title: Make sure the application fails closed and rolls back on errors
+  objective: Find fail-open paths where an error lets a request or transaction pass.
+  steps:
+  - Make a validation, authorization or payment step fail with an exception in a test system.
+  - Check that the request is denied and not processed.
+  - Interrupt a multi-step transaction in the middle and check the state of the data.
+  - Check that partial changes are rolled back.
+  example: 'Burp Repeater: send input that raises an exception in the validator; interrupt the second step of a transfer with a dropped connection'
+  expected: Errors lead to denial and complete rollback. No transaction is processed after a failed check.
+  severity: High
+  test_type:
+  - Manual
+  - Code Review
+  level: ASVS L2
+  refs:
+    asvs:
+    - V16.5.3
+    owasp_top10:
+    - A10:2025
+    - A09:2025
+    cwe:
+    - CWE-636
+    - CWE-755
+    - CWE-460
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A10_2025-Mishandling_of_Exceptional_Conditions.md
+  - sources/repos/Top10/2025/docs/en/A09_2025-Security_Logging_and_Alerting_Failures.md
+- id: WEB-ERR-005
+  sheet: WEB
+  category: ERR
+  title: Check for a last-resort error handler that catches all exceptions
+  objective: Find code paths with no global handler that lose error data or stop the process.
+  steps:
+  - Find the global exception handler in the framework configuration.
+  - Raise an unhandled exception in a test route and in a background job.
+  - Check that the process stays up, the error is logged, and the user gets a generic message.
+  - Search the code for empty catch blocks and generic exceptions.
+  example: grep -rEn 'catch\s*\(\s*(Exception|Throwable)|except\s*:|catch\s*\{\s*\}' ./src
+  expected: A central handler catches all unhandled exceptions, logs them and keeps the process available.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Manual
+  level: ASVS L3
+  refs:
+    asvs:
+    - V16.5.4
+    owasp_top10:
+    - A10:2025
+    cheatsheet:
+    - Error_Handling_Cheat_Sheet
+    cwe:
+    - CWE-248
+    - CWE-396
+    - CWE-390
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A10_2025-Mishandling_of_Exceptional_Conditions.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Error_Handling_Cheat_Sheet.md

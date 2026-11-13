@@ -1,0 +1,163 @@
+- id: LLM-EVID-001
+  sheet: LLM
+  category: EVID
+  title: Check that an independent observer records the agent or service actions
+  objective: Finds execution records that only the supplier writes and can change.
+  steps:
+  - List the component, host, recorder, operator and signing key holder of the record.
+  - Count the independent parties. Treat services of one supplier as one party.
+  - Find an observer that gets event data without the report of the component, such as a gateway you control.
+  - Make sure the observer records are kept where the supplier cannot rewrite them.
+  - Compare the supplier record with the calls at your boundary.
+  example: Compare the MCP gateway log with the vendor trace for the same time window.
+  expected: A party that the supplier does not control records the events. Without it, the team treats the record as a supplier assertion.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    cheatsheet:
+    - Verifying_Third_Party_Agent_Execution_Evidence_Cheat_Sheet
+    - Logging_Cheat_Sheet
+    cwe:
+    - CWE-778
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Verifying_Third_Party_Agent_Execution_Evidence_Cheat_Sheet.md
+- id: LLM-EVID-002
+  sheet: LLM
+  category: EVID
+  title: Check what timing evidence in an execution record proves
+  objective: Finds records where a supplier time stamp or a fresh signature is wrongly taken as proof of live capture.
+  steps:
+  - Send a fresh random nonce to the supplier. Ask for it in the signed execution claims.
+  - Check the signature. Compare the returned nonce with the one you sent.
+  - Look for a trusted time stamp bound to the signed record.
+  - 'Write down which timing property you checked: signing after the challenge, existence by a time, or capture time.'
+  - Make sure the team does not call capture contemporaneous without an observer that saw the events.
+  example: 'openssl rand -hex 16  # nonce; verify the signature with the trusted public key'
+  expected: The team records the exact timing property that is proven. Supplier time stamps are treated as assertions.
+  severity: Low
+  test_type:
+  - Manual
+  refs:
+    cheatsheet:
+    - Verifying_Third_Party_Agent_Execution_Evidence_Cheat_Sheet
+    cwe:
+    - CWE-345
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Verifying_Third_Party_Agent_Execution_Evidence_Cheat_Sheet.md
+- id: LLM-EVID-003
+  sheet: LLM
+  category: EVID
+  title: Check that a signed record binds to the intended artifact and run
+  objective: Finds valid signatures on records about another artifact or another run.
+  steps:
+  - Get the expected artifact or its digest from a source other than the report.
+  - Compute the digest of the artifact and compare it with the signed subject.
+  - Match the signed execution identifier or challenge to the run you intended to review.
+  - Check which inputs the record covers, such as tool definitions, configuration, prompts, model version and policy.
+  - Make sure the team does not use the artifact digest as the only binding to a run.
+  example: sha256sum ARTIFACT; jq .subject REPORT.json
+  expected: The artifact digest and the run identifier match the expected values. The record names the inputs it covers.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    cheatsheet:
+    - Verifying_Third_Party_Agent_Execution_Evidence_Cheat_Sheet
+    cwe:
+    - CWE-345
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Verifying_Third_Party_Agent_Execution_Evidence_Cheat_Sheet.md
+- id: LLM-EVID-004
+  sheet: LLM
+  category: EVID
+  title: Test whether a missing event in an execution record would be detectable
+  objective: Finds records where the supplier can leave out events without a trace.
+  steps:
+  - Define the execution window and the events that an independent observer could see.
+  - Reconcile the record with an expected-event list that the supplier cannot change.
+  - Do not use the total log entry count as the event count of the run.
+  - Check log inclusion and consistency proofs if the supplier uses a transparency log.
+  - Limit each coverage claim to the observer and the window.
+  example: Compare gateway events with the record entries for the same window; cosign verify-blob or rekor-cli verify
+  expected: Events that the observer saw appear in the record. A gap is visible, and coverage claims name the observer and window.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    cheatsheet:
+    - Verifying_Third_Party_Agent_Execution_Evidence_Cheat_Sheet
+    cwe:
+    - CWE-778
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Verifying_Third_Party_Agent_Execution_Evidence_Cheat_Sheet.md
+- id: LLM-EVID-005
+  sheet: LLM
+  category: EVID
+  title: Test the behavior of the recording path when recording or delivery fails
+  objective: Finds components that drop events silently when the log path fails.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - In an environment you control, interrupt the recording path while the component runs.
+  - Look at whether the component continues and drops events, buffers and retries, or stops.
+  - Fill the buffer and look at the overflow behavior.
+  - Keep delivery failures that an observer outside the component saw.
+  - Treat supplier documentation without a test or an outage record as a supplier assertion.
+  example: Block the log endpoint with a firewall rule on the test host and run a task with five tool calls.
+  expected: Recording failure causes a visible gap or a stop that fits the risk. An empty report is not accepted as a clean run.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    cheatsheet:
+    - Verifying_Third_Party_Agent_Execution_Evidence_Cheat_Sheet
+    - Logging_Cheat_Sheet
+    cwe:
+    - CWE-778
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Verifying_Third_Party_Agent_Execution_Evidence_Cheat_Sheet.md
+- id: LLM-EVID-006
+  sheet: LLM
+  category: EVID
+  title: Check the trust anchors used to check an execution record
+  objective: Finds verification that trusts keys supplied with the record or shared secrets.
+  steps:
+  - Find the verifier and read its trusted signers, keys, certificate roots and allowed algorithms.
+  - Make sure the team set them independently of the record.
+  - Make sure a key packaged with the record is not trusted by itself.
+  - Check certificate paths and revocation information.
+  - Make sure the record uses public-key signatures, not a shared-secret MAC, when the team needs to attribute authorship.
+  example: cosign verify-blob --certificate-identity ID --certificate-oidc-issuer ISSUER --signature SIG FILE
+  expected: The verifier uses trust material that the team set before. Records with only shared-secret MACs are not accepted as proof of authorship.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  refs:
+    cheatsheet:
+    - Verifying_Third_Party_Agent_Execution_Evidence_Cheat_Sheet
+    cwe:
+    - CWE-347
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Verifying_Third_Party_Agent_Execution_Evidence_Cheat_Sheet.md
+- id: LLM-EVID-007
+  sheet: LLM
+  category: EVID
+  title: Check that evidence results use defined outcomes and state their limits
+  objective: Finds reviews that treat supplier assertions or empty evidence as proof that a run was clean.
+  steps:
+  - Read the last review of third-party execution evidence.
+  - 'Make sure each property has one outcome: independently re-checkable, supplier assertion or no information.'
+  - Make sure the review states the property checked, the trust assumptions and the limits.
+  - Make sure supplier assertions alone were not used to decide an incident or dispute with that supplier.
+  example: Review document with a table of property, outcome, evidence and limit.
+  expected: Each reviewed property has a defined outcome and stated limits. No incident decision rests on supplier assertions alone.
+  severity: Info
+  test_type:
+  - Manual
+  refs:
+    cheatsheet:
+    - Verifying_Third_Party_Agent_Execution_Evidence_Cheat_Sheet
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/Verifying_Third_Party_Agent_Execution_Evidence_Cheat_Sheet.md

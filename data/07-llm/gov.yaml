@@ -1,0 +1,237 @@
+- id: LLM-GOV-001
+  sheet: LLM
+  category: GOV
+  title: Review training data sets for diversity and coverage
+  objective: Finds data sets that do not cover the target users or conditions.
+  steps:
+  - Get the data set description and the target population.
+  - Compare group shares with the target population.
+  - Compute fairness metrics on outcomes in the data.
+  - Record gaps and the plan to fix them.
+  example: 'Tools: IBM AI Fairness 360, Fairlearn, TensorFlow Data Validation (AITG-DAT-03 tool list).'
+  expected: Group shares match the target population within set limits. Fairness metrics stay inside the limits and gaps have an owner.
+  severity: Low
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    llm_top10:
+    - LLM04:2025
+    - LLM05:2026
+    - LLM09:2025
+    - LLM07:2026
+    other: AITG-DAT-03
+  sources_read:
+  - sources/repos/www-project-ai-testing-guide/Document/content/tests/AITG-DAT-03_Testing_for_Dataset_Diversity_and_Coverage.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM04_DataModelPoisoning.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM09_Misinformation.md
+  - sources/top10s/llm2026_LLM05_DataModelPoisoning.md
+  - sources/top10s/llm2026_LLM07_Misinformation.md
+- id: LLM-GOV-002
+  sheet: LLM
+  category: GOV
+  title: Scan data sets for harmful and toxic content
+  objective: Finds data sets that contain harmful content that the model can learn.
+  steps:
+  - Run a toxicity and bias scan over a sample and the full data set.
+  - Compute the share of harmful items.
+  - Remove or fix flagged items and run the scan again.
+  - Record the sources and the rules of collection.
+  example: 'Tools: Perspective API, Detoxify, Fairlearn (AITG-DAT-04 tool list).'
+  expected: The harmful content share is under the set limit, for example 1 percent in AITG-DAT-04. Collection rules and scan reports exist.
+  severity: Low
+  test_type:
+  - Automated
+  refs:
+    llm_top10:
+    - LLM04:2025
+    - LLM05:2026
+    - LLM09:2025
+    - LLM07:2026
+    atlas:
+    - AML.M0007
+    other: AITG-DAT-04
+  sources_read:
+  - sources/repos/www-project-ai-testing-guide/Document/content/tests/AITG-DAT-04_Testing_for_Harmful_Content_in_Data.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM04_DataModelPoisoning.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM09_Misinformation.md
+  - sources/top10s/llm2026_LLM05_DataModelPoisoning.md
+  - sources/top10s/llm2026_LLM07_Misinformation.md
+- id: LLM-GOV-003
+  sheet: LLM
+  category: GOV
+  title: Test consent records and data minimization in AI data flows
+  objective: Finds data collection beyond the stated purpose or that ignores a withdrawal of consent.
+  steps:
+  - Send an extra field to the data collection API and check that the backend drops it.
+  - Grant and withdraw consent for a test user and read the consent record.
+  - Check that the withdrawal stops use of the data in training and retrieval.
+  - Check that time stamps are in the record.
+  example: 'Tools: Burp Suite, consent platform logs, Google Cloud DLP.'
+  expected: The backend accepts only needed fields. Consent records are time stamped and a withdrawal stops use of the data.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    llm_top10:
+    - LLM02:2025
+    - LLM02:2026
+    - LLM03:2025
+    - LLM04:2026
+    cwe:
+    - CWE-359
+    other: AITG-DAT-05
+  sources_read:
+  - sources/repos/www-project-ai-testing-guide/Document/content/tests/AITG-DAT-05_Testing_for_Data_Minimization_and_Consent.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM02_SensitiveInformationDisclosure.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM03_SupplyChain.md
+  - sources/top10s/llm2026_LLM02_SensitiveInformationDisclosure.md
+  - sources/top10s/llm2026_LLM04_SupplyChain.md
+- id: LLM-GOV-004
+  sheet: LLM
+  category: GOV
+  title: Test erasure of data from models, embeddings and adapters
+  objective: Finds erasure requests that remove only the source data and not derived artifacts.
+  steps:
+  - Put canary records in a test data set, an index and a fine-tune.
+  - Send an erasure request for the canary records.
+  - Check raw data, embeddings, caches, checkpoints and adapters.
+  - Run extraction and membership tests for the canary records.
+  example: 'Tools: vector DB queries, extraction probes, garak.'
+  expected: Erased records are absent from data, indexes, caches and derived models. Extraction tests do not find them.
+  severity: Medium
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    llm_top10:
+    - LLM02:2025
+    - LLM02:2026
+    - LLM08:2025
+    - LLM09:2026
+    atlas:
+    - AML.T0024.000
+    - AML.M0012
+    cwe:
+    - CWE-212
+    - CWE-359
+    other: LLM02:2026 mitigation 16
+  sources_read:
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM02_SensitiveInformationDisclosure.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM08_VectorAndEmbeddingWeaknesses.md
+  - sources/top10s/llm2026_LLM02_SensitiveInformationDisclosure.md
+  - sources/top10s/llm2026_LLM09_VectorAndEmbeddingWeaknesses.md
+- id: LLM-GOV-005
+  sheet: LLM
+  category: GOV
+  title: Check the incident response playbook for AI disclosure and abuse
+  objective: Finds teams with no plan for AI-specific incidents.
+  steps:
+  - Read the incident response plan and look for AI sections.
+  - Run a table-top exercise for a leak of a vector store and for a poisoned document.
+  - Check the steps for scope, cleanup of vectors and caches, vendor notice and legal notice.
+  - Check that the plan names rollback and kill switch steps.
+  example: 'Tools: table-top exercise script, RAG cheat sheet incident steps.'
+  expected: The plan covers AI incidents with named roles and steps. The exercise shows that the team can scope, clean up and report.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    llm_top10:
+    - LLM02:2025
+    - LLM02:2026
+    - LLM08:2025
+    - LLM09:2026
+    - LLM06:2025
+    - LLM03:2026
+    agentic_top10:
+    - ASI08
+    - ASI10
+    atlas:
+    - AML.M0024
+    cheatsheet:
+    - RAG_Security_Cheat_Sheet
+    - Secure_AI_Model_Ops_Cheat_Sheet
+    other: LLM02:2026 mitigation 19; RAG cheat sheet section 12
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/RAG_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_AI_Model_Ops_Cheat_Sheet.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM02_SensitiveInformationDisclosure.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM06_ExcessiveAgency.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM08_VectorAndEmbeddingWeaknesses.md
+  - sources/top10s/agentic.txt
+  - sources/top10s/llm2026_LLM02_SensitiveInformationDisclosure.md
+  - sources/top10s/llm2026_LLM03_ExcessiveAgency.md
+  - sources/top10s/llm2026_LLM09_VectorAndEmbeddingWeaknesses.md
+- id: LLM-GOV-006
+  sheet: LLM
+  category: GOV
+  title: Run adversarial tests for agents in the release pipeline
+  objective: Finds release pipelines that do not retest abuse cases after changes to prompts, tools or models.
+  steps:
+  - Find the abuse cases tests for injection, memory poisoning and tool abuse.
+  - Change a prompt, a tool policy and the model provider in a test branch.
+  - Check that the pipeline runs the tests and blocks the release on failure.
+  - Check that a pull request cannot remove tests without review.
+  example: 'Tools: promptfoo in the pipeline, garak, PyRIT.'
+  expected: Each change to prompts, tools, memory, retrieval or provider runs the abuse tests. Failed tests block the release and test changes need review.
+  severity: Medium
+  test_type:
+  - Automated
+  - Config Review
+  refs:
+    llm_top10:
+    - LLM01:2025
+    - LLM01:2026
+    - LLM06:2025
+    - LLM03:2026
+    agentic_top10:
+    - ASI01
+    - ASI02
+    - ASI06
+    atlas:
+    - AML.M0021
+    cheatsheet:
+    - AI_Agent_Security_Cheat_Sheet
+    other: AI Agent Security cheat sheet section 9
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/AI_Agent_Security_Cheat_Sheet.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM01_PromptInjection.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM06_ExcessiveAgency.md
+  - sources/top10s/agentic.txt
+  - sources/top10s/llm2026_LLM01_PromptInjection.md
+  - sources/top10s/llm2026_LLM03_ExcessiveAgency.md
+- id: LLM-GOV-007
+  sheet: LLM
+  category: GOV
+  title: Check insider threat monitoring and oversight training for AI agents
+  objective: Finds programs that do not cover agents or that leave human reviewers untrained.
+  steps:
+  - Check that agents appear in the insider threat program.
+  - Check for monitoring of prompts that seek sensitive data or change agent behavior.
+  - Check that reviewers of agent actions have training on automation bias.
+  - Check for a way for users to report odd agent behavior.
+  example: 'Tools: policy review, training records.'
+  expected: Agents are in the insider threat program. Reviewers have training and users have a clear way to report.
+  severity: Low
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    llm_top10:
+    - LLM06:2025
+    - LLM03:2026
+    agentic_top10:
+    - ASI01
+    - ASI09
+    atlas:
+    - AML.M0018
+    cheatsheet:
+    - AI_Agent_Security_Cheat_Sheet
+    other: ASI01 mitigation 9; ASI09 mitigations 4, 5, 8
+  sources_read:
+  - sources/repos/CheatSheetSeries/cheatsheets/AI_Agent_Security_Cheat_Sheet.md
+  - sources/repos/www-project-top-10-for-large-language-model-applications/2_0_vulns/LLM06_ExcessiveAgency.md
+  - sources/top10s/agentic.txt
+  - sources/top10s/llm2026_LLM03_ExcessiveAgency.md

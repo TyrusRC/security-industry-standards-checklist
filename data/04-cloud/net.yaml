@@ -1,0 +1,218 @@
+- id: CLD-NET-001
+  sheet: CLD
+  category: NET
+  title: Check the network is split into frontend, middleware and backend zones
+  objective: Finds flat networks where a breach of a web server gives direct access to databases and key stores.
+  steps:
+  - Get the network diagram and the list of VPCs and subnets.
+  - 'Map each system to a zone: frontend, middleware or backend.'
+  - Check the rules between zones and the allowed flows.
+  - From a frontend host, try to reach a backend host.
+  example: aws ec2 describe-subnets; aws ec2 describe-route-tables; az network vnet list; gcloud compute networks subnets list; nmap -Pn -p <db-port> <backend-host>
+  expected: Frontend hosts cannot reach backend systems directly. Each flow between zones is allowed by a written rule.
+  severity: High
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-6
+    cheatsheet:
+    - Network_Segmentation_Cheat_Sheet
+    - Secure_Cloud_Architecture_Cheat_Sheet
+    cwe:
+    - CWE-923
+    - CWE-668
+    attack:
+    - T1046
+    nist_800_53:
+    - SC-7
+    - AC-4
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x06_over_permissive_network.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Network_Segmentation_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Cloud_Architecture_Cheat_Sheet.md
+- id: CLD-NET-002
+  sheet: CLD
+  category: NET
+  title: Find internal services that the Internet can reach
+  objective: Finds microservices, admin tools and queues exposed by load balancers, public IPs or function URLs.
+  preconditions:
+  - Written approval for the scan of the listed addresses.
+  steps:
+  - List all public IP addresses, load balancers and public endpoints.
+  - Map each one to a service and an owner.
+  - Scan the public addresses for open ports.
+  - Mark each endpoint that is not meant to be public.
+  example: aws ec2 describe-addresses; aws elbv2 describe-load-balancers --query "LoadBalancers[?Scheme==\`internet-facing\`]"; az network public-ip list; gcloud compute addresses list; nmap -sV <ip>
+  expected: Only reviewed edge services are public. Internal services use private addresses or private endpoints.
+  severity: High
+  test_type: Manual
+  refs:
+    cloud_native_top10:
+    - CNAS-6
+    - CNAS-8
+    cheatsheet:
+    - Secure_Cloud_Architecture_Cheat_Sheet
+    - Network_Segmentation_Cheat_Sheet
+    - Microservices_Security_Cheat_Sheet
+    cwe:
+    - CWE-668
+    attack:
+    - T1190
+    - T1133
+    nist_800_53:
+    - SC-7
+    - CM-7
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x06_over_permissive_network.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x08_asset_mgmt.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Cloud_Architecture_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Network_Segmentation_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Microservices_Security_Cheat_Sheet.md
+- id: CLD-NET-003
+  sheet: CLD
+  category: NET
+  title: Check egress filtering and monitoring of traffic to unknown domains
+  objective: Finds workloads that can send data to any Internet host with no record.
+  steps:
+  - List egress routes, NAT gateways and egress firewall rules.
+  - From a test workload, connect to an unlisted external domain.
+  - Check for DNS and flow logs of the connection.
+  - Check for an alert on traffic to unknown or bad domains.
+  example: aws ec2 describe-nat-gateways; aws network-firewall list-firewalls; curl -m 3 https://example.org (from a test workload); query flow logs for the connection
+  expected: Egress is limited to approved destinations. The test connection fails or raises an alert, and flow logs show the connection.
+  severity: Medium
+  test_type: Manual
+  refs:
+    cloud_native_top10:
+    - CNAS-6
+    - CNAS-10
+    cheatsheet:
+    - Secure_Cloud_Architecture_Cheat_Sheet
+    - Network_Segmentation_Cheat_Sheet
+    cwe:
+    - CWE-923
+    attack:
+    - T1048
+    - T1071
+    nist_800_53:
+    - SC-7
+    - SI-4
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x06_over_permissive_network.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x0A_logging.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Cloud_Architecture_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Network_Segmentation_Cheat_Sheet.md
+- id: CLD-NET-004
+  sheet: CLD
+  category: NET
+  title: Check hardening of the instance metadata service
+  objective: Finds compute resources whose metadata service gives role credentials to any local process or to SSRF.
+  steps:
+  - List all VMs and nodes with their metadata settings.
+  - Find resources that allow the old metadata version without a session token.
+  - Check the hop limit for container hosts.
+  - From a test workload, request the metadata address.
+  example: aws ec2 describe-instances --query "Reservations[].Instances[].[InstanceId,MetadataOptions.HttpTokens,MetadataOptions.HttpPutResponseHopLimit]"; curl -m 3 http://169.254.169.254/latest/meta-data/ (test host)
+  expected: All compute resources require session-token metadata access (IMDSv2) and the old version is off. Workloads cannot read role credentials without a token.
+  severity: High
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-6
+    - CNAS-3
+    cheatsheet:
+    - Server_Side_Request_Forgery_Prevention_Cheat_Sheet
+    - Secure_Cloud_Architecture_Cheat_Sheet
+    cwe:
+    - CWE-918
+    - CWE-668
+    attack:
+    - T1552.005
+    nist_800_53:
+    - AC-6
+    - SC-7
+  see:
+  - API-SSRF-007
+  - K8S-LAT-003
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x06_over_permissive_network.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x03_improper_auth.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Cloud_Architecture_Cheat_Sheet.md
+- id: CLD-NET-005
+  sheet: CLD
+  category: NET
+  title: Check TLS and authentication on traffic between services
+  objective: Finds east-west traffic that is plaintext or accepts any caller.
+  steps:
+  - List the service-to-service connections from the diagram.
+  - Capture traffic between two test services.
+  - Check for TLS and for mutual authentication or signed tokens.
+  - Send a call with no valid identity.
+  example: tcpdump -i any -A port <port> (test hosts); openssl s_client -connect <svc>:<port>; curl -v http://<svc>:<port>
+  expected: Service traffic uses TLS with mutual authentication or validated signed tokens. A call with no valid identity is rejected.
+  severity: Medium
+  test_type: Manual
+  refs:
+    cloud_native_top10:
+    - CNAS-6
+    - CNAS-3
+    cheatsheet:
+    - Microservices_Security_Cheat_Sheet
+    - Network_Segmentation_Cheat_Sheet
+    cwe:
+    - CWE-319
+    - CWE-306
+    attack:
+    - T1071
+    nist_800_53:
+    - SC-8
+    - IA-3
+  see:
+  - API-CONF-001
+  - API-MSVC-004
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x06_over_permissive_network.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x03_improper_auth.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Microservices_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Network_Segmentation_Cheat_Sheet.md
+- id: CLD-NET-006
+  sheet: CLD
+  category: NET
+  title: Check WAF and DDoS protection at internet-facing endpoints
+  objective: Finds public endpoints with no web filter or protection against traffic floods.
+  steps:
+  - List all internet-facing applications and CDNs.
+  - Check that a WAF with managed rules is attached to each.
+  - Check custom rules for sensitive routes and rate limits.
+  - Check that DDoS protection is on based on the risk of the application.
+  example: aws wafv2 list-web-acls --scope REGIONAL; aws shield describe-subscription; az network application-gateway waf-policy list; gcloud compute security-policies list
+  expected: Each public application has a WAF in block mode with custom rules and rate limits. DDoS protection follows the application risk.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-6
+    - CNAS-9
+    cheatsheet:
+    - Secure_Cloud_Architecture_Cheat_Sheet
+    - Denial_of_Service_Cheat_Sheet
+    cwe:
+    - CWE-770
+    attack:
+    - T1498
+    - T1190
+    nist_800_53:
+    - SC-5
+    - SC-7
+  sources_read:
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x06_over_permissive_network.md
+  - sources/repos/www-project-cloud-native-application-security-top-10/2022/en/src/0x09_compute_resources.md
+  - sources/top10s/cnas_index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Cloud_Architecture_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Denial_of_Service_Cheat_Sheet.md

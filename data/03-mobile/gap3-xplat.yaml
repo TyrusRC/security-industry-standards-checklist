@@ -1,0 +1,131 @@
+- id: MOB-XPLAT-001
+  sheet: MOB
+  category: XPLAT
+  title: Check pinning and TLS in the own network stack of cross-platform apps
+  objective: Find cross-platform apps whose own HTTP stack ignores the platform pinning, trust and cleartext settings.
+  preconditions:
+  - A test build, a rooted or jailbroken test device and an interception proxy. Do not test other parties' servers.
+  - A written list of first-party domains.
+  steps:
+  - Identify the framework from the app package. Find out if the app uses the platform HTTP stack or its own.
+  - For Flutter, look for pinning in Dart code with SecurityContext or a badCertificateCallback. NSC and ATS pins do not apply to Dart.
+  - Look in the Dart code for a badCertificateCallback that returns true without a check.
+  - For React Native on iOS, check if the pins in ATS or the URLSession code cover the traffic. For Cordova, check the native pinning plugin.
+  - Set a system proxy and start the app. A Flutter app does not use the system proxy, so route its traffic by iptables or DNS.
+  - Look at the traffic to first-party domains with a proxy certificate that the device trusts. Make sure the connection fails.
+  - Look for HTTP URLs and cleartext traffic that the framework allows when the platform settings forbid it.
+  example: 'reflutter app.apk (test device only); frida -U -f com.example.app -l disable-flutter-tls.js; iptables -t nat -A OUTPUT -p tcp --dport 443 -j DNAT --to <proxy>:8080; grep -rn "badCertificateCallback\|SecurityContext" lib/'
+  expected: The app pins first-party domains in the code path that the framework uses. A trusted proxy certificate does not give access to traffic, and cleartext is not allowed.
+  severity: Medium
+  test_type:
+  - Manual
+  - Code Review
+  level: MASVS L2
+  refs:
+    mobile_top10:
+    - M5:2024
+    masvs:
+    - MASVS-NETWORK-1
+    - MASVS-NETWORK-2
+    mastg:
+    - MASTG-TEST-0237
+    maswe:
+    - MASWE-0028
+    - MASWE-0026
+    cheatsheet:
+    - Pinning_Cheat_Sheet
+    cwe:
+    - CWE-295
+  see:
+  - MOB-NETWORK-006
+  - MOB-NETWORK-013
+  - MOB-NETWORK-015
+  sources_read:
+  - sources/repos/mastg/knowledge/android/MASVS-NETWORK/MASTG-KNOW-0015.md
+  - sources/repos/mastg/knowledge/ios/MASVS-NETWORK/MASTG-KNOW-0072.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0109.md
+  - sources/repos/mastg/tests-beta/android/MASVS-NETWORK/MASTG-TEST-0237.md
+  - sources/repos/mastg/tests/ios/MASVS-NETWORK/MASTG-TEST-0065.md
+- id: MOB-XPLAT-002
+  sheet: MOB
+  category: XPLAT
+  title: Check the integrity of React Native bundles and over-the-air updates
+  objective: Find apps that run a changed or downloaded JavaScript bundle without an integrity check.
+  preconditions:
+  - A test build and the tools to unpack and repack the package on a test device.
+  - Knowledge of the update service that the app uses, if any.
+  steps:
+  - Unpack the package. Find assets/index.android.bundle on Android or main.jsbundle on iOS.
+  - Look at the bundle. Note if it is minified JavaScript or Hermes bytecode.
+  - Change a harmless string in the bundle. Repack and re-sign the app. Install it on the test device.
+  - Start the app. Look for an integrity check or tamper detection that stops the app.
+  - Find the code that downloads a new bundle or update. Make sure the app checks a signature or a hash before it runs the update.
+  - Replace the downloaded bundle in a test environment. Make sure the app rejects it.
+  - Make sure the app does not run a bundle after a failed integrity check.
+  example: 'unzip app.apk -d out; file out/assets/index.android.bundle; hermes-dec out/assets/index.android.bundle; apktool b out; apksigner sign --ks test.jks app.apk'
+  expected: The app detects a changed bundle and refuses to run an unsigned or changed update. A failed integrity check stops the use of the resource.
+  severity: Medium
+  test_type:
+  - Manual
+  level: MASVS R
+  refs:
+    mobile_top10:
+    - M7:2024
+    masvs:
+    - MASVS-RESILIENCE-2
+    - MASVS-CODE-4
+    maswe:
+    - MASWE-0057
+    cwe:
+    - CWE-494
+    - CWE-345
+  see:
+  - MOB-RESIL-008
+  - MOB-STORAGE-009
+  - MOB-CODE-009
+  sources_read:
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0038.md
+  - sources/repos/mastg/techniques/ios/MASTG-TECH-0098.md
+  - sources/repos/mastg/tools/generic/MASTG-TOOL-0104.md
+  - sources/repos/mastg/techniques/android/MASTG-TECH-0156.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-RESILIENCE_MASWE-0057.md
+- id: MOB-XPLAT-003
+  sheet: MOB
+  category: XPLAT
+  title: Check hybrid app WebViews, plugins and allowed origins
+  objective: Find hybrid apps that load untrusted origins in a WebView with native bridges, or that ship vulnerable web libraries and plugins.
+  preconditions:
+  - The app package and the framework configuration files, such as config.xml or capacitor.config.
+  steps:
+  - List the origins that the app may load in its WebView. Read the allowed origin and navigation settings of the framework.
+  - Make sure the list holds only the origins that the app needs and has no wildcard.
+  - Make sure JavaScript is on only for content that the app controls.
+  - Look at the native plugins that the page can call. Make sure untrusted content cannot reach sensitive plugins.
+  - Try to load a page from another origin in the WebView, for example by a link or a redirect. Make sure the app blocks it.
+  - List the plugins and the JavaScript libraries in the package. Compare their versions with known vulnerabilities.
+  - Make sure external content opens in Custom Tabs when the app does not need a WebView for it.
+  example: 'grep -rn "loadUrl\|allow" config.xml capacitor.config.*; npm audit; retire --path www/'
+  expected: The WebView loads only listed origins. Untrusted content cannot call sensitive plugins, and plugins and web libraries have no known vulnerabilities.
+  severity: High
+  test_type:
+  - Manual
+  - Code Review
+  level: MASVS L1
+  refs:
+    mobile_top10:
+    - M2:2024
+    masvs:
+    - MASVS-PLATFORM-2
+    - MASVS-CODE-3
+    maswe:
+    - MASWE-0035
+    cwe:
+    - CWE-749
+  see:
+  - MOB-WEBVIEW-003
+  - MOB-WEBVIEW-007
+  - MOB-CODE-004
+  sources_read:
+  - sources/repos/mastg/best-practices/MASTG-BEST-0012.md
+  - sources/repos/mastg/knowledge/android/MASVS-CODE/MASTG-KNOW-0004.md
+  - sources/mastg/files/MASWE__weaknesses_MASVS-PLATFORM_MASWE-0035.md

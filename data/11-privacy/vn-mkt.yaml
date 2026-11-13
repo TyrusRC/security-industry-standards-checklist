@@ -1,0 +1,110 @@
+- id: PRIV-VNMKT-001
+  sheet: PRIV
+  category: VNMKT
+  title: Check consent for marketing and proof of its use
+  objective: Finds marketing that uses data with no consent or with no proof.
+  steps:
+  - Sign up as a test customer without marketing consent.
+  - Check that no marketing message arrives.
+  - Check that the consent states content, method, form and frequency.
+  - Ask the marketing team for proof of consent for the test user.
+  example: Review the sign-up flow and the campaign tool segments. Check against the consent log.
+  expected: Marketing uses personal data only with consent that names content, method, form and frequency. The team can prove it.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  refs:
+    privacy_top10:
+    - P4
+    - P10
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 21
+    - Vietnam PDP Law 91/2025/QH15 Art. 28
+  sources_read: &id001
+  - sources/vn_law/13nd.ocr.txt
+  - sources/vn_law/91qh.ocr.txt
+  see:
+  - PRIV-CONSENT-001
+  - PRIV-CONSENT-005
+  notes: 'Decree Art. 21(1) to 21(3). Law Art. 28(1) to 28(4), 28(7). Law Art. 28(4) links to anti-spam rules. Law Art. 28(6): no full sub-contracting of the advertising service.'
+- id: PRIV-VNMKT-002
+  sheet: PRIV
+  category: VNMKT
+  title: Test the way to refuse advertising and the stop of it
+  objective: Finds advertising that continues after a refusal.
+  steps:
+  - Find the way to refuse advertising in the product and in each message.
+  - Use it as a test user.
+  - Record the time until the advertising stops.
+  - Check that partners stop to use the data.
+  example: Click the unsubscribe link. Check the suppression list and partner sync.
+  expected: The user can refuse advertising at any time. The service stops it at once and tells the partners.
+  severity: Medium
+  test_type: &id002
+  - Manual
+  refs:
+    privacy_top10:
+    - P4
+    other:
+    - Vietnam PDP Law 91/2025/QH15 Art. 28
+    - Vietnam Decree 13/2023/ND-CP Art. 9
+  sources_read: *id001
+  see:
+  - PRIV-DSR-005
+  - PRIV-VNRIGHTS-007
+  notes: Law Art. 28(3) and 28(5) require a way to refuse and a stop on request. Decree Art. 9(8) covers the right to object for marketing with a 72 hour answer.
+- id: PRIV-VNMKT-003
+  sheet: PRIV
+  category: VNMKT
+  title: Check consent and controls for behavioural advertising and tracking
+  objective: Finds tracking for advertising with no consent, no refusal or no storage limit.
+  steps:
+  - Open the site in a new browser with no consent.
+  - Check for tracking cookies and SDK calls before the choice.
+  - Refuse tracking and check that tracking stops.
+  - Look for a do-not-track option.
+  - Check the storage time of the profile data and its deletion.
+  example: Browser developer tools network and storage tabs. Compare with the cookie list in the notice.
+  expected: The service tracks behaviour only after consent, offers a refusal and a do-not-track option, and sets a storage time with deletion.
+  severity: High
+  test_type: *id002
+  refs:
+    privacy_top10:
+    - P4
+    - P5
+    other:
+    - Vietnam PDP Law 91/2025/QH15 Art. 11
+    - Vietnam PDP Law 91/2025/QH15 Art. 28
+    - Vietnam PDP Law 91/2025/QH15 Art. 29
+    - Vietnam Decree 13/2023/ND-CP Art. 11
+  sources_read: *id001
+  see:
+  - PRIV-SHARE-002
+  - PRIV-NOTICE-004
+  - WEB-CLIENT-009
+  notes: Law Art. 28(8) and 29(3), 29(4) are new. Decree 13/2023 has only the general consent rule in Art. 11. Cookies are not named in the Decree.
+- id: PRIV-VNMKT-004
+  sheet: PRIV
+  category: VNMKT
+  title: Check account verification and tracking rules for social platforms
+  objective: Finds platforms that ask for ID images, read messages or collect beyond the agreement.
+  steps:
+  - Register an account on the platform as a test user.
+  - Check the verification step and whether it asks for an image of an ID document.
+  - Check app permissions for call, SMS and microphone access.
+  - Look for the privacy settings, the way to report a violation and the privacy policy.
+  example: Walk through registration. Review the permissions in the mobile manifest.
+  expected: The platform does not ask for an ID image for verification. It does not read calls or messages without consent and it offers privacy settings and reports.
+  severity: Medium
+  test_type: *id002
+  refs:
+    privacy_top10:
+    - P10
+    - P5
+    other:
+    - Vietnam PDP Law 91/2025/QH15 Art. 29
+  sources_read: *id001
+  see:
+  - MOB-PRIV-004
+  notes: Law Art. 29 is new. Decree 13/2023 has no matching article.

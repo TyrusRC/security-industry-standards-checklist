@@ -1,0 +1,137 @@
+- id: DESK-CRYPTO-001
+  sheet: DESK
+  category: CRYPTO
+  title: Find weak or custom cryptography in the client
+  objective: Finds weak algorithms, weak modes and home-made crypto code.
+  steps:
+  - Search the code for MD5, SHA1, DES, RC4, ECB and custom cipher classes.
+  - List the calls to the crypto library.
+  - Check the algorithm, key size and mode for each use.
+  - Check that passwords use a password hashing function.
+  example: ILSpy search; grep for MD5, SHA1, DES and ECB; keyword list from WSTG-CRYP-04.
+  expected: The client uses approved algorithms and modes and a maintained library. It uses no custom algorithm.
+  severity: Medium
+  test_type:
+  - Code Review
+  - Manual
+  refs:
+    cwe:
+    - CWE-327
+    - CWE-326
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    - Key_Management_Cheat_Sheet
+    asvs:
+    - V11.4.1
+    wstg:
+    - WSTG-CRYP-04
+    desktop_top10:
+    - DA4
+  see:
+  - WEB-CRYPTO-009
+  - WEB-CRYPTO-012
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/09-Weak_Cryptography/04-Weak_Cryptographic_Primitives.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-CRYPTO-002
+  sheet: DESK
+  category: CRYPTO
+  title: Check that keys and salts are unique per installation
+  objective: Finds keys, IVs and salts that are the same on every install.
+  steps:
+  - Install the client on two clean systems.
+  - Compare the key files, key values and salts.
+  - Find the code that makes keys and IVs.
+  - Check the random source.
+  example: Binary diff of the two profile folders; ILSpy review for System.Random use.
+  expected: Each install has its own keys from a secure random source. The client never reuses an IV or nonce with one key.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-321
+    - CWE-330
+    - CWE-338
+    - CWE-1204
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    asvs:
+    - V11.5.1
+    desktop_top10:
+    - DA4
+    - DA3
+  see:
+  - WEB-CRYPTO-014
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-CRYPTO-003
+  sheet: DESK
+  category: CRYPTO
+  title: Check key storage in the OS key store
+  objective: Finds keys stored in clear form or in files next to the data.
+  steps:
+  - Find where the client keeps its keys.
+  - Check if it uses DPAPI, the OS credential store or a hardware module.
+  - Check the DPAPI scope, user or machine.
+  - Check if the key and the data are in separate places.
+  example: ILSpy search for ProtectedData.Protect and DataProtectionScope.LocalMachine.
+  expected: Keys are in an OS key store or hardware module with user scope. Keys are not next to the data in clear form.
+  severity: High
+  test_type:
+  - Code Review
+  - Manual
+  refs:
+    cwe:
+    - CWE-922
+    - CWE-312
+    cheatsheet:
+    - DotNet_Security_Cheat_Sheet
+    - Cryptographic_Storage_Cheat_Sheet
+    - Key_Management_Cheat_Sheet
+    desktop_top10:
+    - DA3
+    - DA4
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/DotNet_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Key_Management_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-CRYPTO-004
+  sheet: DESK
+  category: CRYPTO
+  title: Check integrity protection of trusted local data
+  objective: Finds files and license data that a user can change without detection.
+  steps:
+  - Find the local files that the client trusts.
+  - Change one value in a test copy of the file.
+  - Start the client.
+  - Check that the client detects and rejects the change.
+  example: Hex editor on a test copy; compare the client behaviour with and without an HMAC.
+  expected: The client protects trusted local data with a signature or HMAC and rejects a changed file.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-345
+    - CWE-353
+    cheatsheet:
+    - Cryptographic_Storage_Cheat_Sheet
+    desktop_top10:
+    - DA4
+    - DA8
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Cryptographic_Storage_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip

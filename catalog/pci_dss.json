@@ -1,0 +1,1863 @@
+{
+ "source": "PCI DSS v4.0.1 (numbers+truncated text from official Prioritized Approach Tool)",
+ "version": "4.0.1",
+ "url": "user-supplied sources/pci_dss",
+ "retrieved": "2026-11-12",
+ "note": "titles truncated to 14 words; full text in sources/pci_dss/PCI-DSS-v4_0_1.md",
+ "items": [
+  {
+   "id": "1.1",
+   "title": "Processes and mechanisms for installing and maintaining network security controls are defined and understood.",
+   "chapter": "Req 1",
+   "software": false
+  },
+  {
+   "id": "1.1.1",
+   "title": "All security policies and operational procedures that are identified in Requirement 1 are: \u2022 ...",
+   "chapter": "Req 1",
+   "software": false
+  },
+  {
+   "id": "1.1.2",
+   "title": "Roles and responsibilities for performing activities in Requirement 1 are documented, assigned, and understood.",
+   "chapter": "Req 1",
+   "software": false
+  },
+  {
+   "id": "1.2",
+   "title": "Network security controls (NSCs) are configured and maintained.",
+   "chapter": "Req 1",
+   "software": false
+  },
+  {
+   "id": "1.2.1",
+   "title": "Configuration standards for NSC rulesets are: \u2022 Defined. \u2022 Implemented. \u2022 Maintained.",
+   "chapter": "Req 1",
+   "software": false
+  },
+  {
+   "id": "1.2.2",
+   "title": "All changes to network connections and to configurations of NSCs are approved and managed ...",
+   "chapter": "Req 1",
+   "software": false
+  },
+  {
+   "id": "1.2.3",
+   "title": "An accurate network diagram(s) is maintained that shows all connections between the CDE and ...",
+   "chapter": "Req 1",
+   "software": false
+  },
+  {
+   "id": "1.2.4",
+   "title": "An accurate data-flow diagram(s) is maintained that meets the following: \u2022 Shows all account ...",
+   "chapter": "Req 1",
+   "software": false
+  },
+  {
+   "id": "1.2.5",
+   "title": "All services, protocols and ports allowed are identified, approved, and have a defined business ...",
+   "chapter": "Req 1",
+   "software": false
+  },
+  {
+   "id": "1.2.6",
+   "title": "Security features are defined and implemented for all services, protocols, and ports that are ...",
+   "chapter": "Req 1",
+   "software": false
+  },
+  {
+   "id": "1.2.7",
+   "title": "Configurations of NSCs are reviewed at least once every six months to confirm they ...",
+   "chapter": "Req 1",
+   "software": false
+  },
+  {
+   "id": "1.2.8",
+   "title": "Configuration files for NSCs are: \u2022 Secured from unauthorized access. \u2022 Kept consistent with ...",
+   "chapter": "Req 1",
+   "software": false
+  },
+  {
+   "id": "1.3",
+   "title": "Network access to and from the cardholder data environment is restricted.",
+   "chapter": "Req 1",
+   "software": false
+  },
+  {
+   "id": "1.3.1",
+   "title": "Inbound traffic to the CDE is restricted as follows: \u2022 To only traffic that ...",
+   "chapter": "Req 1",
+   "software": false
+  },
+  {
+   "id": "1.3.2",
+   "title": "Outbound traffic from the CDE is restricted as follows: \u2022 To only traffic that ...",
+   "chapter": "Req 1",
+   "software": false
+  },
+  {
+   "id": "1.3.3",
+   "title": "NSCs are installed between all wireless networks and the CDE, regardless of whether the ...",
+   "chapter": "Req 1",
+   "software": false
+  },
+  {
+   "id": "1.4",
+   "title": "Network connections between trusted and untrusted networks are controlled.",
+   "chapter": "Req 1",
+   "software": false
+  },
+  {
+   "id": "1.4.1",
+   "title": "NSCs are implemented between trusted and untrusted networks.",
+   "chapter": "Req 1",
+   "software": false
+  },
+  {
+   "id": "1.4.2",
+   "title": "Inbound traffic from untrusted networks to trusted networks is restricted to: \u2022 Communications with ...",
+   "chapter": "Req 1",
+   "software": false
+  },
+  {
+   "id": "1.4.3",
+   "title": "Anti-spoofing measures are implemented to detect and block forged source IP addresses from entering ...",
+   "chapter": "Req 1",
+   "software": false
+  },
+  {
+   "id": "1.4.4",
+   "title": "System components that store cardholder data are not directly accessible from untrusted networks. Applicability ...",
+   "chapter": "Req 1",
+   "software": false
+  },
+  {
+   "id": "1.4.5",
+   "title": "The disclosure of internal IP addresses and routing information is limited to only authorized ...",
+   "chapter": "Req 1",
+   "software": false
+  },
+  {
+   "id": "1.5",
+   "title": "Risks to the CDE from computing devices that are able to connect to both ...",
+   "chapter": "Req 1",
+   "software": false
+  },
+  {
+   "id": "1.5.1",
+   "title": "Security controls are implemented on any computing devices, including company- and employee-owned devices, that ...",
+   "chapter": "Req 1",
+   "software": false
+  },
+  {
+   "id": "2.1",
+   "title": "Processes and mechanisms for applying secure configurations to all system components are defined and ...",
+   "chapter": "Req 2",
+   "software": true
+  },
+  {
+   "id": "2.1.1",
+   "title": "All security policies and operational procedures that are identified in Requirement 2 are: \u2022 ...",
+   "chapter": "Req 2",
+   "software": true
+  },
+  {
+   "id": "2.1.2",
+   "title": "Roles and responsibilities for performing activities in Requirement 2 are documented, assigned, and understood.",
+   "chapter": "Req 2",
+   "software": true
+  },
+  {
+   "id": "2.2",
+   "title": "System components are configured and managed securely.",
+   "chapter": "Req 2",
+   "software": true
+  },
+  {
+   "id": "2.2.1",
+   "title": "Configuration standards are developed, implemented, and maintained to: \u2022 Cover all system components. \u2022 ...",
+   "chapter": "Req 2",
+   "software": true
+  },
+  {
+   "id": "2.2.2",
+   "title": "Vendor default accounts are managed as follows: \u2022 If the vendor default account(s) will ...",
+   "chapter": "Req 2",
+   "software": true
+  },
+  {
+   "id": "2.2.3",
+   "title": "Primary functions requiring different security levels are managed as follows: \u2022 Only one primary ...",
+   "chapter": "Req 2",
+   "software": true
+  },
+  {
+   "id": "2.2.4",
+   "title": "Only necessary services, protocols, daemons, and functions are enabled, and all unnecessary functionality is ...",
+   "chapter": "Req 2",
+   "software": true
+  },
+  {
+   "id": "2.2.5",
+   "title": "If any insecure services, protocols, or daemons are present: \u2022 Business justification is documented. ...",
+   "chapter": "Req 2",
+   "software": true
+  },
+  {
+   "id": "2.2.6",
+   "title": "System security parameters are configured to prevent misuse.",
+   "chapter": "Req 2",
+   "software": true
+  },
+  {
+   "id": "2.2.7",
+   "title": "All non-console administrative access is encrypted using strong cryptography. Applicability Notes This includes administrative ...",
+   "chapter": "Req 2",
+   "software": true
+  },
+  {
+   "id": "2.3",
+   "title": "Wireless environments are configured and managed securely.",
+   "chapter": "Req 2",
+   "software": true
+  },
+  {
+   "id": "2.3.1",
+   "title": "For wireless environments connected to the CDE or transmitting account data, all wireless vendor ...",
+   "chapter": "Req 2",
+   "software": true
+  },
+  {
+   "id": "2.3.2",
+   "title": "For wireless environments connected to the CDE or transmitting account data, wireless encryption keys ...",
+   "chapter": "Req 2",
+   "software": true
+  },
+  {
+   "id": "3.1",
+   "title": "Processes and mechanisms for performing activities in Requirement 3 are defined and understood.",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.1.1",
+   "title": "All security policies and operational procedures that are identified in Requirement 3 are: \u2022 ...",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.1.2",
+   "title": "Roles and responsibilities for performing activities in Requirement 3 are documented, assigned, and understood.",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.2",
+   "title": "Storage of account data is kept to a minimum.",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.2.1",
+   "title": "Account data storage is kept to a minimum through implementation of data retention and ...",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.3",
+   "title": "Sensitive authentication data is not stored after authorization.",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.3.1",
+   "title": "SAD is not stored after authorization, even if encrypted. All sensitive authentication data received ...",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.3.1.1",
+   "title": "The full contents of any track are not stored upon completion of the authorization ...",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.3.1.2",
+   "title": "The card verification code is not stored upon completion of the authorization process. Applicability ...",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.3.1.3",
+   "title": "The personal identification number (PIN) and the PIN block are not stored upon completion ...",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.3.2",
+   "title": "SAD that is stored electronically prior to completion of authorization is encrypted using strong ...",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.3.3",
+   "title": "Additional requirement for issuers and companies that support issuing services and store sensitive authentication ...",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.4",
+   "title": "Access to displays of full PAN and ability to copy PAN are restricted.",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.4.1",
+   "title": "PAN is masked when displayed (the BIN and last four digits are the maximum ...",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.4.2",
+   "title": "When using remote-access technologies, technical controls prevent copy and/or relocation of PAN for all ...",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.5",
+   "title": "PAN is secured wherever it is stored.",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.5.1",
+   "title": "PAN is rendered unreadable anywhere it is stored by using any of the following ...",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.5.1.1",
+   "title": "Hashes used to render PAN unreadable (per the first bullet of Requirement 3.5.1), are ...",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.5.1.2",
+   "title": "If disk-level or partition-level encryption (rather than file-, column-, or field-level database encryption) is ...",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.5.1.3",
+   "title": "If disk-level or partition-level encryption is used (rather than file-, column-, or field--level database ...",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.6",
+   "title": "Cryptographic keys used to protect stored account data are secured.",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.6.1",
+   "title": "Procedures are defined and implemented to protect cryptographic keys used to protect stored account ...",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.6.1.1",
+   "title": "Additional requirement for service providers only: A documented description of the cryptographic architecture is ...",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.6.1.2",
+   "title": "Secret and private keys used to protect stored account data are stored in one ...",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.6.1.3",
+   "title": "Access to cleartext cryptographic key components is restricted to the fewest number of custodians ...",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.6.1.4",
+   "title": "Cryptographic keys are stored in the fewest possible locations.",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.7",
+   "title": "Where cryptography is used to protect stored account data, key management processes and procedures ...",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.7.1",
+   "title": "Key-management policies and procedures are implemented to include generation of strong cryptographic keys used ...",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.7.2",
+   "title": "Key-management policies and procedures are implemented to include secure distribution of cryptographic keys used ...",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.7.3",
+   "title": "Key-management policies and procedures are implemented to include secure storage of cryptographic keys used ...",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.7.4",
+   "title": "Key management policies and procedures are implemented for cryptographic key changes for keys that ...",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.7.5",
+   "title": "Key management policies procedures are implemented to include the retirement, replacement, or destruction of ...",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.7.6",
+   "title": "Where manual cleartext cryptographic key-management operations are performed by personnel, key-management policies and procedures ...",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.7.7",
+   "title": "Key management policies and procedures are implemented to include the prevention of unauthorized substitution ...",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.7.8",
+   "title": "Key management policies and procedures are implemented to include that cryptographic key custodians formally ...",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "3.7.9",
+   "title": "Additional requirement for service providers only: Where a service provider shares cryptographic keys with ...",
+   "chapter": "Req 3",
+   "software": true
+  },
+  {
+   "id": "4.1",
+   "title": "Processes and mechanisms for performing activities in Requirement 4 are defined and understood.",
+   "chapter": "Req 4",
+   "software": true
+  },
+  {
+   "id": "4.1.1",
+   "title": "All security policies and operational procedures that are identified in Requirement 4 are: \u2022 ...",
+   "chapter": "Req 4",
+   "software": true
+  },
+  {
+   "id": "4.1.2",
+   "title": "Roles and responsibilities for performing activities in Requirement 4 are documented, assigned, and understood.",
+   "chapter": "Req 4",
+   "software": true
+  },
+  {
+   "id": "4.2",
+   "title": "PAN is protected with strong cryptography during transmission.",
+   "chapter": "Req 4",
+   "software": true
+  },
+  {
+   "id": "4.2.1",
+   "title": "Strong cryptography and security protocols are implemented as follows to safeguard PAN during transmission ...",
+   "chapter": "Req 4",
+   "software": true
+  },
+  {
+   "id": "4.2.1.1",
+   "title": "An inventory of the entity\u2019s trusted keys and certificates is maintained. Applicability Notes This ...",
+   "chapter": "Req 4",
+   "software": true
+  },
+  {
+   "id": "4.2.1.2",
+   "title": "Wireless networks transmitting PAN or connected to the CDE use industry best practices to ...",
+   "chapter": "Req 4",
+   "software": true
+  },
+  {
+   "id": "4.2.2",
+   "title": "PAN is secured with strong cryptography whenever it is sent via end-user messaging technologies. ...",
+   "chapter": "Req 4",
+   "software": true
+  },
+  {
+   "id": "5.1",
+   "title": "Processes and mechanisms for protecting all systems and networks from malicious software are defined ...",
+   "chapter": "Req 5",
+   "software": false
+  },
+  {
+   "id": "5.1.1",
+   "title": "All security policies and operational procedures that are identified in Requirement 5 are: \u2022 ...",
+   "chapter": "Req 5",
+   "software": false
+  },
+  {
+   "id": "5.1.2",
+   "title": "Roles and responsibilities for performing activities in Requirement 5 are documented, assigned, and understood.",
+   "chapter": "Req 5",
+   "software": false
+  },
+  {
+   "id": "5.2",
+   "title": "Malicious software (malware) is prevented, or detected and addressed.",
+   "chapter": "Req 5",
+   "software": false
+  },
+  {
+   "id": "5.2.1",
+   "title": "An anti-malware solution(s) is deployed on all system components, except for those system components ...",
+   "chapter": "Req 5",
+   "software": false
+  },
+  {
+   "id": "5.2.2",
+   "title": "The deployed anti-malware solution(s): \u2022 Detects all known types of malware. \u2022 Removes, blocks, ...",
+   "chapter": "Req 5",
+   "software": false
+  },
+  {
+   "id": "5.2.3",
+   "title": "Any system components that are not at risk for malware are evaluated periodically to ...",
+   "chapter": "Req 5",
+   "software": false
+  },
+  {
+   "id": "5.2.3.1",
+   "title": "The frequency of periodic evaluations of system components identified as not at risk for ...",
+   "chapter": "Req 5",
+   "software": false
+  },
+  {
+   "id": "5.3",
+   "title": "Anti-malware mechanisms and processes are active, maintained, and monitored.",
+   "chapter": "Req 5",
+   "software": false
+  },
+  {
+   "id": "5.3.1",
+   "title": "The anti-malware solution(s) is kept current via automatic updates.",
+   "chapter": "Req 5",
+   "software": false
+  },
+  {
+   "id": "5.3.2",
+   "title": "The anti-malware solution(s): \u2022 Performs periodic scans and active or real-time scans OR \u2022 ...",
+   "chapter": "Req 5",
+   "software": false
+  },
+  {
+   "id": "5.3.2.1",
+   "title": "If periodic malware scans are performed to meet Requirement 5.3.2, the frequency of scans ...",
+   "chapter": "Req 5",
+   "software": false
+  },
+  {
+   "id": "5.3.3",
+   "title": "For removable electronic media, the anti-malware solution(s): \u2022 Performs automatic scans of when the ...",
+   "chapter": "Req 5",
+   "software": false
+  },
+  {
+   "id": "5.3.4",
+   "title": "Audit logs for the anti-malware solution(s) are enabled and retained in accordance with Requirement ...",
+   "chapter": "Req 5",
+   "software": false
+  },
+  {
+   "id": "5.3.5",
+   "title": "Anti-malware mechanisms cannot be disabled or altered by users, unless specifically documented, and authorized ...",
+   "chapter": "Req 5",
+   "software": false
+  },
+  {
+   "id": "5.4",
+   "title": "Anti-phishing mechanisms protect users against phishing attacks.",
+   "chapter": "Req 5",
+   "software": false
+  },
+  {
+   "id": "5.4.1",
+   "title": "Processes and automated mechanisms are in place to detect and protect personnel against phishing ...",
+   "chapter": "Req 5",
+   "software": false
+  },
+  {
+   "id": "6.1",
+   "title": "Processes and mechanisms for developing and maintaining secure systems and software are defined and ...",
+   "chapter": "Req 6",
+   "software": true
+  },
+  {
+   "id": "6.1.1",
+   "title": "All security policies and operational procedures that are identified in Requirement 6 are: \u2022 ...",
+   "chapter": "Req 6",
+   "software": true
+  },
+  {
+   "id": "6.1.2",
+   "title": "Roles and responsibilities for performing activities in Requirement 6 are documented, assigned, and understood. ...",
+   "chapter": "Req 6",
+   "software": true
+  },
+  {
+   "id": "6.2",
+   "title": "Bespoke and custom software is developed securely.",
+   "chapter": "Req 6",
+   "software": true
+  },
+  {
+   "id": "6.2.1",
+   "title": "Bespoke and custom software are developed securely, as follows: \u2022 Based on industry standards ...",
+   "chapter": "Req 6",
+   "software": true
+  },
+  {
+   "id": "6.2.2",
+   "title": "Software development personnel working on bespoke and custom software are trained at least once ...",
+   "chapter": "Req 6",
+   "software": true
+  },
+  {
+   "id": "6.2.3",
+   "title": "Bespoke and custom software is reviewed prior to being released into production or to ...",
+   "chapter": "Req 6",
+   "software": true
+  },
+  {
+   "id": "6.2.3.1",
+   "title": "If manual code reviews are performed for bespoke and custom software prior to release ...",
+   "chapter": "Req 6",
+   "software": true
+  },
+  {
+   "id": "6.2.4",
+   "title": "Software engineering techniques or other methods are defined and in use by software development ...",
+   "chapter": "Req 6",
+   "software": true
+  },
+  {
+   "id": "6.3",
+   "title": "Security vulnerabilities are identified and addressed.",
+   "chapter": "Req 6",
+   "software": true
+  },
+  {
+   "id": "6.3.1",
+   "title": "Security vulnerabilities are identified and managed as follows: \u2022 New security vulnerabilities are identified ...",
+   "chapter": "Req 6",
+   "software": true
+  },
+  {
+   "id": "6.3.2",
+   "title": "An inventory of bespoke and custom software, and third-party software components incorporated into bespoke ...",
+   "chapter": "Req 6",
+   "software": true
+  },
+  {
+   "id": "6.3.3",
+   "title": "All system components are protected from known vulnerabilities by installing applicable security patches/updates as ...",
+   "chapter": "Req 6",
+   "software": true
+  },
+  {
+   "id": "6.4",
+   "title": "Public-facing web applications are protected against attacks.",
+   "chapter": "Req 6",
+   "software": true
+  },
+  {
+   "id": "6.4.1",
+   "title": "For public-facing web applications, new threats and vulnerabilities are addressed on an ongoing basis ...",
+   "chapter": "Req 6",
+   "software": true
+  },
+  {
+   "id": "6.4.2",
+   "title": "For public-facing web applications, an automated technical solution is deployed that continually detects and ...",
+   "chapter": "Req 6",
+   "software": true
+  },
+  {
+   "id": "6.4.3",
+   "title": "All payment page scripts that are loaded and executed in the consumer\u2019s browser are ...",
+   "chapter": "Req 6",
+   "software": true
+  },
+  {
+   "id": "6.5",
+   "title": "Changes to all system components are managed securely.",
+   "chapter": "Req 6",
+   "software": true
+  },
+  {
+   "id": "6.5.1",
+   "title": "Changes to all system components in the production environment are made according to established ...",
+   "chapter": "Req 6",
+   "software": true
+  },
+  {
+   "id": "6.5.2",
+   "title": "Upon completion of a significant change, all applicable PCI DSS requirements are confirmed to ...",
+   "chapter": "Req 6",
+   "software": true
+  },
+  {
+   "id": "6.5.3",
+   "title": "Pre-production environments are separated from production environments and the separation is enforced with access ...",
+   "chapter": "Req 6",
+   "software": true
+  },
+  {
+   "id": "6.5.4",
+   "title": "Roles and functions are separated between production and pre-production environments to provide accountability such ...",
+   "chapter": "Req 6",
+   "software": true
+  },
+  {
+   "id": "6.5.5",
+   "title": "Live PANs are not used in pre-production environments, except where those environments are included ...",
+   "chapter": "Req 6",
+   "software": true
+  },
+  {
+   "id": "6.5.6",
+   "title": "Test data and test accounts are removed from system components before the system goes ...",
+   "chapter": "Req 6",
+   "software": true
+  },
+  {
+   "id": "7.1",
+   "title": "Processes and mechanisms for restricting access to system components and cardholder data by business ...",
+   "chapter": "Req 7",
+   "software": true
+  },
+  {
+   "id": "7.1.1",
+   "title": "All security policies and operational procedures that are identified in Requirement 7 are: \u2022 ...",
+   "chapter": "Req 7",
+   "software": true
+  },
+  {
+   "id": "7.1.2",
+   "title": "Roles and responsibilities for performing activities in Requirement 7 are documented, assigned, and understood.",
+   "chapter": "Req 7",
+   "software": true
+  },
+  {
+   "id": "7.2.1",
+   "title": "An access control model is defined and includes granting access as follows: \u2022 Appropriate ...",
+   "chapter": "Req 7",
+   "software": true
+  },
+  {
+   "id": "7.2.2",
+   "title": "Access is assigned to users, including privileged users, based on: \u2022 Job classification and ...",
+   "chapter": "Req 7",
+   "software": true
+  },
+  {
+   "id": "7.2.3",
+   "title": "Required privileges are approved by authorized personnel.",
+   "chapter": "Req 7",
+   "software": true
+  },
+  {
+   "id": "7.2.4",
+   "title": "All user accounts and related access privileges, including third-party/vendor accounts, are reviewed as follows: ...",
+   "chapter": "Req 7",
+   "software": true
+  },
+  {
+   "id": "7.2.5",
+   "title": "All application and system accounts and related access privileges are assigned and managed as ...",
+   "chapter": "Req 7",
+   "software": true
+  },
+  {
+   "id": "7.2.5.1",
+   "title": "All access by application and system accounts and related access privileges are reviewed as ...",
+   "chapter": "Req 7",
+   "software": true
+  },
+  {
+   "id": "7.2.6",
+   "title": "All user access to query repositories of stored cardholder data is restricted as follows: ...",
+   "chapter": "Req 7",
+   "software": true
+  },
+  {
+   "id": "7.3",
+   "title": "Logical access to system components and data is managed via an access control system(s).",
+   "chapter": "Req 7",
+   "software": true
+  },
+  {
+   "id": "7.3.1",
+   "title": "An access control system(s) is in place that restricts access based on a user\u2019s ...",
+   "chapter": "Req 7",
+   "software": true
+  },
+  {
+   "id": "7.3.2",
+   "title": "The access control system(s) is configured to enforce privileges assigned to individuals, applications, and ...",
+   "chapter": "Req 7",
+   "software": true
+  },
+  {
+   "id": "7.3.3",
+   "title": "The access control system(s) is set to \u201cdeny all\u201d by default.",
+   "chapter": "Req 7",
+   "software": true
+  },
+  {
+   "id": "8.1.1",
+   "title": "All security policies and operational procedures that are identified in Requirement 8 are: \u2022 ...",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.1.2",
+   "title": "Roles and responsibilities for performing activities in Requirement 8 are documented, assigned, and understood.",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.2",
+   "title": "User identification and related accounts for users and administrators are strictly managed throughout an ...",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.2.1",
+   "title": "All users are assigned a unique ID before access to system components or cardholder ...",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.2.2",
+   "title": "Group, shared, or generic IDs, or other shared authentication credentials are only used when ...",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.2.3",
+   "title": "Additional requirement for service providers only: Service providers with remote access to customer premises ...",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.2.4",
+   "title": "Addition, deletion, and modification of user IDs, authentication factors, and other identifier objects are ...",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.2.5",
+   "title": "Access for terminated users is immediately revoked",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.2.6",
+   "title": "Inactive user accounts are removed or disabled within 90 days of inactivity.",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.2.7",
+   "title": "Accounts used by third parties to access, support, or maintain system components via remote ...",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.2.8",
+   "title": "If a user session has been idle for more than 15 minutes, the user ...",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.3",
+   "title": "Strong authentication for users and administrators is established and managed.",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.3.1",
+   "title": "All user access to system components for users and administrators is authenticated via at ...",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.3.2",
+   "title": "Strong cryptography is used to render all authentication factors unreadable during transmission and storage ...",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.3.3",
+   "title": "User identity is verified before modifying any authentication factor.",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.3.4",
+   "title": "Invalid authentication attempts are limited by: \u2022 Locking out the user ID after not ...",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.3.5",
+   "title": "If passwords/passphrases are used as authentication factors to meet Requirement 8.3.1, they are set ...",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.3.6",
+   "title": "If passwords/passphrases are used as authentication factors to meet Requirement 8.3.1, they meet the ...",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.3.7",
+   "title": "Individuals are not allowed to submit a new password/passphrase that is the same as ...",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.3.8",
+   "title": "Authentication policies and procedures are documented and communicated to all users including: \u2022 Guidance ...",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.3.9",
+   "title": "If passwords/passphrases are used as the only authentication factor for user access (i.e., in ...",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.3.10",
+   "title": "Additional requirement for service providers only: If passwords/passphrases are used as the only authentication ...",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.3.10.1",
+   "title": "Additional requirement for service providers only: If passwords/passphrases are used as the only authentication ...",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.3.11",
+   "title": "Where authentication factors such as physical or logical security tokens, smart cards, or certificates ...",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.4",
+   "title": "Multi-factor authentication (MFA) systems are configured to prevent misuse.",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.4.1",
+   "title": "MFA is implemented for all non-console access into the CDE for personnel with administrative ...",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.4.2",
+   "title": "MFA is implemented for all non-console access into the CDE. Applicability Notes This requirement ...",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.4.3",
+   "title": "MFA is implemented for all remote network access originating from outside the entity\u2019s network ...",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.5",
+   "title": "Multi-factor authentication is implemented to secure access to the CDE.",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.5.1",
+   "title": "MFA systems are implemented as follows: \u2022 The MFA system is not susceptible to ...",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.6",
+   "title": "Use of application and system accounts and associated authentication factors are strictly managed.",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.6.1",
+   "title": "If accounts used by systems or applications can be used for interactive login, they ...",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.6.2",
+   "title": "Passwords/passphrases for any application and system accounts that can be used for interactive login ...",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "8.6.3",
+   "title": "Passwords/passphrases for any application and system accounts are protected against misuse as follows: \u2022 ...",
+   "chapter": "Req 8",
+   "software": true
+  },
+  {
+   "id": "9.1",
+   "title": "Processes and mechanisms for performing activities in Requirement 9 are defined and understood.",
+   "chapter": "Req 9",
+   "software": false
+  },
+  {
+   "id": "9.1.1",
+   "title": "All security policies and operational procedures that are identified in Requirement 9 are: \u2022 ...",
+   "chapter": "Req 9",
+   "software": false
+  },
+  {
+   "id": "9.1.2",
+   "title": "Roles and responsibilities for performing activities in Requirement 9 are documented, assigned, and understood.",
+   "chapter": "Req 9",
+   "software": false
+  },
+  {
+   "id": "9.2",
+   "title": "Physical access controls manage entry into the cardholder data environment.",
+   "chapter": "Req 9",
+   "software": false
+  },
+  {
+   "id": "9.2.1",
+   "title": "Appropriate facility entry controls are in place to restrict physical access to systems in ...",
+   "chapter": "Req 9",
+   "software": false
+  },
+  {
+   "id": "9.2.1.1",
+   "title": "Individual physical access to sensitive areas within the CDE is monitored with either video ...",
+   "chapter": "Req 9",
+   "software": false
+  },
+  {
+   "id": "9.2.2",
+   "title": "Physical and/or logical controls are implemented to restrict use of publicly accessible network jacks ...",
+   "chapter": "Req 9",
+   "software": false
+  },
+  {
+   "id": "9.2.3",
+   "title": "Physical access to wireless access points, gateways, networking/communications hardware, and telecommunication lines within the ...",
+   "chapter": "Req 9",
+   "software": false
+  },
+  {
+   "id": "9.2.4",
+   "title": "Access to consoles in sensitive areas is restricted via locking when not in use.",
+   "chapter": "Req 9",
+   "software": false
+  },
+  {
+   "id": "9.3",
+   "title": "Physical access to the cardholder data environment for personnel and visitors is authorized and ...",
+   "chapter": "Req 9",
+   "software": false
+  },
+  {
+   "id": "9.3.1",
+   "title": "Procedures are implemented for authorizing and managing physical access of personnel to the CDE, ...",
+   "chapter": "Req 9",
+   "software": false
+  },
+  {
+   "id": "9.3.1.1",
+   "title": "Physical access to sensitive areas within the CDE for personnel is controlled as follows: ...",
+   "chapter": "Req 9",
+   "software": false
+  },
+  {
+   "id": "9.3.2",
+   "title": "Procedures are implemented for authorizing and managing visitor access to the CDE, including: \u2022 ...",
+   "chapter": "Req 9",
+   "software": false
+  },
+  {
+   "id": "9.3.3",
+   "title": "Visitor badges or identification are surrendered or deactivated before visitors leave the facility or ...",
+   "chapter": "Req 9",
+   "software": false
+  },
+  {
+   "id": "9.3.4",
+   "title": "Visitor logs are used to maintain a physical record of visitor activity both within ...",
+   "chapter": "Req 9",
+   "software": false
+  },
+  {
+   "id": "9.4",
+   "title": "Media with cardholder data is securely stored, accessed, distributed, and destroyed.",
+   "chapter": "Req 9",
+   "software": false
+  },
+  {
+   "id": "9.4.1",
+   "title": "All media with cardholder data is physically secured.",
+   "chapter": "Req 9",
+   "software": false
+  },
+  {
+   "id": "9.4.1.1",
+   "title": "Offline media backups with cardholder data are stored in a secure location.",
+   "chapter": "Req 9",
+   "software": false
+  },
+  {
+   "id": "9.4.1.2",
+   "title": "The security of the offline media backup location(s) with cardholder data is reviewed at ...",
+   "chapter": "Req 9",
+   "software": false
+  },
+  {
+   "id": "9.4.2",
+   "title": "All media with cardholder data is classified in accordance with the sensitivity of the ...",
+   "chapter": "Req 9",
+   "software": false
+  },
+  {
+   "id": "9.4.3",
+   "title": "Media with cardholder data sent outside the facility is secured as follows: \u2022 Media ...",
+   "chapter": "Req 9",
+   "software": false
+  },
+  {
+   "id": "9.4.4",
+   "title": "Management approves all media with cardholder data that is moved outside the facility (including ...",
+   "chapter": "Req 9",
+   "software": false
+  },
+  {
+   "id": "9.4.5",
+   "title": "Inventory logs of all electronic media with cardholder data are maintained.",
+   "chapter": "Req 9",
+   "software": false
+  },
+  {
+   "id": "9.4.5.1",
+   "title": "Inventories of electronic media with cardholder data are conducted at least once every 12 ...",
+   "chapter": "Req 9",
+   "software": false
+  },
+  {
+   "id": "9.4.6",
+   "title": "Hard-copy materials with cardholder data are destroyed when no longer needed for business or ...",
+   "chapter": "Req 9",
+   "software": false
+  },
+  {
+   "id": "9.4.7",
+   "title": "Electronic media with cardholder data is destroyed when no longer needed for business or ...",
+   "chapter": "Req 9",
+   "software": false
+  },
+  {
+   "id": "9.5",
+   "title": "Point-of-interaction (POI) devices are protected from tampering and unauthorized substitution.",
+   "chapter": "Req 9",
+   "software": false
+  },
+  {
+   "id": "9.5.1",
+   "title": "POI devices that capture payment card data via direct physical interaction with the payment ...",
+   "chapter": "Req 9",
+   "software": false
+  },
+  {
+   "id": "9.5.1.1",
+   "title": "An up-to-date list of POI devices is maintained, including: \u2022 Make and model of ...",
+   "chapter": "Req 9",
+   "software": false
+  },
+  {
+   "id": "9.5.1.2",
+   "title": "POI device surfaces are periodically inspected to detect tampering and unauthorized substitution.",
+   "chapter": "Req 9",
+   "software": false
+  },
+  {
+   "id": "9.5.1.3",
+   "title": "Training is provided for personnel in POI environments to be aware of attempted tampering ...",
+   "chapter": "Req 9",
+   "software": false
+  },
+  {
+   "id": "10.1",
+   "title": "Processes and mechanisms for performing activities in Requirement 10 are defined and understood.",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.1.1",
+   "title": "All security policies and operational procedures that are identified in Requirement 10 are: \u2022 ...",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.1.2",
+   "title": "Roles and responsibilities for performing activities in Requirement 10 are documented, assigned, and understood.",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.2",
+   "title": "Audit logs are implemented to support the detection of anomalies and suspicious activity, and ...",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.2.1",
+   "title": "Audit logs are enabled and active for all system components and cardholder data.",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.2.1.1",
+   "title": "Audit logs capture all individual user access to cardholder data.",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.2.1.2",
+   "title": "Audit logs capture all actions taken by any individual with administrative access, including any ...",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.2.1.3",
+   "title": "Audit logs capture all access to audit logs.",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.2.1.4",
+   "title": "Audit logs capture all invalid logical access attempts.",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.2.1.5",
+   "title": "Audit logs capture all changes to identification and authentication credentials including, but not limited ...",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.2.1.6",
+   "title": "Audit logs capture the following: \u2022 All initialization of new audit logs, and \u2022 ...",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.2.1.7",
+   "title": "Audit logs capture all creation and deletion of system-level objects.",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.2.2",
+   "title": "Audit logs record the following details for each auditable event: \u2022 User identification. \u2022 ...",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.3",
+   "title": "Audit logs are protected from destruction and unauthorized modifications.",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.3.1",
+   "title": "Read access to audit logs files is limited to those with a job-related need.",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.3.2",
+   "title": "Audit log files are protected to prevent modifications by individuals.",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.3.3",
+   "title": "Audit log files, including those for external-facing technologies, are promptly backed up to a ...",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.3.4",
+   "title": "File integrity monitoring or change-detection mechanisms is used on audit logs to ensure that ...",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.4",
+   "title": "Audit logs are reviewed to identify anomalies or suspicious activity.",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.4.1",
+   "title": "The following audit logs are reviewed at least once daily: \u2022 All security events. ...",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.4.1.1",
+   "title": "Automated mechanisms are used to perform audit log reviews. Applicability Notes This requirement is ...",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.4.2",
+   "title": "Logs of all other system components (those not specified in Requirement 10.4.1) are reviewed ...",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.4.2.1",
+   "title": "The frequency of periodic log reviews for all other system components (not defined in ...",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.4.3",
+   "title": "Exceptions and anomalies identified during the review process are addressed.",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.5",
+   "title": "Audit log history is retained and available for analysis.",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.5.1",
+   "title": "Retain audit log history for at least 12 months, with at least the most ...",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.6",
+   "title": "Time-synchronization mechanisms support consistent time settings across all systems.",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.6.1",
+   "title": "System clocks and time are synchronized using time-synchronization technology. Applicability Notes Keeping time-synchronization technology ...",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.6.2",
+   "title": "Systems are configured to the correct and consistent time as follows: \u2022 One or ...",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.6.3",
+   "title": "Time synchronization settings and data are protected as follows: \u2022 Access to time data ...",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.7",
+   "title": "Failures of critical security control systems are detected, reported, and responded to promptly.",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.7.1",
+   "title": "Additional requirement for service providers only: Failures of critical security control systems are detected, ...",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.7.2",
+   "title": "Failures of critical security control systems are detected, alerted, and addressed promptly, including but ...",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "10.7.3",
+   "title": "Failures of any critical security control systems are responded to promptly, including but not ...",
+   "chapter": "Req 10",
+   "software": true
+  },
+  {
+   "id": "11.1",
+   "title": "Processes and mechanisms for performing activities in Requirement 11 are defined and understood.",
+   "chapter": "Req 11",
+   "software": false
+  },
+  {
+   "id": "11.1.1",
+   "title": "All security policies and operational procedures that are identified in Requirement 11 are: \u2022 ...",
+   "chapter": "Req 11",
+   "software": false
+  },
+  {
+   "id": "11.1.2",
+   "title": "Roles and responsibilities for performing activities in Requirement 11 are documented, assigned, and understood.",
+   "chapter": "Req 11",
+   "software": false
+  },
+  {
+   "id": "11.2",
+   "title": "Wireless access points are identified and monitored, and unauthorized wireless access points are addressed.",
+   "chapter": "Req 11",
+   "software": false
+  },
+  {
+   "id": "11.2.1",
+   "title": "Authorized and unauthorized wireless access points are managed as follows: \u2022 The presence of ...",
+   "chapter": "Req 11",
+   "software": false
+  },
+  {
+   "id": "11.3",
+   "title": "External and internal vulnerabilities are regularly identified, prioritized, and addressed.",
+   "chapter": "Req 11",
+   "software": false
+  },
+  {
+   "id": "11.3.1",
+   "title": "Internal vulnerability scans are performed as follows: \u2022 At least once every three months. ...",
+   "chapter": "Req 11",
+   "software": true
+  },
+  {
+   "id": "11.3.1.1",
+   "title": "All other applicable vulnerabilities (those not ranked as high-risk vulnerabilities or critical vulnerabilities according ...",
+   "chapter": "Req 11",
+   "software": true
+  },
+  {
+   "id": "11.3.1.2",
+   "title": "Internal vulnerability scans are performed via authenticated scanning as follows: \u2022 Systems that are ...",
+   "chapter": "Req 11",
+   "software": true
+  },
+  {
+   "id": "11.3.1.3",
+   "title": "Internal vulnerability scans are performed after any significant change as follows: \u2022 Vulnerabilities that ...",
+   "chapter": "Req 11",
+   "software": true
+  },
+  {
+   "id": "11.3.2",
+   "title": "External vulnerability scans are performed as follows: \u2022 At least once every three months. ...",
+   "chapter": "Req 11",
+   "software": true
+  },
+  {
+   "id": "11.3.2.1",
+   "title": "External vulnerability scans are performed after any significant change as follows: \u2022 Vulnerabilities that ...",
+   "chapter": "Req 11",
+   "software": true
+  },
+  {
+   "id": "11.4",
+   "title": "External and internal penetration testing is regularly performed, and exploitable vulnerabilities and security weaknesses ...",
+   "chapter": "Req 11",
+   "software": false
+  },
+  {
+   "id": "11.4.1",
+   "title": "A penetration testing methodology is defined, documented, and implemented by the entity, and includes: ...",
+   "chapter": "Req 11",
+   "software": true
+  },
+  {
+   "id": "11.4.2",
+   "title": "Internal penetration testing is performed: \u2022 Per the entity\u2019s defined methodology \u2022 At least ...",
+   "chapter": "Req 11",
+   "software": true
+  },
+  {
+   "id": "11.4.3",
+   "title": "External penetration testing is performed: \u2022 Per the entity\u2019s defined methodology \u2022 At least ...",
+   "chapter": "Req 11",
+   "software": true
+  },
+  {
+   "id": "11.4.4",
+   "title": "Exploitable vulnerabilities and security weaknesses found during penetration testing are corrected as follows: \u2022 ...",
+   "chapter": "Req 11",
+   "software": true
+  },
+  {
+   "id": "11.4.5",
+   "title": "If segmentation is used to isolate the CDE from other networks, penetration tests are ...",
+   "chapter": "Req 11",
+   "software": true
+  },
+  {
+   "id": "11.4.6",
+   "title": "Additional requirement for service providers only: If segmentation is used to isolate the CDE ...",
+   "chapter": "Req 11",
+   "software": true
+  },
+  {
+   "id": "11.4.7",
+   "title": "Additional requirement for third-party hosted/cloud service providers only: Third-party hosted/cloud service providers support to ...",
+   "chapter": "Req 11",
+   "software": true
+  },
+  {
+   "id": "11.5",
+   "title": "Network intrusions and unexpected file changes are detected and responded to.",
+   "chapter": "Req 11",
+   "software": false
+  },
+  {
+   "id": "11.5.1",
+   "title": "Intrusion-detection and/or intrusion-prevention techniques are used to detect and/or prevent intrusions into the network ...",
+   "chapter": "Req 11",
+   "software": false
+  },
+  {
+   "id": "11.5.1.1",
+   "title": "Additional requirement for service providers only: Intrusion-detection and/or intrusion-prevention techniques detect, alert on/prevent, and ...",
+   "chapter": "Req 11",
+   "software": false
+  },
+  {
+   "id": "11.5.2",
+   "title": "A change-detection mechanism (for example, file integrity monitoring tools) is deployed as follows: \u2022 ...",
+   "chapter": "Req 11",
+   "software": false
+  },
+  {
+   "id": "11.6",
+   "title": "Unauthorized changes on payment pages are detected and responded to.",
+   "chapter": "Req 11",
+   "software": false
+  },
+  {
+   "id": "11.6.1",
+   "title": "A change- and tamper-detection mechanism is deployed as follows: \u2022 To alert personnel to ...",
+   "chapter": "Req 11",
+   "software": true
+  },
+  {
+   "id": "12.1",
+   "title": "A comprehensive information security policy that governs and provides direction for protection of the ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.1.1",
+   "title": "An overall information security policy is: \u2022 Established. \u2022 Published. \u2022 Maintained. \u2022 Disseminated ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.1.2",
+   "title": "The information security policy is: \u2022 Reviewed at least once every 12 months. \u2022 ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.1.3",
+   "title": "The security policy clearly defines information security roles and responsibilities for all personnel, and ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.1.4",
+   "title": "Responsibility for information security is formally assigned to a Chief Information Security Officer or ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.2",
+   "title": "Acceptable use policies for end-user technologies are defined and implemented.",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.2.1",
+   "title": "Acceptable use policies for end-user technologies are documented and implemented, including: \u2022 Explicit approval ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.3",
+   "title": "Targeted risks to the cardholder data environment are formally identified, evaluated, and managed.",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.3.1",
+   "title": "For each PCI DSS requirement that specifies completion of a targeted risk analysis, the ...",
+   "chapter": "Req 12",
+   "software": true
+  },
+  {
+   "id": "12.3.2",
+   "title": "A targeted risk analysis is performed for each PCI DSS requirement that the entity ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.3.3",
+   "title": "Cryptographic cipher suites and protocols in use are documented and reviewed at least once ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.3.4",
+   "title": "Hardware and software technologies in use are reviewed at least once every 12 months, ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.4",
+   "title": "PCI DSS compliance is managed.",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.4.1",
+   "title": "Additional requirement for service providers only: Responsibility is established by executive management for the ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.4.2",
+   "title": "Additional requirement for service providers only: Reviews are performed at least once every three ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.4.2.1",
+   "title": "Additional requirement for service providers only: Reviews conducted in accordance with Requirement 12.4.2 are ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.5",
+   "title": "PCI DSS scope is documented and validated.",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.5.1",
+   "title": "An inventory of system components that are in scope for PCI DSS, including a ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.5.2",
+   "title": "PCI DSS scope is documented and confirmed by the entity at least once every ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.5.2.1",
+   "title": "Additional requirement for service providers only: PCI DSS scope is documented and confirmed by ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.5.3",
+   "title": "Additional requirement for service providers only: Significant changes to organizational structure result in a ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.6",
+   "title": "Security awareness education is an ongoing activity",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.6.1",
+   "title": "A formal security awareness program is implemented to make all personnel aware of the ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.6.2",
+   "title": "The security awareness program is: \u2022 Reviewed at least once every 12 months, and ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.6.3",
+   "title": "Personnel receive security awareness training as follows: \u2022 Upon hire and at least once ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.6.3.1",
+   "title": "Security awareness training includes awareness of threats and vulnerabilities that could impact the security ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.6.3.2",
+   "title": "Security awareness training includes awareness about the acceptable use of end-user technologies in accordance ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.7",
+   "title": "Personnel are screened to reduce risks from insider threats.",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.7.1",
+   "title": "Potential personnel who will have access to the CDE are screened, within the constraints ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.8",
+   "title": "Risk to information assets associated with third-party service provider (TPSP) relationships is managed.",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.8.1",
+   "title": "A list of all third-party service providers (TPSPs) with which account data is shared ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.8.2",
+   "title": "Written agreements with TPSPs are maintained as follows: \u2022 Written agreements are maintained with ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.8.3",
+   "title": "An established process is implemented for engaging TPSPs, including proper due diligence prior to ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.8.4",
+   "title": "A program is implemented to monitor TPSPs\u2019 PCI DSS compliance status at least once ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.8.5",
+   "title": "Information is maintained about which PCI DSS requirements are managed by each TPSP, which ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.9",
+   "title": "Third-party service providers (TPSPs) support their customers\u2019 PCI DSS compliance.",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.9.1",
+   "title": "Additional requirement for service providers only: TPSPs provide written agreements to customers that include ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.9.2",
+   "title": "Additional requirement for service providers only: TPSPs support their customers\u2019 requests for information to ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.10",
+   "title": "Suspected and confirmed security incidents that could impact the CDE are responded to immediately.",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.10.1",
+   "title": "An incident response plan exists and is ready to be activated in the event ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.10.2",
+   "title": "At least once every 12 months, the security incident response plan is: \u2022 Reviewed ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.10.3",
+   "title": "Specific personnel are designated to be available on a 24/7 basis to respond to ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.10.4",
+   "title": "Personnel responsible for responding to suspected and confirmed security incidents are appropriately and periodically ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.10.4.1",
+   "title": "The frequency of periodic training for incident response personnel is defined in the entity\u2019s ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.10.5",
+   "title": "The security incident response plan includes monitoring and responding to alerts from security monitoring ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.10.6",
+   "title": "The security incident response plan is modified and evolved according to lessons learned and ...",
+   "chapter": "Req 12",
+   "software": false
+  },
+  {
+   "id": "12.10.7",
+   "title": "Incident response procedures are in place, to be initiated upon the detection of stored ...",
+   "chapter": "Req 12",
+   "software": false
+  }
+ ]
+}

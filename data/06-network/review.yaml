@@ -1,0 +1,196 @@
+- id: NET-REV-001
+  sheet: NET
+  category: REV
+  title: Review network and data-flow diagrams and the list of allowed ports
+  objective: Finds networks where the documents do not match the real system or list no approved services.
+  steps:
+  - Get the network diagram, the data-flow diagram and the list of allowed services, protocols and ports.
+  - Make sure each allowed port has a business reason and an approver.
+  - Compare the diagram with the results of a host and port scan.
+  - Write down each host or flow that is not in the documents.
+  example: 'nmap -sn -oX hosts.xml 10.10.0.0/24 ; compare hosts.xml with the diagram and the asset inventory'
+  expected: The diagrams are current. Every open port and every data flow in the network is in the documents with a business reason and an approval.
+  severity: Low
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-CONF-01
+    nist_800_53:
+    - CM-8
+    - CM-7
+    pci_dss:
+    - '1.2.3'
+    - '1.2.4'
+    - '1.2.5'
+    other:
+    - NIST SP 800-115 section 3.1 (documentation review)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/01-Network_Infrastructure_Configuration.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-REV-002
+  sheet: NET
+  category: REV
+  title: Review firewall and router rulesets for deny by default and least privilege
+  objective: Finds rules that are too wide, old, temporary or in the wrong order.
+  steps:
+  - Export the rulesets of each firewall and the access control lists of each router.
+  - Make sure the last rule denies all traffic that is not allowed.
+  - Look for rules that use any as a source, a destination or a port.
+  - Look for temporary rules that are still active and for rules that nobody needs.
+  - Make sure specific rules come before general rules.
+  - Make sure no rule lets traffic go around other security controls.
+  example: 'show running-config | section access-list ; iptables -S ; nft list ruleset ; Wireshark capture behind the firewall to see which traffic passes'
+  expected: The ruleset denies all traffic by default and allows only listed sources, destinations and ports. Each rule has an owner and a reason, and no old rule remains.
+  severity: High
+  test_type: Config Review
+  refs:
+    wstg:
+    - WSTG-CONF-01
+    cheatsheet:
+    - Network_Segmentation_Cheat_Sheet
+    cwe:
+    - CWE-284
+    - CWE-668
+    nist_800_53:
+    - SC-7
+    - CM-6
+    pci_dss:
+    - '1.2.1'
+    - '1.2.7'
+    - '1.3.1'
+    - '1.4.2'
+    other:
+    - NIST SP 800-115 section 3.3 (ruleset review)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/repos/CheatSheetSeries/cheatsheets/Network_Segmentation_Cheat_Sheet.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/01-Network_Infrastructure_Configuration.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-REV-003
+  sheet: NET
+  category: REV
+  title: Review host-based firewall rules and IDS or IPS rulesets
+  objective: Finds host rules that allow backdoors and monitoring rules that are off or out of date.
+  steps:
+  - Export the host-based firewall rules of a sample of servers.
+  - Look for rules that allow prohibited applications or unknown listeners.
+  - Export the IDS or IPS signature list and the date of the last update.
+  - Make sure the needed signatures are on and the unneeded signatures are off.
+  - Make sure the IDS or IPS monitors the perimeter and the critical segments.
+  example: 'iptables -S ; netstat -tulpn ; ufw status verbose ; Get-NetFirewallRule -Enabled True -Direction Inbound'
+  expected: Host rules allow only approved applications. Needed IDS or IPS signatures are on and current. Traffic at the perimeter and at critical segments is monitored.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    nist_800_53:
+    - SI-4
+    - SC-7
+    pci_dss:
+    - '11.5.1'
+    - '1.5.1'
+    other:
+    - NIST SP 800-115 section 3.3 (ruleset review)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-REV-004
+  sheet: NET
+  category: REV
+  title: Review the system configuration of network hosts against a hardening standard
+  objective: Finds unneeded services, weak account settings and wrong log and backup settings.
+  steps:
+  - Get the hardening standard or checklist that the organization uses.
+  - Export the settings of a sample of servers, routers and switches.
+  - Compare each setting with the standard.
+  - Make sure each deviation has an approval and a reason.
+  - Run an automated check tool where one exists, and check the rest by hand.
+  example: 'oscap xccdf eval --profile <profile> --results r.xml <benchmark>.xml ; lynis audit system'
+  expected: Each setting matches the hardening standard, or the deviation is approved and documented. No unneeded service runs.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    wstg:
+    - WSTG-CONF-01
+    cheatsheet:
+    - Attack_Surface_Analysis_Cheat_Sheet
+    cwe:
+    - CWE-1188
+    nist_800_53:
+    - CM-6
+    - CM-7
+    pci_dss:
+    - '2.2.1'
+    - '2.2.4'
+    other:
+    - NIST SP 800-115 section 3.4 (system configuration review)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/01-Network_Infrastructure_Configuration.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Attack_Surface_Analysis_Cheat_Sheet.md
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-REV-005
+  sheet: NET
+  category: REV
+  title: Capture network traffic and look for clear-text protocols and credentials
+  objective: Finds protocols that send passwords or data in clear text on a network segment.
+  steps:
+  - Connect the sniffer to a tap or a mirror port on the segment.
+  - Capture traffic for a defined time.
+  - Filter the capture for telnet, FTP, HTTP, SNMP, LDAP and other clear-text protocols.
+  - Look for user names, passwords and sensitive data in the packets.
+  - Write down each unauthorized or clear-text protocol and the hosts that use it.
+  example: 'tshark -i eth1 -a duration:600 -w seg.pcap ; tshark -r seg.pcap -Y "telnet || ftp || http.authorization || snmp" -T fields -e ip.src -e ip.dst -e frame.protocols'
+  expected: The capture shows no clear-text credentials and no clear-text sensitive data. Only approved encrypted protocols carry management and login traffic.
+  severity: High
+  test_type: Manual
+  preconditions:
+  - Written approval for traffic capture on the segment.
+  - Do not run on production without approval of the network owner.
+  refs:
+    attack:
+    - T1040
+    capec:
+    - CAPEC-158
+    cwe:
+    - CWE-319
+    nist_800_53:
+    - SC-8
+    pci_dss:
+    - '4.2.1'
+    other:
+    - NIST SP 800-115 section 3.5 (network sniffing)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md
+- id: NET-REV-006
+  sheet: NET
+  category: REV
+  title: Check that file integrity monitoring covers critical system and device files
+  objective: Finds hosts and devices where changes to critical files go unseen.
+  steps:
+  - Get the list of critical files that the file integrity tool guards.
+  - Make sure the tool compares files at least once each week.
+  - Change a test file in the guarded list.
+  - Make sure the tool sends an alert for the change.
+  - Make sure the reference database is stored offline or in a protected place.
+  example: 'aide --check ; tripwire --check ; echo test >> /etc/<guarded-file> (use a test copy and restore it)'
+  expected: The tool guards the critical files, compares them at least weekly and alerts on each change. Attackers cannot change the reference database.
+  severity: Medium
+  test_type: Manual
+  refs:
+    nist_800_53:
+    - SI-7
+    pci_dss:
+    - '11.5.2'
+    other:
+    - NIST SP 800-115 section 3.6 (file integrity checking)
+  sources_read:
+  - sources/extra/nist800-115.txt
+  - sources/nist80053/NIST_SP-800-53_rev5_catalog.json
+  - sources/pci_dss/PCI-DSS-v4_0_1.md

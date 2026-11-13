@@ -1,0 +1,377 @@
+- id: CICD-CFG-001
+  sheet: CICD
+  category: CFG
+  title: Check the inventory, owners and patch level of CI/CD systems
+  objective: Finds unknown or outdated CI/CD servers, runners and plugins.
+  preconditions:
+  - Network scan only with written approval.
+  steps:
+  - List all SCM, CI, registry and runner systems, including self-managed instances.
+  - Record the owner and the version of each.
+  - Compare each version with the vendor security advisories.
+  - Include build tools and plugins in the check.
+  example: curl -s https://JENKINS/pluginManager/api/json?depth=1 | jq '.plugins[]|{shortName,version}'; trivy image RUNNER_IMAGE; nmap -sV -p 80,443,8080 CIDR
+  expected: Every CI/CD system has an owner and a version record. Systems and plugins have all available security patches, or access is restricted.
+  severity: High
+  test_type: &id001
+  - Manual
+  - Config Review
+  refs:
+    cicd_top10:
+    - CICD-SEC-7
+    - CICD-SEC-10
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-1104
+    - CWE-1395
+    attack:
+    - T1072
+    nist_800_53:
+    - CM-8
+    - RA-5
+    other:
+    - SSDF PO.3.2
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-07-Insecure-System-Configuration.md
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-10-Insufficient-Logging-And-Visibility.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+- id: CICD-CFG-002
+  sheet: CICD
+  category: CFG
+  title: Check network exposure and transport security of CI/CD systems
+  objective: Finds CI/CD systems open to the internet or using weak transport between systems.
+  preconditions:
+  - Get written approval before scanning.
+  steps:
+  - Scan the CI/CD host addresses from outside the corporate network, with approval.
+  - Make sure management interfaces are not exposed.
+  - Check the TLS version between the SCM and the CI system.
+  - Make sure access is limited by IP or VPN where possible.
+  example: nmap -Pn -p 22,80,443,8080,50000 CI_HOST; testssl.sh --protocols CI_HOST:443
+  expected: CI/CD systems are not open to the internet without need. Connections use TLS 1.2 or higher. Access is limited by network rules.
+  severity: High
+  test_type: *id001
+  refs:
+    cicd_top10:
+    - CICD-SEC-7
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-284
+    nist_800_53:
+    - SC-7
+    - SC-8
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-07-Insecure-System-Configuration.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+- id: CICD-CFG-003
+  sheet: CICD
+  category: CFG
+  title: Review CI/CD settings against hardening guides and default values
+  objective: Finds platform settings that stay at an insecure default.
+  preconditions:
+  - Admin read access to the platforms.
+  steps:
+  - Get the hardening baseline, such as the CIS Benchmark, for each platform.
+  - Read the security settings of each platform.
+  - Find default accounts, default passwords and open defaults.
+  - Document and fix each difference.
+  example: legitify analyze --namespace ORG; gh api orgs/ORG --jq '{two_factor_requirement_enabled,default_repository_permission,members_can_create_public_repositories}'
+  expected: No default account or default password exists. Settings match the baseline. Each exception has an owner and a reason.
+  severity: Medium
+  test_type: *id001
+  refs:
+    cicd_top10:
+    - CICD-SEC-7
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-1188
+    - CWE-1269
+    attack:
+    - T1078.001
+    nist_800_53:
+    - CM-6
+    - CM-2
+    other:
+    - SSDF PO.3.2
+    - SSDF PW.9.1
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-07-Insecure-System-Configuration.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+- id: CICD-CFG-004
+  sheet: CICD
+  category: CFG
+  title: Check debug and shell access to execution nodes
+  objective: Finds users who can open a shell on a build node and read secrets from memory.
+  preconditions:
+  - Read access to the runner hosts.
+  steps:
+  - List the users with SSH, debug or console access to runners.
+  - Check for CI features that open a session in a running job.
+  - Make sure access is limited, approved and logged.
+  - Make sure such access is not on nodes that hold production secrets.
+  example: 'gh api repos/ORG/REPO/actions/runners; grep -E ''AllowUsers|AllowGroups'' /etc/ssh/sshd_config; last -n 20  # on the runner'
+  expected: Only a small approved group can open a session on a build node. Access is logged. Nodes with production secrets have no debug access.
+  severity: High
+  test_type: *id001
+  refs:
+    cicd_top10:
+    - CICD-SEC-7
+    - CICD-SEC-5
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-250
+    - CWE-269
+    attack:
+    - T1078
+    nist_800_53:
+    - AC-6
+    - AU-12
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-07-Insecure-System-Configuration.md
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-05-Insufficient-PBAC.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+- id: CICD-CFG-005
+  sheet: CICD
+  category: CFG
+  title: Check that self-hosted CI services run without host administrator rights
+  objective: Finds CI services that run as root or administrator on the host.
+  preconditions:
+  - Read access to the CI hosts.
+  steps:
+  - Find the account that runs each CI controller and agent service.
+  - Make sure it is not root or administrator.
+  - Look at sudo rules and group memberships of this account.
+  - Make sure the host is dedicated to the CI role.
+  example: ps -o user,cmd -C java,Runner.Listener; sudo -l -U ci-runner; id ci-runner
+  expected: CI services run as dedicated unprivileged accounts. The accounts have no general sudo rights.
+  severity: High
+  test_type: *id001
+  refs:
+    cicd_top10:
+    - CICD-SEC-7
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-250
+    nist_800_53:
+    - AC-6
+    - CM-7
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-07-Insecure-System-Configuration.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+- id: CICD-CFG-006
+  sheet: CICD
+  category: CFG
+  title: Check repository fork and visibility restrictions
+  objective: Finds repositories that users can fork out or make public by mistake.
+  preconditions:
+  - Admin read access to the SCM organization.
+  steps:
+  - Read the organization settings for forking private repositories.
+  - Read who may change repository visibility to public.
+  - List private repositories that have forks.
+  - Make sure these actions are limited to a small group.
+  example: gh api orgs/ORG --jq '{members_can_fork_private_repositories,members_can_create_public_repositories}'; gh api repos/ORG/REPO/forks --jq 'length'
+  expected: Users cannot fork private repositories or change visibility to public without approval.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Automated
+  refs:
+    cicd_top10:
+    - CICD-SEC-7
+    - CICD-SEC-2
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-284
+    nist_800_53:
+    - AC-3
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-07-Insecure-System-Configuration.md
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-02-Inadequate-Identity-And-Access-Management.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+- id: CICD-CFG-007
+  sheet: CICD
+  category: CFG
+  title: Review change management for CI/CD settings
+  objective: Finds changes to pipeline and platform settings that nobody tracks.
+  preconditions:
+  - Read access to the audit log.
+  steps:
+  - Read the change process for CI/CD settings, SBOM tools, registries and integrations.
+  - Pick five recent setting changes from the audit log.
+  - Find the approval and ticket for each change.
+  - Make sure a review of all settings runs on a schedule.
+  example: gh api orgs/ORG/audit-log?phrase=action:repo.update_actions_settings --paginate; gh api orgs/ORG/audit-log?phrase=action:org.update_actions_settings
+  expected: Every setting change maps to an approved request. A scheduled review checks all security settings.
+  severity: Medium
+  test_type: &id002
+  - Manual
+  refs:
+    cicd_top10:
+    - CICD-SEC-7
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-1269
+    nist_800_53:
+    - CM-3
+    - CM-5
+    other:
+    - SSDF PO.3.2
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-07-Insecure-System-Configuration.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+- id: CICD-CFG-008
+  sheet: CICD
+  category: CFG
+  title: Check hardening of developer workstations and IDE extensions
+  objective: Finds developer machines and extensions that can steal credentials or inject code.
+  preconditions:
+  - Get approval before you read endpoint data.
+  steps:
+  - 'Read the endpoint policy for developer machines: patches, MFA and monitoring.'
+  - List the IDE extensions that developers use.
+  - Make sure extensions come from an approved list.
+  - Make sure a restricted mode is the default for unknown projects.
+  example: 'code --list-extensions --show-versions; osquery: SELECT name,version FROM vscode_extensions;'
+  expected: Developer machines are patched and monitored. Only approved IDE extensions are installed. Unknown projects open in restricted mode.
+  severity: Medium
+  test_type: *id001
+  refs:
+    cicd_top10:
+    - CICD-SEC-7
+    cheatsheet:
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    - NPM_Security_Cheat_Sheet
+    cwe:
+    - CWE-1357
+    capec:
+    - CAPEC-698
+    - CAPEC-670
+    attack:
+    - T1195.001
+    other:
+    - SSDF PO.5.2
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-07-Insecure-System-Configuration.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/NPM_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+- id: CICD-CFG-009
+  sheet: CICD
+  category: CFG
+  title: Check separation of development, build and production environments
+  objective: Finds environments that share accounts, networks or data with production.
+  preconditions:
+  - Read access to the cloud and network settings.
+  steps:
+  - List the development, test, build and production environments.
+  - Check for shared accounts, networks and credentials between them.
+  - Make sure the build environment cannot be reached from developer workstations without control.
+  - Make sure production data is not in lower environments.
+  example: aws organizations list-accounts; kubectl config get-contexts; terraform state list | grep -i env
+  expected: Each environment has its own accounts, network rules and credentials. Build systems are separate from production.
+  severity: Medium
+  test_type: *id001
+  refs:
+    owasp_top10:
+    - A08:2025
+    cicd_top10:
+    - CICD-SEC-7
+    - CICD-SEC-5
+    cheatsheet:
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-284
+    nist_800_53:
+    - SC-7
+    other:
+    - SSDF PO.5.1
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-07-Insecure-System-Configuration.md
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-05-Insufficient-PBAC.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/Top10/2025/docs/en/A08_2025-Software_or_Data_Integrity_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+- id: CICD-CFG-010
+  sheet: CICD
+  category: CFG
+  title: Check that infrastructure code is the only way to change infrastructure
+  objective: Finds infrastructure that people change by hand and that no review covers.
+  preconditions:
+  - Read access to the cloud account.
+  steps:
+  - Find the repository for each infrastructure area.
+  - Make sure changes need a pull request and review.
+  - Look for resources without code or tags.
+  - Make sure immutable deployment replaces changed resources.
+  example: terraform plan -detailed-exitcode; aws resourcegroupstaggingapi get-resources --query 'ResourceTagMappingList[?Tags==`[]`].ResourceARN'
+  expected: All infrastructure comes from reviewed code. Untagged or unmanaged resources are found and removed or adopted.
+  severity: Medium
+  test_type: *id001
+  refs:
+    cicd_top10:
+    - CICD-SEC-1
+    - CICD-SEC-7
+    cheatsheet:
+    - Infrastructure_as_Code_Security_Cheat_Sheet
+    cwe:
+    - CWE-1269
+    nist_800_53:
+    - CM-2
+    - CM-3
+  sources_read:
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-01-Insufficient-Flow-Control-Mechanisms.md
+  - sources/repos/www-project-top-10-ci-cd-security-risks/CICD-SEC-07-Insecure-System-Configuration.md
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Infrastructure_as_Code_Security_Cheat_Sheet.md
+- id: CICD-CFG-011
+  sheet: CICD
+  category: CFG
+  title: Test restore of the source code repositories from backup
+  objective: Finds repositories that cannot be restored after loss or destruction.
+  preconditions:
+  - Restore into a test location only.
+  steps:
+  - Find the backup plan for the SCM and the artifact registry.
+  - Restore one repository into a test location.
+  - Compare the restored refs and commit hashes with the source.
+  - Make sure backup access is limited and logged.
+  example: git clone --mirror https://git.example.org/ORG/REPO.git && git -C REPO.git fsck --full; git ls-remote ORIGIN | sha256sum
+  expected: A backup exists and restores into a complete copy with the same commit hashes. Access to backups is limited.
+  severity: Low
+  test_type: *id002
+  refs:
+    cheatsheet:
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-693
+    nist_800_53:
+    - CP-9
+  sources_read:
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md

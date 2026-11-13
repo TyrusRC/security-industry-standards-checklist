@@ -1,0 +1,252 @@
+- id: API-CONF-001
+  sheet: API
+  category: CONF
+  title: Check that API traffic uses TLS on every hop
+  objective: Finds API calls to clients, gateways and back ends that use clear text.
+  steps:
+  - Request the API on HTTP and HTTPS. Check if the HTTP request is refused.
+  - Find the links between the gateway, the services and downstream APIs.
+  - Capture traffic on an internal link. Look for clear text.
+  - Check for privileged APIs that need mutual TLS.
+  example: curl -v http://api.example/v1/ping; nmap --script ssl-enum-ciphers -p 443 api.example; tcpdump on a test node.
+  expected: All API communication uses TLS, also inside the network. The API gives no data over clear text.
+  severity: High
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    api_top10:
+    - API8:2023
+    asvs:
+    - V12.3.1
+    cheatsheet:
+    - REST_Security_Cheat_Sheet
+    - Web_Service_Security_Cheat_Sheet
+    cwe:
+    - CWE-319
+  see:
+  - WEB-TLS-005
+  - WEB-TLS-011
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa8-security-misconfiguration.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Web_Service_Security_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: API-CONF-002
+  sheet: API
+  category: CONF
+  title: Check security headers and cache control on API responses
+  objective: Finds API responses that browsers or caches can store or misuse.
+  steps:
+  - Send requests to endpoints with private data. Read the response headers.
+  - 'Look for Cache-Control: no-store, Content-Type and X-Content-Type-Options.'
+  - Look for Strict-Transport-Security and the frame-ancestors value.
+  - Check responses for 304 and for error codes too.
+  example: curl -i https://api.example/dm/user_updates.json?conversation_id=1; ZAP passive scan; securityheaders.com style check of the API host.
+  expected: 'Responses with private data have Cache-Control: no-store and the other listed headers. Content-Type matches the body.'
+  severity: Medium
+  test_type: Manual
+  refs:
+    api_top10:
+    - API8:2023
+    cheatsheet:
+    - REST_Security_Cheat_Sheet
+    cwe:
+    - CWE-525
+  see:
+  - WEB-DATA-011
+  - WEB-HTTP-001
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa8-security-misconfiguration.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Security_Cheat_Sheet.md
+- id: API-CONF-003
+  sheet: API
+  category: CONF
+  title: Check the CORS policy of the API
+  objective: Finds APIs that allow cross-origin reads from untrusted origins.
+  steps:
+  - Send requests with an Origin header of an untrusted domain.
+  - Look at Access-Control-Allow-Origin and Access-Control-Allow-Credentials.
+  - Send a preflight OPTIONS request for sensitive methods.
+  - Disable CORS headers if no cross-origin client exists.
+  example: 'curl -i -H ''Origin: https://evil.test'' https://api.example/v1/me; Burp CORS scanner extension.'
+  expected: The API allows only listed origins, and never a wildcard with credentials. An API without browser clients sends no CORS headers.
+  severity: Medium
+  test_type: Manual
+  refs:
+    api_top10:
+    - API8:2023
+    cheatsheet:
+    - REST_Security_Cheat_Sheet
+    cwe:
+    - CWE-942
+  see:
+  - WEB-CLIENT-002
+  - WEB-CLIENT-015
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa8-security-misconfiguration.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Security_Cheat_Sheet.md
+- id: API-CONF-004
+  sheet: API
+  category: CONF
+  title: Check that error responses follow a schema and show no internals
+  objective: Finds error responses with stack traces, queries or paths.
+  steps:
+  - Send invalid JSON, wrong types, absent fields and unknown routes.
+  - Send a very long value and an invalid token.
+  - Read the body of each error response.
+  - Compare the errors with the error schema in the API description.
+  example: curl -i -X POST https://api.example/v1/items -d '{bad'; Burp Intruder with malformed values; grep the responses for 'at com.' and 'Traceback'.
+  expected: Errors are generic and follow the documented schema. They show no stack trace, query or internal path.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L2
+  refs:
+    api_top10:
+    - API8:2023
+    asvs:
+    - V16.5.1
+    cheatsheet:
+    - REST_Security_Cheat_Sheet
+    cwe:
+    - CWE-209
+  see:
+  - WEB-ERR-001
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa8-security-misconfiguration.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Security_Cheat_Sheet.md
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+- id: API-CONF-005
+  sheet: API
+  category: CONF
+  title: Check content types, accepted formats and safe response types
+  objective: Finds endpoints that accept formats which the API does not need or that echo the Accept header.
+  steps:
+  - Send a body with a Content-Type that the endpoint does not list. Expect 415.
+  - Send an XML body to a JSON endpoint and a JSON body to an XML endpoint.
+  - Send an Accept header with an unknown type. Expect 406 or a fixed default.
+  - Check that the response Content-Type matches the body.
+  example: 'curl -i -H ''Content-Type: application/xml'' -d ''<a/>'' https://api.example/v1/items; Burp Content Type Converter.'
+  expected: The API accepts only documented content types and returns 415 or 406 for others. It does not copy Accept into Content-Type.
+  severity: Medium
+  test_type: Manual
+  refs:
+    api_top10:
+    - API8:2023
+    cheatsheet:
+    - REST_Security_Cheat_Sheet
+    cwe:
+    - CWE-20
+  see:
+  - WEB-HTTP-001
+  - WEB-INJ-008
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa8-security-misconfiguration.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Security_Cheat_Sheet.md
+- id: API-CONF-006
+  sheet: API
+  category: CONF
+  title: Check that management, debug and health endpoints are not public
+  objective: Finds management endpoints that reveal configuration or allow actions from the internet.
+  steps:
+  - Request common paths such as /actuator, /metrics, /health, /debug and /admin on the API host.
+  - Read the content of any answer for versions, hosts and secrets.
+  - Check on which port and network the management endpoints listen.
+  - Check the firewall rules for them.
+  example: ffuf -u https://api.example/FUZZ -w management-paths.txt; nuclei -t exposures; nmap of the management ports.
+  expected: Management endpoints are not reachable from the internet. If they must be, they need strong authentication and a restricted network.
+  severity: High
+  test_type: Manual
+  refs:
+    api_top10:
+    - API8:2023
+    cheatsheet:
+    - REST_Security_Cheat_Sheet
+    cwe:
+    - CWE-200
+    - CWE-489
+    capec:
+    - CAPEC-121
+  see:
+  - WEB-CONF-003
+  - WEB-CONF-002
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa8-security-misconfiguration.md
+  - sources/repos/CheatSheetSeries/cheatsheets/REST_Security_Cheat_Sheet.md
+- id: API-CONF-007
+  sheet: API
+  category: CONF
+  title: Test how each server in the proxy chain reads requests
+  objective: Finds differences in how gateway, proxy and back end read the length of a request.
+  preconditions:
+  - Test environment only.
+  steps:
+  - List the load balancers, proxies and back ends in front of the API.
+  - Send requests with different Content-Length and Transfer-Encoding headers in a test environment.
+  - Send path forms that the proxy and the back end read in different ways.
+  - Look for desync or access to routes that the gateway blocks.
+  example: Burp HTTP Request Smuggler extension; smuggler.py; curl --path-as-is for path forms.
+  expected: All servers in the chain read each request in the same way. The gateway rules apply to the back end.
+  severity: High
+  test_type: Manual
+  refs:
+    api_top10:
+    - API8:2023
+    cwe:
+    - CWE-444
+    capec:
+    - CAPEC-33
+  see:
+  - WEB-HTTP-004
+  - WEB-CONF-013
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa8-security-misconfiguration.md
+- id: API-CONF-008
+  sheet: API
+  category: CONF
+  title: Send header values that the API writes to its logs
+  objective: Finds log libraries that expand placeholders in request data and call outside hosts.
+  steps:
+  - Find headers and fields that the API writes to logs, such as X-Api-Version and User-Agent.
+  - Send a unique out-of-band marker string in each of them.
+  - Look for DNS or HTTP calls to your marker server.
+  - Check the version of the log library and the option for lookups.
+  example: Burp Collaborator marker in the X-Api-Version header; interactsh; dependency scan with OWASP Dependency-Check.
+  expected: The API writes request data to logs as text. The log library does not expand lookups and has no known vulnerability.
+  severity: Critical
+  test_type: Manual
+  refs:
+    api_top10:
+    - API8:2023
+    cwe:
+    - CWE-117
+    attack:
+    - T1190
+  see:
+  - WEB-VAL-003
+  - WEB-DEP-003
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa8-security-misconfiguration.md
+- id: API-CONF-009
+  sheet: API
+  category: CONF
+  title: Check the secure baseline and the configuration reviews of the API stack
+  objective: Finds environments that drift from the hardened baseline or have open cloud permissions.
+  steps:
+  - Read the secure baseline for the API gateway, the services and the cloud.
+  - Compare it with the real settings in each environment.
+  - Check the permissions of cloud storage and orchestration files.
+  - Check for an automated and regular configuration scan.
+  example: Review of Terraform or Helm files; Scout Suite or Prowler for cloud checks; kube-bench for clusters.
+  expected: A repeatable process for a secure baseline exists. Settings are checked by tools in all environments and patches are current.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    api_top10:
+    - API8:2023
+    cwe:
+    - CWE-1188
+  see:
+  - WEB-CONF-001
+  - WEB-CONF-010
+  sources_read:
+  - sources/repos/API-Security/editions/2023/en/0xa8-security-misconfiguration.md

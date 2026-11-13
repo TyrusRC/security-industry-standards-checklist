@@ -1,0 +1,419 @@
+- id: WEB-LOG-001
+  sheet: WEB
+  category: LOG
+  title: Review the logging inventory for each layer of the stack
+  objective: Find layers with unknown logging, storage, access rules or retention.
+  steps:
+  - Ask for the logging inventory.
+  - Check that it lists layers, events, formats, storage, use, access control and retention time.
+  - Compare the inventory with real log sources on a test system.
+  example: Document review; find /var/log -type f -mtime -1; list log groups with aws logs describe-log-groups
+  expected: A current inventory exists for each layer and matches the real log sources.
+  severity: Low
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    cheatsheet:
+    - Logging_Cheat_Sheet
+    asvs:
+    - V16.1.1
+    owasp_top10:
+    - A09:2025
+    cwe:
+    - CWE-778
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A09_2025-Security_Logging_and_Alerting_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+- id: WEB-LOG-002
+  sheet: WEB
+  category: LOG
+  title: Make sure each log entry has the who, when, where and what
+  objective: Find log entries that cannot support an investigation.
+  steps:
+  - Trigger a login, a failed access and a data change.
+  - Read the log entries for each.
+  - Check that they show time, source, user, action, object and result.
+  - Check that the entries can be linked by a request or session ID.
+  example: grep -E 'login|denied' /var/log/app/app.log | tail -5
+  expected: Each security log entry has time, place, user, action and outcome. Entries can be correlated.
+  severity: Medium
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    cheatsheet:
+    - Logging_Cheat_Sheet
+    asvs:
+    - V16.2.1
+    owasp_top10:
+    - A09:2025
+    cwe:
+    - CWE-223
+    - CWE-778
+    capec:
+    - CAPEC-93
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A09_2025-Security_Logging_and_Alerting_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+- id: WEB-LOG-003
+  sheet: WEB
+  category: LOG
+  title: Check log time sources and time zone in timestamps
+  objective: Find logging components with unsynchronized clocks or timestamps without a time zone.
+  steps:
+  - Check the time sync source (NTP or chrony) on every logging component.
+  - Compare the clock offset between components.
+  - Check that log timestamps use UTC or show the offset.
+  example: chronyc tracking; timedatectl; grep -m3 -E '[0-9]{4}-[0-9]{2}-[0-9]{2}T' app.log
+  expected: Clocks are in sync and log timestamps use UTC or an explicit offset.
+  severity: Low
+  test_type:
+  - Manual
+  - Config Review
+  level: ASVS L2
+  refs:
+    cheatsheet:
+    - Logging_Cheat_Sheet
+    asvs:
+    - V16.2.2
+    owasp_top10:
+    - A09:2025
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A09_2025-Security_Logging_and_Alerting_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+- id: WEB-LOG-004
+  sheet: WEB
+  category: LOG
+  title: Make sure logs go only to the documented files and services
+  objective: Find logs that are written or sent to places outside the inventory.
+  steps:
+  - List all log files and log targets that the application uses.
+  - Check network connections for log traffic to unknown hosts.
+  - Compare them with the inventory.
+  example: lsof -p <pid> | grep -E 'log|\.out'; ss -tnp | grep <pid>
+  expected: The application writes and sends logs only to the documented targets.
+  severity: Low
+  test_type:
+  - Manual
+  - Config Review
+  level: ASVS L2
+  refs:
+    cheatsheet:
+    - Logging_Cheat_Sheet
+    asvs:
+    - V16.2.3
+    owasp_top10:
+    - A09:2025
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A09_2025-Security_Logging_and_Alerting_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+- id: WEB-LOG-005
+  sheet: WEB
+  category: LOG
+  title: Make sure logs use a common format that the processor reads
+  objective: Find log formats that the processor cannot parse or correlate.
+  steps:
+  - Look at the format of logs from each component.
+  - Check that the log processor parses them without errors.
+  - Check that the event names follow a shared vocabulary.
+  example: jq . app.log | head; check parser error counts in the SIEM
+  expected: Logs follow a common format, parse without errors, and can be correlated.
+  severity: Low
+  test_type:
+  - Manual
+  - Config Review
+  level: ASVS L2
+  refs:
+    asvs:
+    - V16.2.4
+    owasp_top10:
+    - A09:2025
+    cheatsheet:
+    - Logging_Vocabulary_Cheat_Sheet
+    - Logging_Cheat_Sheet
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A09_2025-Security_Logging_and_Alerting_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Vocabulary_Cheat_Sheet.md
+- id: WEB-LOG-006
+  sheet: WEB
+  category: LOG
+  title: Make sure logs hold no credentials, tokens or protected personal data
+  objective: Find passwords, session IDs, tokens and card data in logs.
+  steps:
+  - Send requests with test passwords, tokens, card numbers and personal data.
+  - Search the log files and the log platform for these test values.
+  - Check that session tokens are hashed or masked, and that debug logs hold no secrets.
+  - Check that logging failures do not show debug data to users.
+  example: 'grep -rEn ''password=|Authorization: Bearer|[0-9]{13,16}'' /var/log/app/; trufflehog filesystem /var/log/app'
+  expected: Logs follow the rules for each data level. They hold no passwords, secrets, tokens or full card numbers.
+  severity: High
+  test_type:
+  - Manual
+  - Automated
+  level: ASVS L2
+  refs:
+    cheatsheet:
+    - Logging_Cheat_Sheet
+    asvs:
+    - V16.2.5
+    wstg:
+    - WSTG-CONF-02
+    owasp_top10:
+    - A09:2025
+    cwe:
+    - CWE-532
+    - CWE-779
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/02-Application_Platform_Configuration.md
+  - sources/repos/Top10/2025/docs/en/A09_2025-Security_Logging_and_Alerting_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+- id: WEB-LOG-007
+  sheet: WEB
+  category: LOG
+  title: Make sure all authentication events are logged
+  objective: Find login, logout, MFA and reset events that leave no log.
+  steps:
+  - Do a successful login, failed logins, a locked account and an MFA failure.
+  - Do a password reset and a password change.
+  - Read the logs for each event.
+  - Check for authentication type and factors in the entries.
+  example: grep -E 'authn_|login' /var/log/app/security.log
+  expected: All successful and failed authentication operations are logged with the method used.
+  severity: Medium
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    asvs:
+    - V16.3.1
+    owasp_top10:
+    - A09:2025
+    cheatsheet:
+    - Logging_Cheat_Sheet
+    - Logging_Vocabulary_Cheat_Sheet
+    cwe:
+    - CWE-778
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A09_2025-Security_Logging_and_Alerting_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Vocabulary_Cheat_Sheet.md
+- id: WEB-LOG-008
+  sheet: WEB
+  category: LOG
+  title: Make sure failed authorization events are logged
+  objective: Find access denials that leave no trace.
+  steps:
+  - Request another user's object and an admin function with a low-privilege account.
+  - Read the log for each denial.
+  - For L3, check that sensitive data access is logged without the data itself.
+  example: 'curl -si -H ''Cookie: session=LOW'' https://example.com/admin/users; tail -n 20 /var/log/app/security.log'
+  expected: Each failed authorization creates a log entry with user and resource.
+  severity: Medium
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    cheatsheet:
+    - Logging_Cheat_Sheet
+    asvs:
+    - V16.3.2
+    owasp_top10:
+    - A09:2025
+    cwe:
+    - CWE-778
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A09_2025-Security_Logging_and_Alerting_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+- id: WEB-LOG-009
+  sheet: WEB
+  category: LOG
+  title: Make sure security events and control bypass tries are logged
+  objective: Find attacks on validation, business logic and anti-automation that leave no log.
+  steps:
+  - Send invalid input, tampered tokens, out-of-order workflow steps and repeated rapid requests.
+  - Read the logs for each try.
+  - Check that the events in the security documentation are all logged.
+  - Check that the logs hold high-risk actions such as admin actions and data export.
+  example: zap-baseline.py -t https://example.com ; then count related entries in the security log
+  expected: Security events and tries to bypass controls are logged with enough context to start an investigation.
+  severity: Medium
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    cheatsheet:
+    - Logging_Cheat_Sheet
+    asvs:
+    - V16.3.3
+    owasp_top10:
+    - A09:2025
+    cwe:
+    - CWE-778
+    - CWE-223
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A09_2025-Security_Logging_and_Alerting_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+- id: WEB-LOG-010
+  sheet: WEB
+  category: LOG
+  title: Make sure unexpected errors and security control failures are logged
+  objective: Find errors and failed controls, such as backend TLS failures, that nobody sees.
+  steps:
+  - Force an unhandled error with bad input.
+  - Break a backend TLS connection in a test system.
+  - Read the log for both events.
+  - Check that the log has the cause but no secrets.
+  example: curl -s 'https://example.com/?id=%00' ; tail -n 20 /var/log/app/error.log
+  expected: Unexpected errors and control failures create log entries with the cause and without secrets.
+  severity: Medium
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    cheatsheet:
+    - Logging_Cheat_Sheet
+    asvs:
+    - V16.3.4
+    owasp_top10:
+    - A09:2025
+    - A10:2025
+    cwe:
+    - CWE-778
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A09_2025-Security_Logging_and_Alerting_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A10_2025-Mishandling_of_Exceptional_Conditions.md
+- id: WEB-LOG-011
+  sheet: WEB
+  category: LOG
+  title: Test log injection and make sure logging components encode data
+  objective: Find user input that can forge or break log lines.
+  steps:
+  - Send input with CRLF, JSON quotes, and log format fields in parameters, headers and user names.
+  - Read the log for forged lines or broken structure.
+  - Check that the log viewer escapes HTML and other control characters.
+  example: curl -s 'https://example.com/login' -d $'user=admin\r\n2026-01-01 INFO login success user=admin&pass=x'
+  expected: Logging encodes user input. An attacker cannot add or change log entries.
+  severity: Medium
+  test_type:
+  - Manual
+  level: ASVS L2
+  refs:
+    cheatsheet:
+    - Logging_Cheat_Sheet
+    asvs:
+    - V16.4.1
+    owasp_top10:
+    - A09:2025
+    cwe:
+    - CWE-117
+    capec:
+    - CAPEC-93
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A09_2025-Security_Logging_and_Alerting_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+- id: WEB-LOG-012
+  sheet: WEB
+  category: LOG
+  title: Make sure logs are protected from unauthorized access and change
+  objective: Find logs that unauthorised users can read, change or delete.
+  steps:
+  - Check file and storage permissions of the log files and log platform.
+  - Try to read, edit and delete a log entry with a normal service account.
+  - Check for append-only, write-once or hash chain protection.
+  - Check that web access to log files is blocked.
+  example: ls -l /var/log/app/; lsattr /var/log/app/*; curl -si https://example.com/logs/app.log
+  expected: Only authorized roles can read logs. Nobody can change them. Web access is blocked.
+  severity: High
+  test_type:
+  - Manual
+  - Config Review
+  level: ASVS L2
+  refs:
+    cheatsheet:
+    - Logging_Cheat_Sheet
+    asvs:
+    - V16.4.2
+    owasp_top10:
+    - A09:2025
+    cwe:
+    - CWE-532
+    - CWE-732
+    capec:
+    - CAPEC-81
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A09_2025-Security_Logging_and_Alerting_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+- id: WEB-LOG-013
+  sheet: WEB
+  category: LOG
+  title: Make sure logs are sent securely to a separate system
+  objective: Find logs that stay on the host an attacker can reach.
+  steps:
+  - Find the log shipping configuration.
+  - Check that the transport uses TLS and that the target is a separate system with other credentials.
+  - Delete a local log in a test system and check that the remote copy stays.
+  - Check that the pipeline gives alerts and escalation.
+  example: cat /etc/rsyslog.d/*.conf | grep -E '@@|tls'; filebeat test output
+  expected: Logs go over TLS to a logically separate system. Local tampering does not change the remote copy.
+  severity: Medium
+  test_type:
+  - Config Review
+  - Manual
+  level: ASVS L2
+  refs:
+    cheatsheet:
+    - Logging_Cheat_Sheet
+    asvs:
+    - V16.4.3
+    owasp_top10:
+    - A09:2025
+    cwe:
+    - CWE-778
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A09_2025-Security_Logging_and_Alerting_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md
+- id: WEB-LOG-014
+  sheet: WEB
+  category: LOG
+  title: Check that attacks create alerts and that responders get them
+  objective: Find monitoring that does not detect or escalate active attacks.
+  preconditions:
+  - Do not run on production without approval of the SOC.
+  steps:
+  - Run a scan with ZAP or Burp against the test system, or a series of failed logins.
+  - Look at whether alerts are created within the agreed time.
+  - Check that alerts reach the people who respond, with a playbook.
+  - Check the alert thresholds and the rate of false alarms.
+  - Check that honeytoken access creates an alert, if used.
+  example: hydra -l admin -P short.txt example.com http-post-form '/login:u=^USER^&p=^PASS^:F=invalid'; then check the SIEM
+  expected: Attacks and DAST scans create alerts. Responders receive them and follow a playbook.
+  severity: Medium
+  test_type:
+  - Manual
+  refs:
+    owasp_top10:
+    - A09:2025
+    cheatsheet:
+    - Logging_Cheat_Sheet
+    cwe:
+    - CWE-778
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.json
+  - sources/repos/Top10/2025/docs/en/A09_2025-Security_Logging_and_Alerting_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Logging_Cheat_Sheet.md

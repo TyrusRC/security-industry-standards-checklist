@@ -1,0 +1,107 @@
+- id: DESK-AUTHZ-001
+  sheet: DESK
+  category: AUTHZ
+  title: Check install folders and config files for weak permissions
+  objective: Finds files that low-privilege users can change.
+  steps:
+  - List the install folders and the data folders.
+  - Read the access rights with icacls or ls -l.
+  - Look for write rights for Users, Everyone or other.
+  - Try to change a config file and a binary as a normal user.
+  example: icacls "C:\Program Files\Vendor" /T; accesschk.exe -uwdqs Users; find / -perm -o+w on Linux.
+  expected: Only administrators can change program files. User data folders are readable only by the owner.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-276
+    - CWE-732
+    wstg:
+    - WSTG-CONF-09
+    desktop_top10:
+    - DA5
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/09-File_Permissions.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-AUTHZ-002
+  sheet: DESK
+  category: AUTHZ
+  title: Check the privilege level of the client and its services
+  objective: Finds processes that run as administrator, root or SYSTEM without need.
+  steps:
+  - List all processes and services that the product installs.
+  - Read the account of each process.
+  - Check for setuid or setgid bits on Linux binaries.
+  - Find which functions need elevation.
+  example: Process Explorer user column; sc qc service; find / -perm -4000 -user root.
+  expected: Each process runs with the lowest rights it needs. No binary has setuid or setgid without need.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-250
+    - CWE-269
+    cheatsheet:
+    - Secure_Product_Design_Cheat_Sheet
+    desktop_top10:
+    - DA5
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Secure_Product_Design_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-AUTHZ-003
+  sheet: DESK
+  category: AUTHZ
+  title: Check registry keys and settings that carry security decisions
+  objective: Finds registry values or policy files that a normal user can change to bypass controls.
+  steps:
+  - List the registry keys that the product reads and writes.
+  - Check the access rights of each key.
+  - Change a security setting as a normal user.
+  - Restart the product and look at the effect.
+  example: Procmon filter on Registry operations; accesschk.exe -kvuqsw HKLM\Software\Vendor.
+  expected: Only administrators can change security settings. A changed user-level value does not lower protection.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-732
+    - CWE-269
+    desktop_top10:
+    - DA5
+    - DA6
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-AUTHZ-004
+  sheet: DESK
+  category: AUTHZ
+  title: Test admin functions of the client for vertical privilege change
+  objective: Finds admin functions that the server allows for normal users.
+  steps:
+  - Log in as a normal user and as an admin.
+  - Record the API calls for admin functions.
+  - Replay them with the normal user token.
+  - Show hidden menu items with a UI inspection tool.
+  example: Burp Suite Autorize extension; Snoop or Inspect.exe for hidden controls.
+  expected: The server rejects admin calls from normal users. Hidden controls do not give access.
+  severity: High
+  test_type:
+  - Manual
+  refs:
+    cwe:
+    - CWE-862
+    - CWE-863
+    desktop_top10:
+    - DA5
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/cwe/cwec_latest.xml.zip

@@ -1,0 +1,35 @@
+- id: K8S-LAT-006
+  sheet: K8S
+  category: LAT
+  title: Find workloads that mount cloud credential files from the node
+  objective: Finds pods that can read cloud credentials stored on the node.
+  preconditions:
+  - Do not run on production.
+  steps:
+  - List hostPath volumes that point to cloud credential folders or files.
+  - Check the node for credential files of the cloud provider.
+  - From a test pod, try to read those paths.
+  - Replace the mounts with workload identity.
+  example: kubectl get pods -A -o json | jq -r ".items[] | select(.spec.volumes[]?.hostPath.path | tostring | test("azure|aws|gcloud|cloud")) | .metadata.name"
+  expected: No pod mounts cloud credential paths from the node. Workloads get short-lived credentials through workload identity.
+  severity: High
+  test_type: Config Review
+  refs:
+    k8s_top10:
+    - K08
+    cloud_native_top10:
+    - CNAS-5
+    cwe:
+    - CWE-798
+    attack:
+    - T1552.007
+    nist_800_53:
+    - AC-6
+    - IA-5
+    tool_check:
+    - kubescape:C-0020
+    other:
+    - NSA/CISA Kubernetes Hardening Guidance 1.2, section Network separation and hardening, Protecting sensitive cloud infrastructure
+  sources_read:
+  - sources/repos/regolibrary/controls/C-0020-mountserviceprincipal.json
+  - sources/nsa_k8s/nsa_k8s_hardening.md

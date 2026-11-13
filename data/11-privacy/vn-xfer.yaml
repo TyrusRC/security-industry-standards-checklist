@@ -1,0 +1,129 @@
+- id: PRIV-VNXFER-001
+  sheet: PRIV
+  category: VNXFER
+  title: Find all flows of data of Vietnamese citizens to other countries
+  objective: Finds cross-border flows that are not on record.
+  steps:
+  - List the systems, cloud regions and platforms that process data collected in Vietnam.
+  - Mark each system outside Vietnam, including remote access and remote support.
+  - Use traffic capture to find data sent to foreign hosts.
+  - Compare the result with the transfer register.
+  example: Use DNS and TLS SNI logs, cloud region settings and a proxy capture. Mark data of Vietnamese citizens by country code of the user.
+  expected: The transfer register lists every flow of data of Vietnamese citizens to a place outside Vietnam, including foreign platforms that process the data.
+  severity: High
+  test_type: &id003
+  - Manual
+  - Config Review
+  refs:
+    privacy_top10:
+    - P2
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 2
+    - Vietnam Decree 13/2023/ND-CP Art. 25
+    - Vietnam PDP Law 91/2025/QH15 Art. 20
+  sources_read: &id001
+  - sources/vn_law/13nd.ocr.txt
+  - sources/vn_law/91qh.ocr.txt
+  see:
+  - PRIV-XFER-001
+  - PRIV-XFER-003
+  notes: 'Decree Art. 2(14) and 25: transfer includes use of a system outside Vietnam. Law Art. 20(1): three cases (move stored data, give data to a foreign body, use a foreign platform). Neither source read requires data to stay in Vietnam; they require an impact assessment. Other laws on data location are not in the sources.'
+- id: PRIV-VNXFER-002
+  sheet: PRIV
+  category: VNXFER
+  title: Review the content of the cross-border transfer impact assessment
+  objective: Finds transfer assessments that miss required items.
+  steps:
+  - Get the transfer impact assessment dossier.
+  - Check the details and contacts of the exporter and the importer.
+  - Check the purpose, the data types, the safeguards and the risk assessment.
+  - Check the consent of the data subject and the complaint process.
+  - Check the written agreement between the exporter and the importer.
+  example: Use the six-item checklist from Decree Art. 25(2) as a table.
+  expected: The dossier has all required items, including the written agreement of the exporter and the importer and the consent with a complaint process.
+  severity: High
+  test_type: &id002
+  - Config Review
+  refs:
+    privacy_top10:
+    - P5
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 25
+    - Vietnam PDP Law 91/2025/QH15 Art. 20
+  sources_read: *id001
+  see:
+  - PRIV-XFER-002
+  - PRIV-GOV-002
+  notes: Decree Art. 25(2) lists items (a) to (h). Law Art. 20(7) leaves the content of the dossier to Government rules that are not in the sources read. The annex form is Mau so 06 of the Decree.
+- id: PRIV-VNXFER-003
+  sheet: PRIV
+  category: VNXFER
+  title: Check the filing of the transfer dossier and the update schedule
+  objective: Finds transfers that start with no filing or whose dossier is out of date.
+  steps:
+  - Find the date of the first transfer.
+  - Check that the authority received an original dossier within 60 days of that date.
+  - Check the update records after each change of the dossier content.
+  - Look for a notice to the authority after the first transfer.
+  example: 'Document review: filing receipt, dossier version history, change log.'
+  expected: The dossier is filed within 60 days of the first transfer and each change is filed. The dossier is always ready for inspection.
+  severity: Medium
+  test_type: *id002
+  refs:
+    privacy_top10:
+    - P3
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 25
+    - Vietnam PDP Law 91/2025/QH15 Art. 20
+    - Vietnam PDP Law 91/2025/QH15 Art. 22
+  sources_read: *id001
+  see:
+  - PRIV-GOV-002
+  notes: 'Decree Art. 25(3), 25(4), 25(6): file within 60 days, tell the authority after the transfer, update on change (Mau so 05). Law Art. 20(2), 20(3), 22: file within 60 days of the first transfer, assess once for the life of the entity, update every 6 months on change and at once for the cases in Art. 22(2). Law Art. 20(6) lists exemptions, for example employee data in the cloud. Law Art. 39(2) keeps old filings valid.'
+- id: PRIV-VNXFER-004
+  sheet: PRIV
+  category: VNXFER
+  title: Check that the service can stop a transfer on order
+  objective: Finds transfers that the operator cannot stop quickly when the authority orders it.
+  steps:
+  - Find the technical controls that start and stop each transfer.
+  - Ask who can stop the transfer and how long it takes.
+  - Try the stop on a test flow in the test environment.
+  - Check that the operator keeps contact details for the authority and the responsible person.
+  example: 'Run the stop in the test environment: disable the export job, revoke the key or block the egress rule.'
+  expected: The operator can stop each cross-border transfer quickly on order and knows who does it.
+  severity: Medium
+  test_type: *id003
+  refs:
+    privacy_top10:
+    - P2
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 25
+    - Vietnam PDP Law 91/2025/QH15 Art. 20
+  sources_read: *id001
+  notes: 'Decree Art. 25(8): the Ministry of Public Security orders a stop for harm to national security, non-compliance or a leak. Law Art. 20(5): stop order for harm to national defence and security. Decree Art. 25(7) and Law Art. 20(4): yearly inspection or inspection after an incident.'
+- id: PRIV-VNXFER-005
+  sheet: PRIV
+  category: VNXFER
+  title: Check the cloud and platform settings for data of Vietnamese citizens
+  objective: Finds cloud and SaaS tenants that send data abroad with no assessment.
+  steps:
+  - List the cloud and SaaS tenants that hold data of Vietnamese citizens.
+  - Read the region and replication settings.
+  - Check support access and logging exports.
+  - Match each setting to the transfer dossier.
+  example: Cloud console region view, replication rules, log export targets.
+  expected: Each tenant setting matches the transfer dossier. No replica or log copy leaves the stated location.
+  severity: Medium
+  test_type: *id002
+  refs:
+    privacy_top10:
+    - P2
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 2
+    - Vietnam Decree 13/2023/ND-CP Art. 25
+    - Vietnam PDP Law 91/2025/QH15 Art. 20
+  sources_read: *id001
+  see:
+  - PRIV-XFER-003
+  notes: 'Law Art. 20(1)(c): use of a platform outside Vietnam to process data collected in Vietnam is a transfer. Law Art. 20(6)(b) exempts storage of employee data in the cloud by the employer.'

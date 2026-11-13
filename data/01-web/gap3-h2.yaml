@@ -1,0 +1,79 @@
+- id: WEB-H2-001
+  sheet: WEB
+  category: H2
+  title: Test HTTP/2 frame floods, header size limits and CONNECT load
+  objective: Find an HTTP/2 server or proxy that a peer can overload with many small frames, large header blocks or CONNECT streams.
+  preconditions:
+  - A test server with the same version and settings as production. Do not run on production.
+  - An HTTP/2 test client that can send raw frames, such as nghttp2 or h2load.
+  steps:
+  - Read the server settings for the number of concurrent streams, the header list size and the idle timeout.
+  - Send many PING frames. Look for a connection error such as ENHANCE_YOUR_CALM, or a rate limit.
+  - Send many SETTINGS frames, empty frames and tiny WINDOW_UPDATE frames. Watch CPU and memory use.
+  - Send many invalid requests so that the server answers with many RST_STREAM frames. Look for a limit on this.
+  - Send many PRIORITY frames. Look for a limit on this.
+  - Send a header block larger than SETTINGS_MAX_HEADER_LIST_SIZE. Make sure the server answers with 431 or closes the connection.
+  - On a proxy, open many CONNECT streams. Make sure a separate limit stops them.
+  example: 'h2load -n 100000 -c 10 -m 100 https://test-target/; nghttp -v https://test-target/; custom script that sends 100000 PING frames; curl -v --http2 -H "X-Big: $(head -c 70000 /dev/zero | tr \\0 a)" https://test-target/'
+  expected: The server tracks unusual frame use and limits it, closes abusive connections, returns 431 for oversize headers, and keeps normal clients responsive.
+  severity: Medium
+  test_type:
+  - Automated
+  - Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A02:2025
+    asvs:
+    - V15.2.2
+    cwe:
+    - CWE-400
+    - CWE-770
+    capec:
+    - CAPEC-125
+    other:
+    - 'RFC 9113 section 10.5: https://www.rfc-editor.org/rfc/rfc9113#section-10.5'
+  see:
+  - WEB-HTTP-005
+  - NET-DOS-002
+  sources_read:
+  - sources/extra/gap3-A/rfc9113.txt
+- id: WEB-H2-002
+  sheet: WEB
+  category: H2
+  title: Test HTTP/3 limits for unknown elements, field sections and push
+  objective: Find an HTTP/3 server that a peer can overload with unknown frames, large field sections or too many push IDs.
+  preconditions:
+  - A test server with HTTP/3 and the production settings. Do not run on production.
+  - A QUIC test client that can send raw HTTP/3 frames.
+  steps:
+  - Read the server settings for QUIC stream limits and SETTINGS_MAX_FIELD_SECTION_SIZE.
+  - Send many unknown frame types and unknown stream types. Look for a limit or an H3_EXCESSIVE_LOAD close.
+  - Send a SETTINGS frame with many undefined parameters. Look for a limit.
+  - Send a field section larger than the limit. Make sure the server answers with 431 or rejects the request.
+  - If the server uses server push, check the limit on the number of push IDs.
+  - On a proxy, open many CONNECT streams. Make sure a separate limit stops them.
+  - Watch CPU and memory use. Make sure normal requests stay fast.
+  example: curl -v --http3 https://test-target/; h2load --npn-list h3 -n 50000 -c 10 https://test-target/; quiche or aioquic client script for unknown frame types
+  expected: The server limits unknown elements, field sections and push IDs, closes abusive connections with an error code, and keeps normal clients responsive.
+  severity: Medium
+  test_type:
+  - Automated
+  - Manual
+  level: ASVS L2
+  refs:
+    owasp_top10:
+    - A02:2025
+    asvs:
+    - V15.2.2
+    cwe:
+    - CWE-400
+    - CWE-770
+    capec:
+    - CAPEC-125
+    other:
+    - 'RFC 9114 section 10.5: https://www.rfc-editor.org/rfc/rfc9114#section-10.5'
+  see:
+  - WEB-HTTP-005
+  sources_read:
+  - sources/extra/gap3-A/rfc9114.txt

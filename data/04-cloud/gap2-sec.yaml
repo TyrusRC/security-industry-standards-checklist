@@ -1,0 +1,43 @@
+- id: CLD-SEC-006
+  sheet: CLD
+  category: SEC
+  title: Check KMS key use, deletion state, multi-region keys and enclave attestation
+  objective: Finds unused keys, keys set for deletion and keys with weak attestation conditions.
+  steps:
+  - List all keys with state and last use.
+  - Find unused keys and keys pending deletion.
+  - Find multi-region keys and the reason for each.
+  - Read key policies for attestation conditions.
+  - Check that debug mode enclaves cannot use the key.
+  example: aws kms list-keys; aws kms describe-key --key-id <k>; aws kms get-key-policy --key-id <k> --policy-name default; aws kms list-grants --key-id <k>; prowler aws --services kms
+  expected: Unused keys are removed after review. No key is set for deletion without approval. Key policies need attestation and block debug enclaves.
+  severity: Medium
+  test_type: Config Review
+  refs:
+    cloud_native_top10:
+    - CNAS-5
+    tool_check:
+    - prowler:aws:kms_cmk_are_used
+    - prowler:aws:kms_cmk_not_deleted_unintentionally
+    - prowler:aws:kms_cmk_not_multi_region
+    - prowler:aws:kms_key_enclave_attestation_bypassable_path
+    - prowler:aws:kms_key_enclave_attestation_no_deployment_binding
+    - prowler:aws:kms_key_enclave_attestation_not_enforced
+    - prowler:aws:kms_key_enclave_attestation_pcr_mismatch
+    - prowler:aws:kms_key_enclave_attestation_unknown_image
+    - prowler:aws:kms_key_enclave_debug_attestation_detected
+    cwe:
+    - CWE-311
+    attack:
+    - T1485
+    - T1553
+    nist_800_53:
+    - SC-12
+    - SC-28
+    other:
+    - Microsoft cloud security benchmark v1 DP-6
+    - Microsoft cloud security benchmark v1 DP-8
+  sources_read:
+  - sources/repos/prowler/prowler/providers/aws/services/kms/kms_cmk_are_used/kms_cmk_are_used.metadata.json
+  - sources/repos/prowler/prowler/providers/aws/services/kms/kms_key_enclave_debug_attestation_detected/kms_key_enclave_debug_attestation_detected.metadata.json
+  - sources/repos/SecurityBenchmarks/Microsoft Cloud Security Benchmark/Microsoft_cloud_security_benchmark_v1.xlsx

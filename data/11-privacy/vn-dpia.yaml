@@ -1,0 +1,79 @@
+- id: PRIV-VNDPIA-001
+  sheet: PRIV
+  category: VNDPIA
+  title: Review the controller dossier for the impact of processing
+  objective: Finds dossiers with missing items or no dossier.
+  steps:
+  - Get the dossier of the controller.
+  - Check the details of the controller and the data protection staff.
+  - Check the purpose, data types, recipients (also foreign ones), transfers and the storage period.
+  - Check the description of the safeguards and the impact assessment with the risk reduction steps.
+  - Check that a legal document holds the dossier.
+  example: Use the nine items of Decree Art. 24(1) as a table. Compare the dossier with the real data flows.
+  expected: The dossier exists from the first day of processing and holds all required items. It matches the real data flows.
+  severity: High
+  test_type: &id001
+  - Config Review
+  refs:
+    privacy_top10:
+    - P5
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 24
+    - Vietnam PDP Law 91/2025/QH15 Art. 21
+  sources_read: &id002
+  - sources/vn_law/13nd.ocr.txt
+  - sources/vn_law/91qh.ocr.txt
+  see:
+  - PRIV-GOV-002
+  - PRIV-GOV-001
+  notes: 'Decree Art. 24(1): items (a) to (i), from the start of processing. Law Art. 21(1): create and store the dossier; the content comes from Government rules not in the sources read. State bodies are exempt (Law Art. 21(6)). Small and micro firms may be exempt, except where they process sensitive or large volumes of data (Law Art. 38).'
+- id: PRIV-VNDPIA-002
+  sheet: PRIV
+  category: VNDPIA
+  title: Review the processor dossier for contracted processing
+  objective: Finds processors that keep no impact dossier of their own.
+  steps:
+  - Get the dossier of each processor.
+  - Check the contact details of the processor and its staff.
+  - Check the description of processing and data types in the contract.
+  - Check the storage period, transfers, safeguards and the risk list.
+  example: Document review of the processor dossier against the processor contract.
+  expected: Each processor keeps a dossier that matches the contract and lists safeguards and risks.
+  severity: Medium
+  test_type: *id001
+  refs:
+    privacy_top10:
+    - P2
+    - P5
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 24
+    - Vietnam PDP Law 91/2025/QH15 Art. 21
+  sources_read: *id002
+  see:
+  - PRIV-SHARE-003
+  notes: 'Decree Art. 24(2): items (a) to (g). Law Art. 21(3): the processor keeps a dossier as agreed with the controller.'
+- id: PRIV-VNDPIA-003
+  sheet: PRIV
+  category: VNDPIA
+  title: Check the 60-day filing and the updates of the dossier
+  objective: Finds dossiers that were not filed or that are out of date.
+  steps:
+  - Find the date of the first processing.
+  - Check the filing receipt for an original dossier within 60 days.
+  - Compare the dossier with the current system and vendors.
+  - Check the change notices and the review dates.
+  example: 'Document review: filing receipt, change notices, system change log. Law: update every 6 months on change.'
+  expected: The dossier is filed in 60 days and updated when the system or business changes. The date of the last review is on record.
+  severity: Medium
+  test_type: *id001
+  refs:
+    privacy_top10:
+    - P3
+    other:
+    - Vietnam Decree 13/2023/ND-CP Art. 24
+    - Vietnam PDP Law 91/2025/QH15 Art. 21
+    - Vietnam PDP Law 91/2025/QH15 Art. 22
+  sources_read: *id002
+  see:
+  - PRIV-GOV-002
+  notes: 'Decree Art. 24(4), 24(6): file in 60 days and update on change with Mau so 04 and 05. Law Art. 21(1), 21(5), 22: file in 60 days, update every 6 months on change, and at once for the cases in Art. 22(2). Decree Art. 24(5) and Law Art. 21(4): the authority can ask for corrections.'

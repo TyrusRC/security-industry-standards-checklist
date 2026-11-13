@@ -1,0 +1,162 @@
+- id: DESK-INJ-001
+  sheet: DESK
+  category: INJ
+  title: Test client input fields for SQL injection
+  objective: Finds queries that the client builds from user input.
+  steps:
+  - List all input fields and file imports that reach a database.
+  - Capture the database traffic or turn on the query log.
+  - Send a single quote and a boolean test value in each field.
+  - Compare the query text with the input.
+  example: Procmon or Wireshark on the database port; database general query log; sqlmap only against in-scope back ends.
+  expected: The client uses parameterized queries. Special characters in input never change the query structure.
+  severity: High
+  test_type:
+  - Manual
+  - Automated
+  refs:
+    cwe:
+    - CWE-89
+    cheatsheet:
+    - DotNet_Security_Cheat_Sheet
+    asvs:
+    - V1.2.5
+    desktop_top10:
+    - DA1
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/DotNet_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Java_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-INJ-002
+  sheet: DESK
+  category: INJ
+  title: Find OS command execution that uses user input
+  objective: Finds calls to a shell or a process with input that the user controls.
+  steps:
+  - Search the code or decompiled code for process start calls.
+  - Trace each call to its input source.
+  - Send shell separators in the matching fields on a test system.
+  - Watch child processes with Process Monitor.
+  example: 'ILSpy or dnSpy: search for Process.Start and ProcessStartInfo; Procmon filter on Process Create.'
+  expected: The client starts programs with a fixed path and separate arguments. No user value reaches a command interpreter.
+  severity: Critical
+  test_type:
+  - Code Review
+  - Manual
+  refs:
+    cwe:
+    - CWE-78
+    - CWE-77
+    cheatsheet:
+    - OS_Command_Injection_Defense_Cheat_Sheet
+    - DotNet_Security_Cheat_Sheet
+    asvs:
+    - V1.2.5
+    desktop_top10:
+    - DA1
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/OS_Command_Injection_Defense_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/DotNet_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-INJ-003
+  sheet: DESK
+  category: INJ
+  title: Check XML and import file parsers for external entities
+  objective: Finds parsers that resolve external entities in untrusted files.
+  steps:
+  - List the file types and XML settings that the client reads.
+  - Search the code for the parser settings.
+  - Open a test file with an external entity that points to a canary file.
+  - Look for an outbound request or a file read.
+  example: Canary file with a unique string; Procmon to watch file reads by the client process.
+  expected: The parser turns off DTD and external entity resolution. Untrusted files cause an error and no file or network access.
+  severity: High
+  test_type:
+  - Manual
+  - Code Review
+  refs:
+    cwe:
+    - CWE-611
+    cheatsheet:
+    - XML_External_Entity_Prevention_Cheat_Sheet
+    - DotNet_Security_Cheat_Sheet
+    desktop_top10:
+    - DA1
+    - DA6
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/DotNet_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-INJ-004
+  sheet: DESK
+  category: INJ
+  title: Check embedded HTML views for script injection
+  objective: Finds web views and mail views that run script from untrusted content.
+  steps:
+  - Find the components that render HTML.
+  - Load content with a harmless script marker in a test record.
+  - Check if the marker runs.
+  - Read the web view settings for script and file access.
+  example: Marker that only changes the page title; Electron or WebView2 settings review for nodeIntegration and contextIsolation.
+  expected: Untrusted HTML is encoded or sanitized. The view runs no script and has no access to local files or system APIs.
+  severity: High
+  test_type:
+  - Manual
+  - Code Review
+  refs:
+    cwe:
+    - CWE-79
+    cheatsheet:
+    - DotNet_Security_Cheat_Sheet
+    - JavaScript_and_TypeScript_Security_Cheat_Sheet
+    desktop_top10:
+    - DA1
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/DotNet_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/JavaScript_and_TypeScript_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip
+- id: DESK-INJ-005
+  sheet: DESK
+  category: INJ
+  title: Check deserialization of files, messages and update data
+  objective: Finds unsafe serializers that read data an attacker can change.
+  steps:
+  - Search the code for BinaryFormatter, ObjectInputStream and type name settings.
+  - Find the data source of each call.
+  - Look for serialized blobs in files and traffic.
+  - Check the type allowlist or the signature check.
+  example: ILSpy search for BinaryFormatter and TypeNameHandling; look for the Base64 prefix AAEAAAD///// in saved files.
+  expected: The client uses a data-only format such as JSON. It does not read objects whose type comes from the data stream.
+  severity: Critical
+  test_type:
+  - Code Review
+  - Manual
+  refs:
+    cwe:
+    - CWE-502
+    cheatsheet:
+    - Deserialization_Cheat_Sheet
+    - DotNet_Security_Cheat_Sheet
+    - Java_Security_Cheat_Sheet
+    asvs:
+    - V1.5.2
+    desktop_top10:
+    - DA1
+    - DA8
+  see:
+  - WEB-DEP-006
+  sources_read:
+  - sources/repos/www-project-desktop-app-security-top-10/tab_detaileddescription.md
+  - sources/repos/www-project-desktop-app-security-top-10/index.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Deserialization_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/DotNet_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Java_Security_Cheat_Sheet.md
+  - sources/cwe/cwec_latest.xml.zip

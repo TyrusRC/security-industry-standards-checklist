@@ -1,0 +1,215 @@
+- id: CICD-VULN-001
+  sheet: CICD
+  category: VULN
+  title: Check the dependency vulnerability scan gate in the pipeline
+  objective: Finds pipelines that build and ship components with known vulnerabilities without a gate.
+  preconditions:
+  - Use a test branch.
+  steps:
+  - Find the SCA or vulnerability scan step in the pipeline.
+  - Make sure it scans direct and transitive dependencies.
+  - Make sure the step fails the build above the defined severity.
+  - Add a known vulnerable test dependency on a test branch and run the pipeline.
+  example: trivy fs --scanners vuln --severity HIGH,CRITICAL --exit-code 1 .; grype dir:. --fail-on high; osv-scanner -r .
+  expected: The pipeline scans all dependencies on every build. The build fails when a finding exceeds the allowed severity.
+  severity: High
+  test_type: &id001
+  - Config Review
+  - Automated
+  refs:
+    owasp_top10:
+    - A03:2025
+    cheatsheet:
+    - Vulnerable_Dependency_Management_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    - NPM_Security_Cheat_Sheet
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-1395
+    nist_800_53:
+    - RA-5
+    other:
+    - SSDF PW.4.4
+    - SSDF RV.1.1
+  sources_read:
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Vulnerable_Dependency_Management_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/NPM_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+  see:
+  - WEB-DEP-001
+  - WEB-DEP-003
+- id: CICD-VULN-002
+  sheet: CICD
+  category: VULN
+  title: Check scanning of the final build output and container images
+  objective: Finds images and binaries that contain vulnerable or unauthorized components after the build.
+  preconditions:
+  - Read access to the artifact registry.
+  steps:
+  - Find the image or binary that the pipeline publishes.
+  - Scan the final output, not only the source.
+  - Make sure the scan covers OS packages and bundled libraries.
+  - Lint the Dockerfile for a USER directive and pinned base images.
+  example: trivy image --severity HIGH,CRITICAL IMAGE@sha256:DIGEST; grype IMAGE@sha256:DIGEST; hadolint Dockerfile
+  expected: The pipeline scans the final image or binary before release. Findings above the limit block the release.
+  severity: High
+  test_type: *id001
+  refs:
+    owasp_top10:
+    - A03:2025
+    cheatsheet:
+    - Docker_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-1395
+    nist_800_53:
+    - RA-5
+    other:
+    - SSDF PW.4.4
+  sources_read:
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Docker_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+- id: CICD-VULN-003
+  sheet: CICD
+  category: VULN
+  title: Check ongoing monitoring of deployed releases for new advisories
+  objective: Finds released software that nobody re-checks when a new advisory appears.
+  preconditions:
+  - Read access to the SBOM store.
+  steps:
+  - Find where the release SBOMs are stored and how they map to deployed systems.
+  - Make sure a job scans these SBOMs again on a schedule.
+  - Look for alert subscriptions to advisory sources for the components in use.
+  - Check that a new finding creates a ticket with an owner.
+  example: 'grype sbom:sbom.cdx.json --fail-on high; osv-scanner --sbom=sbom.cdx.json; dependency-track API: GET /api/v1/finding/project/UUID'
+  expected: Deployed releases are re-checked against advisories on a schedule. New findings create a ticket with an owner and a due date.
+  severity: Medium
+  test_type: &id002
+  - Manual
+  - Config Review
+  refs:
+    owasp_top10:
+    - A03:2025
+    cheatsheet:
+    - Dependency_Graph_SBOM_Cheat_Sheet
+    - Vulnerable_Dependency_Management_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-1395
+    - CWE-1104
+    nist_800_53:
+    - RA-5
+    other:
+    - SSDF RV.1.1
+  sources_read:
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Dependency_Graph_SBOM_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Vulnerable_Dependency_Management_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+- id: CICD-VULN-004
+  sheet: CICD
+  category: VULN
+  title: Review temporary mitigations and virtual patches for vulnerable components
+  objective: Finds vulnerabilities that stay open behind a mitigation that nobody tests or removes.
+  preconditions:
+  - Do not run bypass tests on production.
+  steps:
+  - List the vulnerable components that have a temporary mitigation, wrapper or virtual patch.
+  - Make sure each one links to a CVE, an owner and an end date.
+  - Test the mitigation with alternate inputs on a test system.
+  - Make sure the scanner suppression covers only that CVE.
+  example: grep -rn 'ignore\|suppress' .trivyignore .grype.yaml dependency-check-suppressions.xml; git log --since=180.days -- .trivyignore
+  expected: Each mitigation has a CVE, an owner and an end date. Tests show it blocks alternate inputs. A suppression covers only its CVE.
+  severity: Medium
+  test_type: *id002
+  refs:
+    owasp_top10:
+    - A03:2025
+    cheatsheet:
+    - Virtual_Patching_Cheat_Sheet
+    - Vulnerable_Dependency_Management_Cheat_Sheet
+    cwe:
+    - CWE-1395
+    - CWE-1329
+    other:
+    - SSDF RV.2.2
+  sources_read:
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Virtual_Patching_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Vulnerable_Dependency_Management_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+- id: CICD-VULN-005
+  sheet: CICD
+  category: VULN
+  title: Check that the pipeline scans infrastructure as code
+  objective: Finds infrastructure code that reaches production without a misconfiguration scan.
+  preconditions:
+  - Read access to the IaC repository.
+  steps:
+  - Find the IaC repositories and the pipeline steps that apply them.
+  - Make sure a static IaC scan runs on each pull request.
+  - Make sure the scan fails the change above the defined severity.
+  - Make sure IaC changes follow the same review rules as application code.
+  example: trivy config --severity HIGH,CRITICAL --exit-code 1 .; checkov -d . --quiet; tflint
+  expected: A static IaC scan runs on every change and blocks serious findings. IaC changes need pull request review.
+  severity: Medium
+  test_type: *id001
+  refs:
+    owasp_top10:
+    - A03:2025
+    cheatsheet:
+    - Infrastructure_as_Code_Security_Cheat_Sheet
+    - CI_CD_Security_Cheat_Sheet
+    cwe:
+    - CWE-1188
+    nist_800_53:
+    - CM-6
+    - SA-15
+    other:
+    - SSDF PW.7.1
+  sources_read:
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Infrastructure_as_Code_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt
+- id: CICD-VULN-006
+  sheet: CICD
+  category: VULN
+  title: Check static code analysis and secret scan steps in the pipeline
+  objective: Finds pipelines that build custom code without any automated code analysis.
+  preconditions:
+  - Read access to the repository.
+  steps:
+  - Find the SAST and secret scan steps in the pipeline.
+  - Make sure they run on every pull request and on the default branch.
+  - Make sure the findings block the merge above the defined severity.
+  - Make sure the rules and tools are updated on a schedule.
+  example: semgrep scan --config auto --error --severity ERROR .; gitleaks detect --redact
+  expected: Static analysis and secret scan run on each pull request. Serious findings block the merge. Rules are kept current.
+  severity: Medium
+  test_type: *id001
+  refs:
+    owasp_top10:
+    - A03:2025
+    cheatsheet:
+    - CI_CD_Security_Cheat_Sheet
+    - Software_Supply_Chain_Security_Cheat_Sheet
+    cwe:
+    - CWE-693
+    nist_800_53:
+    - SA-15
+    other:
+    - SSDF PW.7.1
+  sources_read:
+  - sources/repos/Top10/2025/docs/en/A03_2025-Software_Supply_Chain_Failures.md
+  - sources/repos/CheatSheetSeries/cheatsheets/CI_CD_Security_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.md
+  - sources/nist_ssdf/ssdf.txt

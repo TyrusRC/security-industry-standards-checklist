@@ -1,0 +1,187 @@
+- id: WEB-IDM-001
+  sheet: WEB
+  category: IDM
+  title: Identify roles and try to switch to another role
+  objective: Finds role definitions that a user can change or guess, and roles with too many permissions.
+  preconditions:
+  - Accounts for each role.
+  - Burp Suite with the Autorize extension, or ZAP Access Control Testing add-on.
+  steps:
+  - Find all roles from documentation, developers, page comments and the JavaScript source.
+  - Look for role values in cookies, hidden fields, JWT claims and account variables.
+  - Change the role value in a request from a low-privilege account.
+  - Request /admin, /mod and /backups paths with the low-privilege account.
+  - Compare the permissions of each role with the needs of that role.
+  example: 'Burp Repeater: change ''Cookie: role=user'' to ''role=admin'' or ''isAdmin=True''; also run Autorize with the low-privilege session cookie while you browse as admin.'
+  expected: The server ignores client-supplied role values. A low-privilege user cannot reach another role. No role has more permissions than it needs, and sensitive admin actions need MFA or a second approver.
+  severity: High
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-IDNT-01
+    cheatsheet:
+    - Authorization_Cheat_Sheet
+    cwe:
+    - CWE-269
+    - CWE-266
+    - CWE-639
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/03-Identity_Management/01-Role_Definitions.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authorization_Cheat_Sheet.md
+- id: WEB-IDM-002
+  sheet: WEB
+  category: IDM
+  title: Check identity requirements and abuse of the registration process
+  objective: Finds registration flows that grant access or privileged roles without proper identity checks.
+  preconditions:
+  - Do not run on production unless the owner allows new accounts.
+  steps:
+  - Register an account and list the identity data that the application asks for.
+  - Register the same person twice with different email addresses.
+  - Try to register for a role or permission that is not meant for public users.
+  - Register with an email address in a trusted domain that you do not control.
+  - Register with a look-alike domain such as notexample.org and examine the granted role.
+  - Change the identity data in the registration request with a proxy and send it again.
+  example: POST /register with email=attacker@notexample.org and role=admin in Burp Repeater; compare the account role after the confirmation step.
+  expected: Identity requirements match the sensitivity of the data. The application checks ownership of the email address before it grants any role. Look-alike domains and forged identity data are rejected.
+  severity: Medium
+  test_type: Manual
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-IDNT-02
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-287
+    - CWE-290
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/03-Identity_Management/02-User_Registration_Process.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-IDM-003
+  sheet: WEB
+  category: IDM
+  title: Check who can provision and de-provision accounts
+  objective: Finds provisioning flows that let a user create accounts with more privilege than their own.
+  preconditions:
+  - One account for each role that can manage users.
+  steps:
+  - List the roles that can create or delete accounts.
+  - As an administrator, create a new administrator and a user with higher privileges than your own.
+  - As a non-administrator, send the same create-account request.
+  - Try to de-provision your own account and another user's account.
+  - Look at what happens to the files and data of a removed user.
+  example: POST /admin/addUser (userID=fakeuser&role=3&group=grp001) with a non-admin session cookie in Burp Repeater.
+  expected: Only authorized roles can provision accounts. No user can create an account with more privilege than their own. De-provisioning needs authorization, and owned data is deleted or transferred by rule.
+  severity: High
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-IDNT-03
+    cheatsheet:
+    - Authorization_Cheat_Sheet
+    cwe:
+    - CWE-269
+    - CWE-266
+    - CWE-862
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/03-Identity_Management/03-Account_Provisioning_Process.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authorization_Cheat_Sheet.md
+- id: WEB-IDM-004
+  sheet: WEB
+  category: IDM
+  title: Look for account enumeration in login and registration
+  objective: Finds different messages, status codes, titles, redirects or timing that reveal valid user names.
+  preconditions:
+  - Wordlist of user names.
+  - Account lockout may trigger. Do not run on production.
+  steps:
+  - Send a login with a valid user and a wrong password. Record the status, length, title and time.
+  - Send a login with an unknown user. Compare the response with the first one.
+  - Send a login with a valid user and an empty password.
+  - Register with a user name or email address that already exists. Compare the message with a new one.
+  - Look at the URL and redirect parameters for error codes that change with the user.
+  - Send 20 requests for each case and compare the average response time.
+  example: ffuf -w users.txt -X POST -d 'username=FUZZ&password=x' -u https://target/login -mc all -fs <size of generic response> ; compare response times in Burp Intruder.
+  expected: Every failed login gives the same message, status code, length and a similar time. Registration does not show whether an email address or user name exists.
+  severity: Medium
+  test_type: Manual
+  level: ASVS L3
+  refs:
+    owasp_top10:
+    - A07:2025
+    wstg:
+    - WSTG-IDNT-04
+    - WSTG-IDNT-05
+    asvs:
+    - V6.3.8
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-204
+    - CWE-203
+    - CWE-208
+    - CWE-209
+  sources_read:
+  - sources/asvs5/OWASP_Application_Security_Verification_Standard_5.0.0_en.flat.json
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/03-Identity_Management/04-Account_Enumeration_and_Guessable_User_Account.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/03-Identity_Management/05-Weak_or_Unenforced_Username_Policy.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+  - sources/repos/Top10/2025/docs/en/A07_2025-Authentication_Failures.md
+- id: WEB-IDM-005
+  sheet: WEB
+  category: IDM
+  title: Try to register or rename to a reserved user name
+  objective: Finds registration and profile pages that allow staff impersonation with names such as admin.
+  steps:
+  - Register as a new user with the name admin. Read the response.
+  - Repeat with administrator, moderator, Admin and ADMIN.
+  - Log in as a normal user and open the profile edit page.
+  - Change the user name to each reserved name and save.
+  example: POST /register username=AdMiN in Burp Repeater; then POST /profile/update username=administrator with a normal session.
+  expected: The application rejects every reserved name and every case variant, both at registration and at profile change.
+  severity: Low
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-IDNT-04
+    - WSTG-IDNT-05
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    cwe:
+    - CWE-290
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/03-Identity_Management/04-Account_Enumeration_and_Guessable_User_Account.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/03-Identity_Management/05-Weak_or_Unenforced_Username_Policy.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+- id: WEB-IDM-006
+  sheet: WEB
+  category: IDM
+  title: Check that user names and user IDs are not predictable
+  objective: Finds sequential or pattern-based user names that make guessing and credential stuffing easier.
+  steps:
+  - Collect user names or IDs from five new accounts and from public pages.
+  - Look for patterns such as sequential numbers or first initial plus last name.
+  - Generate five names from the pattern. Check if the application accepts them as valid.
+  - Check if user IDs are random and not linked to a card number or real name.
+  example: for i in $(seq 100 120); do curl -s -o /dev/null -w '%{http_code} CN000$i\n' https://target/profile/CN000$i; done
+  expected: User IDs are random and not guessable from a pattern. Generated names do not reveal valid accounts.
+  severity: Low
+  test_type: Manual
+  refs:
+    wstg:
+    - WSTG-IDNT-04
+    - WSTG-IDNT-05
+    cheatsheet:
+    - Authentication_Cheat_Sheet
+    - Credential_Stuffing_Prevention_Cheat_Sheet
+    cwe:
+    - CWE-330
+    - CWE-340
+  sources_read:
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/03-Identity_Management/04-Account_Enumeration_and_Guessable_User_Account.md
+  - sources/repos/wstg/document/4-Web_Application_Security_Testing/03-Identity_Management/05-Weak_or_Unenforced_Username_Policy.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Authentication_Cheat_Sheet.md
+  - sources/repos/CheatSheetSeries/cheatsheets/Credential_Stuffing_Prevention_Cheat_Sheet.md
